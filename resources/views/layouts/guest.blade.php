@@ -20,21 +20,23 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+
     <!--     Fonts and icons     -->
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
 
     <!-- Nucleo Icons -->
-    <link href="https://demos.creative-tim.com/argon-dashboard-pro/assets/css/nucleo-icons.css" rel="stylesheet" />
-    <link href="https://demos.creative-tim.com/argon-dashboard-pro/assets/css/nucleo-svg.css" rel="stylesheet" />
+    <link href="{{ asset('assets/css/nucleo-icons.css') }}" rel="stylesheet" />
+    <link href="{{ asset('assets/css/nucleo-svg.css') }}" rel="stylesheet" />
 
     <!-- Font Awesome Icons -->
     <script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script>
 
     <!-- CSS Files -->
     <link id="pagestyle" href="{{ asset('assets/css/argon-dashboard.css') }}" rel="stylesheet" />
+    <link rel="stylesheet" id="pagestyle" href="{{ asset('assets/css/style.css') }}" />
 
     <!-- Scripts -->
-    {{-- @vite(['resources/css/app.css', 'resources/js/app.js']) --}}
 </head>
 
 <body class="">
@@ -48,7 +50,7 @@
                                 class="mb-3 d-flex mx-auto rounded-circle">
                             <div class="card card-plain">
                                 <div class="card-header pb-0 text-start">
-                                    <h4 class="font-weight-bolder mb-2"">Sign In</h4>
+                                    <h4 class="font-weight-bolder"">Login</h4>
                                     <p class="mb-0">Masukkan email dan kata sandi Anda untuk masuk</p>
                                 </div>
                                 <div class="card-body">
@@ -57,15 +59,16 @@
                             </div>
                             <div
                                 class="col-6 d-lg-flex d-none h-100 my-auto pe-0 position-absolute top-0 end-0 text-center justify-content-center flex-column">
-                                <div class="position-relative bg-gradient-primary h-100 m-3 px-7 border-radius-lg d-flex flex-column justify-content-center overflow-hidden"
-                                    style="background-image: url('https://raw.githubusercontent.com/creativetimofficial/public-assets/master/argon-dashboard-pro/assets/img/signin-ill.jpg');
-              background-size: cover;">
-                                    <span class="mask bg-gradient-primary opacity-6"></span>
-                                    <h4 class="mt-5 text-white font-weight-bolder position-relative">"Attention is the
-                                        new currency"</h4>
-                                    <p class="text-white position-relative">The more effortless the writing looks, the
-                                        more effort the
-                                        writer actually put into the process.</p>
+                                <div class="position-relative bg-gradient-custom h-100 m-3 px-8 py-10  border-radius-lg rounded-xl d-flex flex-column justify-content-center overflow-hidden"
+                                    style="background-image: linear-gradient(rgba(107, 72, 255, 0.7), rgba(162, 93, 217, 0.7)), url('{{ asset('assets/img/logo-unima.png') }}'); background-size: cover; background-position: center; background-repeat: no-repeat;">
+                                    <span class="mask bg-black opacity-30"></span>
+                                    <div class="relative z-10 text-center px-4">
+                                        <h4 class="text-3xl font-bold text-white mb-4 drop-shadow-lg">"E-Service Teknik
+                                            Informatika UNIMA"</h4>
+                                        <p class="text-lg text-white leading-relaxed drop-shadow-md">Akses layanan
+                                            administrasi akademik dan informasi Program Studi Teknik Informatika dengan
+                                            mudah dan efisien melalui platform ini.</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>

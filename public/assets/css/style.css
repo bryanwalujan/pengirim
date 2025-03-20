@@ -1,0 +1,8 @@
+/* Login page - text shadow left content */
+.drop-shadow-lg {
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
+}
+
+.drop-shadow-md {
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}

@@ -12,10 +12,15 @@ use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
-    Route::get('register', [RegisteredUserController::class, 'create'])
-        ->name('register');
+    // Route::get('register', [RegisteredUserController::class, 'create'])
+    //     ->name('register');
 
-    Route::post('register', [RegisteredUserController::class, 'store']);
+    // Route::post('register', [RegisteredUserController::class, 'store']);
+
+    // Rute login dengan middleware untuk redirect jika sudah login
+    Route::get('/login', function () {
+        return view('auth.login');
+    })->middleware('redirect_if_authenticated')->name('login');
 
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
         ->name('login');
