@@ -45,65 +45,136 @@
 
                 <div class="col-lg-6">
                     <div class="hero-image" data-aos="zoom-out" data-aos-delay="300">
-                        <img src="{{ asset('user/assets/img/illustration-1.webp') }}" alt="Hero Image" class="img-fluid">
-
-                        <div class="customers-badge">
-                            <div class="customer-avatars">
-                                <img src="{{ asset('user/assets/img/avatar-1.webp') }}" alt="Customer 1" class="avatar">
-                                <img src="{{ asset('user/assets/img/avatar-2.webp') }}" alt="Customer 2" class="avatar">
-                                <img src="{{ asset('user/assets/img/avatar-3.webp') }}" alt="Customer 3" class="avatar">
-                                <img src="{{ asset('user/assets/img/avatar-4.webp') }}" alt="Customer 4" class="avatar">
-                                <img src="{{ asset('user/assets/img/avatar-5.webp') }}" alt="Customer 5" class="avatar">
-                                <span class="avatar more">12+</span>
-                            </div>
-                            <p class="mb-0 mt-2">Lebih dari 12.000 pengguna telah memanfaatkan layanan e-service kami</p>
-                        </div>
+                        <img src="{{ asset('assets/img/logo-unima.png') }}" alt="Hero Image" class="img-fluid">
                     </div>
                 </div>
             </div>
 
-            <div class="row stats-row gy-4 mt-5" data-aos="fade-up" data-aos-delay="500">
+            <div class="stats-container mt-5" data-aos="fade-up" data-aos-delay="500">
+                <div class="stat-item">
+                    <div class="stat-icon">
+                        <i class="bi bi-file-earmark-text"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h4>5.2k Surat Aktif Kuliah</h4>
+                        <p>Pengajuan dan penerbitan surat aktif kuliah</p>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon">
+                        <i class="bi bi-calendar-x"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h4>1.8k Surat Cuti Akademik</h4>
+                        <p>Permohonan cuti akademik mahasiswa</p>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon">
+                        <i class="bi bi-arrow-right-circle"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h4>750 Surat Pindah</h4>
+                        <p>Proses mutasi mahasiswa ke perguruan tinggi lain</p>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon">
+                        <i class="bi bi-search"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h4>3.1k Surat Izin Survey</h4>
+                        <p>Penerbitan izin survey untuk penelitian</p>
+                    </div>
+                </div>
+            </div>
+            {{-- <div class="row stats-row gy-4 mt-5" data-aos="fade-up" data-aos-delay="500">
                 <div class="col-lg-3 col-md-6">
                     <div class="stat-item">
                         <div class="stat-icon">
-                            <i class="bi bi-trophy"></i>
+                            <i class="bi bi-file-earmark-text"></i>
                         </div>
                         <div class="stat-content">
-                            <h4>3x Won Awards</h4>
-                            <p class="mb-0">Vestibulum ante ipsum</p>
+                            <h4>5.2k Surat Aktif Kuliah</h4>
+                            <p class="mb-0">Pengajuan dan penerbitan surat aktif kuliah</p>
                         </div>
                     </div>
                 </div>
                 <div class="col-lg-3 col-md-6">
                     <div class="stat-item">
                         <div class="stat-icon">
-                            <i class="bi bi-briefcase"></i>
+                            <i class="bi bi-calendar-x"></i>
                         </div>
                         <div class="stat-content">
-                            <h4>6.5k Faucibus</h4>
-                            <p class="mb-0">Nullam quis ante</p>
+                            <h4>1.8k Surat Cuti Akademik</h4>
+                            <p class="mb-0">Permohonan cuti akademik mahasiswa</p>
                         </div>
                     </div>
                 </div>
                 <div class="col-lg-3 col-md-6">
                     <div class="stat-item">
                         <div class="stat-icon">
-                            <i class="bi bi-graph-up"></i>
+                            <i class="bi bi-arrow-right-circle"></i>
                         </div>
                         <div class="stat-content">
-                            <h4>80k Mauris</h4>
-                            <p class="mb-0">Etiam sit amet orci</p>
+                            <h4>750 Surat Pindah</h4>
+                            <p class="mb-0">Proses mutasi mahasiswa ke perguruan tinggi lain</p>
                         </div>
                     </div>
                 </div>
                 <div class="col-lg-3 col-md-6">
                     <div class="stat-item">
                         <div class="stat-icon">
-                            <i class="bi bi-award"></i>
+                            <i class="bi bi-search"></i>
                         </div>
                         <div class="stat-content">
-                            <h4>6x Phasellus</h4>
-                            <p class="mb-0">Vestibulum ante ipsum</p>
+                            <h4>3.1k Surat Izin Survey</h4>
+                            <p class="mb-0">Penerbitan izin survey untuk penelitian</p>
+                        </div>
+                    </div>
+                </div>
+            </div> --}}
+
+        </div>
+    </section>
+    <!-- End Hero Section -->
+
+    <!-- Tentang Section -->
+    <section id="about" class="about section">
+        <div class="container" data-aos="fade-up" data-aos-delay="100">
+            <div class="row gy-4 align-items-center justify-content-between">
+                <div class="col-xl-5" data-aos="fade-up" data-aos-delay="200">
+                    <span class="about-meta">Tentang</span>
+                    <h2 class="about-title">Tentang <span class="text-primary">E-Services</span></h2>
+                    <p class="about-description"><strong>E-Services</strong> adalah sistem layanan elektronik yang dirancang
+                        untuk
+                        mempermudah administrasi akademik di Program Studi Teknik Informatika Universitas Negeri Manado.
+                        Aplikasi ini menyediakan berbagai layanan, seperti pengajuan surat akademik (aktif kuliah, cuti
+                        akademik, pindah, izin survey), pengelolaan arsip akademik (SK proposal, hasil skripsi,
+                        komprehensif), serta layanan lainnya seperti permohonan transkrip, kelayakan skripsi, dan peminjaman
+                        fasilitas (laboratorium dan proyektor). </p>
+                    <p class="about-description">Dengan <strong>E-Services</strong>, mahasiswa dan staf akademik
+                        dapat mengakses layanan
+                        dengan lebih cepat, efisien,
+                        dan tanpa harus datang langsung ke kampus. Sistem ini juga mendukung proses pendaftaran seminar
+                        proposal, ujian skripsi, dan ujian komprehensif secara online.</p>
+                    <p class="about-description">Kami berkomitmen untuk menghadirkan pengalaman administrasi yang lebih
+                        praktis dan modern bagi
+                        seluruh civitas akademika.</p>
+
+                </div>
+
+                <div class="col-xl-6" data-aos="fade-up" data-aos-delay="300">
+                    <div class="image-wrapper">
+                        <div class="images position-relative" data-aos="zoom-out" data-aos-delay="400">
+                            <img src="{{ asset('user/assets/img/about-img.jpg') }}" style="width: 100%; height:400px;"
+                                alt="About E-Services" class="img-fluid main-image rounded-4 object-fit-cover">
+                            <img src="{{ asset('user/assets/img/about-img2.jpg') }}" alt="Secondary About E-Services"
+                                class="img-fluid small-image rounded-4">
+                        </div>
+                        <div class="experience-badge floating">
+                            <h3>15+ <span>Years</span></h3>
+                            <p>Of experience in business service</p>
                         </div>
                     </div>
                 </div>
@@ -111,7 +182,111 @@
 
         </div>
 
-    </section><!-- /Hero Section -->
+    </section>
+    <!-- End Tentang Section -->
+
+    <!-- Layanan Section -->
+    <section class="services-section">
+        <div class="container" data-aos="fade-up">
+            <div class="section-title pb-4">
+                <h2>Layanan E-Service</h2>
+            </div>
+            <div class="row" data-aos="fade-up" data-aos-delay="100">
+                <!-- Surat Aktif Kuliah -->
+                <div class="col-lg-4" data-aos="fade-up" data-aos-delay="100">
+                    <div class="service-card d-flex">
+                        <div class="icon flex-shrink-0">
+                            <i class="bi bi-file-earmark-text"></i>
+                        </div>
+                        <div>
+                            <h3>Surat Aktif Kuliah</h3>
+                            <p>Ajukan surat keterangan aktif kuliah secara online dengan mudah dan cepat.</p>
+                            <a href="service-details.html" class="read-more">Ajukan Sekarang <i
+                                    class="bi bi-arrow-right"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Surat Cuti Akademik -->
+                <div class="col-lg-4" data-aos="fade-up" data-aos-delay="200">
+                    <div class="service-card d-flex">
+                        <div class="icon flex-shrink-0">
+                            <i class="bi bi-calendar-x"></i>
+                        </div>
+                        <div>
+                            <h3>Surat Cuti Akademik</h3>
+                            <p>Mengajukan izin cuti akademik kini lebih praktis melalui sistem E-Service.</p>
+                            <a href="service-details.html" class="read-more">Ajukan Sekarang <i
+                                    class="bi bi-arrow-right"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Surat Pindah Kuliah -->
+                <div class="col-lg-4" data-aos="fade-up" data-aos-delay="300">
+                    <div class="service-card d-flex">
+                        <div class="icon flex-shrink-0">
+                            <i class="bi bi-arrow-left-right"></i>
+                        </div>
+                        <div>
+                            <h3>Surat Pindah Kuliah</h3>
+                            <p>Proses pengajuan pindah kuliah menjadi lebih cepat dan transparan. lorem</p>
+                            <a href="service-details.html" class="read-more">Ajukan Sekarang <i
+                                    class="bi bi-arrow-right"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Peminjaman Laboratorium -->
+                <div class="col-lg-4" data-aos="fade-up" data-aos-delay="400">
+                    <div class="service-card d-flex">
+                        <div class="icon flex-shrink-0">
+                            <i class="bi bi-pc-display"></i>
+                        </div>
+                        <div>
+                            <h3>Peminjaman Laboratorium</h3>
+                            <p>Reservasi laboratorium komputer untuk keperluan penelitian atau praktikum.</p>
+                            <a href="service-details.html" class="read-more">Ajukan Sekarang <i
+                                    class="bi bi-arrow-right"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pendaftaran Seminar Proposal -->
+                <div class="col-lg-4" data-aos="fade-up" data-aos-delay="500">
+                    <div class="service-card d-flex">
+                        <div class="icon flex-shrink-0">
+                            <i class="bi bi-person-video"></i>
+                        </div>
+                        <div>
+                            <h3>Pendaftaran Seminar Proposal</h3>
+                            <p>Daftarkan seminar proposal skripsi kamu dengan sistem yang lebih efisien.</p>
+                            <a href="service-details.html" class="read-more">Ajukan Sekarang <i
+                                    class="bi bi-arrow-right"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pendaftaran Ujian Skripsi -->
+                <div class="col-lg-4" data-aos="fade-up" data-aos-delay="600">
+                    <div class="service-card d-flex">
+                        <div class="icon flex-shrink-0">
+                            <i class="bi bi-clipboard-check"></i>
+                        </div>
+                        <div>
+                            <h3>Pendaftaran Ujian Skripsi</h3>
+                            <p>Registrasi ujian skripsi secara online dengan mudah melalui sistem ini.</p>
+                            <a href="service-details.html" class="read-more">Ajukan Sekarang <i
+                                    class="bi bi-arrow-right"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- End Layanan Section -->
+
 @endsection
 
 @push('scripts')
