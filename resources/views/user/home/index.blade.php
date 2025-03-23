@@ -158,10 +158,6 @@
                         dengan lebih cepat, efisien,
                         dan tanpa harus datang langsung ke kampus. Sistem ini juga mendukung proses pendaftaran seminar
                         proposal, ujian skripsi, dan ujian komprehensif secara online.</p>
-                    <p class="about-description">Kami berkomitmen untuk menghadirkan pengalaman administrasi yang lebih
-                        praktis dan modern bagi
-                        seluruh civitas akademika.</p>
-
                 </div>
 
                 <div class="col-xl-6" data-aos="fade-up" data-aos-delay="300">
@@ -282,6 +278,9 @@
                     </div>
                 </div>
             </div>
+        </div>
+        <div class="text-center mt-5" data-aos="fade-up" data-aos-delay="700">
+            <a href="all-services.html" class="explore-btn">Lihat Semua Layanan</a>
         </div>
     </section>
 

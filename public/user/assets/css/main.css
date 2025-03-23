@@ -1851,6 +1851,34 @@ section,
 .read-more:hover i {
     transform: translateX(5px);
 }
+
+.explore-btn {
+    position: relative;
+    display: inline-block;
+    margin: 10px;
+    padding: 10px 20px;
+    text-align: center;
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-decoration: none;
+    color: var(--accent-color);
+    background: transparent;
+    cursor: pointer;
+    transition: ease-out 0.5s;
+    border: 2px solid var(--accent-color);
+    border-radius: 10px;
+    box-shadow: inset 0 0 0 0 var(--accent-color);
+}
+
+.explore-btn:hover {
+    color: white;
+    box-shadow: inset 0 -100px 0 0 var(--accent-color);
+}
+
+.explore-btn:active {
+    transform: scale(0.9);
+}
+
 /* End Custom Layanan */
 
 /* .services .service-card {
