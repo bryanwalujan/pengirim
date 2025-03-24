@@ -63,4 +63,7 @@
 
     <!-- Main JS File -->
     <script src="{{ asset('user/assets/js/main.js') }}"></script>
+
+    {{-- Custom JS file --}}
+    <script src="{{ asset('user/assets/js/custom.js') }}"></script>
 </body>

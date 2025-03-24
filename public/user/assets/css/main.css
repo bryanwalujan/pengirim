@@ -1781,7 +1781,6 @@ section,
 --------------------------------------------------------------*/
 /* Custom Layanan */
 .services-section {
-    background-color: #f8fbff;
     padding: 50px 0;
     text-align: center;
 }
@@ -1858,7 +1857,7 @@ section,
     margin: 10px;
     padding: 10px 20px;
     text-align: center;
-    font-size: 12px;
+    font-size: 10px;
     letter-spacing: 1px;
     text-decoration: none;
     color: var(--accent-color);
@@ -2126,7 +2125,6 @@ section,
     line-height: 24px;
     margin: 0 30px 0 0;
     transition: 0.3s;
-    cursor: pointer;
     display: flex;
     align-items: center;
 }
@@ -2138,6 +2136,7 @@ section,
 
 .faq .faq-container .faq-item h3:hover {
     color: var(--accent-color);
+    pointer-events: none; /* Agar klik tetap mengenai `h3` */
 }
 
 .faq .faq-container .faq-item .faq-content {
@@ -2160,15 +2159,16 @@ section,
     font-size: 16px;
     line-height: 0;
     transition: 0.3s;
-    cursor: pointer;
 }
 
 .faq .faq-container .faq-item .faq-toggle:hover {
     color: var(--accent-color);
+    pointer-events: none; /* Agar klik tetap mengenai `h3` */
 }
 
 .faq .faq-container .faq-active h3 {
     color: var(--accent-color);
+    pointer-events: none; /* Agar klik tetap mengenai `h3` */
 }
 
 .faq .faq-container .faq-active .faq-content {
@@ -2176,6 +2176,7 @@ section,
     visibility: visible;
     opacity: 1;
     padding-top: 10px;
+    pointer-events: none; /* Agar klik tetap mengenai `h3` */
 }
 
 .faq .faq-container .faq-active .faq-toggle {
