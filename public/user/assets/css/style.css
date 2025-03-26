@@ -1,0 +1,127 @@
+/* Dropdown Menu Styling */
+.dropdown-menu {
+    border: none;
+    border-radius: 10px;
+    padding: 0.5rem 0;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    animation: fadeIn 0.2s ease-in-out;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.dropdown-item {
+    padding: 0.5rem 1.5rem;
+    font-size: 0.9rem;
+    color: #4a5568;
+    border-radius: 5px;
+    margin: 0 0.5rem;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+}
+
+.dropdown-item:hover {
+    background-color: #f7fafc;
+    color: #1a365d;
+    transform: translateX(3px);
+}
+
+.dropdown-item i {
+    width: 20px;
+    text-align: center;
+}
+
+.dropdown-divider {
+    margin: 0.5rem 0;
+}
+
+.dropdown-header {
+    padding: 1rem 1.5rem;
+    background-color: #f8f9fa;
+    border-radius: 10px 10px 0 0;
+}
+
+/* User Dropdown Specific */
+.user-dropdown .avatar {
+    width: 36px;
+    height: 36px;
+    background-color: #e2e8f0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #4a5568;
+}
+
+.user-dropdown .avatar-lg {
+    width: 60px;
+    height: 60px;
+    background-color: #e2e8f0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #4a5568;
+    font-size: 1.5rem;
+}
+
+.user-dropdown .user-info {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+
+.user-dropdown .user-name {
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.user-dropdown .user-role {
+    font-size: 0.75rem;
+    color: #718096;
+}
+
+/* Navbar Dropdown */
+.navmenu .dropdown-menu {
+    margin-top: 10px;
+    min-width: 220px;
+}
+
+.navmenu .dropdown-toggle {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.navmenu .dropdown-toggle .toggle-dropdown {
+    font-size: 0.7rem;
+    transition: transform 0.3s;
+}
+
+.navmenu .dropdown:hover .toggle-dropdown {
+    transform: rotate(180deg);
+}
+
+/* Logout Button */
+.logout-btn {
+    color: #e53e3e;
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+}
+
+.logout-btn:hover {
+    background-color: #fff5f5;
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

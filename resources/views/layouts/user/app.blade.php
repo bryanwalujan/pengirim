@@ -28,7 +28,6 @@
 
     <!-- Main CSS File -->
     <link href="{{ asset('user/assets/css/main.css') }}" rel="stylesheet">
-    <link href="{{ asset('user/assets/css/style.css') }}" rel="stylesheet">
 
     <!-- =======================================================
   * Template Name: iLanding

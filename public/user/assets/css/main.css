@@ -336,6 +336,46 @@ h6 {
     }
 }
 
+/* Dropdown Menu Styling */
+.dropdown-menu {
+    border: none;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    animation: fadeIn 0.2s ease-out;
+    transform-origin: top right;
+}
+.dropdown-header {
+    transition: all 0.3s;
+}
+
+.avatar-lg {
+    transition: all 0.3s;
+}
+
+.dropdown-header:hover .avatar-lg {
+    transform: scale(1.05);
+}
+
+.btn-outline-danger {
+    transition: all 0.2s;
+}
+
+.btn-outline-danger:hover {
+    background-color: #dc3545;
+    color: white !important;
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
 /* Navmenu - Mobile */
 @media (max-width: 1199px) {
     .mobile-nav-toggle {
