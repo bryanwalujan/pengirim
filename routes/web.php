@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\User\HomeController;
 
+// Public routes (accessible without authentication)
 Route::get('/', [HomeController::class, 'index'])->name('user.home.index');
 
 

@@ -31,6 +31,12 @@ class AuthenticatedSessionController extends Controller
 
         // Redirect berdasarkan role
         $user = User::find(Auth::user()->id);
+
+        // Check if there's an intended URL (for redirecting after login)
+        if (session()->has('url.intended')) {
+            return redirect()->intended();
+        }
+
         if ($user->hasRole('mahasiswa')) {
             return redirect()->route('user.home.index');
         } elseif ($user->hasRole('staff') || $user->hasRole('dosen')) {
