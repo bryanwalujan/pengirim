@@ -16,11 +16,11 @@ use App\Http\Controllers\Auth\EmailVerificationNotificationController;
 // Route untuk pengguna yang belum login (guest)
 Route::middleware('guest')->group(function () {
 
-    // Register
-    Route::get('register', [RegisteredUserController::class, 'create'])
-        ->name('register')
-        ->middleware('check.registration'); // Middleware baru;
-    Route::post('register', [RegisteredUserController::class, 'store']);
+    // // Register
+    // Route::get('register', [RegisteredUserController::class, 'create'])
+    //     ->name('register')
+    //     ->middleware('check.registration'); // Middleware baru;
+    // Route::post('register', [RegisteredUserController::class, 'store']);
 
     // Login
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
@@ -30,14 +30,14 @@ Route::middleware('guest')->group(function () {
 
 // Route untuk pengguna yang sudah login (auth)
 Route::middleware('auth')->group(function () {
-    Route::get('verify-email', EmailVerificationPromptController::class)
-        ->name('verification.notice');
-    Route::get('verify-email/{id}/{hash}', VerifyEmailController::class)
-        ->middleware(['signed', 'throttle:6,1'])
-        ->name('verification.verify');
-    Route::post('email/verification-notification', [EmailVerificationNotificationController::class, 'store'])
-        ->middleware('throttle:6,1')
-        ->name('verification.send');
+    // Route::get('verify-email', EmailVerificationPromptController::class)
+    //     ->name('verification.notice');
+    // Route::get('verify-email/{id}/{hash}', VerifyEmailController::class)
+    //     ->middleware(['signed', 'throttle:6,1'])
+    //     ->name('verification.verify');
+    // Route::post('email/verification-notification', [EmailVerificationNotificationController::class, 'store'])
+    //     ->middleware('throttle:6,1')
+    //     ->name('verification.send');
 
     Route::get('confirm-password', [ConfirmablePasswordController::class, 'show'])
         ->name('password.confirm');

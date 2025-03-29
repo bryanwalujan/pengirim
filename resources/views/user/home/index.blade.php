@@ -188,7 +188,7 @@
                 <h2>Layanan E-Service</h2>
             </div>
             <div class="row d-flex justify-content-center" data-aos="fade-up" data-aos-delay="100">
-                <!-- Surat Aktif Kuliah -->
+                <!-- Surat Aktif Kuliah Card -->
                 <div class="col-lg-4" data-aos="fade-up" data-aos-delay="100">
                     <div class="service-card d-flex">
                         <div class="icon flex-shrink-0">
@@ -197,8 +197,16 @@
                         <div>
                             <h3>Surat Aktif Kuliah</h3>
                             <p>Ajukan surat keterangan aktif kuliah secara online dengan mudah dan cepat.</p>
-                            <a href="service-details.html" class="read-more">Ajukan Sekarang <i
-                                    class="bi bi-arrow-right"></i></a>
+                            @auth
+                                <a href="{{ route('surat.aktif-kuliah.create') }}" class="read-more">
+                                    Ajukan Sekarang <i class="bi bi-arrow-right"></i>
+                                </a>
+                            @else
+                                <a href="{{ route('login') }}" class="read-more"
+                                    onclick="sessionStorage.setItem('intended_url', '{{ route('surat.aktif-kuliah.create') }}')">
+                                    Ajukan Sekarang <i class="bi bi-arrow-right"></i>
+                                </a>
+                            @endauth
                         </div>
                     </div>
                 </div>

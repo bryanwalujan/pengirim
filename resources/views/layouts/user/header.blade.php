@@ -73,7 +73,7 @@
                 <a class="btn-getstarted" href="{{ route('dashboard') }}">Dashboard</a>
             @endif
         @else
-            <a class="btn-getstarted" href="{{ route('login') }}">Login</a>
+            <a class="btn-getstarted px-4" href="{{ route('login') }}">Masuk</a>
         @endauth
     </div>
 </header>
