@@ -56,7 +56,7 @@ Route::middleware('auth')->group(function () {
     // Route untuk staff dan dosen (admin dashboard)
     Route::middleware('role:dosen|staff')->group(function () {
         Route::get('/dashboard', function () {
-            return view('admin.dashboard');
+            return view('admin.dashboard.index');
         })->name('dashboard');
     });
 });
