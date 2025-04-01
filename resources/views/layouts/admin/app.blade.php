@@ -29,26 +29,29 @@
 
 <body class="g-sidenav-show bg-gray-100"">
     <div class="min-height-300 bg-dark position-absolute w-100"></div>
-    @include('layouts.admin.navigation')
 
-    <!-- Page Heading -->
-    @isset($header)
-        <header class="bg-white shadow">
-            <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                {{ $header }}
-            </div>
-        </header>
-    @endisset
+    {{-- Sidebar --}}
+    @include('layouts.admin.sidebar')
 
-    <!-- Page Content -->
-    <main>
+    {{-- Main Content --}}
+    <main class="main-content position-relative border-radius-lg">
+        {{-- Navbar --}}
+        @include('layouts.admin.navbar')
+
         {{ $slot }}
+
+        {{-- Footer --}}
+        @include('layouts.admin.footer')
     </main>
+
+
+
     </div>
 
     <!--   Core JS Files   -->
     <script src="{{ asset('assets/js/core/popper.min.js') }}"></script>
     <script src="{{ asset('assets/js/core/bootstrap.min.js') }}"></script>
+    <script src="{{ asset('assets/js/plugins/smooth-scrollbar.min.js') }}"></script>
 
     <!-- Plugin for the charts, full documentation here: https://www.chartjs.org/ -->
     <script src="{{ asset('assets/js/plugins/chartjs.min.js') }}"></script>
