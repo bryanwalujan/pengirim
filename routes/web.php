@@ -3,9 +3,10 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\User\HomeController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\User\SuratAktifKuliahController;
 
-// Public routes (accessible without authentication)
+// Untuk User (Mahasiswa)
 Route::get('/', [HomeController::class, 'index'])->name('user.home.index');
 
 Route::middleware(['auth'])->prefix('surat')->group(function () {
@@ -14,6 +15,16 @@ Route::middleware(['auth'])->prefix('surat')->group(function () {
 
     Route::post('aktif-kuliah', [SuratAktifKuliahController::class, 'store'])
         ->name('surat.aktif-kuliah.store');
+});
+
+// Untuk Staff
+Route::middleware(['auth', 'role:staff'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', function () {
+        return view('admin.dashboard.index');
+    })->name('dashboard');
+
+    // User Management Routes
+    Route::resource('/users', UserController::class)->except(['show']);
 });
 
 // Untuk Admin

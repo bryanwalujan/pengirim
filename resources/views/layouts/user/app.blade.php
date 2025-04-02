@@ -45,7 +45,6 @@
     <!-- ======= Main ======= -->
     @yield('main')
 
-
     <!-- ======= Footer ======= -->
     @include('layouts.user.footer')
 

@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\User\HomeController;
 use App\Http\Controllers\User\SuratController;
 use App\Http\Controllers\Auth\PasswordController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\Auth\RegisteredUserController;
@@ -55,8 +56,6 @@ Route::middleware('auth')->group(function () {
 
     // Route untuk staff dan dosen (admin dashboard)
     Route::middleware('role:dosen|staff')->group(function () {
-        Route::get('/dashboard', function () {
-            return view('admin.dashboard.index');
-        })->name('dashboard');
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard.index');
     });
 });

@@ -8,45 +8,53 @@
 
     <title>{{ config('app.name', 'Laravel') }}</title>
 
+    <!-- Scripts -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-    <!-- Scripts -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    {{-- Nucleo Icons --}}
+    <link href="https://demos.creative-tim.com/argon-dashboard-pro/assets/css/nucleo-icons.css" rel="stylesheet" />
+    <link href="https://demos.creative-tim.com/argon-dashboard-pro/assets/css/nucleo-svg.css" rel="stylesheet" />
+
+    <link rel="stylesheet" href="{{ asset('assets/css/nucleo-icons.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/nucleo-svg.css') }}">
+
     <!--     Fonts and icons     -->
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
-    <!-- Nucleo Icons -->
-    <link href="{{ asset('assets/css/nucleo-icons.css') }}" rel="stylesheet" />
-    <link href="{{ asset('assets/css/nucleo-svg.css') }}" rel="stylesheet" />
+
     <!-- Font Awesome Icons -->
     <script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script>
-    <link href="{{ asset('assets/css/nucleo-svg.css') }}" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
     <!-- CSS Files -->
     <link id="pagestyle" href="{{ asset('assets/css/argon-dashboard.css') }}" rel="stylesheet" />
-
 
 </head>
 
 <body class="g-sidenav-show bg-gray-100"">
     <div class="min-height-300 bg-dark position-absolute w-100"></div>
-
     {{-- Sidebar --}}
     @include('layouts.admin.sidebar')
 
     {{-- Main Content --}}
     <main class="main-content position-relative border-radius-lg">
+
         {{-- Navbar --}}
         @include('layouts.admin.navbar')
 
-        {{ $slot }}
+        <div class="container-fluid py-4">
 
-        {{-- Footer --}}
-        @include('layouts.admin.footer')
+            {{-- Content --}}
+            @yield('content')
+
+            {{-- Footer  --}}
+            @include('layouts.admin.footer')
+
+        </div>
     </main>
-
-
-
-    </div>
 
     <!--   Core JS Files   -->
     <script src="{{ asset('assets/js/core/popper.min.js') }}"></script>
@@ -59,6 +67,16 @@
 
     <!-- Control Center for Argon Dashboard: parallax effects, scripts for the example pages etc -->
     <script src="{{ asset('assets/js/argon-dashboard.min.js') }}"></script>
+
+    <script>
+        var win = navigator.platform.indexOf('Win') > -1;
+        if (win && document.querySelector('#sidenav-scrollbar')) {
+            var options = {
+                damping: '0.5'
+            }
+            Scrollbar.init(document.querySelector('#sidenav-scrollbar'), options);
+        }
+    </script>
 </body>
 
 
