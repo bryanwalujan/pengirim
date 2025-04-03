@@ -1,36 +1,27 @@
-<footer class="footer pt-3">
-    <div class="container-fluid">
-        <div class="row align-items-center justify-content-lg-between">
-            <div class="col-lg-6 mb-lg-0 mb-4">
-                <div class="copyright text-center text-sm text-muted text-lg-start">
-                    ©
-                    <script>
-                        document.write(new Date().getFullYear())
-                    </script>,
-                    made with <i class="fa fa-heart"></i> by
-                    <a href="https://www.creative-tim.com" class="font-weight-bold" target="_blank">Creative Tim</a>
-                    for a better web.
-                </div>
+<footer class="content-footer footer bg-footer-theme">
+    <div class="container-xxl">
+        <div class="footer-container d-flex align-items-center justify-content-between py-4 flex-md-row flex-column">
+            <div class="mb-2 mb-md-0">
+                &#169;
+                <script>
+                    document.write(new Date().getFullYear());
+                </script>
+                , made with ❤️ by
+                <a href="https://themeselection.com" target="_blank" class="footer-link">ThemeSelection</a>
             </div>
-            <div class="col-lg-6">
-                <ul class="nav nav-footer justify-content-center justify-content-lg-end">
-                    <li class="nav-item">
-                        <a href="https://www.creative-tim.com" class="nav-link text-muted" target="_blank">Creative
-                            Tim</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="https://www.creative-tim.com/presentation" class="nav-link text-muted"
-                            target="_blank">About
-                            Us</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="https://www.creative-tim.com/blog" class="nav-link text-muted" target="_blank">Blog</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="https://www.creative-tim.com/license" class="nav-link pe-0 text-muted"
-                            target="_blank">License</a>
-                    </li>
-                </ul>
+            <div class="d-none d-lg-inline-block">
+                <a href="https://themeselection.com/item/category/admin-templates/" target="_blank"
+                    class="footer-link me-4">Admin Templates</a>
+
+                <a href="https://themeselection.com/license/" class="footer-link me-4" target="_blank">License</a>
+                <a href="https://themeselection.com/item/category/bootstrap-admin-templates/" target="_blank"
+                    class="footer-link me-4">Bootstrap Dashboard</a>
+
+                <a href="https://demos.themeselection.com/sneat-bootstrap-html-admin-template/documentation/"
+                    target="_blank" class="footer-link me-4">Documentation</a>
+
+                <a href="https://github.com/themeselection/sneat-bootstrap-html-admin-template-free/issues"
+                    target="_blank" class="footer-link">Support</a>
             </div>
         </div>
     </div>

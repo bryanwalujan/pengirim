@@ -50,12 +50,12 @@ Route::middleware('auth')->group(function () {
         ->name('logout');
 
     // Route untuk mahasiswa
-    Route::middleware('role:mahasiswa')->group(function () {
-        Route::get('/surat/create', [SuratController::class, 'create'])->name('surat.create');
-    });
+    // Route::middleware('role:mahasiswa')->group(function () {
+    //     Route::get('/surat/create', [SuratController::class, 'create'])->name('surat.create');
+    // });
 
     // Route untuk staff dan dosen (admin dashboard)
-    Route::middleware('role:dosen|staff')->group(function () {
-        Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard.index');
-    });
+    // Route::middleware('role:dosen|staff')->group(function () {
+    //     Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard.index');
+    // });
 });

@@ -18,7 +18,7 @@
                     </a>
                     <ul>
                         @auth
-                            <li><a href="{{ route('surat.create') }}">Buat Surat Baru</a></li>
+                            <li><a href="">Buat Surat Baru</a></li>
                             <li><a href="#">Riwayat Surat</a></li>
                         @else
                             <li><a href="{{ route('login') }}">Login untuk mengakses</a></li>
@@ -70,7 +70,7 @@
                 </ul>
             @else
                 <!-- Jika bukan mahasiswa (staff/dosen), redirect ke dashboard -->
-                <a class="btn-getstarted" href="{{ route('dashboard') }}">Dashboard</a>
+                <a class="btn-getstarted" href="{{ route('admin.dashboard.index') }}">Dashboard</a>
             @endif
         @else
             <a class="btn-getstarted px-4" href="{{ route('login') }}">Masuk</a>

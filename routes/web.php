@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\User\HomeController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\User\SuratAktifKuliahController;
 
 // Untuk User (Mahasiswa)
@@ -18,11 +19,8 @@ Route::middleware(['auth'])->prefix('surat')->group(function () {
 });
 
 // Untuk Staff
-Route::middleware(['auth', 'role:staff'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/dashboard', function () {
-        return view('admin.dashboard.index');
-    })->name('dashboard');
-
+Route::middleware(['auth', 'role:staff|dosen'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
     // User Management Routes
     Route::resource('/users', UserController::class)->except(['show']);
 });
