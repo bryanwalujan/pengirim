@@ -20,9 +20,12 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'username',
         'email',
         'password',
-        'nim',
+        'nim',    // For mahasiswa
+        'nidn',   // For dosen
+
     ];
 
     /**
@@ -46,5 +49,23 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    // Scope for mahasiswa
+    public function scopeMahasiswa($query)
+    {
+        return $query->role('mahasiswa');
+    }
+
+    // Scope for dosen
+    public function scopeDosen($query)
+    {
+        return $query->role('dosen');
+    }
+
+    // Scope for staff
+    public function scopeStaff($query)
+    {
+        return $query->role('staff');
     }
 }

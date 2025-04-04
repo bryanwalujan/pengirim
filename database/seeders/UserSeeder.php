@@ -6,7 +6,6 @@ use App\Models\User;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
@@ -15,45 +14,78 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        // Pastikan role sudah ada, jika belum buat
-        $roles = ['mahasiswa', 'staff', 'dosen'];
+        // Create roles
+        $roles = ['staff', 'dosen', 'mahasiswa'];
         foreach ($roles as $role) {
             Role::firstOrCreate(['name' => $role]);
         }
 
-        // Data user dengan role mahasiswa
-        $mahasiswa = User::create([
-            'nim' => '123456789',
-            'name' => 'Mahasiswa Satu',
-            'email' => 'mahasiswa1@unima.ac.id',
-            'password' => Hash::make('password'),
-        ]);
-        $mahasiswa->assignRole('mahasiswa');
+        // Create specific test users
+        $this->createSpecificUsers();
 
-        $mahasiswa2 = User::create([
-            'nim' => '987654321',
-            'name' => 'Mahasiswa Dua',
-            'email' => 'mahasiswa2@unima.ac.id',
-            'password' => Hash::make('password'),
-        ]);
-        $mahasiswa2->assignRole('mahasiswa');
+        // Generate bulk users
+        $this->generateBulkUsers();
+    }
 
-        // Data user dengan role staff
-        $staff = User::create([
-            'nim' => null, // Staff tidak perlu NIM
-            'name' => 'Staff Satu',
-            'email' => 'staff1@unima.ac.id',
-            'password' => Hash::make('password'),
-        ]);
-        $staff->assignRole('staff');
+    protected function createSpecificUsers(): void
+    {
+        // Staff
+        User::factory()->create([
+            'name' => 'Staff Administrasi',
+            'username' => 'staff01',
+            'email' => 'staff@unima.ac.id',
+            'password' => 'password', // Will be hashed automatically
+        ])->assignRole('staff');
 
-        // Data user dengan role dosen
-        $dosen = User::create([
-            'nim' => null, // Dosen tidak perlu NIM
-            'name' => 'Dosen Satu',
+        // Dosen
+        User::factory()->create([
+            'name' => 'Dr. Dosen Pertama, M.Kom',
+            'username' => '123456',
+            'nidn' => '123456',
             'email' => 'dosen1@unima.ac.id',
-            'password' => Hash::make('password'),
-        ]);
-        $dosen->assignRole('dosen');
+            'password' => 'password',
+        ])->assignRole('dosen');
+
+        User::factory()->create([
+            'name' => 'Prof. Dosen Kedua, Ph.D',
+            'username' => '654321',
+            'nidn' => '654321',
+            'email' => 'dosen2@unima.ac.id',
+            'password' => 'password',
+        ])->assignRole('dosen');
+
+        // Mahasiswa
+        User::factory()->create([
+            'name' => 'Mahasiswa Pertama',
+            'username' => '123456789',
+            'nim' => '123456789',
+            'email' => 'mahasiswa1@unima.ac.id',
+            'password' => 'password',
+        ])->assignRole('mahasiswa');
+
+        User::factory()->create([
+            'name' => 'Mahasiswa Kedua',
+            'username' => '987654321',
+            'nim' => '987654321',
+            'email' => 'mahasiswa2@unima.ac.id',
+            'password' => 'password',
+        ])->assignRole('mahasiswa');
+    }
+
+    protected function generateBulkUsers(): void
+    {
+        // Generate 5 staff users
+        User::factory()->count(5)->staff()->create();
+
+        // Generate 10 dosen users
+        User::factory()->count(10)->dosen()->create();
+
+        // Generate 50 mahasiswa users
+        User::factory()->count(10)->mahasiswa()->create();
+
+        $this->command->info('User seeding completed!');
+        $this->command->info('Staff test account: staff@unima.ac.id / password');
+        $this->command->info('Dosen test account: dosen1@unima.ac.id / password');
+        $this->command->info('Mahasiswa test account: mahasiswa1@unima.ac.id / password');
     }
 }

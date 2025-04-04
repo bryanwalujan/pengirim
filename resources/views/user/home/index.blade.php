@@ -45,7 +45,7 @@
 
                 <div class="col-lg-6">
                     <div class="hero-image" data-aos="zoom-out" data-aos-delay="300">
-                        <img src="{{ asset('assets/img/logo-unima.png') }}" alt="Hero Image" class="img-fluid">
+                        <img src="{{ asset('img/logo-unima.png') }}" alt="Hero Image" class="img-fluid">
                     </div>
                 </div>
             </div>

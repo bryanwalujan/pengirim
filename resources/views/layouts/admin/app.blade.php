@@ -22,18 +22,25 @@
     <link rel="stylesheet" href="{{ asset('assets/vendor/fonts/iconify-icons.css') }}" />
 
     {{-- Core Styles --}}
-    <link rel="stylesheet" href="../assets/vendor/css/core.css" />
-    <link rel="stylesheet" href="../assets/css/demo.css" />
+    <link rel="stylesheet" href="{{ asset('assets/vendor/css/core.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/css/demo.css') }}" />
 
     {{-- Perfect Scrollbar --}}
-    <link rel="stylesheet" href="../assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+    <link rel="stylesheet" href="{{ asset('assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css') }}" />
 
     {{-- Apex Charts --}}
-    <link rel="stylesheet" href="../assets/vendor/libs/apex-charts/apex-charts.css" />
+    <link rel="stylesheet" href="{{ asset('assets/vendor/libs/apex-charts/apex-charts.css') }}" />
 
     {{-- Helpers --}}
-    <script src="../assets/vendor/js/helpers.js"></script>
-    <script src="../assets/js/config.js"></script>
+    <script src="{{ asset('assets/vendor/js/helpers.js') }}"></script>
+    <script src="{{ asset('assets/js/config.js') }}"></script>
+
+    {{-- SweetAlert2 --}}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+    {{-- Select2 --}}
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
 </head>
 
 <body>
@@ -63,26 +70,53 @@
     </div>
 
     {{-- Core JS files --}}
-    <script src="../assets/vendor/libs/jquery/jquery.js"></script>
-
+    <script src="{{ asset('assets/vendor/libs/jquery/jquery.js') }}"></script>
     {{-- Bootstrap --}}
-    <script src="../assets/vendor/libs/popper/popper.js"></script>
-    <script src="../assets/vendor/js/bootstrap.js"></script>
-
+    <script src="{{ asset('assets/vendor/libs/popper/popper.js') }}"></script>
+    <script src="{{ asset('assets/vendor/js/bootstrap.js') }}"></script>
     {{-- Perfect Scrollbar --}}
-    <script src="../assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
-
+    <script src="{{ asset('assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js') }}"></script>
     {{-- Menu --}}
-    <script src="../assets/vendor/js/menu.js"></script>
-
+    <script src="{{ asset('assets/vendor/js/menu.js') }}"></script>
     {{-- Apex Charts --}}
-    <script src="../assets/vendor/libs/apex-charts/apexcharts.js"></script>
-
+    <script src="{{ asset('assets/vendor/libs/apex-charts/apexcharts.js') }}"></script>
     {{-- Main JS file --}}
-    <script src="../assets/js/main.js"></script>
-
+    <script src="{{ asset('assets/js/main.js') }}"></script>
     <!-- Page JS -->
-    <script src="../assets/js/dashboards-analytics.js"></script>
+    <script src="{{ asset('assets/js/dashboards-analytics.js') }}"></script>
+    <!-- jQuery and Select2 JS from CDN -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    {{-- SweetAlert2 --}}
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        //flash message
+        @if (session()->has('success'))
+            Swal.fire({
+                type: "success",
+                icon: "success",
+                title: "BERHASIL!",
+                text: "{{ session('success') }}",
+                timer: 1500,
+                showConfirmButton: false,
+                showCancelButton: false,
+                buttons: false,
+            });
+        @elseif (session()->has('error'))
+            Swal.fire({
+                type: "error",
+                icon: "error",
+                title: "GAGAL!",
+                text: "{{ session('error') }}",
+                timer: 1500,
+                showConfirmButton: false,
+                showCancelButton: false,
+                buttons: false,
+            });
+        @endif
+    </script>
 </body>
 
 </html>

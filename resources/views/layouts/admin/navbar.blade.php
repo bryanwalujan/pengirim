@@ -18,19 +18,11 @@
         <!-- /Search -->
 
         <ul class="navbar-nav flex-row align-items-center ms-md-auto">
-            <!-- Place this tag where you want the button to render. -->
-            <li class="nav-item lh-1 me-4">
-                <a class="github-button"
-                    href="https://github.com/themeselection/sneat-bootstrap-html-admin-template-free"
-                    data-icon="octicon-star" data-size="large" data-show-count="true"
-                    aria-label="Star themeselection/sneat-html-admin-template-free on GitHub">Star</a>
-            </li>
-
             <!-- User -->
             <li class="nav-item navbar-dropdown dropdown-user dropdown">
                 <a class="nav-link dropdown-toggle hide-arrow p-0" href="javascript:void(0);" data-bs-toggle="dropdown">
-                    <div class="avatar avatar-online">
-                        <img src="../assets/img/avatars/1.png" alt class="w-px-40 h-auto rounded-circle" />
+                    <div class="avatar">
+                        <img src="{{ asset('assets/img/avatars/1.png') }}" alt class="w-px-40 h-auto rounded-circle" />
                     </div>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end">
@@ -38,8 +30,8 @@
                         <a class="dropdown-item" href="#">
                             <div class="d-flex">
                                 <div class="flex-shrink-0 me-3">
-                                    <div class="avatar avatar-online">
-                                        <img src="../assets/img/avatars/1.png" alt
+                                    <div class="avatar">
+                                        <img src="{{ asset('assets/img/avatars/1.png') }}" alt
                                             class="w-px-40 h-auto rounded-circle" />
                                     </div>
                                 </div>
@@ -59,26 +51,19 @@
                         </a>
                     </li>
                     <li>
-                        <a class="dropdown-item" href="#">
-                            <i class="icon-base bx bx-cog icon-md me-3"></i><span>Settings</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" href="#">
-                            <span class="d-flex align-items-center align-middle">
-                                <i class="flex-shrink-0 icon-base bx bx-credit-card icon-md me-3"></i><span
-                                    class="flex-grow-1 align-middle">Billing Plan</span>
-                                <span class="flex-shrink-0 badge rounded-pill bg-danger">4</span>
-                            </span>
-                        </a>
-                    </li>
-                    <li>
                         <div class="dropdown-divider my-1"></div>
                     </li>
                     <li>
-                        <a class="dropdown-item" href="javascript:void(0);">
-                            <i class="icon-base bx bx-power-off icon-md me-3"></i><span>Log Out</span>
+                        <a class="dropdown-item" href="{{ route('logout') }}"
+                            onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                            <i class="icon-base bx bx-power-off icon-md me-3"></i>
+                            <span>Log Out</span>
                         </a>
+
+                        <!-- Hidden logout form -->
+                        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                            @csrf
+                        </form>
                     </li>
                 </ul>
             </li>

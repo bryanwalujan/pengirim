@@ -11,88 +11,267 @@ use Illuminate\Support\Facades\Hash;
 class UserController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display a listing of all users (for admin)
      */
     public function index()
     {
         $users = User::with('roles')->get();
-        return view('admin.users.index', compact('users'));
-
+        $roles = Role::all();
+        return view('admin.users.index', compact('users', 'roles'));
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Display a listing of mahasiswa users
      */
-    public function create()
+    public function mahasiswa()
     {
-        $roles = Role::where('name', '!=', 'mahasiswa')->get(); // Hanya tampilkan role staff/dosen
-        return view('admin.users.create', compact('roles'));
+        $users = User::role('mahasiswa')->paginate(5); // 10 items per page
+        return view('admin.users.mahasiswa.index', compact('users'));
     }
 
+    /**
+     * Display a listing of dosen users
+     */
+    public function dosen()
+    {
+        $users = User::role('dosen')->paginate(10); // 10 items per page
+        return view('admin.users.dosen.index', compact('users'));
+    }
 
     /**
-     * Store a newly created resource in storage.
+     * Display a listing of staff users
      */
-    public function store(Request $request)
+    public function staff()
+    {
+        $users = User::role('staff')->paginate(10); // 10 items per page
+        return view('admin.users.staff.index', compact('users'));
+    }
+
+    /**
+     * Show the form for creating a new mahasiswa
+     */
+    public function createMahasiswa()
+    {
+        return view('admin.users.mahasiswa.create');
+    }
+
+    /**
+     * Show the form for creating a new dosen
+     */
+    public function createDosen()
+    {
+        return view('admin.users.dosen.create');
+    }
+
+    /**
+     * Show the form for creating a new staff
+     */
+    public function createStaff()
+    {
+        return view('admin.users.staff.create');
+    }
+
+    /**
+     * Store a newly created mahasiswa in storage.
+     */
+    public function storeMahasiswa(Request $request)
     {
         $request->validate([
             'name' => 'required',
             'email' => 'required|email|unique:users',
             'password' => 'required|min:8',
-            'role' => 'required|exists:roles,name'
+            'nim' => 'required|unique:users,username'
         ]);
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
+            'username' => $request->nim,
+            'nim' => $request->nim,
             'password' => Hash::make($request->password)
         ]);
 
-        $user->assignRole($request->role);
+        $user->assignRole('mahasiswa');
 
-        return redirect()->route('admin.users.index')->with('success', 'User created successfully');
+        return redirect()->route('admin.users.mahasiswa')->with('success', 'Mahasiswa berhasil ditambahkan');
     }
 
     /**
-     * Display the specified resource.
+     * Store a newly created dosen in storage.
      */
-    public function show(string $id)
+    public function storeDosen(Request $request)
     {
-        //
+        $request->validate([
+            'name' => 'required',
+            'email' => 'required|email|unique:users',
+            'password' => 'required|min:8',
+            'nidn' => 'required|unique:users,username'
+        ]);
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'username' => $request->nidn,
+            'nidn' => $request->nidn,
+            'password' => Hash::make($request->password)
+        ]);
+
+        $user->assignRole('dosen');
+
+        return redirect()->route('admin.users.dosen')->with('success', 'Dosen berhasil ditambahkan');
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Store a newly created staff in storage.
      */
-    public function edit(User $user)
+    public function storeStaff(Request $request)
     {
-        $roles = Role::where('name', '!=', 'mahasiswa')->get();
-        return view('admin.users.edit', compact('user', 'roles'));
+        $request->validate([
+            'name' => 'required',
+            'email' => 'required|email|unique:users',
+            'password' => 'required|min:8',
+            'username' => 'required|unique:users,username'
+        ]);
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'username' => $request->username,
+            'password' => Hash::make($request->password)
+        ]);
+
+        $user->assignRole('staff');
+
+        return redirect()->route('admin.users.staff')->with('success', 'Staff berhasil ditambahkan');
     }
 
     /**
-     * Update the specified resource in storage.
+     * Show the form for editing the specified mahasiswa.
      */
-    public function update(Request $request, User $user)
+    public function editMahasiswa(User $user)
+    {
+        return view('admin.users.mahasiswa.edit', compact('user'));
+    }
+
+    /**
+     * Show the form for editing the specified dosen.
+     */
+    public function editDosen(User $user)
+    {
+        return view('admin.users.dosen.edit', compact('user'));
+    }
+
+    /**
+     * Show the form for editing the specified staff.
+     */
+    public function editStaff(User $user)
+    {
+        return view('admin.users.staff.edit', compact('user'));
+    }
+
+    /**
+     * Update the specified mahasiswa in storage.
+     */
+    public function updateMahasiswa(Request $request, User $user)
     {
         $request->validate([
             'name' => 'required',
             'email' => 'required|email|unique:users,email,' . $user->id,
-            'role' => 'required|exists:roles,name'
+            'nim' => 'required|unique:users,username,' . $user->id
         ]);
 
-        $user->update($request->only('name', 'email'));
-        $user->syncRoles($request->role);
+        $user->update([
+            'name' => $request->name,
+            'email' => $request->email,
+            'username' => $request->nim,
+            'nim' => $request->nim
+        ]);
 
-        return redirect()->route('admin.users.index')->with('success', 'User updated successfully');
+        return redirect()->route('admin.users.mahasiswa')->with('success', 'Data mahasiswa berhasil diperbarui');
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Update the specified dosen in storage.
      */
-    public function destroy(User $user)
+    public function updateDosen(Request $request, User $user)
     {
+        $request->validate([
+            'name' => 'required',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'nidn' => 'required|unique:users,username,' . $user->id
+        ]);
+
+        $user->update([
+            'name' => $request->name,
+            'email' => $request->email,
+            'username' => $request->nidn,
+            'nidn' => $request->nidn
+        ]);
+
+        return redirect()->route('admin.users.dosen')->with('success', 'Data dosen berhasil diperbarui');
+    }
+
+    /**
+     * Update the specified staff in storage.
+     */
+    public function updateStaff(Request $request, User $user)
+    {
+        $request->validate([
+            'name' => 'required',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'username' => 'required|unique:users,username,' . $user->id
+        ]);
+
+        $user->update([
+            'name' => $request->name,
+            'email' => $request->email,
+            'username' => $request->username
+        ]);
+
+        return redirect()->route('admin.users.staff')->with('success', 'Data staff berhasil diperbarui');
+    }
+
+    /**
+     * Remove the specified user from storage.
+     */
+    public function destroy(Request $request, User $user)
+    {
+        // Determine where the request is coming from
+        $referer = $request->header('referer');
+        $defaultRoute = 'admin.users.index';
+
+        // Check which list the request came from
+        if (str_contains($referer, 'mahasiswa')) {
+            $redirectRoute = 'admin.users.mahasiswa';
+            $message = 'Mahasiswa berhasil dihapus';
+        } elseif (str_contains($referer, 'dosen')) {
+            $redirectRoute = 'admin.users.dosen';
+            $message = 'Dosen berhasil dihapus';
+        } elseif (str_contains($referer, 'staff')) {
+            $redirectRoute = 'admin.users.staff';
+            $message = 'Staff berhasil dihapus';
+        } else {
+            $redirectRoute = $defaultRoute;
+            $message = 'Pengguna berhasil dihapus';
+        }
+
         $user->delete();
-        return back()->with('success', 'User deleted successfully');
+
+        return redirect()->route($redirectRoute)
+            ->with('success', $message);
+    }
+
+    /**
+     * Assign role to user
+     */
+    public function assignRole(Request $request, User $user)
+    {
+        $validRoles = ['staff', 'dosen', 'mahasiswa']; // Sesuaikan
+        $request->validate([
+            'role' => 'required|in:' . implode(',', $validRoles)
+        ]);
+
+        $user->syncRoles($request->role);
+        return back()->with('success', 'Role berhasil diperbarui');
     }
 }

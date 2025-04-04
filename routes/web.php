@@ -21,8 +21,37 @@ Route::middleware(['auth'])->prefix('surat')->group(function () {
 // Untuk Staff
 Route::middleware(['auth', 'role:staff|dosen'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
-    // User Management Routes
-    Route::resource('/users', UserController::class)->except(['show']);
+
+    // User Management
+    Route::prefix('users')->name('users.')->group(function () {
+        Route::get('/', [UserController::class, 'index'])->name('index');
+        Route::get('/mahasiswa', [UserController::class, 'mahasiswa'])->name('mahasiswa');
+        Route::get('/dosen', [UserController::class, 'dosen'])->name('dosen');
+        Route::get('/staff', [UserController::class, 'staff'])->name('staff');
+
+        // Create routes
+        Route::get('/mahasiswa/create', [UserController::class, 'createMahasiswa'])->name('mahasiswa.create');
+        Route::get('/dosen/create', [UserController::class, 'createDosen'])->name('dosen.create');
+        Route::get('/staff/create', [UserController::class, 'createStaff'])->name('staff.create');
+
+        // Store routes
+        Route::post('/mahasiswa', [UserController::class, 'storeMahasiswa'])->name('mahasiswa.store');
+        Route::post('/dosen', [UserController::class, 'storeDosen'])->name('dosen.store');
+        Route::post('/staff', [UserController::class, 'storeStaff'])->name('staff.store');
+
+        // Edit routes
+        Route::get('/mahasiswa/{user}/edit', [UserController::class, 'editMahasiswa'])->name('mahasiswa.edit');
+        Route::get('/dosen/{user}/edit', [UserController::class, 'editDosen'])->name('dosen.edit');
+        Route::get('/staff/{user}/edit', [UserController::class, 'editStaff'])->name('staff.edit');
+
+        // Update routes
+        Route::put('/mahasiswa/{user}', [UserController::class, 'updateMahasiswa'])->name('mahasiswa.update');
+        Route::put('/dosen/{user}', [UserController::class, 'updateDosen'])->name('dosen.update');
+        Route::put('/staff/{user}', [UserController::class, 'updateStaff'])->name('staff.update');
+
+        // Delete route
+        Route::delete('/{user}', [UserController::class, 'destroy'])->name('destroy');
+    });
 });
 
 // Untuk Admin
@@ -30,11 +59,6 @@ Route::middleware(['auth', 'role:staff|dosen'])->prefix('admin')->name('admin.')
 //     Route::resource('surat-aktif-kuliah', \App\Http\Controllers\Admin\SuratAktifKuliahController::class)
 //         ->except(['create', 'store']);
 // });
-
-
-// Route::get('/dashboard', function () {
-//     return view('admin.dashboard');
-// })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
