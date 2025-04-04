@@ -29,6 +29,20 @@
         <div class="card">
             <div class="card-header border-bottom">
                 <div class="row align-items-center justify-content-end g-2">
+                    <div class="col-auto">
+                        <a href="{{ route('admin.users.mahasiswa.import') }}"
+                            class="btn btn-outline-primary d-flex align-items-center">
+                            <i class="bx bx-import d-flex d-sm-inline-flex"></i>
+                            <span class="d-none d-sm-inline ms-2">Import</span>
+                        </a>
+                    </div>
+                    <div class="col-auto">
+                        <a href="{{ route('admin.users.mahasiswa.export') }}"
+                            class="btn btn-outline-success d-flex align-items-center ms-2">
+                            <i class="bx bx-export d-flex d-sm-inline-flex"></i>
+                            <span class="d-none d-sm-inline ms-2">Export</span>
+                        </a>
+                    </div>
                     <!-- Search Column -->
                     <div class="col-4 col-md-4 col-lg-3">
                         <div class="input-group input-group-merge">
@@ -48,6 +62,7 @@
                             <span class="d-none d-sm-inline ms-2">Tambah Mahasiswa</span>
                         </a>
                     </div>
+
                 </div>
             </div>
             <div class="table-responsive">

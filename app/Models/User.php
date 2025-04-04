@@ -2,9 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Spatie\Permission\Models\Role;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
@@ -67,5 +68,17 @@ class User extends Authenticatable
     public function scopeStaff($query)
     {
         return $query->role('staff');
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::created(function ($user) {
+            if (empty($user->getRoleNames())) {
+                Role::firstOrCreate(['name' => 'mahasiswa']);
+                $user->assignRole('mahasiswa');
+            }
+        });
     }
 }

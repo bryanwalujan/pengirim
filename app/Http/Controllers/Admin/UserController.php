@@ -4,9 +4,13 @@ namespace App\Http\Controllers\Admin;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use App\Exports\MahasiswaExport;
+use App\Imports\MahasiswaImport;
 use Spatie\Permission\Models\Role;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
+use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Concerns\FromArray;
 
 class UserController extends Controller
 {
@@ -273,5 +277,79 @@ class UserController extends Controller
 
         $user->syncRoles($request->role);
         return back()->with('success', 'Role berhasil diperbarui');
+    }
+
+    /**
+     * Export mahasiswa data to Excel
+     */
+    public function exportMahasiswa()
+    {
+        return Excel::download(new MahasiswaExport, 'data-mahasiswa-' . date('Y-m-d') . '.xlsx');
+    }
+
+    /**
+     * Show import form for mahasiswa
+     */
+    public function showImportMahasiswa()
+    {
+        return view('admin.users.mahasiswa.import');
+    }
+
+    /**
+     * Process mahasiswa data import
+     */
+    public function importMahasiswa(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls|max:2048'
+        ]);
+
+        try {
+            // Pastikan role mahasiswa ada
+            Role::firstOrCreate(['name' => 'mahasiswa']);
+
+            Excel::import(new MahasiswaImport, $request->file('file'));
+
+            return redirect()
+                ->route('admin.users.mahasiswa')
+                ->with('success', 'Data mahasiswa berhasil diimport');
+
+        } catch (\Exception $e) {
+            return back()
+                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage())
+                ->withInput();
+        }
+    }
+
+    /**
+     * Download template for mahasiswa import
+     */
+    public function downloadTemplateMahasiswa()
+    {
+        $headers = [
+            'NIM' => 'Contoh: 12345678',
+            'Nama' => 'Contoh: John Doe',
+            'Email' => 'Contoh: john@example.com',
+            'Password' => 'Opsional (min 8 karakter)'
+        ];
+
+        $export = new class ($headers) implements FromArray {
+            private $headers;
+
+            public function __construct($headers)
+            {
+                $this->headers = $headers;
+            }
+
+            public function array(): array
+            {
+                return [
+                    array_keys($this->headers),
+                    array_values($this->headers)
+                ];
+            }
+        };
+
+        return Excel::download($export, 'template-import-mahasiswa.xlsx');
     }
 }

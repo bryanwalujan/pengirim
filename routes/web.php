@@ -51,6 +51,15 @@ Route::middleware(['auth', 'role:staff|dosen'])->prefix('admin')->name('admin.')
 
         // Delete route
         Route::delete('/{user}', [UserController::class, 'destroy'])->name('destroy');
+
+        Route::prefix('mahasiswa')->name('mahasiswa.')->group(function () {
+            // route untuk import/export
+            Route::get('/export', [UserController::class, 'exportMahasiswa'])->name('export');
+            Route::get('/import', [UserController::class, 'showImportMahasiswa'])->name('import');
+            Route::post('/import', [UserController::class, 'importMahasiswa'])->name('import');
+            Route::get('/download-template', [UserController::class, 'downloadTemplateMahasiswa'])->name('download-template');
+        });
+
     });
 });
 
