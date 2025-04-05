@@ -29,7 +29,7 @@ class UserController extends Controller
      */
     public function mahasiswa()
     {
-        $users = User::role('mahasiswa')->paginate(5); // 10 items per page
+        $users = User::role('mahasiswa')->paginate(10); // 10 items per page
         return view('admin.users.mahasiswa.index', compact('users'));
     }
 

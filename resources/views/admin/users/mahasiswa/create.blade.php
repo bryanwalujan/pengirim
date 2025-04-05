@@ -20,9 +20,14 @@
         </nav>
         <!-- /Breadcrumb -->
 
-        <h4 class="fw-bold py-3 mb-2" style="margin-top: -1.2rem">
-            <span class="text-muted">Tambah Mahasiswa Baru</span>
-        </h4>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="fw-bold mb-0">
+                <span class="text-muted">Tambah Mahasiswa Baru</span>
+            </h4>
+            <a href="{{ route('admin.users.mahasiswa') }}" class="btn btn-secondary">
+                <i class="bx bx-arrow-back me-1"></i> Kembali ke Daftar
+            </a>
+        </div>
 
         <!-- Card -->
         <div class="card">
@@ -32,11 +37,10 @@
             <div class="card-body">
                 <form action="{{ route('admin.users.mahasiswa.store') }}" method="POST">
                     @csrf
-
                     <div class="row">
                         <!-- NIM Field -->
                         <div class="col-md-6 mb-3">
-                            <label for="nim" class="form-label required">NIM</label>
+                            <label for="nim" class="form-label required">NIM <span class="text-danger">*</span></label>
                             <input type="text" class="form-control @error('nim') is-invalid @enderror" id="nim"
                                 name="nim" value="{{ old('nim') }}" placeholder="Contoh: 123456789" required>
                             @error('nim')
@@ -47,7 +51,8 @@
 
                         <!-- Name Field -->
                         <div class="col-md-6 mb-3">
-                            <label for="name" class="form-label required">Nama Lengkap</label>
+                            <label for="name" class="form-label required">Nama Lengkap <span
+                                    class="text-danger">*</span></label>
                             <input type="text" class="form-control @error('name') is-invalid @enderror" id="name"
                                 name="name" value="{{ old('name') }}" placeholder="Masukkan nama lengkap" required>
                             @error('name')
@@ -57,7 +62,8 @@
 
                         <!-- Email Field -->
                         <div class="col-md-6 mb-3">
-                            <label for="email" class="form-label required">Email</label>
+                            <label for="email" class="form-label required">Email <span
+                                    class="text-danger">*</span></label>
                             <input type="email" class="form-control @error('email') is-invalid @enderror" id="email"
                                 name="email" value="{{ old('email') }}" placeholder="Contoh: mahasiswa@unima.ac.id"
                                 required>
@@ -68,7 +74,8 @@
 
                         <!-- Password Field -->
                         <div class="col-md-6 mb-3">
-                            <label for="password" class="form-label required">Password</label>
+                            <label for="password" class="form-label required">Password <span
+                                    class="text-danger">*</span></label>
                             <div class="input-group input-group-merge">
                                 <input type="password" class="form-control @error('password') is-invalid @enderror"
                                     id="password" name="password" placeholder="Minimal 8 karakter" required>
