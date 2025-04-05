@@ -52,8 +52,8 @@ Route::middleware(['auth', 'role:staff|dosen'])->prefix('admin')->name('admin.')
         // Delete route
         Route::delete('/{user}', [UserController::class, 'destroy'])->name('destroy');
 
+        // Route untuk import/export
         Route::prefix('mahasiswa')->name('mahasiswa.')->group(function () {
-            // route untuk import/export
             Route::get('/export', [UserController::class, 'exportMahasiswa'])->name('export');
             Route::get('/import', [UserController::class, 'showImportMahasiswa'])->name('import');
             Route::post('/import', [UserController::class, 'importMahasiswa'])->name('import');
@@ -68,6 +68,7 @@ Route::middleware(['auth', 'role:staff|dosen'])->prefix('admin')->name('admin.')
 //     Route::resource('surat-aktif-kuliah', \App\Http\Controllers\Admin\SuratAktifKuliahController::class)
 //         ->except(['create', 'store']);
 // });
+
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

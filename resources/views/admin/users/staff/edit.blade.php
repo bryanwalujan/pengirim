@@ -1,6 +1,6 @@
 @extends('layouts.admin.app')
 
-@section('title', 'Tambah Dosen Baru')
+@section('title', 'Edit Data Staff')
 
 @push('styles')
     <style>
@@ -16,6 +16,31 @@
             cursor: pointer;
             color: #697a8d;
         }
+
+        .profile-pic-wrapper {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 20px;
+            position: relative;
+        }
+
+        .profile-pic {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 3px solid #e9ecef;
+        }
+
+        .upload-btn {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background: #fff;
+            border-radius: 50%;
+            padding: 5px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+        }
     </style>
 @endpush
 
@@ -29,52 +54,56 @@
                     <i class="breadcrumb-icon icon-base bx bx-chevron-right align-middle"></i>
                 </li>
                 <li class="breadcrumb-item">
-                    <a href="{{ route('admin.users.dosen') }}">Daftar Dosen</a>
+                    <a href="{{ route('admin.users.staff') }}">Daftar Staff</a>
                     <i class="breadcrumb-icon icon-base bx bx-chevron-right align-middle"></i>
                 </li>
-                <li class="breadcrumb-item active" aria-current="page">Tambah Baru</li>
+                <li class="breadcrumb-item active" aria-current="page">Edit Data</li>
             </ol>
         </nav>
         <!-- /Breadcrumb -->
 
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h4 class="fw-bold mb-0">
-                <span class="text-muted">Tambah Dosen Baru</span>
+                <span class="text-muted">Edit Data Staff</span>
             </h4>
-            <a href="{{ route('admin.users.dosen') }}" class="btn btn-secondary">
+            <a href="{{ route('admin.users.staff') }}" class="btn btn-secondary">
                 <i class="bx bx-arrow-back me-1"></i> Kembali ke Daftar
             </a>
         </div>
 
-        <!-- Form Tambah Dosen -->
+        <!-- Form Edit Staff -->
         <div class="card">
             <div class="card-header border-bottom">
-                <h5 class="card-title mb-0">Form Data Dosen</h5>
+                <h5 class="card-title mb-0">Form Edit Data</h5>
             </div>
             <div class="card-body pt-4">
-                <form id="form-dosen" action="{{ route('admin.users.dosen.store') }}" method="POST">
+                <form id="form-edit-staff" action="{{ route('admin.users.staff.update', $user->id) }}" method="POST">
                     @csrf
+                    @method('PUT')
 
                     <div class="row">
                         <!-- Kolom Kiri -->
                         <div class="col-md-6">
+                            {{-- <div class="text-center mb-4">
+                                <div class="profile-pic-wrapper">
+                                    <img src="{{ $user->foto ? asset('storage/' . $user->foto) : asset('assets/img/avatars/default-avatar.png') }}"
+                                        class="profile-pic" id="profile-pic-preview" alt="Foto Profil">
+                                    <button type="button" class="upload-btn"
+                                        onclick="document.getElementById('foto').click()">
+                                        <i class="bx bx-camera"></i>
+                                    </button>
+                                    <input type="file" id="foto" name="foto" accept="image/*"
+                                        style="display: none;">
+                                </div>
+                            </div> --}}
+
                             <div class="mb-3">
                                 <label for="name" class="form-label">Nama Lengkap <span
                                         class="text-danger">*</span></label>
                                 <input type="text" class="form-control @error('name') is-invalid @enderror"
-                                    id="name" name="name" value="{{ old('name') }}" required
+                                    id="name" name="name" value="{{ old('name', $user->name) }}" required
                                     placeholder="Masukkan nama lengkap">
                                 @error('name')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="nidn" class="form-label">NIDN <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control @error('nidn') is-invalid @enderror"
-                                    id="nidn" name="nidn" value="{{ old('nidn') }}" required
-                                    placeholder="Masukkan NIDN" title="NIDN harus 10 digit angka">
-                                @error('nidn')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
@@ -85,18 +114,19 @@
                             <div class="mb-3">
                                 <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
                                 <input type="email" class="form-control @error('email') is-invalid @enderror"
-                                    id="email" name="email" value="{{ old('email') }}" required
+                                    id="email" name="email" value="{{ old('email', $user->email) }}" required
                                     placeholder="Masukkan email aktif">
                                 @error('email')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-                            <!-- Password Field -->
+                        </div>
+                        <div class="col-md-6">
                             <div class="mb-3">
-                   <label for="password" class="form-label required">Password</label>
+                                <label for="password" class="form-label">Password</label>
                                 <div class="input-group input-group-merge">
                                     <input type="password" class="form-control @error('password') is-invalid @enderror"
-                                        id="password" name="password" placeholder="Minimal 8 karakter" required>
+                                        id="password" name="password" placeholder="Kosongkan jika tidak ingin mengubah">
                                     <span class="input-group-text cursor-pointer toggle-password">
                                         <i class="bx bx-hide"></i>
                                     </span>
@@ -104,25 +134,22 @@
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
-                                <small class="text-muted">Gunakan kombinasi huruf, angka, dan simbol</small>
+                                <small class="text-muted">Minimal 8 karakter</small>
                             </div>
                         </div>
                     </div>
 
                     <div class="row mt-4">
                         <div class="col-12 text-end">
-                            <button type="reset" class="btn btn-outline-secondary me-2">
-                                <i class="bx bx-reset me-1"></i> Reset
-                            </button>
                             <button type="submit" class="btn btn-primary">
-                                <i class="bx bx-save me-1"></i> Simpan Data
+                                <i class="bx bx-save me-1"></i> Simpan Perubahan
                             </button>
                         </div>
                     </div>
                 </form>
             </div>
         </div>
-        <!--/ Form Tambah Dosen -->
+        <!--/ Form Edit Staff -->
     </div>
 @endsection
 
@@ -140,27 +167,28 @@
                 this.classList.toggle('bx-show');
             });
 
+            // Preview foto profil
+            const fotoInput = document.getElementById('foto');
+            const fotoPreview = document.getElementById('profile-pic-preview');
+
+            fotoInput.addEventListener('change', function() {
+                const file = this.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        fotoPreview.src = e.target.result;
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+
             // Form validation
-            const form = document.getElementById('form-dosen');
+            const form = document.getElementById('form-edit-staff');
             form.addEventListener('submit', function(e) {
-                let valid = true;
-
-                // Validate password
                 const password = document.getElementById('password').value;
-                if (password.length < 8) {
-                    alert('Password harus minimal 8 karakter');
-                    valid = false;
-                }
-
-                // Validate NIDN format (10 digits)
-                const nidn = document.getElementById('nidn').value;
-                if (!/^\d{10}$/.test(nidn)) {
-                    alert('NIDN harus terdiri dari 10 digit angka');
-                    valid = false;
-                }
-
-                if (!valid) {
+                if (password && password.length < 8) {
                     e.preventDefault();
+                    alert('Password harus minimal 8 karakter jika diisi');
                 }
             });
         });

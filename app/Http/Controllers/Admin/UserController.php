@@ -84,13 +84,12 @@ class UserController extends Controller
             'name' => 'required',
             'email' => 'required|email|unique:users',
             'password' => 'required|min:8',
-            'nim' => 'required|unique:users,username'
+            'nim' => 'required|unique:users'
         ]);
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'username' => $request->nim,
             'nim' => $request->nim,
             'password' => Hash::make($request->password)
         ]);
@@ -109,13 +108,12 @@ class UserController extends Controller
             'name' => 'required',
             'email' => 'required|email|unique:users',
             'password' => 'required|min:8',
-            'nidn' => 'required|unique:users,username'
+            'nidn' => 'required|unique:users'
         ]);
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'username' => $request->nidn,
             'nidn' => $request->nidn,
             'password' => Hash::make($request->password)
         ]);
@@ -134,13 +132,10 @@ class UserController extends Controller
             'name' => 'required',
             'email' => 'required|email|unique:users',
             'password' => 'required|min:8',
-            'username' => 'required|unique:users,username'
         ]);
-
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'username' => $request->username,
             'password' => Hash::make($request->password)
         ]);
 
@@ -181,13 +176,12 @@ class UserController extends Controller
         $request->validate([
             'name' => 'required',
             'email' => 'required|email|unique:users,email,' . $user->id,
-            'nim' => 'required|unique:users,username,' . $user->id
+            'nim' => 'required|unique:users,nim,' . $user->id
         ]);
 
         $user->update([
             'name' => $request->name,
             'email' => $request->email,
-            'username' => $request->nim,
             'nim' => $request->nim
         ]);
 
@@ -202,13 +196,12 @@ class UserController extends Controller
         $request->validate([
             'name' => 'required',
             'email' => 'required|email|unique:users,email,' . $user->id,
-            'nidn' => 'required|unique:users,username,' . $user->id
+            'nidn' => 'required|unique:users,nidn,' . $user->id
         ]);
 
         $user->update([
             'name' => $request->name,
             'email' => $request->email,
-            'username' => $request->nidn,
             'nidn' => $request->nidn
         ]);
 
@@ -223,13 +216,11 @@ class UserController extends Controller
         $request->validate([
             'name' => 'required',
             'email' => 'required|email|unique:users,email,' . $user->id,
-            'username' => 'required|unique:users,username,' . $user->id
         ]);
 
         $user->update([
             'name' => $request->name,
             'email' => $request->email,
-            'username' => $request->username
         ]);
 
         return redirect()->route('admin.users.staff')->with('success', 'Data staff berhasil diperbarui');

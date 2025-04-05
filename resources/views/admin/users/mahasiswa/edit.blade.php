@@ -34,16 +34,23 @@
         </nav>
         <!-- /Breadcrumb -->
 
-        <h4 class="fw-bold py-3 mb-2" style="margin-top: -1.2rem">
-            <span class="text-muted">Edit Data Mahasiswa</span>
-        </h4>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="fw-bold mb-0">
+                <span class="text-muted">Edit Data Mahasiswa</span>
+            </h4>
+            <a href="{{ route('admin.users.mahasiswa') }}" class="btn btn-secondary">
+                <i class="bx bx-arrow-back me-1"></i> Kembali ke Daftar
+            </a>
+        </div>
+
 
         <!-- Card -->
         <div class="card">
-            <div class="card-header">
+            <div class="card-header border-bottom">
                 <h5 class="card-title mb-0">Form Edit Mahasiswa</h5>
             </div>
-            <div class="card-body">
+            <div class="card-body pt-4">
                 <form action="{{ route('admin.users.mahasiswa.update', $user->id) }}" method="POST">
                     @csrf
                     @method('PUT')
@@ -102,11 +109,8 @@
 
                     <div class="row">
                         <div class="col-12 text-end mt-3">
-                            <a href="{{ route('admin.users.mahasiswa') }}" class="btn btn-outline-secondary me-2">
-                                <i class="bx bx-arrow-back"></i> Kembali
-                            </a>
                             <button type="submit" class="btn btn-primary">
-                                <i class="bx bx-save"></i> Simpan Perubahan
+                                <i class="bx bx-save me-1"></i> Simpan Perubahan
                             </button>
                         </div>
                     </div>

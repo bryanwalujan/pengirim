@@ -41,7 +41,7 @@
                 <li class="menu-item {{ request()->routeIs('admin.users.mahasiswa*') ? 'active' : '' }}">
                     <a href="{{ route('admin.users.mahasiswa') }}" class="menu-link">
                         <i class="menu-icon tf-icons bx bx-group"></i>
-                        <div>Daftar Mahasiswa</div>
+                        <div>Mahasiswa</div>
                     </a>
                 </li>
                 {{-- @endcan --}}
@@ -49,7 +49,7 @@
                 <li class="menu-item {{ request()->routeIs('admin.users.dosen*') ? 'active' : '' }}">
                     <a href="{{ route('admin.users.dosen') }}" class="menu-link">
                         <i class="menu-icon tf-icons bx bx-user-voice"></i>
-                        <div>Daftar Dosen</div>
+                        <div>Dosen</div>
                     </a>
                 </li>
 
@@ -57,7 +57,7 @@
                 <li class="menu-item {{ request()->routeIs('admin.users.staff*') ? 'active' : '' }}">
                     <a href="{{ route('admin.users.staff') }}" class="menu-link">
                         <i class="menu-icon tf-icons bx bx-user-pin"></i>
-                        <div>Daftar Staff</div>
+                        <div>Staff</div>
                     </a>
                 </li>
                 {{-- @endcan --}}

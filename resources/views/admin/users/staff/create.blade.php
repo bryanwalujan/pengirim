@@ -1,6 +1,6 @@
 @extends('layouts.admin.app')
 
-@section('title', 'Tambah Dosen Baru')
+@section('title', 'Tambah Staff Baru')
 
 @push('styles')
     <style>
@@ -29,7 +29,7 @@
                     <i class="breadcrumb-icon icon-base bx bx-chevron-right align-middle"></i>
                 </li>
                 <li class="breadcrumb-item">
-                    <a href="{{ route('admin.users.dosen') }}">Daftar Dosen</a>
+                    <a href="{{ route('admin.users.staff') }}">Daftar Staff</a>
                     <i class="breadcrumb-icon icon-base bx bx-chevron-right align-middle"></i>
                 </li>
                 <li class="breadcrumb-item active" aria-current="page">Tambah Baru</li>
@@ -39,20 +39,20 @@
 
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h4 class="fw-bold mb-0">
-                <span class="text-muted">Tambah Dosen Baru</span>
+                <span class="text-muted">Tambah Staff Baru</span>
             </h4>
-            <a href="{{ route('admin.users.dosen') }}" class="btn btn-secondary">
+            <a href="{{ route('admin.users.staff') }}" class="btn btn-secondary">
                 <i class="bx bx-arrow-back me-1"></i> Kembali ke Daftar
             </a>
         </div>
 
-        <!-- Form Tambah Dosen -->
+        <!-- Form Tambah Staff -->
         <div class="card">
             <div class="card-header border-bottom">
-                <h5 class="card-title mb-0">Form Data Dosen</h5>
+                <h5 class="card-title mb-0">Form Data Staff</h5>
             </div>
             <div class="card-body pt-4">
-                <form id="form-dosen" action="{{ route('admin.users.dosen.store') }}" method="POST">
+                <form id="form-staff" action="{{ route('admin.users.staff.store') }}" method="POST">
                     @csrf
 
                     <div class="row">
@@ -65,16 +65,6 @@
                                     id="name" name="name" value="{{ old('name') }}" required
                                     placeholder="Masukkan nama lengkap">
                                 @error('name')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="nidn" class="form-label">NIDN <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control @error('nidn') is-invalid @enderror"
-                                    id="nidn" name="nidn" value="{{ old('nidn') }}" required
-                                    placeholder="Masukkan NIDN" title="NIDN harus 10 digit angka">
-                                @error('nidn')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
@@ -91,9 +81,12 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
+                        </div>
+                        <div class="col-md-6">
                             <!-- Password Field -->
                             <div class="mb-3">
-                   <label for="password" class="form-label required">Password</label>
+                                <label for="password" class="form-label required">Password <span
+                                        class="text-danger">*</span></label>
                                 <div class="input-group input-group-merge">
                                     <input type="password" class="form-control @error('password') is-invalid @enderror"
                                         id="password" name="password" placeholder="Minimal 8 karakter" required>
@@ -112,7 +105,7 @@
                     <div class="row mt-4">
                         <div class="col-12 text-end">
                             <button type="reset" class="btn btn-outline-secondary me-2">
-                                <i class="bx bx-reset me-1"></i> Reset
+                                <i class="bx bx-reset me-1"></i> Reset Form
                             </button>
                             <button type="submit" class="btn btn-primary">
                                 <i class="bx bx-save me-1"></i> Simpan Data
@@ -122,7 +115,7 @@
                 </form>
             </div>
         </div>
-        <!--/ Form Tambah Dosen -->
+        <!--/ Form Tambah Staff -->
     </div>
 @endsection
 
@@ -141,26 +134,12 @@
             });
 
             // Form validation
-            const form = document.getElementById('form-dosen');
+            const form = document.getElementById('form-staff');
             form.addEventListener('submit', function(e) {
-                let valid = true;
-
-                // Validate password
                 const password = document.getElementById('password').value;
                 if (password.length < 8) {
-                    alert('Password harus minimal 8 karakter');
-                    valid = false;
-                }
-
-                // Validate NIDN format (10 digits)
-                const nidn = document.getElementById('nidn').value;
-                if (!/^\d{10}$/.test(nidn)) {
-                    alert('NIDN harus terdiri dari 10 digit angka');
-                    valid = false;
-                }
-
-                if (!valid) {
                     e.preventDefault();
+                    alert('Password harus minimal 8 karakter');
                 }
             });
         });
