@@ -36,7 +36,7 @@
                                     </div>
                                 </div>
                                 <div class="flex-grow-1">
-                                    <h6 class="mb-0">{{ Auth::user()->name }}</h6>
+                                    <h6 class="mb-2">{{ Auth::user()->name }}</h6>
                                     <small
                                         class="badge rounded-pill bg-label-warning">{{ Auth::user()->roles()->first()->name }}</small>
                                 </div>

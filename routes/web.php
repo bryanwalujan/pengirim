@@ -4,23 +4,23 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\User\HomeController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\KopSuratController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\User\SuratAktifKuliahController;
 
 // Untuk User (Mahasiswa)
 Route::get('/', [HomeController::class, 'index'])->name('user.home.index');
 
-Route::middleware(['auth'])->prefix('surat')->group(function () {
-    Route::get('aktif-kuliah/create', [SuratAktifKuliahController::class, 'create'])
-        ->name('surat.aktif-kuliah.create');
-
-    Route::post('aktif-kuliah', [SuratAktifKuliahController::class, 'store'])
-        ->name('surat.aktif-kuliah.store');
-});
-
 // Untuk Staff
 Route::middleware(['auth', 'role:staff|dosen'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
+
+    // Kop Surat
+    Route::prefix('kop-surat')->name('kop-surat.')->group(function () {
+        Route::get('/', [KopSuratController::class, 'index'])->name('index');
+        Route::get('/edit', [KopSuratController::class, 'edit'])->name('edit');
+        Route::put('/', [KopSuratController::class, 'update'])->name('update');
+    });
 
     // User Management
     Route::prefix('users')->name('users.')->group(function () {

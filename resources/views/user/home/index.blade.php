@@ -198,12 +198,12 @@
                             <h3>Surat Aktif Kuliah</h3>
                             <p>Ajukan surat keterangan aktif kuliah secara online dengan mudah dan cepat.</p>
                             @auth
-                                <a href="{{ route('surat.aktif-kuliah.create') }}" class="read-more">
+                                <a href="" class="read-more">
                                     Ajukan Sekarang <i class="bi bi-arrow-right"></i>
                                 </a>
                             @else
                                 <a href="{{ route('login') }}" class="read-more"
-                                    onclick="sessionStorage.setItem('intended_url', '{{ route('surat.aktif-kuliah.create') }}')">
+                                    onclick="sessionStorage.setItem('intended_url',')">
                                     Ajukan Sekarang <i class="bi bi-arrow-right"></i>
                                 </a>
                             @endauth
