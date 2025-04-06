@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Models\KopSurat;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Storage;
 
 class KopSuratController extends Controller
 {
@@ -31,24 +32,33 @@ class KopSuratController extends Controller
     public function update(Request $request)
     {
         $request->validate([
-            'logo' => 'nullable|image|mimes:png|max:2048',
+            'kementerian' => 'required|string',
             'universitas' => 'required|string',
             'fakultas' => 'required|string',
             'prodi' => 'required|string',
             'alamat' => 'required|string',
             'kontak' => 'required|string',
+            'logo' => 'nullable|image|mimes:png|max:2048',
         ]);
 
         $data = $request->except('logo');
         $kopSurat = KopSurat::firstOrNew();
 
         if ($request->hasFile('logo')) {
-            $path = $request->file('logo')->store('public/kop-surat');
-            $data['logo'] = str_replace('public/', '', $path);
+            // Hapus logo lama jika ada
+            if ($kopSurat->logo && Storage::disk('public')->exists($kopSurat->logo)) {
+                Storage::disk('public')->delete($kopSurat->logo);
+            }
+
+            // Simpan logo baru
+            $path = $request->file('logo')->store('kop-surat', 'public');
+            $data['logo'] = $path;
         }
 
         $kopSurat->fill($data)->save();
 
         return redirect()->route('admin.kop-surat.index')->with('success', 'Kop surat berhasil diperbarui!');
     }
+
+
 }
