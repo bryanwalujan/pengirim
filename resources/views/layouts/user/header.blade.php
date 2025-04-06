@@ -8,24 +8,21 @@
 
         <nav id="navmenu" class="navmenu">
             <ul>
-                <li><a href="#hero">Beranda</a></li>
-                <li><a href="#about">Tentang</a></li>
-                <li><a href="#services">Layanan</a></li>
+                <li><a href="javascript:void(0);" onclick="scrollToSection('home')">Beranda</a></li>
+                <li><a href="javascript:void(0);" onclick="scrollToSection('about')">Tentang</a>
+                </li>
+                <li><a href="">Layanan</a></li>
                 <li class="dropdown">
                     <a href="{{ Auth::check() ? '#' : route('login') }}">
                         <span>Pengurusan Surat</span>
                         <i class="bi bi-chevron-down toggle-dropdown"></i>
                     </a>
                     <ul>
-                        @auth
-                            <li><a href="">Buat Surat Baru</a></li>
-                            <li><a href="#">Riwayat Surat</a></li>
-                        @else
-                            <li><a href="{{ route('login') }}">Login untuk mengakses</a></li>
-                        @endauth
+                        <li><a href="">Surat Aktif Kuliah</a></li>
                     </ul>
                 </li>
-                <li><a href="#faq">FAQ</a></li>
+                <li><a href="javascript:void(0);" onclick="scrollToSection('faq')">FAQ</a>
+                </li>
             </ul>
             <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
         </nav>

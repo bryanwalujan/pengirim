@@ -31,7 +31,6 @@
             }
 
             .kop-surat-preview p {
-                margin-bottom: 0.3rem;
                 font-size: 0.95rem;
             }
 
@@ -98,20 +97,23 @@
                                     <div class="kop-surat-preview text-center">
                                         @if ($kopSurat->logo)
                                             <img src="{{ asset('storage/' . $kopSurat->logo) }}"
-                                                style="height: 60px; float: left; margin-right: 15px;">
+                                                style="height: 120px; float: left; margin-right: 15px;">
                                         @endif
 
                                         <div style="overflow: hidden;">
-                                            <h5 style="margin: 0; font-size: 1rem;">{{ $kopSurat->kementerian }}</h5>
-                                            <h4 style="margin: 0; line-height: 1.2">{{ $kopSurat->universitas }}</h4>
-                                            <h5 style="margin: 0; font-size: 1rem">{{ $kopSurat->fakultas }}</h5>
-                                            <p style="margin: 5px 0 0 0; font-size: 0.9rem">
+                                            <h4 style="margin: 0;">{{ $kopSurat->kementerian }}</h4>
+                                            <h5 style="margin: 0; line-height: 1.2">{{ $kopSurat->universitas }}</h5>
+                                            <h5 style="margin: 0;">{{ $kopSurat->fakultas }}</h5>
+                                            <h4 style="margin: 0;">
                                                 <strong>{{ $kopSurat->prodi }}</strong><br>
-                                                {{ $kopSurat->alamat }} | {{ $kopSurat->kontak }}
-                                            </p>
+                                            </h4>
+                                            <p class="mb-1">{{ $kopSurat->alamat }}</p>
+                                            <a href="">
+                                                <p>{{ $kopSurat->kontak }}</p>
+                                            </a>
                                         </div>
                                         <div style="clear: both;"></div>
-                                        <hr style="border-top: 2px solid black; margin: 15px 0 10px 0;">
+                                        <hr style="border-top: 2px solid black; margin-top: -7px">
                                     </div>
 
 

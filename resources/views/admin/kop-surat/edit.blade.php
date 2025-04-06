@@ -42,6 +42,9 @@
             <h4 class="fw-bold mb-0">
                 <span class="text-muted">Edit Kop Surat</span>
             </h4>
+            <a href="{{ route('admin.kop-surat.index') }}" class="btn btn-secondary">
+                <i class="bx bx-arrow-back me-1"></i> Kembali
+            </a>
         </div>
 
         <!-- Form Card -->
@@ -101,7 +104,7 @@
 
                         <!-- Kontak -->
                         <div class="col-md-6 mb-3">
-                            <label class="form-label required">Kontak (Telp/Website/Email)</label>
+                            <label class="form-label required">Kontak (/Website/Email)</label>
                             <input type="text" class="form-control" name="kontak" value="{{ $kopSurat->kontak }}"
                                 required>
                         </div>

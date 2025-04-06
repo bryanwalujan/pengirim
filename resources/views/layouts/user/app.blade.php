@@ -29,6 +29,9 @@
     <!-- Main CSS File -->
     <link href="{{ asset('user/assets/css/main.css') }}" rel="stylesheet">
 
+    <!-- Boxicons CSS -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+
     <!-- =======================================================
   * Template Name: iLanding
   * Template URL: https://bootstrapmade.com/ilanding-bootstrap-landing-page-template/
@@ -65,4 +68,18 @@
 
     {{-- Custom JS file --}}
     <script src="{{ asset('user/assets/js/custom.js') }}"></script>
+
+    {{-- Scroll to Section --}}
+    <script>
+        function scrollToSection(id) {
+            const element = document.getElementById(id);
+            if (element) {
+                element.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        }
+    </script>
+
 </body>

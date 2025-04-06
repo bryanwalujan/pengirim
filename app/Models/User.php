@@ -50,6 +50,18 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+    // Mahasiswa yang mengajukan surat aktif kuliah
+    public function suratAktifKuliah()
+    {
+        return $this->hasMany(SuratAktifKuliah::class, 'mahasiswa_id');
+    }
+
+    // Jika user juga bisa sebagai penandatangan
+    public function suratDitandatangani()
+    {
+        return $this->hasMany(SuratAktifKuliah::class, 'penandatangan_id');
+    }
+
 
     // Scope for mahasiswa
     public function scopeMahasiswa($query)

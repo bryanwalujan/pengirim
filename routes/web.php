@@ -4,16 +4,27 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\User\HomeController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\ServiceController;
 use App\Http\Controllers\Admin\KopSuratController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\User\UserServiceController;
 use App\Http\Controllers\User\SuratAktifKuliahController;
 
 // Untuk User (Mahasiswa)
 Route::get('/', [HomeController::class, 'index'])->name('user.home.index');
 
+// Student service routes
+Route::middleware(['auth', 'verified', 'role:mahasiswa'])->prefix('layanan')->name('user.services.')->group(function () {
+    Route::get('/', [UserServiceController::class, 'index'])->name('index');
+    Route::get('/{service}/ajukan', [UserServiceController::class, 'create'])->name('create');
+});
+
 // Untuk Staff
 Route::middleware(['auth', 'role:staff|dosen'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
+
+    // Layanan-layanan
+    Route::resource('services', ServiceController::class);
 
     // Kop Surat
     Route::prefix('kop-surat')->name('kop-surat.')->group(function () {

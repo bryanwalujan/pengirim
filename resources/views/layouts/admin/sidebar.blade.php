@@ -20,6 +20,17 @@
             </a>
         </li>
 
+        {{-- Manajemen Layanan --}}
+        <li class="menu-header small text-uppercase">
+            <span class="menu-header-text">Manajemen Layanan</span>
+        </li>
+        <li class="menu-item {{ request()->routeIs('admin.services.*') ? 'active' : '' }}">
+            <a href="{{ route('admin.services.index') }}" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-cog"></i>
+                <div>Layanan-layanan</div>
+            </a>
+        </li>
+
         {{-- @canany(['staff', 'admin']) --}}
         <!-- Manajemen Kop Surat -->
         <li class="menu-header small text-uppercase">

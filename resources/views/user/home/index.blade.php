@@ -188,107 +188,35 @@
                 <h2>Layanan E-Service</h2>
             </div>
             <div class="row d-flex justify-content-center" data-aos="fade-up" data-aos-delay="100">
-                <!-- Surat Aktif Kuliah Card -->
-                <div class="col-lg-4" data-aos="fade-up" data-aos-delay="100">
-                    <div class="service-card d-flex">
-                        <div class="icon flex-shrink-0">
-                            <i class="bi bi-file-earmark-text"></i>
-                        </div>
-                        <div>
-                            <h3>Surat Aktif Kuliah</h3>
-                            <p>Ajukan surat keterangan aktif kuliah secara online dengan mudah dan cepat.</p>
-                            @auth
-                                <a href="" class="read-more">
-                                    Ajukan Sekarang <i class="bi bi-arrow-right"></i>
-                                </a>
-                            @else
-                                <a href="{{ route('login') }}" class="read-more"
-                                    onclick="sessionStorage.setItem('intended_url',')">
-                                    Ajukan Sekarang <i class="bi bi-arrow-right"></i>
-                                </a>
-                            @endauth
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Surat Cuti Akademik -->
-                <div class="col-lg-4" data-aos="fade-up" data-aos-delay="200">
-                    <div class="service-card d-flex">
-                        <div class="icon flex-shrink-0">
-                            <i class="bi bi-calendar-x"></i>
-                        </div>
-                        <div>
-                            <h3>Surat Cuti Akademik</h3>
-                            <p>Mengajukan izin cuti akademik kini lebih praktis melalui sistem E-Service.</p>
-                            <a href="service-details.html" class="read-more">Ajukan Sekarang <i
-                                    class="bi bi-arrow-right"></i></a>
+                @foreach ($services as $service)
+                    <div class="col-lg-4 mb-4" data-aos="fade-up" data-aos-delay="{{ $loop->iteration * 100 }}">
+                        <div class="service-card d-flex">
+                            <div class="icon flex-shrink-0">
+                                <i class="{{ $service->icon }}"></i>
+                            </div>
+                            <div>
+                                <h3>{{ $service->name }}</h3>
+                                <p>{{ Str::limit($service->description, 100) }}</p>
+                                @auth
+                                    <a href="{{ route('user.services.create', $service->slug) }}" class="read-more">
+                                        Ajukan Sekarang <i class="bi bi-arrow-right"></i>
+                                    </a>
+                                @else
+                                    <a href="{{ route('login') }}" class="read-more"
+                                        onclick="sessionStorage.setItem('intended_url', window.location.href + '#services')">
+                                        Ajukan Sekarang <i class="bi bi-arrow-right"></i>
+                                    </a>
+                                @endauth
+                            </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Surat Pindah Kuliah -->
-                <div class="col-lg-4" data-aos="fade-up" data-aos-delay="300">
-                    <div class="service-card d-flex">
-                        <div class="icon flex-shrink-0">
-                            <i class="bi bi-arrow-left-right"></i>
-                        </div>
-                        <div>
-                            <h3>Surat Pindah Kuliah</h3>
-                            <p>Proses pengajuan pindah kuliah menjadi lebih cepat dan transparan. lorem</p>
-                            <a href="service-details.html" class="read-more">Ajukan Sekarang <i
-                                    class="bi bi-arrow-right"></i></a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Peminjaman Laboratorium -->
-                <div class="col-lg-4" data-aos="fade-up" data-aos-delay="400">
-                    <div class="service-card d-flex">
-                        <div class="icon flex-shrink-0">
-                            <i class="bi bi-pc-display"></i>
-                        </div>
-                        <div>
-                            <h3>Peminjaman Laboratorium</h3>
-                            <p>Reservasi laboratorium komputer untuk keperluan penelitian atau praktikum.</p>
-                            <a href="service-details.html" class="read-more">Ajukan Sekarang <i
-                                    class="bi bi-arrow-right"></i></a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Pendaftaran Seminar Proposal -->
-                <div class="col-lg-4" data-aos="fade-up" data-aos-delay="500">
-                    <div class="service-card d-flex">
-                        <div class="icon flex-shrink-0">
-                            <i class="bi bi-person-video"></i>
-                        </div>
-                        <div>
-                            <h3>Pendaftaran Seminar Proposal</h3>
-                            <p>Daftarkan seminar proposal skripsi kamu dengan sistem yang lebih efisien.</p>
-                            <a href="service-details.html" class="read-more">Ajukan Sekarang <i
-                                    class="bi bi-arrow-right"></i></a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Pendaftaran Ujian Skripsi -->
-                <div class="col-lg-4" data-aos="fade-up" data-aos-delay="600">
-                    <div class="service-card d-flex">
-                        <div class="icon flex-shrink-0">
-                            <i class="bi bi-clipboard-check"></i>
-                        </div>
-                        <div>
-                            <h3>Pendaftaran Ujian Skripsi</h3>
-                            <p>Registrasi ujian skripsi secara online dengan mudah melalui sistem ini.</p>
-                            <a href="service-details.html" class="read-more">Ajukan Sekarang <i
-                                    class="bi bi-arrow-right"></i></a>
-                        </div>
-                    </div>
-                </div>
+                @endforeach
             </div>
-        </div>
-        <div class="text-center mt-3" data-aos="fade-up" data-aos-delay="700">
-            <a href="all-services.html" class="explore-btn">Lihat Semua Layanan</a>
+            <div class="text-center mt-4" data-aos="fade-up" data-aos-delay="300">
+                <a href="{{ route('user.services.index') }}" class="btn btn-outline-primary">
+                    Lihat Semua Layanan <i class="bi bi-arrow-right ms-2"></i>
+                </a>
+            </div>
         </div>
     </section>
     <!-- End Layanan Section -->
