@@ -3,13 +3,6 @@
 @section('title', 'Tambah Layanan Baru')
 
 @push('styles')
-    <style>
-        .icon-preview {
-            font-size: 1.5rem;
-            margin-right: 10px;
-            vertical-align: middle;
-        }
-    </style>
 @endpush
 
 @section('content')
@@ -81,12 +74,8 @@
                                 <div class="input-group">
                                     <span class="input-group-text"><i id="icon-preview" class="bx bx-file"></i></span>
                                     <input type="text" class="form-control @error('icon') is-invalid @enderror"
-                                        id="icon" name="icon" value="{{ old('icon', 'bx bx-file') }}" required
-                                        placeholder="Contoh: bx bx-file">
-                                    <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal"
-                                        data-bs-target="#iconModal">
-                                        Pilih Icon
-                                    </button>
+                                        id="icon" name="icon" value="{{ old('icon', 'bx-file') }}" required
+                                        placeholder="Contoh: bx-file">
                                 </div>
                                 @error('icon')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -131,33 +120,6 @@
         <!--/ Form Tambah Layanan -->
     </div>
 
-    <!-- Icon Modal -->
-    <div class="modal fade" id="iconModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Pilih Icon</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-                        @foreach (['bx bx-file', 'bx bx-book', 'bx bx-calendar', 'bx bx-certification', 'bx bx-clipboard', 'bx bx-collection', 'bx bx-credit-card', 'bx bx-envelope', 'bx bx-group', 'bx bx-id-card', 'bx bx-library', 'bx bx-notepad', 'bx bx-paperclip', 'bx bx-printer', 'bx bx-search', 'bx bx-task'] as $icon)
-                            <div class="col-3 col-md-2 mb-3 text-center">
-                                <button type="button" class="btn btn-icon btn-outline-primary icon-select"
-                                    data-icon="{{ $icon }}" style="width: 100%; height: 100%;">
-                                    <i class="{{ $icon }}"></i>
-                                </button>
-                                <small class="d-block mt-1">{{ $icon }}</small>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                </div>
-            </div>
-        </div>
-    </div>
 @endsection
 
 @push('scripts')
@@ -171,25 +133,6 @@
                 const name = this.value.trim().toLowerCase();
                 const slug = name.replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
                 slugInput.value = slug;
-            });
-
-            // Icon selection
-            const iconInput = document.getElementById('icon');
-            const iconPreview = document.getElementById('icon-preview');
-            const iconSelectButtons = document.querySelectorAll('.icon-select');
-
-            iconSelectButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const selectedIcon = this.getAttribute('data-icon');
-                    iconInput.value = selectedIcon;
-                    iconPreview.className = selectedIcon;
-                    $('#iconModal').modal('hide');
-                });
-            });
-
-            // Live icon preview
-            iconInput.addEventListener('input', function() {
-                iconPreview.className = this.value;
             });
 
             // Form validation

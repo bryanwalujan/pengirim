@@ -20,6 +20,8 @@
 
     <!-- CSS Files -->
     <link href="{{ asset('assets/css/argon-dashboard.css') }}" rel="stylesheet" />
+
+    @stack('styles')
 </head>
 
 <body class="">
@@ -68,6 +70,9 @@
     <script src="{{ asset('assets/js/core/bootstrap.min.js') }}"></script>
     <script src="{{ asset('assets/js/plugins/perfect-scrollbar.min.js') }}"></script>
     <script src="{{ asset('assets/js/argon-dashboard.min.js') }}"></script> --}}
+
+    @stack('scripts')
+
 </body>
 
 </html>

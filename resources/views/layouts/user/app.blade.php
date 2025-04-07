@@ -29,6 +29,8 @@
     <!-- Main CSS File -->
     <link href="{{ asset('user/assets/css/main.css') }}" rel="stylesheet">
 
+    @stack('styles')
+
     <!-- Boxicons CSS -->
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 
@@ -68,6 +70,8 @@
 
     {{-- Custom JS file --}}
     <script src="{{ asset('user/assets/js/custom.js') }}"></script>
+
+    @stack('scripts')
 
     {{-- Scroll to Section --}}
     <script>

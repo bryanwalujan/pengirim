@@ -192,7 +192,7 @@
                     <div class="col-lg-4 mb-4" data-aos="fade-up" data-aos-delay="{{ $loop->iteration * 100 }}">
                         <div class="service-card d-flex">
                             <div class="icon flex-shrink-0">
-                                <i class="{{ $service->icon }}"></i>
+                                <i class="bx {{ $service->icon }}"></i>
                             </div>
                             <div>
                                 <h3>{{ $service->name }}</h3>
