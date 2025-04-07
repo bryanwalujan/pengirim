@@ -71,7 +71,7 @@
                                         <span>{{ $service->name }}</span>
                                     </div>
                                 </td>
-                                <td>{{ Str::limit($service->description, 50) }}</td>
+                                <td>{!! Str::limit($service->description, 70) !!}</td>
                                 <td><code>{{ $service->icon }}</code></td>
                                 <td>
                                     @if ($service->is_active)
@@ -92,18 +92,13 @@
                                                 <i class="bx bx-edit-alt me-1"></i> Edit
                                             </a>
 
-                                            {{-- <a class="dropdown-item text-warning" href="">
-                                                <i class="bx bx-list-ul me-1"></i> Kelola Field
-                                            </a> --}}
-
                                             <form action="{{ route('admin.services.destroy', $service->id) }}"
                                                 method="POST" class="d-inline">
                                                 @csrf
                                                 @method('DELETE')
-                                                <a class="dropdown-item text-danger" href="javascript:void(0);"
-                                                    onclick="if(confirm('Apakah Anda yakin ingin menghapus layanan ini?')) { this.closest('form').submit(); }">
+                                                <button type="submit" class="dropdown-item text-danger delete-btn">
                                                     <i class="bx bx-trash me-1"></i> Hapus
-                                                </a>
+                                                </button>
                                             </form>
                                         </div>
                                     </div>
@@ -154,23 +149,32 @@
 
 @push('scripts')
     <script>
-        // Konfirmasi sebelum menghapus
-        function confirmDelete(event) {
-            event.preventDefault();
-            Swal.fire({
-                title: 'Apakah Anda yakin?',
-                text: "Layanan yang dihapus tidak dapat dikembalikan!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Ya, hapus!',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    event.target.closest('form').submit();
-                }
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tangkap semua tombol delete
+            const deleteButtons = document.querySelectorAll('.delete-btn');
+
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const form = this.closest('form');
+
+                    Swal.fire({
+                        title: 'Apakah Anda yakin?',
+                        text: "Layanan yang dihapus tidak dapat dikembalikan!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Ya, hapus!',
+                        cancelButtonText: 'Batal',
+                        reverseButtons: true
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            form.submit();
+                        }
+                    });
+                });
             });
-        }
+        });
     </script>
 @endpush

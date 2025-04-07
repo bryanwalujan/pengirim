@@ -115,8 +115,14 @@
 
                     <div class="mb-3">
                         <label for="description" class="form-label">Deskripsi Layanan</label>
-                        <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description"
-                            rows="3" placeholder="Deskripsi singkat tentang layanan ini">{{ old('description', $service->description) }}</textarea>
+                        <!-- Hidden input untuk menyimpan data -->
+                        <input id="description" type="hidden" name="description"
+                            value="{{ old('description', $service->description ?? '') }}">
+
+                        <!-- Trix Editor yang akan menampilkan konten -->
+                        <trix-editor input="description" class="form-control @error('description') is-invalid @enderror"
+                            placeholder="Deskripsi singkat tentang layanan ini"></trix-editor>
+
                         @error('description')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror

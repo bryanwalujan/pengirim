@@ -98,14 +98,19 @@
                                                 href="{{ route('admin.users.mahasiswa.edit', $user->id) }}">
                                                 <i class="bx bx-edit-alt me-1"></i> Edit
                                             </a>
-                                            <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST"
-                                                class="d-inline">
+
+                                            <!-- Delete Button -->
+                                            <button type="button" class="dropdown-item text-danger delete-btn"
+                                                data-id="{{ $user->id }}">
+                                                <i class="bx bx-trash me-1"></i> Hapus
+                                            </button>
+
+                                            <!-- Hidden Form -->
+                                            <form id="delete-form-{{ $user->id }}"
+                                                action="{{ route('admin.users.destroy', $user->id) }}" method="POST"
+                                                class="d-none">
                                                 @csrf
                                                 @method('DELETE')
-                                                <a class="dropdown-item text-danger" href="javascript:void(0);"
-                                                    onclick="if(confirm('Apakah Anda yakin ingin menghapus?')) { this.closest('form').submit(); }">
-                                                    <i class="bx bx-trash me-1"></i> Delete
-                                                </a>
                                             </form>
                                         </div>
                                     </div>
@@ -155,4 +160,32 @@
 @endsection
 
 @push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tangkap semua tombol delete
+            const deleteButtons = document.querySelectorAll('.delete-btn');
+
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const userId = this.getAttribute('data-id');
+
+                    Swal.fire({
+                        title: 'Apakah Anda yakin?',
+                        text: "Data mahasiswa akan dihapus permanen!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Ya, hapus!',
+                        cancelButtonText: 'Batal',
+                        reverseButtons: true
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            document.getElementById(`delete-form-${userId}`).submit();
+                        }
+                    });
+                });
+            });
+        });
+    </script>
 @endpush
