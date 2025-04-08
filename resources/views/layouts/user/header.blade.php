@@ -8,21 +8,36 @@
 
         <nav id="navmenu" class="navmenu">
             <ul>
-                <li><a href="javascript:void(0);" onclick="scrollToSection('hero')">Beranda</a></li>
-                <li><a href="javascript:void(0);" onclick="scrollToSection('about')">Tentang</a></li>
-                <li><a href="javascript:void(0);" onclick="scrollToSection('services')">Layanan</a></li>
+                <li><a href="{{ url('/') }} " class="{{ request()->is('/') ? 'active' : '' }}"
+                        onclick="scrollToSection('hero')">Beranda</a></li>
+                <li><a href="{{ url('/#about') }}"
+                        class="{{ request()->is('/') && request()->has('scroll') && request()->get('scroll') == 'about' ? 'active' : '' }}"
+                        onclick="scrollToSection('about')">Tentang</a>
                 </li>
+                <li><a href="{{ url('/#services') }}" class="{{ request()->is('layanan') ? 'active' : '' }}"
+                        onclick="scrollToSection('services')">Layanan</a></li>
                 <li class="dropdown">
-                    <a href="{{ Auth::check() ? '#' : route('login') }}">
+                    <a href="{{ Auth::check() ? '#' : route('login') }}"
+                        class="{{ request()->is('layanan/*') ? 'active' : '' }}">
                         <span>Pengurusan Surat</span>
                         <i class="bi bi-chevron-down toggle-dropdown"></i>
                     </a>
                     <ul>
-                        <li><a href="">Surat Aktif Kuliah</a></li>
+                        @foreach ($services->where('is_active', true)->take(5) as $service)
+                            <li><a href="{{ route('user.services.create', $service->slug) }}">{{ $service->name }}</a>
+                            </li>
+                        @endforeach
+                        <li><a href="{{ route('user.services.index') }}">Lihat Semua</a></li>
                     </ul>
                 </li>
-                <li><a href="javascript:void(0);" onclick="scrollToSection('academic-calendar')">Kalender Akademik</a>
-                <li><a href="javascript:void(0);" onclick="scrollToSection('faq')">FAQ</a></li>
+                <li><a href="{{ url('/#academic-calendar') }}"
+                        class="{{ request()->is('/') && request()->has('scroll') && request()->get('scroll') == 'academic-calendar' ? 'active' : '' }}"
+                        onclick="scrollToSection('academic-calendar')">Kalender
+                        Akademik</a></li>
+                <li><a href="{{ url('/#faq') }}"
+                        class="{{ request()->is('/') && request()->has('scroll') && request()->get('scroll') == 'faq' ? 'active' : '' }}"
+                        onclick="scrollToSection('faq')">FAQ</a>
+                </li>
             </ul>
             <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
         </nav>

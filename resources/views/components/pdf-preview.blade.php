@@ -19,12 +19,9 @@
         </div>
     </div>
 
-    <div class="pdf-actions d-flex justify-content-center gap-3 mt-4">
+    <div class="pdf-actions gap-3 mt-4">
         <a href="{{ $pdfUrl }}" target="_blank" class="btn btn-primary btn-sm px-4">
             <i class="bx bx-download"></i> Unduh PDF Lengkap
         </a>
-        <button class="btn btn-outline-primary btn-sm px-4" id="fullscreenPdfBtn">
-            <i class="bx bx-fullscreen"></i> Layar Penuh
-        </button>
     </div>
 </div>

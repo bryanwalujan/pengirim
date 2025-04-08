@@ -17,6 +17,7 @@ document.addEventListener("DOMContentLoaded", function () {
         clickedItem.classList.toggle("faq-active");
     });
 });
+
 document.addEventListener("DOMContentLoaded", function () {
     const loadPdfBtn = document.getElementById("loadPdfBtn");
     const pdfOverlay = document.getElementById("pdfOverlay");
@@ -80,4 +81,42 @@ document.addEventListener("DOMContentLoaded", function () {
             console.log("Could not adjust PDF zoom:", e);
         }
     });
+});
+function handleNavClick(sectionId) {
+    // Jika sudah di halaman beranda, cukup scroll ke section
+    if (window.location.pathname === "/") {
+        scrollToSection(sectionId);
+        return false; // Mencegah default behavior
+    }
+
+    // Jika di halaman lain, redirect ke beranda dengan parameter
+    window.location.href = `/?scroll=${sectionId}`;
+    return false; // Mencegah default behavior
+}
+
+function scrollToSection(sectionId) {
+    const element = document.getElementById(sectionId);
+    if (element) {
+        window.scrollTo({
+            top: element.offsetTop - 100,
+            behavior: "smooth",
+        });
+
+        // Update URL tanpa hash
+        if (history.pushState) {
+            history.pushState(null, null, window.location.pathname);
+        }
+    }
+}
+
+// Handle scroll saat ada parameter
+document.addEventListener("DOMContentLoaded", function () {
+    const urlParams = new URLSearchParams(window.location.search);
+    const scrollTo = urlParams.get("scroll");
+
+    if (scrollTo) {
+        setTimeout(() => {
+            scrollToSection(scrollTo);
+        }, 100);
+    }
 });

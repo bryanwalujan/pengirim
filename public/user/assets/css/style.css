@@ -1,5 +1,5 @@
 /* Dropdown Menu Styling */
-.dropdown-menu {
+/* .dropdown-menu {
     border: none;
     border-radius: 10px;
     padding: 0.5rem 0;
@@ -125,6 +125,7 @@
         transform: translateY(0);
     }
 }
+*/
 
 /* Academic Calendar Section */
 .academic-calendar-section {
@@ -262,5 +263,61 @@
     .pdf-preview-wrapper {
         height: 40vh;
         min-height: 300px;
+    }
+}
+
+/* Pagination Styles */
+/* Pagination Styles */
+.pagination {
+    margin-top: 30px;
+    margin-bottom: 15px;
+}
+
+.page-item {
+    margin: 0 3px;
+}
+
+.page-link {
+    color: #4154f1;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 8px 15px;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.page-link:hover {
+    background-color: #f6f9ff;
+    border-color: #dee2e6;
+}
+
+.page-item.active .page-link {
+    background-color: #4154f1;
+    border-color: #4154f1;
+    color: white;
+}
+
+.page-item.disabled .page-link {
+    color: #6c757d;
+    pointer-events: none;
+    background-color: #f8f9fa;
+}
+
+/* Showing results text */
+.results-info {
+    font-size: 14px;
+    color: #6c757d;
+    margin-top: 10px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .service-card {
+        padding: 20px;
+    }
+
+    .card-icon {
+        font-size: 2rem;
+        margin-bottom: 15px;
     }
 }

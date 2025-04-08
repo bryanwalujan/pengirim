@@ -222,7 +222,7 @@
     <!-- End Layanan Section -->
 
     <!-- Kalender Akademik Section -->
-    <section id="academic-calendar" class="academic-calendar-section">
+    <section id="academic-calendar" class="academic-calendar-section light-background">
         <div class="container" data-aos="fade-up">
             <div class="section-title pb-4">
                 <h2>Kalender Akademik</h2>
