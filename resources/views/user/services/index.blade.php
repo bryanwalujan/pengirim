@@ -103,7 +103,6 @@
                     @endif
                 </ul>
             </nav>
-
             <div class="text-center text-muted small mt-2">
                 Showing {{ $services->firstItem() }} to {{ $services->lastItem() }} of {{ $services->total() }} results
             </div>
