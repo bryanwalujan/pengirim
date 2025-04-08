@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\User\HomeController;
@@ -13,6 +14,20 @@ use App\Http\Controllers\Admin\AcademicCalendarController;
 
 // Untuk User (Mahasiswa)
 Route::get('/', [HomeController::class, 'index'])->name('user.home.index');
+
+// Route untuk PDF Viewer (Tambahkan di bagian atas)
+Route::get('/storage/academic-calendars/{filename}', function ($filename) {
+    $path = storage_path('app/public/academic-calendars/' . $filename);
+
+    if (!File::exists($path)) {
+        abort(404);
+    }
+
+    return response()->file($path, [
+        'Content-Type' => 'application/pdf',
+        'Content-Disposition' => 'inline; filename="' . $filename . '"'
+    ]);
+})->name('academic-calendar.view');
 
 // Student service routes
 Route::middleware(['auth', 'verified', 'role:mahasiswa'])->prefix('layanan')->name('user.services.')->group(function () {

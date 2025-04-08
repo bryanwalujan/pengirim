@@ -194,3 +194,73 @@
         margin-top: 10px;
     }
 }
+
+/* PDF Preview Styles - Updated for Larger View */
+.pdf-preview-container {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    padding: 20px;
+    margin-bottom: 30px;
+    width: 100%;
+}
+
+.pdf-preview-wrapper {
+    position: relative;
+    height: 70vh; /* 70% dari tinggi viewport */
+    min-height: 600px; /* Tinggi minimum */
+    border: 1px solid #eee;
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 20px 0;
+}
+
+.pdf-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+/* Overlay untuk tombol load */
+.pdf-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.95);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+/* Tombol load PDF */
+#loadPdfBtn {
+    padding: 12px 24px;
+    font-size: 0.5rem;
+    border-radius: 8px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+    .pdf-preview-wrapper {
+        height: 60vh;
+        min-height: 500px;
+    }
+}
+
+@media (max-width: 768px) {
+    .pdf-preview-wrapper {
+        height: 50vh;
+        min-height: 400px;
+    }
+}
+
+@media (max-width: 576px) {
+    .pdf-preview-wrapper {
+        height: 40vh;
+        min-height: 300px;
+    }
+}

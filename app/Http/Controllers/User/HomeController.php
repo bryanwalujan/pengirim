@@ -21,7 +21,7 @@ class HomeController extends Controller
 
         // Tambahkan full URL untuk file PDF
         if ($activeCalendar) {
-            $activeCalendar->pdf_url = Storage::disk('public')->url($activeCalendar->file_path);
+            $activeCalendar->pdf_url = asset('storage/' . $activeCalendar->file_path);
         }
 
         return view('user.home.index', [

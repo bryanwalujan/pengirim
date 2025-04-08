@@ -74,6 +74,8 @@
     {{-- Custom JS file --}}
     <script src="{{ asset('user/assets/js/custom.js') }}"></script>
 
+
+
     @stack('scripts')
 
     {{-- Scroll to Section --}}
