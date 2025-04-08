@@ -30,7 +30,12 @@
                 <div>Layanan-layanan</div>
             </a>
         </li>
-
+        <li class="menu-item {{ request()->routeIs('admin.academic-calendar.*') ? 'active' : '' }}">
+            <a href="{{ route('admin.academic-calendar.index') }}" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-calendar"></i>
+                <div>Kalender Akademik</div>
+            </a>
+        </li>
         {{-- @canany(['staff', 'admin']) --}}
         <!-- Manajemen Kop Surat -->
         <li class="menu-header small text-uppercase">

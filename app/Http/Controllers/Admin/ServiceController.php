@@ -12,13 +12,16 @@ class ServiceController extends Controller
 {
     public function index()
     {
-        $services = Service::orderBy('order')->paginate(10); // 10 items per page
+        $services = Service::orderBy('order')->paginate(5); // 10 items per page
         return view('admin.services.index', compact('services'));
     }
 
-    public function create()
+    public function create(Service $service)
     {
-        return view('admin.services.create');
+        // Set default order to be after the last service
+        $service->order = Service::max('order') + 1;
+        $service->is_active = true; // Default active
+        return view('admin.services.create', compact('service'));
     }
 
     public function store(Request $request)
@@ -27,12 +30,11 @@ class ServiceController extends Controller
             'name' => 'required|string|max:255',
             'icon' => 'required|string|max:50',
             'description' => 'nullable|string',
-            // No need to validate is_active as it's boolean
+            'order' => 'required|integer',
+            'is_active' => 'sometimes|boolean'
         ]);
 
         $validated['slug'] = Str::slug($request->name);
-
-        // Handle checkbox - will be true if checked, false if unchecked
         $validated['is_active'] = $request->has('is_active');
 
         Service::create($validated);
@@ -52,10 +54,10 @@ class ServiceController extends Controller
             'name' => 'required|string|max:255',
             'icon' => 'required|string|max:50',
             'description' => 'nullable|string',
-            // No need to validate is_active as it's boolean
+            'order' => 'required|integer',
+            'is_active' => 'sometimes|boolean'
         ]);
 
-        // Handle checkbox - will be true if checked, false if unchecked
         $validated['is_active'] = $request->has('is_active');
 
         $service->update($validated);
@@ -63,10 +65,32 @@ class ServiceController extends Controller
         return redirect()->route('admin.services.index')
             ->with('success', 'Layanan berhasil diperbarui');
     }
+    public function updateOrder(Request $request)
+    {
+        $request->validate([
+            'services' => 'required|array',
+            'services.*.id' => 'required|exists:services,id',
+            'services.*.order' => 'required|integer'
+        ]);
+
+        DB::transaction(function () use ($request) {
+            foreach ($request->services as $service) {
+                Service::where('id', $service['id'])
+                    ->update(['order' => $service['order']]);
+            }
+        });
+
+        return response()->json(['success' => true]);
+    }
 
     public function destroy(Service $service)
     {
         $service->delete();
+
+        // Reorder remaining services
+        Service::where('order', '>', $service->order)
+            ->decrement('order');
+
         return redirect()->route('admin.services.index')
             ->with('success', 'Layanan berhasil dihapus');
     }

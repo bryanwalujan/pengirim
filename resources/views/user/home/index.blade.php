@@ -189,7 +189,7 @@
             </div>
             <div class="row d-flex justify-content-center" data-aos="fade-up" data-aos-delay="100">
                 @foreach ($services as $service)
-                    <div class="col-lg-4 mb-4" data-aos="fade-up" data-aos-delay="{{ $loop->iteration * 100 }}">
+                    <div class="col-lg-4" data-aos="fade-up" data-aos-delay="{{ $loop->iteration * 100 }}">
                         <div class="service-card d-flex">
                             <div class="icon flex-shrink-0">
                                 <i class="{{ $service->icon }}"></i>
@@ -213,13 +213,50 @@
                 @endforeach
             </div>
             <div class="text-center mt-4" data-aos="fade-up" data-aos-delay="300">
-                <a href="{{ route('user.services.index') }}" class="btn btn-outline-primary">
+                <a href="{{ route('user.services.index') }}" class="explore-btn">
                     Lihat Semua Layanan <i class="bi bi-arrow-right ms-2"></i>
                 </a>
             </div>
         </div>
     </section>
     <!-- End Layanan Section -->
+
+    <!-- Kalender Akademik Section -->
+    <section id="academic-calendar" class="academic-calendar-section ">
+        <div class="container" data-aos="fade-up">
+            <div class="section-title pb-4">
+                <h2>Kalender Akademik</h2>
+                <p>Informasi jadwal akademik terkini Program Studi Teknik Informatika</p>
+            </div>
+            <div class="row justify-content-center" data-aos="fade-up" data-aos-delay="100">
+                <div class="col-lg-8">
+                    @if ($activeCalendar)
+                        <div class="calendar-card">
+                            <div class="calendar-header">
+                                <h3>{{ $activeCalendar->title }}</h3>
+                                <span class="badge bg-primary">{{ $activeCalendar->academic_year }}</span>
+                            </div>
+                            <div class="calendar-body">
+                                <div class="calendar-preview">
+                                    <i class="bx bx-calendar-alt"></i>
+                                    <p>Kalender Akademik {{ $activeCalendar->academic_year }}</p>
+                                </div>
+                                <a href="{{ Storage::disk('public')->url($activeCalendar->file_path) }}" target="_blank"
+                                    class="btn btn-primary">
+                                    <i class="bx bx-download"></i> Unduh Kalender
+                                </a>
+                            </div>
+                        </div>
+                    @else
+                        <div class="alert alert-warning text-center">
+                            <i class="bx bx-info-circle"></i> Kalender akademik belum tersedia
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- End Kalender Akademik Section -->
 
     <!-- FAQ Section -->
     <section class="faq-9 faq section light-background" id="faq">

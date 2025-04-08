@@ -8,10 +8,10 @@
 
         <nav id="navmenu" class="navmenu">
             <ul>
-                <li><a href="javascript:void(0);" onclick="scrollToSection('home')">Beranda</a></li>
-                <li><a href="javascript:void(0);" onclick="scrollToSection('about')">Tentang</a>
+                <li><a href="javascript:void(0);" onclick="scrollToSection('hero')">Beranda</a></li>
+                <li><a href="javascript:void(0);" onclick="scrollToSection('about')">Tentang</a></li>
+                <li><a href="javascript:void(0);" onclick="scrollToSection('services')">Layanan</a></li>
                 </li>
-                <li><a href="">Layanan</a></li>
                 <li class="dropdown">
                     <a href="{{ Auth::check() ? '#' : route('login') }}">
                         <span>Pengurusan Surat</span>
@@ -21,8 +21,8 @@
                         <li><a href="">Surat Aktif Kuliah</a></li>
                     </ul>
                 </li>
-                <li><a href="javascript:void(0);" onclick="scrollToSection('faq')">FAQ</a>
-                </li>
+                <li><a href="javascript:void(0);" onclick="scrollToSection('academic-calendar')">Kalender Akademik</a>
+                <li><a href="javascript:void(0);" onclick="scrollToSection('faq')">FAQ</a></li>
             </ul>
             <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
         </nav>

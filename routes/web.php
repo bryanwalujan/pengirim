@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\KopSuratController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\User\UserServiceController;
 use App\Http\Controllers\User\SuratAktifKuliahController;
+use App\Http\Controllers\Admin\AcademicCalendarController;
 
 // Untuk User (Mahasiswa)
 Route::get('/', [HomeController::class, 'index'])->name('user.home.index');
@@ -71,6 +72,17 @@ Route::middleware(['auth', 'role:staff|dosen'])->prefix('admin')->name('admin.')
             Route::get('/download-template', [UserController::class, 'downloadTemplateMahasiswa'])->name('download-template');
         });
 
+    });
+
+    // Kalender Akademik
+    Route::prefix('academic-calendar')->name('academic-calendar.')->group(function () {
+        Route::get('/', [AcademicCalendarController::class, 'index'])->name('index');
+        Route::get('/create', [AcademicCalendarController::class, 'create'])->name('create');
+        Route::post('/', [AcademicCalendarController::class, 'store'])->name('store');
+        Route::get('/{academicCalendar}/edit', [AcademicCalendarController::class, 'edit'])->name('edit');
+        Route::put('/{academicCalendar}', [AcademicCalendarController::class, 'update'])->name('update');
+        Route::delete('/{academicCalendar}', [AcademicCalendarController::class, 'destroy'])->name('destroy');
+        Route::post('/{academicCalendar}/set-active', [AcademicCalendarController::class, 'setActive'])->name('set-active');
     });
 });
 

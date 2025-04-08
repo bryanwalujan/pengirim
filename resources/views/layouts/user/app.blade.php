@@ -29,6 +29,9 @@
     <!-- Main CSS File -->
     <link href="{{ asset('user/assets/css/main.css') }}" rel="stylesheet">
 
+    {{-- Custom CSS --}}
+    <link href="{{ asset('user/assets/css/style.css') }}" rel="stylesheet">
+
     @stack('styles')
 
     <!-- Boxicons CSS -->
@@ -76,14 +79,42 @@
     {{-- Scroll to Section --}}
     <script>
         function scrollToSection(id) {
-            const element = document.getElementById(id);
-            if (element) {
-                element.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
-            }
+            document.getElementById(id).scrollIntoView({
+                behavior: 'smooth'
+            });
         }
     </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const sections = document.querySelectorAll('section');
+            const navLinks = document.querySelectorAll('#navmenu a');
+
+            const options = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.6 // bagian terlihat 60% baru dianggap aktif
+            };
+
+            const observer = new IntersectionObserver(function(entries) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        navLinks.forEach(link => {
+                            link.classList.remove('active');
+                            if (link.getAttribute('onclick')?.includes(entry.target.id)) {
+                                link.classList.add('active');
+                            }
+                        });
+                    }
+                });
+            }, options);
+
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+        });
+    </script>
+
+
 
 </body>
