@@ -60,6 +60,7 @@
                     <div class="row">
                         <!-- Kolom Kiri -->
                         <div class="col-md-6">
+                            {{-- Nama Layanan --}}
                             <div class="mb-3">
                                 <label for="name" class="form-label">Nama Layanan <span
                                         class="text-danger">*</span></label>
@@ -70,7 +71,7 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-
+                            {{-- Slug Layanan --}}
                             <div class="mb-3">
                                 <label for="slug" class="form-label">Slug <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control @error('slug') is-invalid @enderror"
@@ -82,9 +83,9 @@
                                 <small class="text-muted">URL identifier untuk layanan ini</small>
                             </div>
                         </div>
-
                         <!-- Kolom Kanan -->
                         <div class="col-md-6">
+                            {{-- Icon Layanan --}}
                             <div class="mb-3">
                                 <label for="icon" class="form-label">Icon <span class="text-danger">*</span></label>
                                 <div class="input-group">
@@ -92,33 +93,31 @@
                                             class="{{ old('icon', $service->icon) }}"></i></span>
                                     <input type="text" class="form-control @error('icon') is-invalid @enderror"
                                         id="icon" name="icon" value="{{ old('icon', $service->icon) }}" required
-                                        placeholder="Contoh: bx bx-file">
-                                    <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal"
-                                        data-bs-target="#iconModal">
-                                        Pilih Icon
-                                    </button>
+                                        placeholder="Contoh: bx-file">
                                 </div>
                                 @error('icon')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
+                                <small class="text-muted">Gunakan class icon dari <a href="https://boxicons.com/"
+                                        target="_blank" class="text-decoration-underline">Boxicons</a></small>
                             </div>
-
+                            {{-- Aktif/Nonaktif Layanan --}}
                             <div class="mb-3">
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" id="is_active" name="is_active"
                                         value="1" {{ old('is_active', $service->is_active) ? 'checked' : '' }}>
                                     <label class="form-check-label" for="is_active">Aktifkan Layanan</label>
                                 </div>
+                                <small class="text-muted">Nonaktifkan jika layanan tidak tersedia sementara</small>
                             </div>
                         </div>
                     </div>
-
+                    {{-- Deskripsi Layanan --}}
                     <div class="mb-3">
                         <label for="description" class="form-label">Deskripsi Layanan</label>
                         <!-- Hidden input untuk menyimpan data -->
                         <input id="description" type="hidden" name="description"
                             value="{{ old('description', $service->description ?? '') }}">
-
                         <!-- Trix Editor yang akan menampilkan konten -->
                         <trix-editor input="description" class="form-control @error('description') is-invalid @enderror"
                             placeholder="Deskripsi singkat tentang layanan ini"></trix-editor>
@@ -198,33 +197,7 @@
         <!--/ Form Edit Layanan -->
     </div>
 
-    <!-- Icon Modal -->
-    <div class="modal fade" id="iconModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Pilih Icon</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-                        @foreach (['bx bx-file', 'bx bx-book', 'bx bx-calendar', 'bx bx-certification', 'bx bx-clipboard', 'bx bx-collection', 'bx bx-credit-card', 'bx bx-envelope', 'bx bx-group', 'bx bx-id-card', 'bx bx-library', 'bx bx-notepad', 'bx bx-paperclip', 'bx bx-printer', 'bx bx-search', 'bx bx-task'] as $icon)
-                            <div class="col-3 col-md-2 mb-3 text-center">
-                                <button type="button" class="btn btn-icon btn-outline-primary icon-select"
-                                    data-icon="{{ $icon }}" style="width: 100%; height: 100%;">
-                                    <i class="{{ $icon }}"></i>
-                                </button>
-                                <small class="d-block mt-1">{{ $icon }}</small>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                </div>
-            </div>
-        </div>
-    </div>
+
 @endsection
 
 @push('scripts')

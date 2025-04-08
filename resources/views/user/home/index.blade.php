@@ -192,11 +192,11 @@
                     <div class="col-lg-4 mb-4" data-aos="fade-up" data-aos-delay="{{ $loop->iteration * 100 }}">
                         <div class="service-card d-flex">
                             <div class="icon flex-shrink-0">
-                                <i class="bx {{ $service->icon }}"></i>
+                                <i class="{{ $service->icon }}"></i>
                             </div>
                             <div>
                                 <h3>{{ $service->name }}</h3>
-                                <p>{{ Str::limit($service->description, 100) }}</p>
+                                <p class="text-small">{!! Str::limit(strip_tags($service->description), 100) !!}</p>
                                 @auth
                                     <a href="{{ route('user.services.create', $service->slug) }}" class="read-more">
                                         Ajukan Sekarang <i class="bi bi-arrow-right"></i>

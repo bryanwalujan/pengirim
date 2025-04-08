@@ -40,10 +40,10 @@
             <div class="card-body pt-4">
                 <form id="form-layanan" action="{{ route('admin.services.store') }}" method="POST">
                     @csrf
-
                     <div class="row">
                         <!-- Kolom Kiri -->
                         <div class="col-md-6">
+                            {{-- Nama Layanan --}}
                             <div class="mb-3">
                                 <label for="name" class="form-label">Nama Layanan <span
                                         class="text-danger">*</span></label>
@@ -54,7 +54,7 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-
+                            {{-- Slug Layanan --}}
                             <div class="mb-3">
                                 <label for="slug" class="form-label">Slug <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control @error('slug') is-invalid @enderror"
@@ -69,20 +69,22 @@
 
                         <!-- Kolom Kanan -->
                         <div class="col-md-6">
+                            {{-- Icon Layanan --}}
                             <div class="mb-3">
                                 <label for="icon" class="form-label">Icon <span class="text-danger">*</span></label>
                                 <div class="input-group">
                                     <span class="input-group-text"><i id="icon-preview" class="bx bx-file"></i></span>
                                     <input type="text" class="form-control @error('icon') is-invalid @enderror"
-                                        id="icon" name="icon" value="{{ old('icon', 'bx-file') }}" required
-                                        placeholder="Contoh: bx-file">
+                                        id="icon" name="icon" value="{{ old('icon', 'bx bx-file') }}" required
+                                        placeholder="Contoh: bx bx-file">
                                 </div>
                                 @error('icon')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                <small class="text-muted">Gunakan class icon dari Boxicons</small>
+                                <small class="text-muted">Gunakan class icon dari <a href="https://boxicons.com/"
+                                        target="_blank" class="text-decoration-underline">Boxicons</a></small>
                             </div>
-
+                            {{-- Aktif/Nonaktif Layanan --}}
                             <div class="mb-3">
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" id="is_active" name="is_active"
@@ -95,11 +97,15 @@
                         </div>
                     </div>
 
+                    {{-- Deskripsi Layanan --}}
                     <div class="mb-3">
                         <label for="description" class="form-label">Deskripsi Layanan</label>
-                        <trix-editor class="form-control @error('description') is-invalid @enderror" id="description"
-                            name="description" rows="3"
-                            placeholder="Deskripsi singkat tentang layanan ini">{{ old('description') }}</trix-editor>
+                        <!-- Hidden input untuk menyimpan data -->
+                        <input id="description" type="hidden" name="description" value="{{ old('description') }}">
+                        <!-- Trix Editor yang akan menampilkan konten -->
+                        <trix-editor input="description" class="form-control @error('description') is-invalid @enderror"
+                            placeholder="Deskripsi singkat tentang layanan ini"></trix-editor>
+
                         @error('description')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -134,6 +140,25 @@
                 const name = this.value.trim().toLowerCase();
                 const slug = name.replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
                 slugInput.value = slug;
+            });
+
+            // Icon selection
+            const iconInput = document.getElementById('icon');
+            const iconPreview = document.getElementById('icon-preview');
+            const iconSelectButtons = document.querySelectorAll('.icon-select');
+
+            iconSelectButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const selectedIcon = this.getAttribute('data-icon');
+                    iconInput.value = selectedIcon;
+                    iconPreview.className = selectedIcon;
+                    $('#iconModal').modal('hide');
+                });
+            });
+
+            // Live icon preview
+            iconInput.addEventListener('input', function() {
+                iconPreview.className = this.value;
             });
 
             // Form validation

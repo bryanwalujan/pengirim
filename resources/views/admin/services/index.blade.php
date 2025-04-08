@@ -77,7 +77,7 @@
                                     @if ($service->is_active)
                                         <span class="badge bg-label-success">Aktif</span>
                                     @else
-                                        <span class="badge bg-label-secondary">Nonaktif</span>
+                                        <span class="badge bg-label-danger">Nonaktif</span>
                                     @endif
                                 </td>
                                 <td>
