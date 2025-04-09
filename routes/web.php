@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\User\HomeController;
+use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ServiceController;
 use App\Http\Controllers\Admin\KopSuratController;
@@ -41,6 +42,9 @@ Route::middleware(['auth', 'role:staff|dosen'])->prefix('admin')->name('admin.')
 
     // Layanan-layanan
     Route::resource('services', ServiceController::class);
+
+    // Role Management
+    Route::resource('roles', RoleController::class)->except('show');
 
     // Kop Surat
     Route::prefix('kop-surat')->name('kop-surat.')->group(function () {

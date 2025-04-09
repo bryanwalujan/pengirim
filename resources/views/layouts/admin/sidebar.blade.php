@@ -13,86 +13,114 @@
     <div class="menu-inner-shadow"></div>
     <ul class="menu-inner py-1">
         <!-- Dashboard -->
-        <li class="menu-item {{ request()->routeIs('admin.dashboard.index') ? 'active' : '' }}">
-            <a href="{{ route('admin.dashboard.index') }}" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-home"></i>
-                <div>Dashboard</div>
-            </a>
-        </li>
+        @can('view dashboard')
+            <li class="menu-item {{ request()->routeIs('admin.dashboard.index') ? 'active' : '' }}">
+                <a href="{{ route('admin.dashboard.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-home"></i>
+                    <div>Dashboard</div>
+                </a>
+            </li>
+        @endcan
+
 
         {{-- Manajemen Layanan --}}
-        <li class="menu-header small text-uppercase">
-            <span class="menu-header-text">Manajemen Layanan</span>
-        </li>
-        <li class="menu-item {{ request()->routeIs('admin.services.*') ? 'active' : '' }}">
-            <a href="{{ route('admin.services.index') }}" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-cog"></i>
-                <div>Layanan-layanan</div>
-            </a>
-        </li>
-        <li class="menu-item {{ request()->routeIs('admin.academic-calendar.*') ? 'active' : '' }}">
-            <a href="{{ route('admin.academic-calendar.index') }}" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-calendar"></i>
-                <div>Kalender Akademik</div>
-            </a>
-        </li>
+        @if (auth()->user()->can('manage services') || auth()->user()->can('manage academic calendar'))
+            <li class="menu-header small text-uppercase">
+                <span class="menu-header-text">Manajemen Layanan</span>
+            </li>
+        @endif
+        @can('manage services')
+            <li class="menu-item {{ request()->routeIs('admin.services.*') ? 'active' : '' }}">
+                <a href="{{ route('admin.services.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-cog"></i>
+                    <div>Layanan-layanan</div>
+                </a>
+            </li>
+        @endcan
+
+        @can('manage academic calendar')
+            <li class="menu-item {{ request()->routeIs('admin.academic-calendar.*') ? 'active' : '' }}">
+                <a href="{{ route('admin.academic-calendar.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-calendar"></i>
+                    <div>Kalender Akademik</div>
+                </a>
+            </li>
+        @endcan
+
         {{-- @canany(['staff', 'admin']) --}}
         <!-- Manajemen Kop Surat -->
-        <li class="menu-header small text-uppercase">
-            <span class="menu-header-text">Manajemen Surat</span>
-        </li>
-        <li class="menu-item {{ request()->routeIs('admin.kop-surat.*') ? 'active' : '' }}">
-            <a href="{{ route('admin.kop-surat.index') }}" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-file"></i>
-                <div>Kop Surat</div>
-            </a>
-        </li>
+        @if (auth()->user()->can('manage kopsurat'))
+            <li class="menu-header small text-uppercase">
+                <span class="menu-header-text">Manajemen Surat</span>
+            </li>
+        @endif
+        @can('manage kopsurat')
+            <li class="menu-item {{ request()->routeIs('admin.kop-surat.*') ? 'active' : '' }}">
+                <a href="{{ route('admin.kop-surat.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-file"></i>
+                    <div>Kop Surat</div>
+                </a>
+            </li>
+        @endcan
         {{-- @endcanany --}}
 
-        {{-- @canany(['staff']) --}}
         <!-- Manajemen Pengguna -->
-        <li class="menu-header small text-uppercase">
-            <span class="menu-header-text">Manajemen Pengguna</span>
-        </li>
-        <li
-            class="menu-item {{ request()->routeIs('admin.users.*') ||
-            request()->routeIs('admin.users.mahasiswa*') ||
-            request()->routeIs('admin.users.dosen*') ||
-            request()->routeIs('admin.users.staff*')
-                ? 'active open'
-                : '' }}">
-            <a href="javascript:void(0);" class="menu-link menu-toggle">
-                <i class="menu-icon tf-icons bx bx-user"></i>
-                <div>Pengguna</div>
-            </a>
-            <ul class="menu-sub">
-                {{-- @can('staff') --}}
+        @if (auth()->user()->can('manage users') ||
+                auth()->user()->can('manage lecturers') ||
+                auth()->user()->can('manage staff') ||
+                auth()->user()->can('manage roles'))
+            <li class="menu-header small text-uppercase">
+                <span class="menu-header-text">Manajemen Pengguna</span>
+            </li>
+            <li
+                class="menu-item {{ request()->routeIs('admin.users.*') ||
+                request()->routeIs('admin.users.mahasiswa*') ||
+                request()->routeIs('admin.users.dosen*') ||
+                request()->routeIs('admin.users.staff*') ||
+                request()->routeIs('admin.roles.*')
+                    ? 'active open'
+                    : '' }}">
+                <a href="javascript:void(0);" class="menu-link menu-toggle">
+                    <i class="menu-icon tf-icons bx bx-user"></i>
+                    <div>Pengguna & Roles</div>
+                </a>
+        @endif
+        <ul class="menu-sub">
+            @can('manage users')
                 <li class="menu-item {{ request()->routeIs('admin.users.mahasiswa*') ? 'active' : '' }}">
                     <a href="{{ route('admin.users.mahasiswa') }}" class="menu-link">
                         <i class="menu-icon tf-icons bx bx-group"></i>
                         <div>Mahasiswa</div>
                     </a>
                 </li>
-                {{-- @endcan --}}
-
+            @endcan
+            @can('manage lecturers')
                 <li class="menu-item {{ request()->routeIs('admin.users.dosen*') ? 'active' : '' }}">
                     <a href="{{ route('admin.users.dosen') }}" class="menu-link">
                         <i class="menu-icon tf-icons bx bx-user-voice"></i>
                         <div>Dosen</div>
                     </a>
                 </li>
+            @endcan
 
-                {{-- @can('staff') --}}
+            @can('manage staff')
                 <li class="menu-item {{ request()->routeIs('admin.users.staff*') ? 'active' : '' }}">
                     <a href="{{ route('admin.users.staff') }}" class="menu-link">
                         <i class="menu-icon tf-icons bx bx-user-pin"></i>
                         <div>Staff</div>
                     </a>
                 </li>
-                {{-- @endcan --}}
-            </ul>
-        </li>
-        {{-- @endcanany --}}
+            @endcan
 
+            @can('manage roles')
+                <li class="menu-item {{ request()->routeIs('admin.roles.*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.roles.index') }}" class="menu-link">
+                        <i class="menu-icon tf-icons bx bx-shield"></i>
+                        <div>Roles & Permissions</div>
+                    </a>
+                </li>
+            @endcan
+        </ul>
+        </li>
     </ul>
 </aside>

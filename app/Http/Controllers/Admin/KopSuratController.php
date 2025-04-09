@@ -6,14 +6,25 @@ use App\Models\KopSurat;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class KopSuratController extends Controller
 {
+    use AuthorizesRequests;
+
     public function index()
     {
+        $this->authorize('manage kopsurat'); // Pastikan user memiliki izin untuk mengelola kop surat
         $kopSurat = KopSurat::firstOrNew(); // Ambil atau buat instance baru
         return view('admin.kop-surat.index', compact('kopSurat'));
     }
+    /*************  ✨ Windsurf Command ⭐  *************/
+    /**
+     * Halaman edit kop surat.
+     *
+     * @return \Illuminate\View\View
+     */
+    /*******  3116446e-48e0-4f32-8733-ab2d945a6098  *******/
 
     public function edit()
     {

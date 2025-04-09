@@ -126,6 +126,46 @@
                 buttons: false,
             });
         @endif
+        // const Toast = Swal.mixin({
+        //     toast: true,
+        //     position: "top-end",
+        //     showConfirmButton: false,
+        //     timer: 3000,
+        //     timerProgressBar: true,
+        //     width: '380px',
+        //     padding: '1em',
+        //     color: '#ffffff',
+        //     background: 'linear-gradient(135deg, rgba(41,47,63,0.95) 0%, rgba(30,35,48,0.95) 100%)',
+        //     backdrop: false,
+        //     showClass: {
+        //         popup: 'animate__animated animate__fadeInRight animate__faster'
+        //     },
+        //     hideClass: {
+        //         popup: 'animate__animated animate__fadeOutRight animate__faster'
+        //     },
+        //     customClass: {
+        //         popup: 'shadow-2xl rounded-xl border border-gray-700/30',
+        //         title: 'font-semibold',
+        //         timerProgressBar: 'bg-gradient-to-r from-cyan-400 to-blue-500',
+        //         icon: 'text-white'
+        //     },
+        //     didOpen: (toast) => {
+        //         toast.onmouseenter = Swal.stopTimer;
+        //         toast.onmouseleave = Swal.resumeTimer;
+        //     }
+        // });
+
+        // @if (session()->has('success'))
+        //     Toast.fire({
+        //         icon: 'success',
+        //         text: "{{ session('success') }}",
+        //     });
+        // @elseif (session()->has('error'))
+        //     Toast.fire({
+        //         icon: 'error',
+        //         text: "{{ session('error') }}",
+        //     });
+        // @endif
     </script>
 </body>
 

@@ -7,11 +7,15 @@ use App\Models\AcademicCalendar;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\AcademicCalendarRequest;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class AcademicCalendarController extends Controller
 {
+    use AuthorizesRequests;
+
     public function index()
     {
+        $this->authorize('manage academic calendars');
         $calendars = AcademicCalendar::orderBy('academic_year', 'desc')->paginate(5);
         return view('admin.academic-calendar.index', compact('calendars'));
     }

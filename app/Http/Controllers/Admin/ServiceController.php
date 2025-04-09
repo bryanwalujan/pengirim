@@ -7,11 +7,15 @@ use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class ServiceController extends Controller
 {
+    use AuthorizesRequests;
+
     public function index()
     {
+        $this->authorize('manage services');
         $services = Service::orderBy('order')->paginate(5); // 10 items per page
         return view('admin.services.index', compact('services'));
     }

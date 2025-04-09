@@ -11,14 +11,18 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
 use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Concerns\FromArray;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class UserController extends Controller
 {
+    use AuthorizesRequests;
+
     /**
      * Display a listing of all users (for admin)
      */
     public function index()
     {
+        $this->authorize('manage users');
         $users = User::with('roles')->get();
         $roles = Role::all();
         return view('admin.users.index', compact('users', 'roles'));
