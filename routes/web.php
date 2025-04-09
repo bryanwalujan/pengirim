@@ -36,8 +36,24 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa'])->prefix('layanan')->na
     Route::get('/{service}/ajukan', [UserServiceController::class, 'create'])->name('create');
 });
 
+// Untuk Mahasiswa
+Route::middleware(['auth', 'verified', 'role:mahasiswa'])->prefix('surat-aktif-kuliah')->name('user.surat-aktif-kuliah.')->group(function () {
+    Route::get('/', [SuratAktifKuliahController::class, 'index'])->name('index');
+    Route::get('/ajukan', [SuratAktifKuliahController::class, 'create'])->name('create');
+    Route::post('/', [SuratAktifKuliahController::class, 'store'])->name('store');
+    Route::get('/{surat}', [SuratAktifKuliahController::class, 'show'])->name('show');
+    Route::get('/{surat}/download', [SuratAktifKuliahController::class, 'download'])->name('download');
+});
+
+// Untuk Admin
+// Route::middleware(['auth', 'verified', 'role:staff'])->prefix('admin/surat-aktif-kuliah')->name('admin.surat-aktif-kuliah.')->group(function () {
+//     Route::get('/', [AdminSuratAktifKuliahController::class, 'index'])->name('index');
+//     Route::get('/{surat}', [AdminSuratAktifKuliahController::class, 'show'])->name('show');
+//     Route::put('/{surat}/status', [AdminSuratAktifKuliahController::class, 'updateStatus'])->name('update-status');
+// });
+
 // Untuk Staff
-Route::middleware(['auth', 'role:staff|dosen'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
 
     // Layanan-layanan
@@ -104,13 +120,6 @@ Route::middleware(['auth', 'role:staff|dosen'])->prefix('admin')->name('admin.')
         Route::post('/{academicCalendar}/set-active', [AcademicCalendarController::class, 'setActive'])->name('set-active');
     });
 });
-
-// Untuk Admin
-// Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
-//     Route::resource('surat-aktif-kuliah', \App\Http\Controllers\Admin\SuratAktifKuliahController::class)
-//         ->except(['create', 'store']);
-// });
-
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

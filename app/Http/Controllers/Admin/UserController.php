@@ -22,7 +22,6 @@ class UserController extends Controller
      */
     public function index()
     {
-        $this->authorize('manage users');
         $users = User::with('roles')->get();
         $roles = Role::all();
         return view('admin.users.index', compact('users', 'roles'));
@@ -33,6 +32,7 @@ class UserController extends Controller
      */
     public function mahasiswa()
     {
+        $this->authorize('manage students');
         $users = User::role('mahasiswa')->paginate(10); // 10 items per page
         return view('admin.users.mahasiswa.index', compact('users'));
     }
@@ -42,6 +42,7 @@ class UserController extends Controller
      */
     public function dosen()
     {
+        $this->authorize('manage lecturers');
         $users = User::role('dosen')->paginate(10); // 10 items per page
         return view('admin.users.dosen.index', compact('users'));
     }
@@ -51,6 +52,7 @@ class UserController extends Controller
      */
     public function staff()
     {
+        $this->authorize('manage staff');
         $users = User::role('staff')->paginate(10); // 10 items per page
         return view('admin.users.staff.index', compact('users'));
     }

@@ -47,13 +47,12 @@
             </li>
         @endcan
 
-        {{-- @canany(['staff', 'admin']) --}}
-        <!-- Manajemen Kop Surat -->
         @if (auth()->user()->can('manage kopsurat'))
             <li class="menu-header small text-uppercase">
-                <span class="menu-header-text">Manajemen Surat</span>
+                <span class="menu-header-text">Template Surat</span>
             </li>
         @endif
+        <!-- Manajemen Kop Surat -->
         @can('manage kopsurat')
             <li class="menu-item {{ request()->routeIs('admin.kop-surat.*') ? 'active' : '' }}">
                 <a href="{{ route('admin.kop-surat.index') }}" class="menu-link">
@@ -65,7 +64,7 @@
         {{-- @endcanany --}}
 
         <!-- Manajemen Pengguna -->
-        @if (auth()->user()->can('manage users') ||
+        @if (auth()->user()->can('manage students') ||
                 auth()->user()->can('manage lecturers') ||
                 auth()->user()->can('manage staff') ||
                 auth()->user()->can('manage roles'))
@@ -86,7 +85,7 @@
                 </a>
         @endif
         <ul class="menu-sub">
-            @can('manage users')
+            @can('manage students')
                 <li class="menu-item {{ request()->routeIs('admin.users.mahasiswa*') ? 'active' : '' }}">
                     <a href="{{ route('admin.users.mahasiswa') }}" class="menu-link">
                         <i class="menu-icon tf-icons bx bx-group"></i>

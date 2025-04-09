@@ -35,7 +35,6 @@ class PermissionSeeder extends Seeder
             ['name' => 'manage kopsurat', 'group' => 'kop-surat'],
 
             // User Management
-            ['name' => 'manage users', 'group' => 'users'],
             ['name' => 'manage students', 'group' => 'users'],
             ['name' => 'manage lecturers', 'group' => 'users'],
             ['name' => 'manage staff', 'group' => 'users'],
