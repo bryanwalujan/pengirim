@@ -52,4 +52,12 @@ class SuratAktifKuliah extends Model
     {
         return $this->status()->first()->status ?? null;
     }
+
+
+    protected static function booted()
+    {
+        static::creating(function ($model) {
+            $model->verification_code = substr(md5(uniqid(mt_rand(), true)), 0, 12);
+        });
+    }
 }

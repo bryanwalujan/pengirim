@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\User\UserServiceController;
 use App\Http\Controllers\User\SuratAktifKuliahController;
 use App\Http\Controllers\Admin\AcademicCalendarController;
+use App\Http\Controllers\Admin\AdminSuratAktifKuliahController;
 
 // Untuk User (Mahasiswa)
 Route::get('/', [HomeController::class, 'index'])->name('user.home.index');
@@ -46,11 +47,11 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa'])->prefix('surat-aktif-k
 });
 
 // Untuk Admin
-// Route::middleware(['auth', 'verified', 'role:staff'])->prefix('admin/surat-aktif-kuliah')->name('admin.surat-aktif-kuliah.')->group(function () {
-//     Route::get('/', [AdminSuratAktifKuliahController::class, 'index'])->name('index');
-//     Route::get('/{surat}', [AdminSuratAktifKuliahController::class, 'show'])->name('show');
-//     Route::put('/{surat}/status', [AdminSuratAktifKuliahController::class, 'updateStatus'])->name('update-status');
-// });
+Route::middleware(['auth', 'verified', 'role:staff'])->prefix('admin/surat-aktif-kuliah')->name('admin.surat-aktif-kuliah.')->group(function () {
+    Route::get('/', [AdminSuratAktifKuliahController::class, 'index'])->name('index');
+    Route::get('/{surat}', [AdminSuratAktifKuliahController::class, 'show'])->name('show');
+    Route::put('/{surat}/status', [AdminSuratAktifKuliahController::class, 'updateStatus'])->name('update-status');
+});
 
 // Untuk Staff
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {

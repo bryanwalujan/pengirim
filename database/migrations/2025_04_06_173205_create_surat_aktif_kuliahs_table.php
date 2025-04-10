@@ -19,6 +19,8 @@ return new class extends Migration {
             $table->text('keterangan_tambahan')->nullable();
             $table->string('file_pendukung_path')->nullable();
             $table->string('file_surat_path')->nullable();
+            $table->string('qr_code_path')->nullable();
+            $table->string('verification_code')->nullable();
             // Informasi Surat
             $table->string('nomor_surat')->nullable();
             $table->date('tanggal_surat')->nullable();

@@ -15,7 +15,7 @@ class AcademicCalendarController extends Controller
 
     public function index()
     {
-        $this->authorize('manage academic calendars');
+        $this->authorize('manage academic calendar');
         $calendars = AcademicCalendar::orderBy('academic_year', 'desc')->paginate(5);
         return view('admin.academic-calendar.index', compact('calendars'));
     }
