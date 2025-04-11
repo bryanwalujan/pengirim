@@ -38,12 +38,35 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa'])->prefix('layanan')->na
 });
 
 // Untuk Mahasiswa
-Route::middleware(['auth', 'verified', 'role:mahasiswa'])->prefix('surat-aktif-kuliah')->name('user.surat-aktif-kuliah.')->group(function () {
-    Route::get('/', [SuratAktifKuliahController::class, 'index'])->name('index');
-    Route::get('/ajukan', [SuratAktifKuliahController::class, 'create'])->name('create');
-    Route::post('/', [SuratAktifKuliahController::class, 'store'])->name('store');
-    Route::get('/{surat}', [SuratAktifKuliahController::class, 'show'])->name('show');
-    Route::get('/{surat}/download', [SuratAktifKuliahController::class, 'download'])->name('download');
+// Route::middleware(['auth', 'verified', 'role:mahasiswa'])->prefix('surat-aktif-kuliah')->name('user.surat-aktif-kuliah.')->group(function () {
+//     Route::get('/', [SuratAktifKuliahController::class, 'index'])->name('index');
+//     Route::get('/ajukan', [SuratAktifKuliahController::class, 'create'])->name('create');
+//     Route::post('/', [SuratAktifKuliahController::class, 'store'])->name('store');
+//     Route::get('/{surat}', [SuratAktifKuliahController::class, 'show'])->name('show');
+//     Route::get('/{surat}/download', [SuratAktifKuliahController::class, 'download'])->name('download');
+// });
+
+// Layanan khusus
+Route::middleware(['auth', 'verified', 'role:mahasiswa'])->group(function () {
+    // Surat Aktif Kuliah
+    Route::prefix('surat-aktif-kuliah')->name('user.surat-aktif-kuliah.')->group(function () {
+        Route::get('/', [SuratAktifKuliahController::class, 'index'])->name('index');
+        Route::get('/ajukan', [SuratAktifKuliahController::class, 'create'])->name('create');
+        Route::post('/', [SuratAktifKuliahController::class, 'store'])->name('store');
+        Route::get('/{surat}', [SuratAktifKuliahController::class, 'show'])->name('show');
+    });
+
+    // Surat Keterangan
+    // Route::prefix('surat-keterangan')->name('user.surat-keterangan.')->group(function () {
+    //     Route::get('/ajukan', [SuratKeteranganController::class, 'create'])->name('create');
+    //     Route::post('/', [SuratKeteranganController::class, 'store'])->name('store');
+    // });
+
+    // Transkrip Nilai
+    // Route::prefix('transkrip')->name('user.transkrip.')->group(function () {
+    //     Route::get('/ajukan', [TranskripController::class, 'create'])->name('create');
+    //     Route::post('/', [TranskripController::class, 'store'])->name('store');
+    // });
 });
 
 // Untuk Admin

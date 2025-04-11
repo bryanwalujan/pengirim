@@ -27,12 +27,14 @@ class SuratAktifKuliahController extends Controller
 
     public function create()
     {
+        $this->authorize('create', SuratAktifKuliah::class);
         $service = Service::where('slug', 'surat-aktif-kuliah')->firstOrFail();
         return view('user.surat-aktif-kuliah.create', compact('service'));
     }
 
     public function store(SuratAktifKuliahRequest $request)
     {
+        $this->authorize('create', SuratAktifKuliah::class);
         $validated = $request->validated();
 
         // Upload file pendukung jika ada
@@ -71,16 +73,14 @@ class SuratAktifKuliahController extends Controller
             ->with('success', 'Surat aktif kuliah berhasil diajukan');
     }
 
-    public function show(SuratAktifKuliah $surat)
+    public function show($id)
     {
-        $this->authorize('view', $surat);
 
-        $surat->load([
-            'status',
-            'trackings' => function ($query) {
-                $query->latest();
-            }
-        ]);
+        // Gunakan findOrFail untuk memastikan data ada
+        $surat = SuratAktifKuliah::with(['status', 'trackings', 'mahasiswa'])
+            ->findOrFail($id);
+
+        $this->authorize('view', $surat);
 
         return view('user.surat-aktif-kuliah.show', compact('surat'));
     }

@@ -49,23 +49,9 @@
                                 <h3>{{ $service->name }}</h3>
                                 <p class="text-small">{!! Str::limit(strip_tags($service->description), 100) !!}</p>
                                 @auth
-                                    @if ($service->slug === 'surat-aktif-kuliah')
-                                        <a href="{{ route('user.surat-aktif-kuliah.create') }}" class="read-more">
-                                            Ajukan Sekarang <i class="bi bi-arrow-right"></i>
-                                        </a>
-                                    @elseif($service->slug === 'surat-keterangan')
-                                        <a href="{{ route('user.surat-keterangan.create') }}" class="read-more">
-                                            Ajukan Sekarang <i class="bi bi-arrow-right"></i>
-                                        </a>
-                                    @elseif($service->slug === 'transkrip-nilai')
-                                        <a href="{{ route('user.transkrip.create') }}" class="read-more">
-                                            Ajukan Sekarang <i class="bi bi-arrow-right"></i>
-                                        </a>
-                                    @else
-                                        <a href="{{ route('user.services.create', $service->slug) }}" class="read-more">
-                                            Ajukan Sekarang <i class="bi bi-arrow-right"></i>
-                                        </a>
-                                    @endif
+                                    <a href="{{ $service->getSubmissionRoute() }}" class="read-more">
+                                        Ajukan Sekarang <i class="bi bi-arrow-right"></i>
+                                    </a>
                                 @else
                                     <a href="{{ route('login') }}" class="read-more"
                                         onclick="sessionStorage.setItem('intended_url', window.location.href + '#services')">

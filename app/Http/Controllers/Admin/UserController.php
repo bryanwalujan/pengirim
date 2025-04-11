@@ -20,22 +20,32 @@ class UserController extends Controller
     /**
      * Display a listing of all users (for admin)
      */
-    public function index()
-    {
-        $users = User::with('roles')->get();
-        $roles = Role::all();
-        return view('admin.users.index', compact('users', 'roles'));
-    }
+    // public function index()
+    // {
+    //     $users = User::with('roles')->get();
+    //     $roles = Role::all();
+    //     return view('admin.users.index', compact('users', 'roles'));
+    // }
 
     /**
      * Display a listing of mahasiswa users
      */
-    public function mahasiswa()
+    public function mahasiswa(Request $request)
     {
         $this->authorize('manage students');
-        $users = User::role('mahasiswa')->paginate(10); // 10 items per page
-        return view('admin.users.mahasiswa.index', compact('users'));
+        $search = $request->input('search');
+        $query = User::role('mahasiswa');
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                    ->orWhere('email', 'like', '%' . $search . '%')
+                    ->orWhere('nim', 'like', '%' . $search . '%');
+            });
+        }
+        $users = $query->paginate(15);
+        return view('admin.users.mahasiswa.index', compact('users', 'search'));
     }
+
 
     /**
      * Display a listing of dosen users
@@ -326,7 +336,7 @@ class UserController extends Controller
         $headers = [
             'NIM' => 'Contoh: 12345678',
             'Nama' => 'Contoh: John Doe',
-            'Email' => 'Contoh: john@example.com',
+            'Email' => 'Opsional',
             'Password' => 'Opsional (min 8 karakter)'
         ];
 

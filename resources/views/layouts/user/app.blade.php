@@ -37,6 +37,9 @@
     <!-- Boxicons CSS -->
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 
+    {{-- Select2 --}}
+    <link rel="stylesheet" href="{{ asset('library/select2/dist/css/select2.min.css') }}">
+
     <!-- =======================================================
   * Template Name: iLanding
   * Template URL: https://bootstrapmade.com/ilanding-bootstrap-landing-page-template/
@@ -67,6 +70,8 @@
     <script src="{{ asset('user/assets/vendor/glightbox/js/glightbox.min.js') }}"></script>
     <script src="{{ asset('user/assets/vendor/swiper/swiper-bundle.min.js') }}"></script>
     <script src="{{ asset('user/assets/vendor/purecounter/purecounter_vanilla.js') }}"></script>
+    {{-- Select2 --}}
+    <script src="{{ asset('library/select2/dist/js/select2.full.min.js') }}"></script>
 
     <!-- Main JS File -->
     <script src="{{ asset('user/assets/js/main.js') }}"></script>

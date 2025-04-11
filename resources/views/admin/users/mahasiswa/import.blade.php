@@ -30,18 +30,25 @@
             <div class="card-body">
                 <div class="alert alert-info">
                     <h5 class="alert-heading">Petunjuk Import Data Mahasiswa</h5>
-                    <p>
-                        1. Semua data yang diimport akan otomatis memiliki role mahasiswa<br>
-                        2. Jika password tidak diisi, sistem akan generate password acak<br>
-                        3. NIM dan Email harus unik dan belum terdaftar sebelumnya<br>
-                        4. Format file: .xlsx atau .xls (Max 2MB)
-                    </p>
+                    <ul class="mb-0">
+                        <li>Data yang diimport akan otomatis diberikan <strong>role mahasiswa</strong>.</li>
+                        <li>Email mahasiswa akan <strong>dibuat otomatis</strong> berdasarkan NIM, contoh:
+                            <code>20210048@unima.ac.id</code>.</li>
+                        <li>Jika kolom <strong>password</strong> dikosongkan, sistem akan menggenerate password secara acak.
+                        </li>
+                        <li>Kolom yang dibutuhkan dalam file Excel: <strong>NIM, Nama, dan Password (opsional)</strong>.
+                        </li>
+                        <li><strong>NIM harus unik</strong> dan belum pernah terdaftar sebelumnya.</li>
+                        <li>Format file yang didukung: <strong>.xlsx</strong> atau <strong>.xls</strong> (maksimum ukuran
+                            2MB).</li>
+                    </ul>
                     <div class="mt-3">
                         <a href="{{ route('admin.users.mahasiswa.download-template') }}" class="btn btn-outline-primary">
-                            <i class="bx bx-download me-1"></i> Download Template
+                            <i class="bx bx-download me-1"></i> Download Template Excel
                         </a>
                     </div>
                 </div>
+
 
                 <form action="{{ route('admin.users.mahasiswa.import') }}" method="POST" enctype="multipart/form-data">
                     @csrf

@@ -45,13 +45,16 @@
                     </div>
                     <!-- Search Column -->
                     <div class="col-4 col-sm-2 col-md-4 col-lg-3">
-                        <div class="input-group input-group-merge">
-                            <span class="input-group-text" id="basic-addon-search31">
-                                <i class="bx bx-search"></i>
-                            </span>
-                            <input type="text" class="form-control" placeholder="Search..." aria-label="Search..."
-                                aria-describedby="basic-addon-search31" />
-                        </div>
+                        <form action="{{ route('admin.users.mahasiswa') }}" method="GET">
+                            <div class="input-group input-group-merge">
+                                <span class="input-group-text" id="basic-addon-search31">
+                                    <i class="bx bx-search"></i>
+                                </span>
+                                <input type="text" name="search" class="form-control"
+                                    placeholder="Cari nama, NIM, atau email..." aria-label="Search"
+                                    aria-describedby="basic-addon-search31" value="{{ request('search') }}">
+                            </div>
+                        </form>
                     </div>
                     <!-- Button Column -->
                     <div class="col-auto text-end">
@@ -130,23 +133,47 @@
                 <div class="card-footer border-top py-3">
                     <nav aria-label="Page navigation">
                         <ul class="pagination justify-content-end mb-0">
-                            {{-- Previous Page Link --}}
-                            <li class="page-item prev {{ $users->onFirstPage() ? 'disabled' : '' }}">
-                                <a class="page-link" href="{{ $users->previousPageUrl() }}">
+                            {{-- Previous --}}
+                            <li class="page-item {{ $users->onFirstPage() ? 'disabled' : '' }}">
+                                <a class="page-link" href="{{ $users->previousPageUrl() ?? '#' }}" tabindex="-1">
                                     <i class="bx bx-chevrons-left icon-sm"></i>
                                 </a>
                             </li>
-
-                            {{-- Pagination Elements --}}
-                            @foreach ($users->getUrlRange(1, $users->lastPage()) as $page => $url)
-                                <li class="page-item {{ $users->currentPage() == $page ? 'active' : '' }}">
-                                    <a class="page-link" href="{{ $url }}">{{ $page }}</a>
+                            {{-- First Page --}}
+                            @if ($users->currentPage() > 2)
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ $users->url(1) }}">1</a>
                                 </li>
-                            @endforeach
+                            @endif
 
-                            {{-- Next Page Link --}}
-                            <li class="page-item next {{ !$users->hasMorePages() ? 'disabled' : '' }}">
-                                <a class="page-link" href="{{ $users->nextPageUrl() }}">
+                            {{-- Dots if needed --}}
+                            @if ($users->currentPage() > 3)
+                                <li class="page-item disabled"><span class="page-link">...</span></li>
+                            @endif
+
+                            {{-- Current + 1 Before & After --}}
+                            @for ($i = max(1, $users->currentPage() - 1); $i <= min($users->lastPage(), $users->currentPage() + 1); $i++)
+                                <li class="page-item {{ $i == $users->currentPage() ? 'active' : '' }}">
+                                    <a class="page-link" href="{{ $users->url($i) }}">{{ $i }}</a>
+                                </li>
+                            @endfor
+
+                            {{-- Dots if needed --}}
+                            @if ($users->currentPage() < $users->lastPage() - 2)
+                                <li class="page-item disabled"><span class="page-link">...</span></li>
+                            @endif
+
+                            {{-- Last Page --}}
+                            @if ($users->currentPage() < $users->lastPage() - 1)
+                                <li class="page-item">
+                                    <a class="page-link"
+                                        href="{{ $users->url($users->lastPage()) }}">{{ $users->lastPage() }}</a>
+                                </li>
+                            @endif
+
+                            {{-- Next --}}
+                            <li class="page-item {{ !$users->hasMorePages() ? 'disabled' : '' }}">
+                                <a class="page-link" href="{{ $users->nextPageUrl() ?? '#' }}">
                                     <i class="bx bx-chevrons-right icon-sm"></i>
                                 </a>
                             </li>
@@ -154,6 +181,7 @@
                     </nav>
                 </div>
             @endif
+
         </div>
         <!--/ Card -->
     </div>
