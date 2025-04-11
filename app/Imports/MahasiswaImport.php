@@ -13,22 +13,18 @@ class MahasiswaImport implements ToModel, WithHeadingRow, WithValidation
 {
     public function model(array $row)
     {
-        // Jika password tidak diisi, generate random password
         $password = $row['password'] ?? $this->generateRandomPassword();
+        $email = $row['nim'] . '@unima.ac.id'; // Email otomatis dari nim
 
-        // Buat user terlebih dahulu
         $user = User::create([
             'nim' => $row['nim'],
             'name' => $row['nama'],
-            'email' => $row['email'],
+            'email' => $email,
             'username' => $row['nim'],
             'password' => Hash::make($password),
         ]);
 
-        // Pastikan role mahasiswa ada
         Role::firstOrCreate(['name' => 'mahasiswa']);
-
-        // Assign role mahasiswa
         $user->assignRole('mahasiswa');
 
         return $user;
@@ -39,7 +35,6 @@ class MahasiswaImport implements ToModel, WithHeadingRow, WithValidation
         return [
             'nim' => 'required|unique:users,nim',
             'nama' => 'required',
-            'email' => 'required|email|unique:users,email',
         ];
     }
 
