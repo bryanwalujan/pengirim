@@ -16,7 +16,7 @@
                 </li>
                 <li><a href="{{ url('/#services') }}" class="{{ request()->is('layanan') ? 'active' : '' }}"
                         onclick="scrollToSection('services')">Layanan</a></li>
-                <li class="dropdown">
+                {{-- <li class="dropdown">
                     <a href="{{ Auth::check() ? '#' : route('login') }}"
                         class="{{ request()->is('layanan/*') ? 'active' : '' }}">
                         <span>Pengurusan Surat</span>
@@ -29,7 +29,7 @@
                         @endforeach
                         <li><a href="{{ route('user.services.index') }}">Lihat Semua</a></li>
                     </ul>
-                </li>
+                </li> --}}
                 <li><a href="{{ url('/#academic-calendar') }}"
                         class="{{ request()->is('/') && request()->has('scroll') && request()->get('scroll') == 'academic-calendar' ? 'active' : '' }}"
                         onclick="scrollToSection('academic-calendar')">Kalender

@@ -102,4 +102,6 @@ class AdminSuratAktifKuliahController extends Controller
 
         return sprintf('%03d', $count + 1) . '/SAK/FTI/' . $month . '/' . $year;
     }
+
+
 }

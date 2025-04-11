@@ -13,5 +13,7 @@ class Service extends Model
         'icon',
         'is_active',
         'order',
+
     ];
+
 }

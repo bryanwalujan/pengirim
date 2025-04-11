@@ -29,14 +29,22 @@
             });
         </script>
         <!-- Password -->
-        <div class="mb-3">
+        <div class="mb-1">
             <x-input-label for="password" :value="__('Password')" />
             <input type="password" id="password" name="password"
                 class="form-control form-control-lg rounded border-gray-400 focus:border-pink-600 text-sm"
                 placeholder="Password" aria-label="Password" required autocomplete="current-password">
         </div>
+        <!-- Forgot Password -->
+        @if (Route::has('password.request'))
+            <div class="text-end">
+                <a href="{{ route('password.request') }}" class="text-sm text-primary">
+                    {{ __('Lupa password?') }}
+                </a>
+            </div>
+        @endif
         <div class="text-center">
-            <button type="submit" class="btn btn-lg btn-primary btn-lg w-100 mt-4 mb-0">Login</button>
+            <button type="submit" class="btn btn-lg btn-primary btn-lg w-100 mt-2 mb-0">Login</button>
         </div>
     </form>
 </x-guest-layout>
