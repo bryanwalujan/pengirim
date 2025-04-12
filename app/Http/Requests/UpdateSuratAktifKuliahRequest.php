@@ -23,10 +23,10 @@ class UpdateSuratAktifKuliahRequest extends FormRequest
     {
         return [
             'status' => 'required|in:diajukan,diproses,disetujui,ditolak,siap_diambil,sudah_diambil',
-            'catatan_admin' => 'required_if:status,ditolak|nullable|string|max:500',
+            'catatan_admin' => 'required|string|max:500',
             'catatan_internal' => 'nullable|string|max:500',
-            'penandatangan_id' => 'required_if:status,disetujui|nullable|exists:users,id',
-            'jabatan_penandatangan' => 'required_if:status,disetujui|nullable|string|max:100',
+            'penandatangan_id' => 'required_if:status,disetujui,siap_diambil|nullable|exists:users,id',
+            'jabatan_penandatangan' => 'required_if:status,disetujui,siap_diambil|nullable|string|max:100',
         ];
     }
 }

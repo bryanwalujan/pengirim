@@ -3,7 +3,6 @@
 @section('title', 'Detail Surat Aktif Kuliah')
 
 @section('main')
-    <!-- Page Title -->
     <div class="page-title light-background">
         <div class="container">
             <h1>Detail Surat Aktif Kuliah</h1>
@@ -15,9 +14,8 @@
                 </ol>
             </nav>
         </div>
-    </div><!-- End Page Title -->
+    </div>
 
-    <!-- Detail Section -->
     <section id="detail-surat" class="detail-surat section">
         <div class="container" data-aos="fade-up">
             <div class="row justify-content-center">
@@ -27,21 +25,24 @@
                             <h4 class="mb-0 text-center">Detail Pengajuan Surat Aktif Kuliah</h4>
                         </div>
                         <div class="card-body">
-                            <!-- Status Surat -->
-                            {{-- <div
-                                class="alert alert-{{ $surat->status->status == 'disetujui' ? 'success' : ($surat->status->status == 'ditolak' ? 'danger' : 'warning') }} text-center">
+                            @php
+                                $statusClass = match ($surat->status ?? 'diajukan') {
+                                    'disetujui', 'siap_diambil', 'sudah_diambil' => 'success',
+                                    'ditolak' => 'danger',
+                                    default => 'warning',
+                                };
+                            @endphp
+                            <div class="alert alert-{{ $statusClass }} text-center">
                                 <h5 class="alert-heading">Status:
-                                    <strong class="text-uppercase">{{ $surat->status->status }}</strong>
+                                    <strong class="text-uppercase">{{ $surat->status ?? 'diajukan' }}</strong>
                                 </h5>
-                                @if ($surat->status->catatan_admin)
+                                @if ($surat->status()->first()?->catatan_admin)
                                     <hr>
-                                    <p class="mb-0"><strong>Catatan Admin:</strong> {{ $surat->status->catatan_admin }}
-                                    </p>
+                                    <p class="mb-0"><strong>Catatan Admin:</strong>
+                                        {{ $surat->status()->first()->catatan_admin }}</p>
                                 @endif
-                            </div> --}}
+                            </div>
 
-
-                            <!-- Informasi Surat -->
                             <div class="mb-4">
                                 <h5 class="section-title border-bottom pb-2">Informasi Surat</h5>
                                 <div class="row">
@@ -59,7 +60,6 @@
                                 </div>
                             </div>
 
-                            <!-- Informasi Mahasiswa -->
                             <div class="mb-4">
                                 <h5 class="section-title border-bottom pb-2">Informasi Mahasiswa</h5>
                                 <div class="row">
@@ -70,39 +70,38 @@
                                     </div>
                                     <div class="col-md-6 mb-3">
                                         <label class="form-label">NIM</label>
-                                        <input type="text" class="form-control" value="{{ $surat->mahasiswa->nim }}"
-                                            readonly>
+                                        <input type="text" class="form-control"
+                                            value="{{ $surat->mahasiswa->nim ?? '-' }}" readonly>
                                     </div>
                                     <div class="col-md-6 mb-3">
                                         <label class="form-label">Program Studi</label>
-                                        <input type="text" class="form-control" value="{{ $surat->mahasiswa->prodi }}"
-                                            readonly>
+                                        <input type="text" class="form-control"
+                                            value="{{ $surat->mahasiswa->prodi ?? '-' }}" readonly>
                                     </div>
                                     <div class="col-md-6 mb-3">
                                         <label class="form-label">Semester</label>
-                                        <input type="text" class="form-control" value="{{ $surat->mahasiswa->semester }}"
-                                            readonly>
+                                        <input type="text" class="form-control"
+                                            value="{{ $surat->mahasiswa->semester ?? '-' }}" readonly>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Detail Pengajuan -->
                             <div class="mb-4">
                                 <h5 class="section-title border-bottom pb-2">Detail Pengajuan</h5>
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <label class="form-label">Tahun Ajaran</label>
-                                        <input type="text" class="form-control" value="{{ $surat->tahun_ajaran }}"
-                                            readonly>
+                                        <input type="text" class="form-control"
+                                            value="{{ $surat->tahun_ajaran ?? '-' }}" readonly>
                                     </div>
                                     <div class="col-md-6 mb-3">
                                         <label class="form-label">Semester</label>
-                                        <input type="text" class="form-control" value="{{ ucfirst($surat->semester) }}"
-                                            readonly>
+                                        <input type="text" class="form-control"
+                                            value="{{ ucfirst($surat->semester ?? '-') }}" readonly>
                                     </div>
                                     <div class="col-12 mb-3">
                                         <label class="form-label">Tujuan Pengajuan</label>
-                                        <textarea class="form-control" rows="3" readonly>{{ $surat->tujuan_pengajuan }}</textarea>
+                                        <textarea class="form-control" rows="3" readonly>{{ $surat->tujuan_pengajuan ?? '-' }}</textarea>
                                     </div>
                                     <div class="col-12 mb-3">
                                         <label class="form-label">Keterangan Tambahan</label>
@@ -111,7 +110,6 @@
                                 </div>
                             </div>
 
-                            <!-- Dokumen Pendukung -->
                             @if ($surat->file_pendukung_path)
                                 <div class="mb-4">
                                     <h5 class="section-title border-bottom pb-2">Dokumen Pendukung</h5>
@@ -125,13 +123,11 @@
                                 </div>
                             @endif
 
-                            <!-- Tombol Aksi -->
                             <div class="d-flex justify-content-between mt-4">
                                 <a href="{{ route('user.surat-aktif-kuliah.index') }}" class="btn btn-secondary">
                                     <i class="bi bi-arrow-left"></i> Kembali ke Daftar
                                 </a>
-
-                                @if ($surat->file_surat_path)
+                                @if ($surat->file_surat_path && in_array($surat->status, ['siap_diambil', 'sudah_diambil']))
                                     <a href="{{ route('user.surat-aktif-kuliah.download', $surat->id) }}"
                                         class="btn btn-primary">
                                         <i class="bi bi-download"></i> Download Surat
@@ -141,21 +137,24 @@
                         </div>
                     </div>
 
-                    <!-- Tracking Surat -->
                     <div class="card shadow mt-4">
                         <div class="card-header bg-light">
                             <h5 class="mb-0">Riwayat Status</h5>
                         </div>
                         <div class="card-body">
                             <div class="timeline">
-                                @foreach ($surat->trackings->sortByDesc('created_at') as $tracking)
+                                @forelse ($surat->trackings->sortByDesc('created_at') as $tracking)
                                     <div class="timeline-item">
                                         <div class="timeline-marker">
                                             <i
-                                                class="bi bi-circle-fill {{ $tracking->aksi == 'disetujui' ? 'text-success' : ($tracking->aksi == 'ditolak' ? 'text-danger' : 'text-primary') }}"></i>
+                                                class="bi bi-circle-fill {{ match ($tracking->aksi) {
+                                                    'disetujui', 'siap_diambil', 'sudah_diambil' => 'text-success',
+                                                    'ditolak' => 'text-danger',
+                                                    default => 'text-primary',
+                                                } }}"></i>
                                         </div>
                                         <div class="timeline-content">
-                                            <h6 class="text-capitalize">{{ $tracking->aksi }}</h6>
+                                            <h6 class="text-capitalize">{{ str_replace('_', ' ', $tracking->aksi) }}</h6>
                                             <p class="text-muted small mb-1">
                                                 {{ $tracking->created_at->format('d F Y H:i') }}</p>
                                             @if ($tracking->keterangan)
@@ -163,14 +162,16 @@
                                             @endif
                                         </div>
                                     </div>
-                                @endforeach
+                                @empty
+                                    <p class="text-muted">Belum ada riwayat status.</p>
+                                @endforelse
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </section><!-- End Detail Section -->
+    </section>
 @endsection
 
 @push('style')

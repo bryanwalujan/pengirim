@@ -198,13 +198,13 @@
                                 <h3>{{ $service->name }}</h3>
                                 <p class="text-small">{!! Str::limit(strip_tags($service->description), 100) !!}</p>
                                 @auth
-                                    <a href="{{ route('user.services.create', $service->slug) }}" class="read-more">
-                                        Ajukan Sekarang <i class="bi bi-arrow-right"></i>
+                                    <a href="{{ $service->getServiceIndexRoute() }}" class="read-more">
+                                        Lihat Layanan <i class="bi bi-arrow-right"></i>
                                     </a>
                                 @else
                                     <a href="{{ route('login') }}" class="read-more"
                                         onclick="sessionStorage.setItem('intended_url', window.location.href + '#services')">
-                                        Ajukan Sekarang <i class="bi bi-arrow-right"></i>
+                                        Lihat Layanan <i class="bi bi-arrow-right"></i>
                                     </a>
                                 @endauth
                             </div>

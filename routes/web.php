@@ -69,10 +69,14 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa'])->group(function () {
     // });
 });
 
-// Untuk Admin
-Route::middleware(['auth', 'verified', 'role:staff'])->prefix('admin/surat-aktif-kuliah')->name('admin.surat-aktif-kuliah.')->group(function () {
+// Admin routes
+Route::middleware(['auth', 'verified', 'role:admin|staff'])->prefix('admin/surat-aktif-kuliah')->name('admin.surat-aktif-kuliah.')->group(function () {
     Route::get('/', [AdminSuratAktifKuliahController::class, 'index'])->name('index');
+    Route::get('/create', [AdminSuratAktifKuliahController::class, 'create'])->name('create');
+    Route::post('/', [AdminSuratAktifKuliahController::class, 'store'])->name('store');
     Route::get('/{surat}', [AdminSuratAktifKuliahController::class, 'show'])->name('show');
+    Route::get('/{surat}/edit', [AdminSuratAktifKuliahController::class, 'edit'])->name('edit');
+    Route::put('/{surat}', [AdminSuratAktifKuliahController::class, 'update'])->name('update');
     Route::put('/{surat}/status', [AdminSuratAktifKuliahController::class, 'updateStatus'])->name('update-status');
 });
 

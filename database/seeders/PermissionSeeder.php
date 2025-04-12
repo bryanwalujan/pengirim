@@ -28,6 +28,12 @@ class PermissionSeeder extends Seeder
             ['name' => 'edit services', 'group' => 'services'],
             ['name' => 'delete services', 'group' => 'services'],
 
+            // Surat Aktif Kuliah
+            ['name' => 'manage surat aktif kuliah', 'group' => 'surat-aktif-kuliah'],
+            ['name' => 'create surat aktif kuliah', 'group' => 'surat-aktif-kuliah'],
+            ['name' => 'edit surat aktif kuliah', 'group' => 'surat-aktif-kuliah'],
+            ['name' => 'delete surat aktif kuliah', 'group' => 'surat-aktif-kuliah'],
+
             // Academic Calendar
             ['name' => 'manage academic calendar', 'group' => 'academic'],
 

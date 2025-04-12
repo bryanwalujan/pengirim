@@ -20,18 +20,19 @@ class Service extends Model
         'is_active' => 'boolean'
     ];
 
-    public function getSubmissionRoute()
+    public function getServiceIndexRoute()
     {
-        // Daftar layanan khusus dengan route masing-masing
-        $customRoutes = [
-            'surat-aktif-kuliah' => 'user.surat-aktif-kuliah.create',
-            'surat-keterangan' => 'user.surat-keterangan.create',
-            'transkrip-nilai' => 'user.transkrip.create'
+        // Daftar route index untuk layanan khusus
+        $customIndexRoutes = [
+            'surat-aktif-kuliah' => 'user.surat-aktif-kuliah.index',
+            'surat-keterangan' => 'user.surat-keterangan.index',
+            'transkrip-nilai' => 'user.transkrip.index',
+            // Tambahkan layanan khusus lainnya di sini
         ];
 
-        // Jika ada custom route, gunakan route khusus
-        if (array_key_exists($this->slug, $customRoutes)) {
-            return route($customRoutes[$this->slug]);
+        // Jika ada custom route index, gunakan route khusus
+        if (array_key_exists($this->slug, $customIndexRoutes)) {
+            return route($customIndexRoutes[$this->slug]);
         }
 
         // Default route untuk layanan biasa

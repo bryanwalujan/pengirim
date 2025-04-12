@@ -22,6 +22,65 @@
             </li>
         @endcan
 
+        <!-- Manajemen Surat -->
+        <li class="menu-header small text-uppercase">
+            <span class="menu-header-text">Manajemen Surat</span>
+        </li>
+        @can('manage surat aktif kuliah')
+            <li class="menu-item {{ request()->routeIs('admin.surat-aktif-kuliah.*') ? 'active open' : '' }}">
+                <a href="javascript:void(0);" class="menu-link menu-toggle">
+                    <i class="menu-icon tf-icons bx bx-file"></i>
+                    <div>Surat Aktif Kuliah</div>
+                </a>
+                <ul class="menu-sub">
+                    <li
+                        class="menu-item {{ request()->routeIs('admin.surat-aktif-kuliah.index') && request()->input('status', 'diajukan') === 'diajukan' ? 'active' : '' }}">
+                        <a href="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'diajukan']) }}" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-time"></i>
+                            <div>Diajukan</div>
+                        </a>
+                    </li>
+                    <li
+                        class="menu-item {{ request()->routeIs('admin.surat-aktif-kuliah.index') && request()->input('status') === 'diproses' ? 'active' : '' }}">
+                        <a href="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'diproses']) }}" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-loader"></i>
+                            <div>Diproses</div>
+                        </a>
+                    </li>
+                    <li
+                        class="menu-item {{ request()->routeIs('admin.surat-aktif-kuliah.index') && request()->input('status') === 'disetujui' ? 'active' : '' }}">
+                        <a href="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'disetujui']) }}"
+                            class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-check"></i>
+                            <div>Disetujui</div>
+                        </a>
+                    </li>
+                    <li
+                        class="menu-item {{ request()->routeIs('admin.surat-aktif-kuliah.index') && request()->input('status') === 'ditolak' ? 'active' : '' }}">
+                        <a href="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'ditolak']) }}" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-x"></i>
+                            <div>Ditolak</div>
+                        </a>
+                    </li>
+                    <li
+                        class="menu-item {{ request()->routeIs('admin.surat-aktif-kuliah.index') && request()->input('status') === 'siap_diambil' ? 'active' : '' }}">
+                        <a href="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'siap_diambil']) }}"
+                            class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-package"></i>
+                            <div>Siap Diambil</div>
+                        </a>
+                    </li>
+                    <li
+                        class="menu-item {{ request()->routeIs('admin.surat-aktif-kuliah.index') && request()->input('status') === 'sudah_diambil' ? 'active' : '' }}">
+                        <a href="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'sudah_diambil']) }}"
+                            class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-check-circle"></i>
+                            <div>Sudah Diambil</div>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+        @endcan
 
         {{-- Manajemen Layanan --}}
         @if (auth()->user()->can('manage services') || auth()->user()->can('manage academic calendar'))

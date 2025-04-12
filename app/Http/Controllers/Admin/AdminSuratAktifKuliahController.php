@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Models\User;
 use App\Models\StatusSurat;
-use App\Models\TrackingSurat;
 use Illuminate\Http\Request;
+use App\Models\TrackingSurat;
 use App\Models\SuratAktifKuliah;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\UpdateSuratAktifKuliahRequest;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Requests\UpdateSuratAktifKuliahRequest;
 
 class AdminSuratAktifKuliahController extends Controller
 {
@@ -43,20 +44,33 @@ class AdminSuratAktifKuliahController extends Controller
         $surat->load([
             'mahasiswa',
             'status',
-            'trackings' => function ($query) {
-                $query->latest();
-            },
-            'penandatangan'
+            'trackings' => fn($query) => $query->latest(),
+            'penandatangan',
         ]);
 
-        return view('admin.surat-aktif-kuliah.show', compact('surat'));
+        $penandatangans = User::role('dosen')->get();
+
+        return view('admin.surat-aktif-kuliah.show', compact('surat', 'penandatangans'));
+    }
+
+    public function update(Request $request, SuratAktifKuliah $surat)
+    {
+        $validated = $request->validate([
+            'nomor_surat' => 'nullable|string|max:50',
+            'tanggal_surat' => 'nullable|date',
+            'penandatangan_id' => 'nullable|exists:users,id',
+        ]);
+
+        $surat->update($validated);
+
+        return redirect()->route('admin.surat-aktif-kuliah.show', $surat->id)
+            ->with('success', 'Surat berhasil diperbarui');
     }
 
     public function updateStatus(UpdateSuratAktifKuliahRequest $request, SuratAktifKuliah $surat)
     {
         $validated = $request->validated();
 
-        // Update status
         StatusSurat::updateOrCreate(
             [
                 'surat_type' => SuratAktifKuliah::class,
@@ -70,23 +84,26 @@ class AdminSuratAktifKuliahController extends Controller
             ]
         );
 
-        // Buat tracking
         TrackingSurat::create([
             'surat_type' => SuratAktifKuliah::class,
             'surat_id' => $surat->id,
             'aksi' => $validated['status'],
-            'keterangan' => $validated['catatan_admin'] ?? 'Status diubah',
+            'keterangan' => $validated['catatan_admin'],
             'mahasiswa_id' => $surat->mahasiswa_id,
         ]);
 
-        // Jika status disetujui, generate nomor surat dan tanggal
-        if ($validated['status'] === 'disetujui') {
+        if (in_array($validated['status'], ['disetujui', 'siap_diambil'])) {
             $surat->update([
-                'nomor_surat' => $this->generateNomorSurat(),
-                'tanggal_surat' => now(),
                 'penandatangan_id' => $validated['penandatangan_id'],
                 'jabatan_penandatangan' => $validated['jabatan_penandatangan'],
+                'nomor_surat' => $surat->nomor_surat ?? $this->generateNomorSurat(),
+                'tanggal_surat' => $surat->tanggal_surat ?? now(),
             ]);
+        }
+
+        if ($validated['status'] === 'siap_diambil') {
+            // Generate or assign file_surat_path
+            $surat->update(['file_surat_path' => $this->generateSuratFile($surat)]);
         }
 
         return redirect()->back()->with('success', 'Status surat berhasil diperbarui');
@@ -100,8 +117,14 @@ class AdminSuratAktifKuliahController extends Controller
             ->whereMonth('created_at', $month)
             ->count();
 
-        return sprintf('%03d', $count + 1) . '/SAK/FTI/' . $month . '/' . $year;
+        return sprintf('%03d/SAK/FTI/%s/%s', $count + 1, $month, $year);
     }
 
-
+    protected function generateSuratFile(SuratAktifKuliah $surat)
+    {
+        // Placeholder: Implement PDF generation (e.g., using DomPDF)
+        $path = 'surat-aktif-kuliah/' . $surat->id . '_' . time() . '.pdf';
+        // Storage::disk('public')->put($path, $pdfOutput);
+        return $path;
+    }
 }

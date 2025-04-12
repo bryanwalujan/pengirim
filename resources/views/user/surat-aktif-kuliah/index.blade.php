@@ -6,7 +6,63 @@
     <!-- CSS Libraries -->
     <link rel="stylesheet" href="{{ asset('library/datatables/media/css/jquery.dataTables.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/select2/dist/css/select2.min.css') }}">
+
     <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .page-title {
+            background: #f8f9fa;
+            padding: 2rem 0;
+        }
+
+        .page-title h1 {
+            font-weight: 600;
+        }
+
+        .breadcrumbs ol {
+            margin-bottom: 0;
+            padding-left: 0;
+            list-style: none;
+            display: flex;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+
+        .breadcrumbs a {
+            color: #0d6efd;
+            text-decoration: none;
+        }
+
+        .card {
+            border-radius: 1rem;
+            border: none;
+        }
+
+        .card-header {
+            border-bottom: 1px solid #dee2e6;
+            background-color: #fff;
+            border-top-left-radius: 1rem;
+            border-top-right-radius: 1rem;
+            padding: 1.5rem;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .btn-primary {
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: #0b5ed7;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
         .status-badge {
             font-size: 0.75rem;
             font-weight: 600;
@@ -41,24 +97,51 @@
 
         .card-surat {
             transition: all 0.3s ease;
-            border: 1px solid rgba(0, 0, 0, 0.125);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            border-radius: 0.75rem;
         }
 
         .card-surat:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
         }
 
         .action-btn {
-            width: 30px;
-            height: 30px;
+            width: 36px;
+            height: 36px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             border-radius: 50%;
+            transition: background 0.3s;
+        }
+
+        .action-btn:hover {
+            background: rgba(13, 110, 253, 0.1);
+        }
+
+        .table th,
+        .table td {
+            vertical-align: middle !important;
+        }
+
+        .form-label {
+            font-weight: 500;
+        }
+
+        .select2-container--default .select2-selection--single {
+            border-radius: 0.5rem;
+            height: 38px;
+            padding: 6px 12px;
+            border-color: #ced4da;
+        }
+
+        .text-muted {
+            font-size: 0.875rem;
         }
     </style>
 @endpush
+
 
 @section('main')
     <!-- Page Title -->
