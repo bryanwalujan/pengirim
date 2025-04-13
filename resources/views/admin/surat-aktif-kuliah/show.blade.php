@@ -61,7 +61,7 @@
 
         <!-- Card -->
         <div class="card">
-            <div class="card-header border-bottom">
+            <div class="card-header border-bottom mb-4">
                 <h5 class="card-title mb-0">Informasi Pengajuan</h5>
             </div>
             <div class="card-body">
@@ -112,13 +112,12 @@
                             <input type="text" class="form-control" value="{{ $surat->mahasiswa->nim ?? '-' }}" readonly>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Program Studi</label>
-                            <input type="text" class="form-control" value="{{ $surat->mahasiswa->prodi ?? '-' }}"
-                                readonly>
+                            <label class="form-label">Tahun Ajaran</label>
+                            <input type="text" class="form-control" value="{{ $surat->tahun_ajaran ?? '-' }}" readonly>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Semester</label>
-                            <input type="text" class="form-control" value="{{ $surat->mahasiswa->semester ?? '-' }}"
+                            <input type="text" class="form-control" value="{{ ucfirst($surat->semester ?? '-') }}"
                                 readonly>
                         </div>
                     </div>
@@ -128,15 +127,6 @@
                 <div class="mb-4">
                     <h6 class="fw-bold mb-3">Detail Pengajuan</h6>
                     <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Tahun Ajaran</label>
-                            <input type="text" class="form-control" value="{{ $surat->tahun_ajaran ?? '-' }}" readonly>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Semester</label>
-                            <input type="text" class="form-control" value="{{ ucfirst($surat->semester ?? '-') }}"
-                                readonly>
-                        </div>
                         <div class="col-12 mb-3">
                             <label class="form-label">Tujuan Pengajuan</label>
                             <textarea class="form-control" rows="3" readonly>{{ $surat->tujuan_pengajuan ?? '-' }}</textarea>

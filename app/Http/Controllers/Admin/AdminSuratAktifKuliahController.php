@@ -6,9 +6,11 @@ use App\Models\User;
 use App\Models\StatusSurat;
 use Illuminate\Http\Request;
 use App\Models\TrackingSurat;
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\SuratAktifKuliah;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\UpdateSuratAktifKuliahRequest;
 
 class AdminSuratAktifKuliahController extends Controller
@@ -122,9 +124,24 @@ class AdminSuratAktifKuliahController extends Controller
 
     protected function generateSuratFile(SuratAktifKuliah $surat)
     {
-        // Placeholder: Implement PDF generation (e.g., using DomPDF)
+        // Konversi semester ke angka Romawi
+        $semester_map = [
+            'ganjil' => [1 => 'I', 3 => 'III', 5 => 'V', 7 => 'VII', 9 => 'IX'],
+            'genap' => [2 => 'II', 4 => 'IV', 6 => 'VI', 8 => 'VIII', 10 => 'X'],
+        ];
+        $semester_number = 5; // Default, sesuai contoh dokumen
+        $semester_roman = $semester_map[$surat->semester][$semester_number] ?? 'V';
+
+        // Generate PDF
+        $pdf = Pdf::loadView('admin.surat-aktif-kuliah.pdf', [
+            'surat' => $surat,
+            'semester_roman' => $semester_roman,
+        ]);
+
+        // Simpan file PDF
         $path = 'surat-aktif-kuliah/' . $surat->id . '_' . time() . '.pdf';
-        // Storage::disk('public')->put($path, $pdfOutput);
+        Storage::disk('public')->put($path, $pdf->output());
+
         return $path;
     }
 }

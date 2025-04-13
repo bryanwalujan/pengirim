@@ -136,7 +136,10 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center">Belum ada pengajuan surat aktif kuliah</td>
+                                <td colspan="6" class="text-center">
+                                    Tidak ada pengajuan surat aktif kuliah untuk status
+                                    {{ $status ? str_replace('_', ' ', ucfirst($status)) : 'semua' }}.
+                                </td>
                             </tr>
                         @endforelse
                     </tbody>

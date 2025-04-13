@@ -1,6 +1,6 @@
 <form id="status-form" action="{{ route('admin.surat-aktif-kuliah.update-status', $surat->id) }}" method="POST">
     @csrf
-    @method('PATCH')
+    @method('PUT')
 
     <div class="row">
         <div class="col-md-6 mb-3">
@@ -78,3 +78,23 @@
         </div>
     </div>
 </form>
+
+@push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const statusSelect = document.getElementById('status');
+            const penandatanganSelect = document.getElementById('penandatangan_id');
+            const jabatanInput = document.getElementById('jabatan_penandatangan');
+
+            statusSelect.addEventListener('change', function() {
+                const requiresPenandatangan = ['disetujui', 'siap_diambil'].includes(this.value);
+                penandatanganSelect.required = requiresPenandatangan;
+                jabatanInput.required = requiresPenandatangan;
+            });
+
+            // Trigger on load
+            const event = new Event('change');
+            statusSelect.dispatchEvent(event);
+        });
+    </script>
+@endpush
