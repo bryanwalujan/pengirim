@@ -55,6 +55,8 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa'])->group(function () {
         Route::post('/', [SuratAktifKuliahController::class, 'store'])->name('store');
         Route::get('/{surat}', [SuratAktifKuliahController::class, 'show'])->name('show');
         Route::get('/{surat}/download', [SuratAktifKuliahController::class, 'download'])->name('download');
+        Route::post('/{id}/confirm-taken', [SuratAktifKuliahController::class, 'confirmTaken'])
+            ->name('confirm-taken');
     });
 
     // Surat Keterangan

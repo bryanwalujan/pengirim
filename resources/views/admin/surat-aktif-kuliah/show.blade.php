@@ -123,7 +123,8 @@
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="status" class="form-label">Status <span class="text-danger">*</span></label>
+                                <label for="status" class="form-label">Status Pengajuan <span
+                                        class="text-danger">*</span></label>
                                 <select name="status" id="status" class="form-select" required>
                                     <option value="diajukan" {{ $surat->status === 'diajukan' ? 'selected' : '' }}>Diajukan
                                     </option>
@@ -135,6 +136,11 @@
                                     </option>
                                     <option value="siap_diambil" {{ $surat->status === 'siap_diambil' ? 'selected' : '' }}>
                                         Siap Diambil</option>
+                                    @if ($surat->status === 'siap_diambil')
+                                        <option value="sudah_diambil"
+                                            {{ $surat->status === 'sudah_diambil' ? 'selected' : '' }}>Sudah Diambil
+                                        </option>
+                                    @endif
                                 </select>
                             </div>
 
@@ -217,19 +223,22 @@
 @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Tampilkan field penandatangan hanya jika status disetujui/siap diambil
             const statusSelect = document.getElementById('status');
-            const penandatanganGroup = document.getElementById('penandatangan_group');
-            const jabatanGroup = document.getElementById('jabatan_group');
+            const penandatanganSelect = document.getElementById('penandatangan_id');
+            const jabatanInput = document.getElementById('jabatan_penandatangan');
+            const penandatanganRequired = document.getElementById('penandatangan_required');
+            const jabatanRequired = document.getElementById('jabatan_required');
 
-            function togglePenandatanganFields() {
-                const show = ['disetujui', 'siap_diambil'].includes(statusSelect.value);
-                penandatanganGroup.style.display = show ? 'block' : 'none';
-                jabatanGroup.style.display = show ? 'block' : 'none';
+            function toggleRequiredFields() {
+                const requiresPenandatangan = ['disetujui', 'siap_diambil'].includes(statusSelect.value);
+                penandatanganSelect.required = requiresPenandatangan;
+                jabatanInput.required = requiresPenandatangan;
+                penandatanganRequired.style.display = requiresPenandatangan ? 'inline' : 'none';
+                jabatanRequired.style.display = requiresPenandatangan ? 'inline' : 'none';
             }
 
-            statusSelect.addEventListener('change', togglePenandatanganFields);
-            togglePenandatanganFields(); // Initial call
+            statusSelect.addEventListener('change', toggleRequiredFields);
+            toggleRequiredFields(); // Panggil saat load
         });
     </script>
 @endpush

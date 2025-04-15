@@ -11,6 +11,7 @@ use App\Models\SuratAktifKuliah;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use App\Notifications\SuratTakenNotification;
 use App\Http\Requests\UpdateSuratAktifKuliahRequest;
 
 class AdminSuratAktifKuliahController extends Controller
@@ -82,6 +83,22 @@ class AdminSuratAktifKuliahController extends Controller
             }
         }
 
+        // Validasi untuk status sudah_diambil hanya bisa dari siap_diambil
+        if ($validated['status'] === 'sudah_diambil' && $surat->status !== 'siap_diambil') {
+            return redirect()->back()
+                ->with('error', 'Status sudah_diambil hanya bisa diubah dari status siap_diambil');
+        }
+
+        // Di method updateStatus, setelah update status
+        if ($validated['status'] === 'sudah_diambil') {
+            // Kirim notifikasi ke admin
+            $admin = User::role('admin')->first();
+            if ($admin) {
+                $admin->notify(new SuratTakenNotification($surat));
+            }
+        }
+
+
         StatusSurat::updateOrCreate(
             [
                 'surat_type' => SuratAktifKuliah::class,
@@ -123,16 +140,60 @@ class AdminSuratAktifKuliahController extends Controller
             ->with('success', 'Status surat berhasil diperbarui');
     }
 
+    // Tambahkan method baru
+    public function confirmTaken(SuratAktifKuliah $surat)
+    {
+        // Pastikan status saat ini adalah siap_diambil
+        if ($surat->status !== 'siap_diambil') {
+            return redirect()->back()
+                ->with('error', 'Surat belum siap diambil atau sudah diambil sebelumnya');
+        }
+
+        // Update status
+        StatusSurat::updateOrCreate(
+            [
+                'surat_type' => SuratAktifKuliah::class,
+                'surat_id' => $surat->id,
+            ],
+            [
+                'status' => 'sudah_diambil',
+                'updated_by' => Auth::id(),
+                'catatan_admin' => 'Surat telah diambil oleh mahasiswa',
+            ]
+        );
+
+        // Tambahkan tracking
+        TrackingSurat::create([
+            'surat_type' => SuratAktifKuliah::class,
+            'surat_id' => $surat->id,
+            'aksi' => 'sudah_diambil',
+            'keterangan' => 'Surat telah diambil oleh mahasiswa',
+            'mahasiswa_id' => $surat->mahasiswa_id,
+        ]);
+
+        return redirect()->route('admin.surat-aktif-kuliah.show', $surat->id)
+            ->with('success', 'Status surat berhasil diperbarui menjadi Sudah Diambil');
+    }
+
+
     protected function generateNomorSurat()
     {
-        $year = date('Y');
-        $lastSurat = SuratAktifKuliah::whereYear('created_at', $year)
-            ->orderBy('id', 'desc')
+        $currentYear = date('Y');
+        // Cari nomor surat terakhir di tahun ini, termasuk yang sudah dihapus (soft delete)
+        $latestSurat = SuratAktifKuliah::withTrashed()
+            ->whereYear('created_at', $currentYear)
+            ->whereNotNull('nomor_surat')
+            ->orderBy('nomor_surat', 'desc')
             ->first();
-
-        $lastNumber = $lastSurat ? intval(explode('/', $lastSurat->nomor_surat)[0]) : 0;
-
-        return sprintf('%03d/UN41.2/TI/%s', $lastNumber + 1, $year);
+        if ($latestSurat) {
+            // Ekstrak nomor dari format: 001/UN41.2/TI/2023
+            $nomorParts = explode('/', $latestSurat->nomor_surat);
+            $latestNumber = intval($nomorParts[0]);
+        } else {
+            $latestNumber = 0;
+        }
+        // Format nomor surat: 001/UN41.2/TI/2023
+        return sprintf('%03d/UN41.2/TI/%s', $latestNumber + 1, $currentYear);
     }
 
     protected function generateSuratFile(SuratAktifKuliah $surat)

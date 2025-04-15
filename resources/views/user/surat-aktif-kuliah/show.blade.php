@@ -42,7 +42,18 @@
                                         {{ $surat->status()->first()->catatan_admin }}</p>
                                 @endif
                             </div>
-
+                            @if ($surat->status === 'siap_diambil')
+                                <div class="alert alert-info mt-4">
+                                    <form action="{{ route('user.surat-aktif-kuliah.confirm-taken', $surat->id) }}"
+                                        method="POST" class="d-inline">
+                                        @csrf
+                                        <p>Jika Anda sudah mengambil surat ini, silakan konfirmasi:</p>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="bi bi-check-circle"></i> Konfirmasi Sudah Diambil
+                                        </button>
+                                    </form>
+                                </div>
+                            @endif
                             <div class="mb-4">
                                 <h5 class="section-title border-bottom pb-2">Informasi Surat</h5>
                                 <div class="row">
@@ -147,37 +158,7 @@
                         </div>
                     </div>
 
-                    <div class="card shadow mt-4">
-                        <div class="card-header bg-light">
-                            <h5 class="mb-0">Riwayat Status</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="timeline">
-                                @forelse ($surat->trackings->sortByDesc('created_at') as $tracking)
-                                    <div class="timeline-item">
-                                        <div class="timeline-marker">
-                                            <i
-                                                class="bi bi-circle-fill {{ match ($tracking->aksi) {
-                                                    'disetujui', 'siap_diambil', 'sudah_diambil' => 'text-success',
-                                                    'ditolak' => 'text-danger',
-                                                    default => 'text-primary',
-                                                } }}"></i>
-                                        </div>
-                                        <div class="timeline-content">
-                                            <h6 class="text-capitalize">{{ str_replace('_', ' ', $tracking->aksi) }}</h6>
-                                            <p class="text-muted small mb-1">
-                                                {{ $tracking->created_at->format('d F Y H:i') }}</p>
-                                            @if ($tracking->keterangan)
-                                                <p class="mb-0">{{ $tracking->keterangan }}</p>
-                                            @endif
-                                        </div>
-                                    </div>
-                                @empty
-                                    <p class="text-muted">Belum ada riwayat status.</p>
-                                @endforelse
-                            </div>
-                        </div>
-                    </div>
+
                 </div>
             </div>
         </div>

@@ -87,6 +87,43 @@ class SuratAktifKuliahController extends Controller
         return view('user.surat-aktif-kuliah.show', compact('surat'));
     }
 
+    public function confirmTaken($id)
+{
+    $surat = SuratAktifKuliah::with(['status'])
+        ->where('mahasiswa_id', Auth::id())
+        ->findOrFail($id);
+
+    // Pastikan status saat ini adalah siap_diambil
+    if ($surat->status !== 'siap_diambil') {
+        return redirect()->back()
+            ->with('error', 'Surat belum siap diambil atau sudah diambil sebelumnya');
+    }
+
+    // Update status
+    StatusSurat::updateOrCreate(
+        [
+            'surat_type' => SuratAktifKuliah::class,
+            'surat_id' => $surat->id,
+        ],
+        [
+            'status' => 'sudah_diambil',
+            'updated_by' => Auth::id(),
+        ]
+    );
+
+    // Tambahkan tracking
+    TrackingSurat::create([
+        'surat_type' => SuratAktifKuliah::class,
+        'surat_id' => $surat->id,
+        'aksi' => 'sudah_diambil',
+        'keterangan' => 'Surat telah diambil oleh mahasiswa',
+        'mahasiswa_id' => Auth::id(),
+    ]);
+
+    return redirect()->route('user.surat-aktif-kuliah.show', $surat->id)
+        ->with('success', 'Surat telah dikonfirmasi sebagai sudah diambil');
+}
+
     public function download(SuratAktifKuliah $surat)
     {
         try {

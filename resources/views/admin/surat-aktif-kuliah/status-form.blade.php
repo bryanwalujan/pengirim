@@ -5,20 +5,17 @@
     <div class="row">
         <div class="col-md-6 mb-3">
             <label for="status" class="form-label">Status Pengajuan <span class="text-danger">*</span></label>
-            <select name="status" id="status" class="form-select @error('status') is-invalid @enderror" required>
-                <option value="">Pilih Status</option>
-                <option value="diajukan" {{ old('status', $surat->status) === 'diajukan' ? 'selected' : '' }}>Diajukan
+            <select name="status" id="status" class="form-select" required>
+                <option value="diajukan" {{ $surat->status === 'diajukan' ? 'selected' : '' }}>Diajukan</option>
+                <option value="diproses" {{ $surat->status === 'diproses' ? 'selected' : '' }}>Diproses</option>
+                <option value="disetujui" {{ $surat->status === 'disetujui' ? 'selected' : '' }}>Disetujui</option>
+                <option value="ditolak" {{ $surat->status === 'ditolak' ? 'selected' : '' }}>Ditolak</option>
+                <option value="siap_diambil" {{ $surat->status === 'siap_diambil' ? 'selected' : '' }}>Siap Diambil
                 </option>
-                <option value="diproses" {{ old('status', $surat->status) === 'diproses' ? 'selected' : '' }}>Diproses
-                </option>
-                <option value="disetujui" {{ old('status', $surat->status) === 'disetujui' ? 'selected' : '' }}>
-                    Disetujui</option>
-                <option value="ditolak" {{ old('status', $surat->status) === 'ditolak' ? 'selected' : '' }}>Ditolak
-                </option>
-                <option value="siap_diambil" {{ old('status', $surat->status) === 'siap_diambil' ? 'selected' : '' }}>
-                    Siap Diambil</option>
-                <option value="sudah_diambil" {{ old('status', $surat->status) === 'sudah_diambil' ? 'selected' : '' }}>
-                    Sudah Diambil</option>
+                @if ($surat->status === 'siap_diambil')
+                    <option value="sudah_diambil" {{ $surat->status === 'sudah_diambil' ? 'selected' : '' }}>Sudah
+                        Diambil</option>
+                @endif
             </select>
             @error('status')
                 <div class="invalid-feedback">{{ $message }}</div>
