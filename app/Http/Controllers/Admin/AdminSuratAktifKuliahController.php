@@ -73,6 +73,15 @@ class AdminSuratAktifKuliahController extends Controller
     {
         $validated = $request->validated();
 
+        // Validasi penandatangan sebelum update status
+        if (in_array($validated['status'], ['disetujui', 'siap_diambil'])) {
+            if (empty($validated['penandatangan_id']) || empty($validated['jabatan_penandatangan'])) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Penandatangan dan jabatan wajib diisi untuk status ini.');
+            }
+        }
+
         StatusSurat::updateOrCreate(
             [
                 'surat_type' => SuratAktifKuliah::class,
@@ -94,6 +103,7 @@ class AdminSuratAktifKuliahController extends Controller
             'mahasiswa_id' => $surat->mahasiswa_id,
         ]);
 
+        // Update info surat jika disetujui atau siap diambil
         if (in_array($validated['status'], ['disetujui', 'siap_diambil'])) {
             $surat->update([
                 'penandatangan_id' => $validated['penandatangan_id'],
@@ -103,34 +113,53 @@ class AdminSuratAktifKuliahController extends Controller
             ]);
         }
 
+        // Generate file jika siap diambil
         if ($validated['status'] === 'siap_diambil') {
-            // Generate or assign file_surat_path
-            $surat->update(['file_surat_path' => $this->generateSuratFile($surat)]);
+            $filePath = $this->generateSuratFile($surat);
+            $surat->update(['file_surat_path' => $filePath]);
         }
 
-        return redirect()->back()->with('success', 'Status surat berhasil diperbarui');
+        return redirect()->route('admin.surat-aktif-kuliah.show', $surat->id)
+            ->with('success', 'Status surat berhasil diperbarui');
     }
 
     protected function generateNomorSurat()
     {
         $year = date('Y');
-        $month = date('m');
-        $count = SuratAktifKuliah::whereYear('created_at', $year)
-            ->whereMonth('created_at', $month)
-            ->count();
+        $lastSurat = SuratAktifKuliah::whereYear('created_at', $year)
+            ->orderBy('id', 'desc')
+            ->first();
 
-        return sprintf('%03d/SAK/FTI/%s/%s', $count + 1, $month, $year);
+        $lastNumber = $lastSurat ? intval(explode('/', $lastSurat->nomor_surat)[0]) : 0;
+
+        return sprintf('%03d/UN41.2/TI/%s', $lastNumber + 1, $year);
     }
 
     protected function generateSuratFile(SuratAktifKuliah $surat)
     {
+        // Pastikan data yang diperlukan ada
+        if (!$surat->nomor_surat || !$surat->tanggal_surat || !$surat->penandatangan) {
+            throw new \Exception('Data surat tidak lengkap untuk generate file');
+        }
+
         // Konversi semester ke angka Romawi
         $semester_map = [
-            'ganjil' => [1 => 'I', 3 => 'III', 5 => 'V', 7 => 'VII', 9 => 'IX'],
-            'genap' => [2 => 'II', 4 => 'IV', 6 => 'VI', 8 => 'VIII', 10 => 'X'],
+            'ganjil' => [1 => 'I', 3 => 'III', 5 => 'V', 7 => 'VII', 9 => 'IX', 11 => 'XI', 13 => 'XIII'],
+            'genap' => [2 => 'II', 4 => 'IV', 6 => 'VI', 8 => 'VIII', 10 => 'X', 12 => 'XII', 14 => 'XIV'],
         ];
-        $semester_number = 5; // Default, sesuai contoh dokumen
-        $semester_roman = $semester_map[$surat->semester][$semester_number] ?? 'V';
+
+        // Ambil semester number dari tahun ajaran
+        $tahunParts = explode('/', $surat->tahun_ajaran);
+        $tahunMulai = (int) $tahunParts[0];
+        $semesterNumber = ($surat->semester === 'ganjil') ? 1 : 2;
+
+        // Jika tahun sekarang lebih besar dari tahun mulai, hitung semester
+        $currentYear = date('Y');
+        if ($currentYear > $tahunMulai) {
+            $semesterNumber += ($currentYear - $tahunMulai) * 2;
+        }
+
+        $semester_roman = $semester_map[$surat->semester][$semesterNumber] ?? 'V';
 
         // Generate PDF
         $pdf = Pdf::loadView('admin.surat-aktif-kuliah.pdf', [
@@ -139,9 +168,30 @@ class AdminSuratAktifKuliahController extends Controller
         ]);
 
         // Simpan file PDF
-        $path = 'surat-aktif-kuliah/' . $surat->id . '_' . time() . '.pdf';
+        $filename = 'surat_aktif_kuliah_' . $surat->mahasiswa->nim . '_' . date('YmdHis') . '.pdf';
+        $path = 'surat-aktif-kuliah/' . $filename;
+
         Storage::disk('public')->put($path, $pdf->output());
 
         return $path;
+    }
+
+    public function download(SuratAktifKuliah $surat)
+    {
+        // Pastikan file ada
+        if (!$surat->file_surat_path) {
+            return back()->with('error', 'File surat belum tersedia.');
+        }
+
+        if (!Storage::disk('public')->exists($surat->file_surat_path)) {
+            return back()->with('error', 'File surat tidak ditemukan.');
+        }
+
+        $filePath = Storage::disk('public')->path($surat->file_surat_path);
+
+        return response()->download(
+            $filePath,
+            'Surat_Aktif_Kuliah_' . $surat->mahasiswa->nim . '.pdf'
+        );
     }
 }

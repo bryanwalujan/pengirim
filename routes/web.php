@@ -70,13 +70,7 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa'])->group(function () {
     // });
 });
 
-// Admin routes untuk Surat Aktif Kuliah
-Route::middleware(['auth', 'verified', 'role:staff|dosen'])->prefix('admin/surat-aktif-kuliah')->name('admin.surat-aktif-kuliah.')->group(function () {
-    Route::get('/', [AdminSuratAktifKuliahController::class, 'index'])->name('index');
-    Route::get('/{surat}', [AdminSuratAktifKuliahController::class, 'show'])->name('show');
-    Route::put('/{surat}/status', [AdminSuratAktifKuliahController::class, 'updateStatus'])->name('update-status');
-    Route::get('/{surat}/download', [AdminSuratAktifKuliahController::class, 'download'])->name('download'); // Opsional
-});
+
 
 // Untuk Staff
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
@@ -144,6 +138,13 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::put('/{academicCalendar}', [AcademicCalendarController::class, 'update'])->name('update');
         Route::delete('/{academicCalendar}', [AcademicCalendarController::class, 'destroy'])->name('destroy');
         Route::post('/{academicCalendar}/set-active', [AcademicCalendarController::class, 'setActive'])->name('set-active');
+    });
+    // Admin routes untuk Surat Aktif Kuliah
+    Route::prefix('surat-aktif-kuliah')->name('surat-aktif-kuliah.')->group(function () {
+        Route::get('/', [AdminSuratAktifKuliahController::class, 'index'])->name('index');
+        Route::get('/{surat}', [AdminSuratAktifKuliahController::class, 'show'])->name('show');
+        Route::put('/{surat}/status', [AdminSuratAktifKuliahController::class, 'updateStatus'])->name('update-status');
+        Route::get('/{surat}/download', [AdminSuratAktifKuliahController::class, 'download'])->name('download'); // Opsional
     });
 });
 

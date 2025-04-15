@@ -2,68 +2,13 @@
 
 @section('title', 'Detail Surat Aktif Kuliah')
 
-@push('styles')
-    <style>
-        .form-label {
-            font-weight: 500;
-        }
-
-        .timeline {
-            position: relative;
-            padding-left: 1rem;
-        }
-
-        .timeline-item {
-            position: relative;
-            padding-bottom: 1.5rem;
-            padding-left: 1.5rem;
-            border-left: 2px solid #dee2e6;
-        }
-
-        .timeline-item:last-child {
-            border-left: 2px solid transparent;
-        }
-
-        .timeline-marker {
-            position: absolute;
-            left: -7px;
-            top: 0;
-            z-index: 1;
-        }
-
-        .timeline-content {
-            margin-left: 0.5rem;
-        }
-    </style>
-@endpush
-
 @section('content')
     <div class="container-xxl flex-grow-1 container-p-y">
-        <!-- Breadcrumb -->
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb breadcrumb-custom-icon">
-                <li class="breadcrumb-item">
-                    <a href="{{ route('admin.dashboard.index') }}">Dashboard</a>
-                    <i class="breadcrumb-icon icon-base bx bx-chevron-right align-middle"></i>
-                </li>
-                <li class="breadcrumb-item">
-                    <a href="{{ route('admin.surat-aktif-kuliah.index') }}">Surat Aktif Kuliah</a>
-                    <i class="breadcrumb-icon icon-base bx bx-chevron-right align-middle"></i>
-                </li>
-                <li class="breadcrumb-item breadcrumb-custom-icon active" aria-current="page">Detail</li>
-            </ol>
-        </nav>
-        <!-- /Breadcrumb -->
-
-        <h4 class="fw-bold py-3 mb-2" style="margin-top: -1.2rem">
+        <h4 class="fw-bold py-3 mb-2">
             <span class="text-muted">Detail Pengajuan Surat Aktif Kuliah</span>
         </h4>
 
-        <!-- Card -->
-        <div class="card">
-            <div class="card-header border-bottom mb-4">
-                <h5 class="card-title mb-0">Informasi Pengajuan</h5>
-            </div>
+        <div class="card mb-4">
             <div class="card-body">
                 <!-- Status -->
                 @php
@@ -74,8 +19,9 @@
                     };
                 @endphp
                 <div class="alert alert-{{ $alertClass }} mb-4">
-                    <h6 class="alert-heading mb-1">Status: <strong
-                            class="text-uppercase">{{ str_replace('_', ' ', $surat->status ?? 'Diajukan') }}</strong></h6>
+                    <h6 class="alert-heading mb-1">Status:
+                        <strong>{{ str_replace('_', ' ', ucfirst($surat->status ?? 'Diajukan')) }}</strong>
+                    </h6>
                     @if ($surat->status()->first()?->catatan_admin)
                         <p class="mb-0"><strong>Catatan Admin:</strong> {{ $surat->status()->first()->catatan_admin }}</p>
                     @endif
@@ -83,25 +29,35 @@
 
                 <!-- Informasi Surat -->
                 <div class="mb-4">
-                    <h6 class="fw-bold mb-3">Informasi Surat</h6>
+                    <h5 class="fw-bold mb-3">Informasi Surat</h5>
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Nomor Surat</label>
-                            <input type="text" class="form-control"
-                                value="{{ $surat->nomor_surat ?? 'Belum ada nomor surat' }}" readonly>
+                            <input type="text" class="form-control" value="{{ $surat->nomor_surat ?? '-' }}" readonly>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Tanggal Surat</label>
                             <input type="text" class="form-control"
-                                value="{{ $surat->tanggal_surat ? $surat->tanggal_surat->format('d F Y') : 'Belum ada tanggal' }}"
-                                readonly>
+                                value="{{ $surat->tanggal_surat ? $surat->tanggal_surat->format('d F Y') : '-' }}" readonly>
                         </div>
+                        @if ($surat->penandatangan)
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Penandatangan</label>
+                                <input type="text" class="form-control" value="{{ $surat->penandatangan->name }}"
+                                    readonly>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Jabatan</label>
+                                <input type="text" class="form-control" value="{{ $surat->jabatan_penandatangan }}"
+                                    readonly>
+                            </div>
+                        @endif
                     </div>
                 </div>
 
                 <!-- Informasi Mahasiswa -->
                 <div class="mb-4">
-                    <h6 class="fw-bold mb-3">Informasi Mahasiswa</h6>
+                    <h5 class="fw-bold mb-3">Informasi Mahasiswa</h5>
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Nama Lengkap</label>
@@ -109,27 +65,26 @@
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">NIM</label>
-                            <input type="text" class="form-control" value="{{ $surat->mahasiswa->nim ?? '-' }}" readonly>
+                            <input type="text" class="form-control" value="{{ $surat->mahasiswa->nim }}" readonly>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Tahun Ajaran</label>
-                            <input type="text" class="form-control" value="{{ $surat->tahun_ajaran ?? '-' }}" readonly>
+                            <input type="text" class="form-control" value="{{ $surat->tahun_ajaran }}" readonly>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Semester</label>
-                            <input type="text" class="form-control" value="{{ ucfirst($surat->semester ?? '-') }}"
-                                readonly>
+                            <input type="text" class="form-control" value="{{ ucfirst($surat->semester) }}" readonly>
                         </div>
                     </div>
                 </div>
 
                 <!-- Detail Pengajuan -->
                 <div class="mb-4">
-                    <h6 class="fw-bold mb-3">Detail Pengajuan</h6>
+                    <h5 class="fw-bold mb-3">Detail Pengajuan</h5>
                     <div class="row">
                         <div class="col-12 mb-3">
                             <label class="form-label">Tujuan Pengajuan</label>
-                            <textarea class="form-control" rows="3" readonly>{{ $surat->tujuan_pengajuan ?? '-' }}</textarea>
+                            <textarea class="form-control" rows="3" readonly>{{ $surat->tujuan_pengajuan }}</textarea>
                         </div>
                         <div class="col-12 mb-3">
                             <label class="form-label">Keterangan Tambahan</label>
@@ -138,52 +93,92 @@
                     </div>
                 </div>
 
-                <!-- Dokumen Pendukung -->
-                @if ($surat->file_pendukung_path)
-                    <div class="mb-4">
-                        <h6 class="fw-bold mb-3">Dokumen Pendukung</h6>
-                        <div class="d-flex align-items-center">
-                            <i class="bx bx-file me-2"></i>
-                            <a href="{{ Storage::url($surat->file_pendukung_path) }}" target="_blank"
-                                class="text-decoration-none">
-                                Lihat Dokumen Pendukung
-                            </a>
-                        </div>
-                    </div>
-                @endif
-
                 <!-- File Surat -->
                 @if ($surat->file_surat_path)
                     <div class="mb-4">
-                        <h6 class="fw-bold mb-3">File Surat</h6>
-                        <div class="d-flex align-items-center">
-                            <i class="bx bx-file me-2"></i>
-                            <a href="{{ Storage::url($surat->file_surat_path) }}" target="_blank"
-                                class="text-decoration-none">
-                                Lihat File Surat
+                        <h5 class="fw-bold mb-3">File Surat</h5>
+                        <div class="d-flex gap-2">
+                            <a href="{{ Storage::url($surat->file_surat_path) }}" target="_blank" class="btn btn-primary">
+                                <i class="bx bx-show me-1"></i> Lihat
+                            </a>
+                            <a href="{{ route('admin.surat-aktif-kuliah.download', $surat->id) }}" class="btn btn-success">
+                                <i class="bx bx-download me-1"></i> Unduh
                             </a>
                         </div>
                     </div>
                 @endif
             </div>
         </div>
-        <!-- /Card -->
 
         <!-- Status Update Form -->
         @if (!in_array($surat->status, ['sudah_diambil', 'ditolak']))
-            <div class="card mt-4">
-                <div class="card-header border-bottom">
+            <div class="card mb-4">
+                <div class="card-header">
                     <h5 class="card-title mb-0">Update Status Pengajuan</h5>
                 </div>
                 <div class="card-body">
-                    @include('admin.surat-aktif-kuliah.status-form')
+                    <form action="{{ route('admin.surat-aktif-kuliah.update-status', $surat->id) }}" method="POST">
+                        @csrf
+                        @method('PUT')
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="status" class="form-label">Status <span class="text-danger">*</span></label>
+                                <select name="status" id="status" class="form-select" required>
+                                    <option value="diajukan" {{ $surat->status === 'diajukan' ? 'selected' : '' }}>Diajukan
+                                    </option>
+                                    <option value="diproses" {{ $surat->status === 'diproses' ? 'selected' : '' }}>Diproses
+                                    </option>
+                                    <option value="disetujui" {{ $surat->status === 'disetujui' ? 'selected' : '' }}>
+                                        Disetujui</option>
+                                    <option value="ditolak" {{ $surat->status === 'ditolak' ? 'selected' : '' }}>Ditolak
+                                    </option>
+                                    <option value="siap_diambil" {{ $surat->status === 'siap_diambil' ? 'selected' : '' }}>
+                                        Siap Diambil</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="penandatangan_id" class="form-label">Penandatangan</label>
+                                <select name="penandatangan_id" id="penandatangan_id" class="form-select">
+                                    <option value="">Pilih Penandatangan</option>
+                                    @foreach ($penandatangans as $penandatangan)
+                                        <option value="{{ $penandatangan->id }}"
+                                            {{ $surat->penandatangan_id == $penandatangan->id ? 'selected' : '' }}>
+                                            {{ $penandatangan->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="jabatan_penandatangan" class="form-label">Jabatan Penandatangan</label>
+                                <input type="text" name="jabatan_penandatangan" id="jabatan_penandatangan"
+                                    class="form-control" value="{{ $surat->jabatan_penandatangan }}"
+                                    placeholder="Masukkan jabatan penandatangan">
+                            </div>
+
+                            <div class="col-12 mb-3">
+                                <label for="catatan_admin" class="form-label">Catatan <span
+                                        class="text-danger">*</span></label>
+                                <textarea name="catatan_admin" id="catatan_admin" class="form-control" rows="3" required
+                                    placeholder="Masukkan catatan untuk mahasiswa">{{ $surat->status()->first()?->catatan_admin }}</textarea>
+                            </div>
+
+                            <div class="col-12 text-end">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bx bx-save me-1"></i> Simpan Perubahan
+                                </button>
+                            </div>
+                        </div>
+                    </form>
                 </div>
             </div>
         @endif
 
         <!-- Timeline -->
-        <div class="card mt-4">
-            <div class="card-header border-bottom">
+        <div class="card">
+            <div class="card-header">
                 <h5 class="card-title mb-0">Riwayat Status</h5>
             </div>
             <div class="card-body">
@@ -216,34 +211,25 @@
                 </div>
             </div>
         </div>
-        <!-- /Card -->
     </div>
 @endsection
 
 @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const statusForm = document.querySelector('#status-form');
-            if (statusForm) {
-                statusForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    Swal.fire({
-                        title: 'Apakah Anda yakin?',
-                        text: "Status pengajuan akan diperbarui.",
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#3085d6',
-                        cancelButtonColor: '#d33',
-                        confirmButtonText: 'Ya, update!',
-                        cancelButtonText: 'Batal',
-                        reverseButtons: true
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            this.submit();
-                        }
-                    });
-                });
+            // Tampilkan field penandatangan hanya jika status disetujui/siap diambil
+            const statusSelect = document.getElementById('status');
+            const penandatanganGroup = document.getElementById('penandatangan_group');
+            const jabatanGroup = document.getElementById('jabatan_group');
+
+            function togglePenandatanganFields() {
+                const show = ['disetujui', 'siap_diambil'].includes(statusSelect.value);
+                penandatanganGroup.style.display = show ? 'block' : 'none';
+                jabatanGroup.style.display = show ? 'block' : 'none';
             }
+
+            statusSelect.addEventListener('change', togglePenandatanganFields);
+            togglePenandatanganFields(); // Initial call
         });
     </script>
 @endpush

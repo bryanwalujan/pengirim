@@ -4,7 +4,7 @@
 
     <div class="row">
         <div class="col-md-6 mb-3">
-            <label for="status" class="form-label">Status Pengajuan</label>
+            <label for="status" class="form-label">Status Pengajuan <span class="text-danger">*</span></label>
             <select name="status" id="status" class="form-select @error('status') is-invalid @enderror" required>
                 <option value="">Pilih Status</option>
                 <option value="diajukan" {{ old('status', $surat->status) === 'diajukan' ? 'selected' : '' }}>Diajukan
@@ -26,7 +26,8 @@
         </div>
 
         <div class="col-md-6 mb-3">
-            <label for="penandatangan_id" class="form-label">Penandatangan</label>
+            <label for="penandatangan_id" class="form-label">Penandatangan <span id="penandatangan_required"
+                    class="text-danger" style="display: none;">*</span></label>
             <select name="penandatangan_id" id="penandatangan_id"
                 class="form-select @error('penandatangan_id') is-invalid @enderror">
                 <option value="">Pilih Penandatangan</option>
@@ -43,7 +44,8 @@
         </div>
 
         <div class="col-md-6 mb-3">
-            <label for="jabatan_penandatangan" class="form-label">Jabatan Penandatangan</label>
+            <label for="jabatan_penandatangan" class="form-label">Jabatan Penandatangan <span id="jabatan_required"
+                    class="text-danger" style="display: none;">*</span></label>
             <input type="text" name="jabatan_penandatangan" id="jabatan_penandatangan"
                 class="form-control @error('jabatan_penandatangan') is-invalid @enderror"
                 value="{{ old('jabatan_penandatangan', $surat->jabatan_penandatangan) }}"
@@ -54,7 +56,7 @@
         </div>
 
         <div class="col-12 mb-3">
-            <label for="catatan_admin" class="form-label">Catatan Admin</label>
+            <label for="catatan_admin" class="form-label">Catatan Admin <span class="text-danger">*</span></label>
             <textarea name="catatan_admin" id="catatan_admin" class="form-control @error('catatan_admin') is-invalid @enderror"
                 rows="4" required>{{ old('catatan_admin', $surat->status()->first()?->catatan_admin) }}</textarea>
             @error('catatan_admin')
@@ -85,16 +87,19 @@
             const statusSelect = document.getElementById('status');
             const penandatanganSelect = document.getElementById('penandatangan_id');
             const jabatanInput = document.getElementById('jabatan_penandatangan');
+            const penandatanganRequired = document.getElementById('penandatangan_required');
+            const jabatanRequired = document.getElementById('jabatan_required');
 
-            statusSelect.addEventListener('change', function() {
-                const requiresPenandatangan = ['disetujui', 'siap_diambil'].includes(this.value);
+            function toggleRequiredFields() {
+                const requiresPenandatangan = ['disetujui', 'siap_diambil'].includes(statusSelect.value);
                 penandatanganSelect.required = requiresPenandatangan;
                 jabatanInput.required = requiresPenandatangan;
-            });
+                penandatanganRequired.style.display = requiresPenandatangan ? 'inline' : 'none';
+                jabatanRequired.style.display = requiresPenandatangan ? 'inline' : 'none';
+            }
 
-            // Trigger on load
-            const event = new Event('change');
-            statusSelect.dispatchEvent(event);
+            statusSelect.addEventListener('change', toggleRequiredFields);
+            toggleRequiredFields(); // Panggil saat load
         });
     </script>
 @endpush

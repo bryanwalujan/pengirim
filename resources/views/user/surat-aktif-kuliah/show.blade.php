@@ -123,16 +123,26 @@
                                 </div>
                             @endif
 
+                            <div class="mb-4">
+                                <h5 class="section-title border-bottom pb-2">File Surat</h5>
+                                @if ($surat->file_surat_path && in_array($surat->status, ['siap_diambil', 'sudah_diambil']))
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-file-earmark-pdf me-2 fs-4"></i>
+                                        <a href="{{ route('user.surat-aktif-kuliah.download', $surat->id) }}"
+                                            class="text-decoration-none">
+                                            Unduh Surat Aktif Kuliah
+                                        </a>
+                                    </div>
+                                @else
+                                    <p class="text-muted">File surat belum tersedia. Silakan tunggu hingga status berubah
+                                        menjadi "Siap Diambil" atau "Sudah Diambil".</p>
+                                @endif
+                            </div>
+
                             <div class="d-flex justify-content-between mt-4">
                                 <a href="{{ route('user.surat-aktif-kuliah.index') }}" class="btn btn-secondary">
                                     <i class="bi bi-arrow-left"></i> Kembali ke Daftar
                                 </a>
-                                @if ($surat->file_surat_path && in_array($surat->status, ['siap_diambil', 'sudah_diambil']))
-                                    <a href="{{ route('user.surat-aktif-kuliah.download', $surat->id) }}"
-                                        class="btn btn-primary">
-                                        <i class="bi bi-download"></i> Download Surat
-                                    </a>
-                                @endif
                             </div>
                         </div>
                     </div>

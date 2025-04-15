@@ -16,6 +16,7 @@ class SuratAktifKuliah extends Model
         'tujuan_pengajuan',
         'keterangan_tambahan',
         'file_pendukung_path',
+        'file_surat_path',
         'nomor_surat',
         'tanggal_surat',
         'tahun_ajaran',

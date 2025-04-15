@@ -204,16 +204,16 @@
                         <i class="bi bi-book-half"></i>
                         Informasi Akademik
                     </h5>
-
                     <div class="row g-3">
                         <div class="col-md-6">
                             <div class="form-floating">
                                 <select class="form-select @error('tahun_ajaran') is-invalid @enderror" id="tahun_ajaran"
                                     name="tahun_ajaran" required>
-                                    <option value="">Pilih Tahun Ajaran</option>
-                                    @foreach (range(date('Y') - 3, date('Y') + 1) as $year)
+                                    <option value="" {{ old('tahun_ajaran') == '' ? 'selected' : '' }}>Pilih Tahun
+                                        Ajaran</option>
+                                    @foreach (range(date('Y') - 1, date('Y') + 5) as $year)
                                         <option value="{{ $year }}/{{ $year + 1 }}"
-                                            {{ old('tahun_ajaran', date('Y') . '/' . (date('Y') + 1)) == $year . '/' . ($year + 1) ? 'selected' : '' }}>
+                                            {{ old('tahun_ajaran') == $year . '/' . ($year + 1) ? 'selected' : '' }}>
                                             {{ $year }}/{{ $year + 1 }}
                                         </option>
                                     @endforeach

@@ -7,11 +7,12 @@ use App\Models\StatusSurat;
 use Illuminate\Http\Request;
 use App\Models\TrackingSurat;
 use App\Models\SuratAktifKuliah;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\SuratAktifKuliahRequest;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use Illuminate\Support\Facades\Storage;
 
 class SuratAktifKuliahController extends Controller
 {
@@ -88,15 +89,32 @@ class SuratAktifKuliahController extends Controller
 
     public function download(SuratAktifKuliah $surat)
     {
-        $this->authorize('view', $surat);
+        try {
+            // Pastikan hanya pemilik surat yang bisa mengunduh
+            if (Auth::id() !== $surat->mahasiswa_id) {
+                return redirect()->back()->with('error', 'Anda tidak berhak mengunduh surat ini.');
+            }
 
-        if (!$surat->file_surat_path || !Storage::disk('public')->exists($surat->file_surat_path)) {
-            abort(404, 'File surat tidak tersedia');
+            // Pastikan status memungkinkan download
+            if (!in_array($surat->status, ['siap_diambil', 'sudah_diambil'])) {
+                return redirect()->back()->with('error', 'Surat belum tersedia untuk diunduh.');
+            }
+
+            // Pastikan file ada
+            if (!$surat->file_surat_path) {
+                return redirect()->back()->with('error', 'File surat belum dihasilkan.');
+            }
+
+            $filePath = storage_path('app/public/' . $surat->file_surat_path);
+            if (!file_exists($filePath)) {
+                Log::error('File PDF tidak ditemukan untuk surat ID: ' . $surat->id . ' di path: ' . $filePath);
+                return redirect()->back()->with('error', 'File surat tidak ditemukan.');
+            }
+
+            return response()->download($filePath, 'surat-aktif-kuliah-' . $surat->id . '.pdf');
+        } catch (\Exception $e) {
+            Log::error('Error saat download PDF untuk surat ID: ' . $surat->id . ' - ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Terjadi kesalahan saat mengunduh surat.');
         }
-
-        $filePath = Storage::disk('public')->path($surat->file_surat_path);
-        $fileName = basename($surat->file_surat_path);
-
-        return response()->download($filePath, $fileName);
     }
 }
