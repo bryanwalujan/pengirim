@@ -31,6 +31,8 @@ Route::get('/storage/academic-calendars/{filename}', function ($filename) {
     ]);
 })->name('academic-calendar.view');
 
+
+
 // Student service routes
 Route::middleware(['auth', 'verified', 'role:mahasiswa'])->prefix('layanan')->name('user.services.')->group(function () {
     Route::get('/', [UserServiceController::class, 'index'])->name('index');
@@ -77,6 +79,16 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa'])->group(function () {
 // Untuk Staff
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
+
+    // Route untuk menampilkan notifikasi
+    Route::post('/notifications/{notification}/mark-as-read', function ($notificationId) {
+        $notification = \Illuminate\Support\Facades\Auth::user()->unreadNotifications->where('id', $notificationId)->first();
+        if ($notification) {
+            $notification->markAsRead();
+            return response()->json(['success' => true]);
+        }
+        return response()->json(['success' => false, 'error' => 'Notification not found'], 404);
+    })->name('notifications.mark-as-read');
 
     // Layanan-layanan
     Route::resource('services', ServiceController::class);

@@ -62,3 +62,15 @@
 .text-selesai {
     color: #6c757d;
 }
+
+.notifications-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    width: 350px;
+}
+
+.notifications-container .alert {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}

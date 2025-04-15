@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\User;
 
+use App\Models\User;
 use App\Models\Service;
 use App\Models\StatusSurat;
 use Illuminate\Http\Request;
@@ -11,6 +12,7 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use App\Notifications\SuratTakenNotification;
 use App\Http\Requests\SuratAktifKuliahRequest;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
@@ -87,42 +89,48 @@ class SuratAktifKuliahController extends Controller
         return view('user.surat-aktif-kuliah.show', compact('surat'));
     }
 
-    public function confirmTaken($id)
-{
-    $surat = SuratAktifKuliah::with(['status'])
-        ->where('mahasiswa_id', Auth::id())
-        ->findOrFail($id);
+    public function confirmTaken(SuratAktifKuliah $surat, $id)
+    {
+        $surat = SuratAktifKuliah::with(['status'])
+            ->where('mahasiswa_id', Auth::id())
+            ->findOrFail($id);
 
-    // Pastikan status saat ini adalah siap_diambil
-    if ($surat->status !== 'siap_diambil') {
-        return redirect()->back()
-            ->with('error', 'Surat belum siap diambil atau sudah diambil sebelumnya');
-    }
+        // Pastikan status saat ini adalah siap_diambil
+        if ($surat->status !== 'siap_diambil') {
+            return redirect()->back()
+                ->with('error', 'Surat belum siap diambil atau sudah diambil sebelumnya');
+        }
 
-    // Update status
-    StatusSurat::updateOrCreate(
-        [
+        // Update status
+        StatusSurat::updateOrCreate(
+            [
+                'surat_type' => SuratAktifKuliah::class,
+                'surat_id' => $surat->id,
+            ],
+            [
+                'status' => 'sudah_diambil',
+                'updated_by' => Auth::id(),
+            ]
+        );
+
+        // Tambahkan tracking
+        TrackingSurat::create([
             'surat_type' => SuratAktifKuliah::class,
             'surat_id' => $surat->id,
-        ],
-        [
-            'status' => 'sudah_diambil',
-            'updated_by' => Auth::id(),
-        ]
-    );
+            'aksi' => 'sudah_diambil',
+            'keterangan' => 'Surat telah diambil oleh mahasiswa',
+            'mahasiswa_id' => Auth::id(),
+        ]);
 
-    // Tambahkan tracking
-    TrackingSurat::create([
-        'surat_type' => SuratAktifKuliah::class,
-        'surat_id' => $surat->id,
-        'aksi' => 'sudah_diambil',
-        'keterangan' => 'Surat telah diambil oleh mahasiswa',
-        'mahasiswa_id' => Auth::id(),
-    ]);
+        // Send notification to all staff
+        $staffs = User::role('staff')->get();
+        foreach ($staffs as $staff) {
+            $staff->notify(new SuratTakenNotification($surat));
+        }
 
-    return redirect()->route('user.surat-aktif-kuliah.show', $surat->id)
-        ->with('success', 'Surat telah dikonfirmasi sebagai sudah diambil');
-}
+        return redirect()->route('user.surat-aktif-kuliah.show', $surat->id)
+            ->with('success', 'Surat telah dikonfirmasi sebagai sudah diambil');
+    }
 
     public function download(SuratAktifKuliah $surat)
     {

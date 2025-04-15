@@ -18,6 +18,47 @@
         <!-- /Search -->
 
         <ul class="navbar-nav flex-row align-items-center ms-md-auto">
+            <!-- Notification Dropdown -->
+            <li class="nav-item dropdown me-4">
+                <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
+                    <i class="icon-base bx bx-bell icon-md"></i>
+                    @if (auth()->user()->unreadNotifications->count() > 0)
+                        <span
+                            class="badge badge-center bg-primary ms-1">{{ auth()->user()->unreadNotifications->count() }}</span>
+                    @endif
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end" style="min-width: 300px;">
+                    @if (auth()->user()->unreadNotifications->isEmpty())
+                        <li class="dropdown-item text-center">
+                            <span>No new notifications</span>
+                        </li>
+                    @else
+                        @foreach (auth()->user()->unreadNotifications as $notification)
+                            <li class="dropdown-item">
+                                <div class="d-flex">
+                                    <div class="flex-grow-1">
+                                        <strong>{{ $notification->data['message'] }}</strong>
+                                        <p class="mb-1">Mahasiswa: {{ $notification->data['mahasiswa'] }} (NIM:
+                                            {{ $notification->data['nim'] }})</p>
+                                        <a href="{{ $notification->data['link'] }}"
+                                            class="btn btn-sm btn-primary me-2">View Details</a>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary"
+                                            onclick="markAsRead('{{ $notification->id }}', this)">
+                                            Mark as Read
+                                        </button>
+                                    </div>
+                                </div>
+                            </li>
+                            @if (!$loop->last)
+                                <li>
+                                    <hr class="dropdown-divider">
+                                </li>
+                            @endif
+                        @endforeach
+                    @endif
+                </ul>
+            </li>
+            <!-- /Notification Dropdown -->
             <!-- User -->
             <li class="nav-item navbar-dropdown dropdown-user dropdown">
                 <a class="nav-link dropdown-toggle hide-arrow p-0" href="javascript:void(0);" data-bs-toggle="dropdown">
@@ -73,3 +114,71 @@
     </div>
 </nav>
 {{-- /Navbar --}}
+
+{{-- Core JS files --}}
+<script>
+    function markAsRead(notificationId, buttonElement) {
+        fetch(
+                '{{ route('admin.notifications.mark-as-read', ':notification') }}'.replace(
+                    ":notification",
+                    notificationId
+                ), {
+                    method: "POST",
+                    headers: {
+                        "X-CSRF-TOKEN": "{{ csrf_token() }}",
+                        "Content-Type": "application/json",
+                    },
+                }
+            )
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error(
+                        "Network response was not ok: " + response.status
+                    );
+                }
+                return response.json();
+            })
+            .then((data) => {
+                if (data.success) {
+                    // Remove the notification item
+                    const notificationItem =
+                        buttonElement.closest(".dropdown-item");
+                    const divider =
+                        notificationItem.nextElementSibling?.classList.contains(
+                            "dropdown-divider"
+                        ) ?
+                        notificationItem.nextElementSibling :
+                        notificationItem.previousElementSibling?.classList.contains(
+                            "dropdown-divider"
+                        ) ?
+                        notificationItem.previousElementSibling :
+                        null;
+
+                    notificationItem.remove();
+                    if (divider) divider.remove();
+
+                    // Update badge count
+                    const badge = document.querySelector(".nav-link .badge");
+                    const dropdownMenu = document.querySelector(".dropdown-menu");
+                    const remainingItems =
+                        dropdownMenu.querySelectorAll(".dropdown-item").length;
+
+                    if (remainingItems === 0) {
+                        dropdownMenu.innerHTML = `
+                    <li class="dropdown-item text-center">
+                        <span>No new notifications</span>
+                    </li>
+                `;
+                        if (badge) badge.remove();
+                    } else if (badge) {
+                        badge.textContent = remainingItems;
+                    }
+                } else {
+                    console.error("Failed to mark notification as read:", data);
+                }
+            })
+            .catch((error) => {
+                console.error("Error marking notification as read:", error);
+            });
+    }
+</script>

@@ -48,6 +48,8 @@
 
     <link rel="stylesheet" href="{{ asset('assets/css/custom.css') }}" />
 
+    <script src="{{ asset('assets/js/markAsRead.js') }}"></script>
+
 </head>
 
 <body>
@@ -58,11 +60,11 @@
             {{-- End Sidebar --}}
 
             <div class="layout-page">
-
                 {{-- Navbar --}}
                 @include('layouts.admin.navbar')
                 {{-- End Navbar --}}
 
+                {{-- Content wrapper --}}
                 <div class="content-wrapper">
                     {{-- Content --}}
                     @yield('content')
@@ -99,6 +101,8 @@
 
     {{-- Trix editor --}}
     <script type="text/javascript" src="https://unpkg.com/trix@2.0.8/dist/trix.umd.min.js"></script>
+
+
 
     {{-- SweetAlert2 --}}
     <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>

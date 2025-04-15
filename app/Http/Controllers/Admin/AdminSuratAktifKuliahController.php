@@ -91,10 +91,9 @@ class AdminSuratAktifKuliahController extends Controller
 
         // Di method updateStatus, setelah update status
         if ($validated['status'] === 'sudah_diambil') {
-            // Kirim notifikasi ke admin
-            $admin = User::role('admin')->first();
-            if ($admin) {
-                $admin->notify(new SuratTakenNotification($surat));
+            $staffs = User::role('staff')->get(); // Ambil semua staff
+            foreach ($staffs as $staff) {
+                $staff->notify(new SuratTakenNotification($surat));
             }
         }
 
@@ -141,39 +140,39 @@ class AdminSuratAktifKuliahController extends Controller
     }
 
     // Tambahkan method baru
-    public function confirmTaken(SuratAktifKuliah $surat)
-    {
-        // Pastikan status saat ini adalah siap_diambil
-        if ($surat->status !== 'siap_diambil') {
-            return redirect()->back()
-                ->with('error', 'Surat belum siap diambil atau sudah diambil sebelumnya');
-        }
+    // public function confirmTaken(SuratAktifKuliah $surat)
+    // {
+    //     // Pastikan status saat ini adalah siap_diambil
+    //     if ($surat->status !== 'siap_diambil') {
+    //         return redirect()->back()
+    //             ->with('error', 'Surat belum siap diambil atau sudah diambil sebelumnya');
+    //     }
 
-        // Update status
-        StatusSurat::updateOrCreate(
-            [
-                'surat_type' => SuratAktifKuliah::class,
-                'surat_id' => $surat->id,
-            ],
-            [
-                'status' => 'sudah_diambil',
-                'updated_by' => Auth::id(),
-                'catatan_admin' => 'Surat telah diambil oleh mahasiswa',
-            ]
-        );
+    //     // Update status
+    //     StatusSurat::updateOrCreate(
+    //         [
+    //             'surat_type' => SuratAktifKuliah::class,
+    //             'surat_id' => $surat->id,
+    //         ],
+    //         [
+    //             'status' => 'sudah_diambil',
+    //             'updated_by' => Auth::id(),
+    //             'catatan_admin' => 'Surat telah diambil oleh mahasiswa',
+    //         ]
+    //     );
 
-        // Tambahkan tracking
-        TrackingSurat::create([
-            'surat_type' => SuratAktifKuliah::class,
-            'surat_id' => $surat->id,
-            'aksi' => 'sudah_diambil',
-            'keterangan' => 'Surat telah diambil oleh mahasiswa',
-            'mahasiswa_id' => $surat->mahasiswa_id,
-        ]);
+    //     // Tambahkan tracking
+    //     TrackingSurat::create([
+    //         'surat_type' => SuratAktifKuliah::class,
+    //         'surat_id' => $surat->id,
+    //         'aksi' => 'sudah_diambil',
+    //         'keterangan' => 'Surat telah diambil oleh mahasiswa',
+    //         'mahasiswa_id' => $surat->mahasiswa_id,
+    //     ]);
 
-        return redirect()->route('admin.surat-aktif-kuliah.show', $surat->id)
-            ->with('success', 'Status surat berhasil diperbarui menjadi Sudah Diambil');
-    }
+    //     return redirect()->route('admin.surat-aktif-kuliah.show', $surat->id)
+    //         ->with('success', 'Status surat berhasil diperbarui menjadi Sudah Diambil');
+    // }
 
 
     protected function generateNomorSurat()
