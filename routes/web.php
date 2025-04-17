@@ -34,9 +34,21 @@ Route::get('/storage/academic-calendars/{filename}', function ($filename) {
 
 
 // Student service routes
-Route::middleware(['auth', 'verified', 'role:mahasiswa'])->prefix('layanan')->name('user.services.')->group(function () {
-    Route::get('/', [UserServiceController::class, 'index'])->name('index');
-    Route::get('/{service}/ajukan', [UserServiceController::class, 'create'])->name('create');
+Route::middleware(['auth', 'verified', 'role:mahasiswa'])->group(function () {
+    Route::prefix('layanan')->name('user.services.')->group(function () {
+        Route::get('/', [UserServiceController::class, 'index'])->name('index');
+        Route::get('/{service}/ajukan', [UserServiceController::class, 'create'])->name('create');
+    });
+
+    Route::prefix('surat-aktif-kuliah')->name('user.surat-aktif-kuliah.')->group(function () {
+        Route::get('/', [SuratAktifKuliahController::class, 'index'])->name('index');
+        Route::get('/ajukan', [SuratAktifKuliahController::class, 'create'])->name('create');
+        Route::post('/', [SuratAktifKuliahController::class, 'store'])->name('store');
+        Route::get('/{surat}', [SuratAktifKuliahController::class, 'show'])->name('show');
+        Route::get('/{surat}/download', [SuratAktifKuliahController::class, 'download'])->name('download');
+        Route::post('/{id}/confirm-taken', [SuratAktifKuliahController::class, 'confirmTaken'])
+            ->name('confirm-taken');
+    });
 });
 
 // Untuk Mahasiswa
@@ -49,30 +61,18 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa'])->prefix('layanan')->na
 // });
 
 // Layanan khusus
-Route::middleware(['auth', 'verified', 'role:mahasiswa'])->group(function () {
-    // Surat Aktif Kuliah
-    Route::prefix('surat-aktif-kuliah')->name('user.surat-aktif-kuliah.')->group(function () {
-        Route::get('/', [SuratAktifKuliahController::class, 'index'])->name('index');
-        Route::get('/ajukan', [SuratAktifKuliahController::class, 'create'])->name('create');
-        Route::post('/', [SuratAktifKuliahController::class, 'store'])->name('store');
-        Route::get('/{surat}', [SuratAktifKuliahController::class, 'show'])->name('show');
-        Route::get('/{surat}/download', [SuratAktifKuliahController::class, 'download'])->name('download');
-        Route::post('/{id}/confirm-taken', [SuratAktifKuliahController::class, 'confirmTaken'])
-            ->name('confirm-taken');
-    });
 
-    // Surat Keterangan
-    // Route::prefix('surat-keterangan')->name('user.surat-keterangan.')->group(function () {
-    //     Route::get('/ajukan', [SuratKeteranganController::class, 'create'])->name('create');
-    //     Route::post('/', [SuratKeteranganController::class, 'store'])->name('store');
-    // });
+// Surat Keterangan
+// Route::prefix('surat-keterangan')->name('user.surat-keterangan.')->group(function () {
+//     Route::get('/ajukan', [SuratKeteranganController::class, 'create'])->name('create');
+//     Route::post('/', [SuratKeteranganController::class, 'store'])->name('store');
+// });
 
-    // Transkrip Nilai
-    // Route::prefix('transkrip')->name('user.transkrip.')->group(function () {
-    //     Route::get('/ajukan', [TranskripController::class, 'create'])->name('create');
-    //     Route::post('/', [TranskripController::class, 'store'])->name('store');
-    // });
-});
+// Transkrip Nilai
+// Route::prefix('transkrip')->name('user.transkrip.')->group(function () {
+//     Route::get('/ajukan', [TranskripController::class, 'create'])->name('create');
+//     Route::post('/', [TranskripController::class, 'store'])->name('store');
+// });
 
 
 

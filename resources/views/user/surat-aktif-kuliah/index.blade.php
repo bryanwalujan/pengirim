@@ -159,7 +159,7 @@
     </div><!-- End Page Title -->
 
     <!-- Daftar Surat Section -->
-    <section id="daftar-surat" class="daftar-surat section">
+    <section id="services" class="daftar-surat section">
         <div class="container" data-aos="fade-up">
             <div class="row justify-content-center">
                 <div class="col-lg-10">

@@ -16,7 +16,7 @@
         </div>
     </div>
 
-    <section id="detail-surat" class="detail-surat section">
+    <section id="services" class="detail-surat section">
         <div class="container" data-aos="fade-up">
             <div class="row justify-content-center">
                 <div class="col-lg-8">

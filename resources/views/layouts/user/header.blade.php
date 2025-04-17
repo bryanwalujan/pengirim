@@ -14,8 +14,12 @@
                         class="{{ request()->is('/') && request()->has('scroll') && request()->get('scroll') == 'about' ? 'active' : '' }}"
                         onclick="scrollToSection('about')">Tentang</a>
                 </li>
-                <li><a href="{{ url('/#services') }}" class="{{ request()->is('layanan') ? 'active' : '' }}"
-                        onclick="scrollToSection('services')">Layanan</a></li>
+                <li>
+                    <a href="{{ url('/#services') }}"
+                        class="{{ request()->is('layanan') || request()->is('layanan/*') || request()->is('surat-aktif-kuliah') || request()->is('surat-aktif-kuliah/*') ? 'active' : '' }}"
+                        onclick="scrollToSection('services')">Layanan</a>
+                </li>
+
                 {{-- <li class="dropdown">
                     <a href="{{ Auth::check() ? '#' : route('login') }}"
                         class="{{ request()->is('layanan/*') ? 'active' : '' }}">
@@ -44,8 +48,8 @@
 
         @auth
             @if (Auth::user()->hasRole('mahasiswa'))
-                <a href="#" class="btn-getstarted align-items-center text-decoration-none" id="userDropdown"
-                    data-bs-toggle="dropdown" aria-expanded="false">
+                <a href="#" class="btn-getstarted align-items-center text-decoration-none" style="border-radius: 50%"
+                    id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                     <!-- Icon user -->
                     <i class="bi bi-person-circle" style="font-size: 1rem"></i>
                     {{-- <span>{{ Auth::user()->name }}</span> --}}
@@ -55,12 +59,6 @@
                     style="min-width: 280px; border: none; border-radius: 12px;">
                     <!-- User Profile Header -->
                     <li class="dropdown-header px-4 py-3 text-center" style="border-radius: 12px 12px 0 0;">
-                        <div class="position-relative mb-3">
-                            <div class="avatar-lg mx-auto"
-                                style="width: 72px; height: 72px; background-color: #e9ecef; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                                <i class="bi bi-person-circle" style="font-size: 2.5rem; color: #6c757d;"></i>
-                            </div>
-                        </div>
                         <h6 class="mb-1" style="font-weight: 600; color: #212529;">{{ Auth::user()->name }}</h6>
                         <p class="text-muted mb-1 small">{{ Auth::user()->nim }}</p>
                         <p class="text-muted mb-1 small">{{ Auth::user()->email }}</p>
@@ -82,10 +80,11 @@
                 </ul>
             @else
                 <!-- Jika bukan mahasiswa (staff/dosen), redirect ke dashboard -->
-                <a class="btn-getstarted" href="{{ route('admin.dashboard.index') }}">Dashboard</a>
+                <a class="btn btn-sm btn-outline-primary px-3 order-2 me-2"
+                    href="{{ route('admin.dashboard.index') }}">Dashboard</a>
             @endif
         @else
-            <a class="btn-getstarted px-4" href="{{ route('login') }}">Masuk</a>
+            <a class="btn btn-sm btn-outline-primary px-3 order-2 me-2" href="{{ route('login') }}">Log in</a>
         @endauth
     </div>
 </header>

@@ -202,24 +202,65 @@ class AdminSuratAktifKuliahController extends Controller
             throw new \Exception('Data surat tidak lengkap untuk generate file');
         }
 
-        // Konversi semester ke angka Romawi
+        // Peta Romawi
         $semester_map = [
-            'ganjil' => [1 => 'I', 3 => 'III', 5 => 'V', 7 => 'VII', 9 => 'IX', 11 => 'XI', 13 => 'XIII'],
-            'genap' => [2 => 'II', 4 => 'IV', 6 => 'VI', 8 => 'VIII', 10 => 'X', 12 => 'XII', 14 => 'XIV'],
+            1 => 'I',
+            2 => 'II',
+            3 => 'III',
+            4 => 'IV',
+            5 => 'V',
+            6 => 'VI',
+            7 => 'VII',
+            8 => 'VIII',
+            9 => 'IX',
+            10 => 'X',
+            11 => 'XI',
+            12 => 'XII',
+            13 => 'XIII',
+            14 => 'XIV'
         ];
 
-        // Ambil semester number dari tahun ajaran
+        // Peta ejaan angka
+        $angka_terbilang = [
+            1 => 'Satu',
+            2 => 'Dua',
+            3 => 'Tiga',
+            4 => 'Empat',
+            5 => 'Lima',
+            6 => 'Enam',
+            7 => 'Tujuh',
+            8 => 'Delapan',
+            9 => 'Sembilan',
+            10 => 'Sepuluh',
+            11 => 'Sebelas',
+            12 => 'Dua Belas',
+            13 => 'Tiga Belas',
+            14 => 'Empat Belas'
+        ];
+
+        // Ambil tahun masuk dari 2 digit pertama NIM
+        $tahunMasuk = 2000 + (int) substr($surat->mahasiswa->nim, 0, 2);
+
+        // Ambil tahun mulai dari tahun ajaran
         $tahunParts = explode('/', $surat->tahun_ajaran);
         $tahunMulai = (int) $tahunParts[0];
-        $semesterNumber = ($surat->semester === 'ganjil') ? 1 : 2;
 
-        // Jika tahun sekarang lebih besar dari tahun mulai, hitung semester
-        $currentYear = date('Y');
-        if ($currentYear > $tahunMulai) {
-            $semesterNumber += ($currentYear - $tahunMulai) * 2;
+        // Hitung selisih tahun akademik dengan tahun masuk
+        $selisihTahun = $tahunMulai - $tahunMasuk;
+
+        // Hitung semester berdasarkan selisih tahun dan semester sekarang
+        $semesterNumber = ($selisihTahun * 2);
+        $semesterNumber += ($surat->semester === 'ganjil') ? 1 : 2;
+
+        // Batas maksimum semester 14
+        if ($semesterNumber > 14) {
+            $semesterNumber = 14;
         }
 
-        $semester_roman = $semester_map[$surat->semester][$semesterNumber] ?? 'V';
+        // Format lengkap: Romawi (Angka - Ejaan)
+        $roman = $semester_map[$semesterNumber] ?? 'I';
+        $terbilang = $angka_terbilang[$semesterNumber] ?? 'Satu';
+        $semester_roman = "{$roman} ({$terbilang})";
 
         // Generate PDF
         $pdf = Pdf::loadView('admin.surat-aktif-kuliah.pdf', [
@@ -235,6 +276,8 @@ class AdminSuratAktifKuliahController extends Controller
 
         return $path;
     }
+
+
 
     public function download(SuratAktifKuliah $surat)
     {

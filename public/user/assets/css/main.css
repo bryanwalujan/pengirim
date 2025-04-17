@@ -196,7 +196,7 @@ h6 {
 .header .btn-getstarted:hover,
 .header .btn-getstarted:focus:hover {
     color: var(--contrast-color);
-    background: color-mix(in srgb, var(--accent-color), transparent 15%);
+    background: color-mix(in srgb, var(--accent-color), transparent 20%);
 }
 
 @media (max-width: 1200px) {
@@ -217,7 +217,7 @@ h6 {
     .header .btn-getstarted {
         order: 2;
         margin: 0 16px 0 0;
-        padding: 6px 15px;
+        font-size: 0.75rem;
     }
 
     .header .navmenu {
