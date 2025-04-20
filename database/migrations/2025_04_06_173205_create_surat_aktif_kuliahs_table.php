@@ -19,8 +19,13 @@ return new class extends Migration {
             $table->text('keterangan_tambahan')->nullable();
             $table->string('file_pendukung_path')->nullable();
             $table->string('file_surat_path')->nullable();
-            $table->string('qr_code_path')->nullable();
-            $table->string('verification_code')->nullable();
+
+            // Sistem Persetujuan
+            $table->string('signature_path')->nullable(); // Untuk menyimpan path QR code tanda tangan
+            $table->timestamp('approved_at')->nullable(); // Waktu persetujuan
+            $table->foreignId('approved_by')->nullable()->constrained('users')->onDelete('set null'); // Kaprodi yang menyetujui
+            $table->string('verification_code')->nullable(); // Kode verifikasi unik
+
             // Informasi Surat
             $table->string('nomor_surat')->nullable();
             $table->date('tanggal_surat')->nullable();

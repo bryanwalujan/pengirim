@@ -11,8 +11,10 @@ use App\Models\SuratAktifKuliah;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use App\Notifications\SuratTakenNotification;
 use App\Http\Requests\UpdateSuratAktifKuliahRequest;
+use App\Notifications\SuratNeedApprovalNotification;
 
 class AdminSuratAktifKuliahController extends Controller
 {
@@ -139,42 +141,71 @@ class AdminSuratAktifKuliahController extends Controller
             ->with('success', 'Status surat berhasil diperbarui');
     }
 
-    // Tambahkan method baru
-    // public function confirmTaken(SuratAktifKuliah $surat)
-    // {
-    //     // Pastikan status saat ini adalah siap_diambil
-    //     if ($surat->status !== 'siap_diambil') {
-    //         return redirect()->back()
-    //             ->with('error', 'Surat belum siap diambil atau sudah diambil sebelumnya');
-    //     }
 
-    //     // Update status
-    //     StatusSurat::updateOrCreate(
-    //         [
-    //             'surat_type' => SuratAktifKuliah::class,
-    //             'surat_id' => $surat->id,
-    //         ],
-    //         [
-    //             'status' => 'sudah_diambil',
-    //             'updated_by' => Auth::id(),
-    //             'catatan_admin' => 'Surat telah diambil oleh mahasiswa',
-    //         ]
-    //     );
+    // Method untuk persetujuan dosen bersangkutan
+    public function approveByDosen(Request $request, SuratAktifKuliah $surat)
+    {
+        $request->validate([
+            'action' => 'required|in:approve,reject',
+            'catatan' => 'required_if:action,reject',
+        ]);
 
-    //     // Tambahkan tracking
-    //     TrackingSurat::create([
-    //         'surat_type' => SuratAktifKuliah::class,
-    //         'surat_id' => $surat->id,
-    //         'aksi' => 'sudah_diambil',
-    //         'keterangan' => 'Surat telah diambil oleh mahasiswa',
-    //         'mahasiswa_id' => $surat->mahasiswa_id,
-    //     ]);
+        if ($request->action === 'approve') {
+            // Generate QR code signature
+            $signatureData = [
+                'surat_id' => $surat->id,
+                'approver_id' => Auth::id(),
+                'approval_date' => now()->toDateTimeString(),
+            ];
 
-    //     return redirect()->route('admin.surat-aktif-kuliah.show', $surat->id)
-    //         ->with('success', 'Status surat berhasil diperbarui menjadi Sudah Diambil');
-    // }
+            $qrCode = QrCode::size(200)->generate(json_encode($signatureData));
+            $fileName = 'signature_' . $surat->id . '_' . time() . '.svg';
+            $path = 'signatures/' . $fileName;
 
+            Storage::disk('public')->put($path, $qrCode);
 
+            // Update surat
+            $surat->update([
+                'status' => 'disetujui',
+                'signature_path' => $path,
+                'approved_at' => now(),
+                'approved_by' => Auth::id(),
+            ]);
+
+            // Update status
+            StatusSurat::updateOrCreate(
+                ['surat_type' => SuratAktifKuliah::class, 'surat_id' => $surat->id],
+                [
+                    'status' => 'disetujui',
+                    'catatan_admin' => 'Disetujui oleh Kaprodi',
+                    'updated_by' => Auth::id(),
+                ]
+            );
+
+            // Generate file surat
+            $filePath = $this->generateSuratFile($surat);
+            $surat->update(['file_surat_path' => $filePath]);
+
+            // Notifikasi ke mahasiswa
+            $surat->mahasiswa->notify(new SuratNeedApprovalNotification($surat));
+
+            return redirect()->back()->with('success', 'Surat berhasil disetujui dan ditandatangani');
+        } else {
+            // Jika ditolak
+            StatusSurat::updateOrCreate(
+                ['surat_type' => SuratAktifKuliah::class, 'surat_id' => $surat->id],
+                [
+                    'status' => 'ditolak',
+                    'catatan_admin' => $request->catatan,
+                    'updated_by' => Auth::id(),
+                ]
+            );
+
+            return redirect()->back()->with('success', 'Surat berhasil ditolak');
+        }
+    }
+
+    // Method generateNomorSurat untuk menghasilkan nomor surat
     protected function generateNomorSurat()
     {
         $currentYear = date('Y');

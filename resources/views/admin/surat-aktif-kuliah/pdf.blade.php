@@ -102,11 +102,16 @@
         <p>Demikian permohonan ini, atas perhatiannya diucapkan terima kasih.</p>
     </div>
 
-    <!-- Tanda Tangan -->
-    <div class="signature">
-        <p>{{ $surat->penandatangan->name ?? 'Nama Penandatangan' }}</p>
-        <p>{{ $surat->jabatan_penandatangan ?? 'Jabatan Penandatangan' }}</p>
+    @if($surat->signature_path)
+    <div style="text-align: right; margin-top: 50px;">
+        <p>Tanda Tangan Digital:</p>
+        <img src="{{ storage_path('app/public/' . $surat->signature_path) }}" style="height: 100px;">
+        <p>{{ $surat->penandatangan->name }}</p>
+        <p>{{ $surat->jabatan_penandatangan }}</p>
+        <p>{{ $surat->approved_at->format('d F Y') }}</p>
     </div>
+    @endif
+    
 </body>
 
 </html>
