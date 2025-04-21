@@ -33,51 +33,77 @@
                     <div>Surat Aktif Kuliah</div>
                 </a>
                 <ul class="menu-sub">
-                    <li
-                        class="menu-item {{ request()->routeIs('admin.surat-aktif-kuliah.index') && request()->input('status', 'diajukan') === 'diajukan' ? 'active' : '' }}">
-                        <a href="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'diajukan']) }}" class="menu-link">
-                            <i class="menu-icon tf-icons bx bx-time"></i>
-                            <div>Diajukan</div>
-                        </a>
-                    </li>
-                    <li
-                        class="menu-item {{ request()->routeIs('admin.surat-aktif-kuliah.index') && request()->input('status') === 'diproses' ? 'active' : '' }}">
-                        <a href="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'diproses']) }}" class="menu-link">
-                            <i class="menu-icon tf-icons bx bx-loader"></i>
-                            <div>Diproses</div>
-                        </a>
-                    </li>
-                    <li
-                        class="menu-item {{ request()->routeIs('admin.surat-aktif-kuliah.index') && request()->input('status') === 'disetujui' ? 'active' : '' }}">
-                        <a href="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'disetujui']) }}"
-                            class="menu-link">
-                            <i class="menu-icon tf-icons bx bx-check"></i>
-                            <div>Disetujui</div>
-                        </a>
-                    </li>
-                    <li
-                        class="menu-item {{ request()->routeIs('admin.surat-aktif-kuliah.index') && request()->input('status') === 'ditolak' ? 'active' : '' }}">
-                        <a href="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'ditolak']) }}" class="menu-link">
-                            <i class="menu-icon tf-icons bx bx-x"></i>
-                            <div>Ditolak</div>
-                        </a>
-                    </li>
-                    <li
-                        class="menu-item {{ request()->routeIs('admin.surat-aktif-kuliah.index') && request()->input('status') === 'siap_diambil' ? 'active' : '' }}">
-                        <a href="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'siap_diambil']) }}"
-                            class="menu-link">
-                            <i class="menu-icon tf-icons bx bx-package"></i>
-                            <div>Siap Diambil</div>
-                        </a>
-                    </li>
-                    <li
-                        class="menu-item {{ request()->routeIs('admin.surat-aktif-kuliah.index') && request()->input('status') === 'sudah_diambil' ? 'active' : '' }}">
-                        <a href="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'sudah_diambil']) }}"
-                            class="menu-link">
-                            <i class="menu-icon tf-icons bx bx-check-circle"></i>
-                            <div>Sudah Diambil</div>
-                        </a>
-                    </li>
+                    @if (auth()->user()->hasRole('dosen'))
+                        <!-- Hanya tampilkan menu Menunggu Persetujuan untuk dosen -->
+                        <li
+                            class="menu-item {{ request()->routeIs('admin.surat-aktif-kuliah.index') && request()->input('status') === 'diproses' ? 'active' : '' }}">
+                            <a href="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'diproses']) }}"
+                                class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-time"></i>
+                                <div>Menunggu Persetujuan</div>
+                                @php
+                                    $unreadCount = auth()
+                                        ->user()
+                                        ->unreadNotifications()
+                                        ->where('type', 'App\Notifications\SuratNeedApprovalNotification')
+                                        ->count();
+                                @endphp
+                                @if ($unreadCount > 0)
+                                    <span class="badge bg-danger rounded-pill ms-auto">{{ $unreadCount }}</span>
+                                @endif
+                            </a>
+                        </li>
+                    @else
+                        <!-- Tampilkan semua menu untuk staff/admin -->
+                        <li
+                            class="menu-item {{ request()->routeIs('admin.surat-aktif-kuliah.index') && request()->input('status', 'diajukan') === 'diajukan' ? 'active' : '' }}">
+                            <a href="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'diajukan']) }}"
+                                class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-time"></i>
+                                <div>Diajukan</div>
+                            </a>
+                        </li>
+                        <li
+                            class="menu-item {{ request()->routeIs('admin.surat-aktif-kuliah.index') && request()->input('status') === 'diproses' ? 'active' : '' }}">
+                            <a href="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'diproses']) }}"
+                                class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-loader"></i>
+                                <div>Diproses</div>
+                            </a>
+                        </li>
+                        <li
+                            class="menu-item {{ request()->routeIs('admin.surat-aktif-kuliah.index') && request()->input('status') === 'disetujui' ? 'active' : '' }}">
+                            <a href="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'disetujui']) }}"
+                                class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-check"></i>
+                                <div>Disetujui</div>
+                            </a>
+                        </li>
+                        <li
+                            class="menu-item {{ request()->routeIs('admin.surat-aktif-kuliah.index') && request()->input('status') === 'ditolak' ? 'active' : '' }}">
+                            <a href="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'ditolak']) }}"
+                                class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-x"></i>
+                                <div>Ditolak</div>
+                            </a>
+                        </li>
+                        <li
+                            class="menu-item {{ request()->routeIs('admin.surat-aktif-kuliah.index') && request()->input('status') === 'siap_diambil' ? 'active' : '' }}">
+                            <a href="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'siap_diambil']) }}"
+                                class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-package"></i>
+                                <div>Siap Diambil</div>
+                            </a>
+                        </li>
+                        <li
+                            class="menu-item {{ request()->routeIs('admin.surat-aktif-kuliah.index') && request()->input('status') === 'sudah_diambil' ? 'active' : '' }}">
+                            <a href="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'sudah_diambil']) }}"
+                                class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-check-circle"></i>
+                                <div>Sudah Diambil</div>
+                            </a>
+                        </li>
+                    @endif
                 </ul>
             </li>
         @endcan

@@ -91,6 +91,12 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         return response()->json(['success' => false, 'error' => 'Notification not found'], 404);
     })->name('notifications.mark-as-read');
 
+    Route::post('/notifications/{notification}/read', function ($notificationId) {
+        $notification = \Illuminate\Support\Facades\Auth::user()->notifications->find($notificationId);
+        $notification->markAsRead();
+        return redirect($notification->data['url']);
+    })->name('notifications.read');
+
     // Layanan-layanan
     Route::resource('services', ServiceController::class);
 
@@ -159,7 +165,18 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::prefix('surat-aktif-kuliah')->name('surat-aktif-kuliah.')->group(function () {
         Route::get('/', [AdminSuratAktifKuliahController::class, 'index'])->name('index');
         Route::get('/{surat}', [AdminSuratAktifKuliahController::class, 'show'])->name('show');
-        Route::put('/{surat}/status', [AdminSuratAktifKuliahController::class, 'updateStatus'])->name('update-status');
+
+        // Hanya staff
+        Route::middleware('role:staff')->group(function () {
+            Route::put('/{surat}/status', [AdminSuratAktifKuliahController::class, 'updateStatus'])
+                ->name('update-status');
+        });
+        // Hanya dosen
+        Route::middleware('role:dosen')->group(function () {
+            Route::post('/{surat}/approve', [AdminSuratAktifKuliahController::class, 'approveByDosen'])
+                ->name('approve');
+        });
+
         Route::get('/{surat}/download', [AdminSuratAktifKuliahController::class, 'download'])->name('download'); // Opsional
     });
 

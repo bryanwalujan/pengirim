@@ -23,6 +23,7 @@ class SuratAktifKuliah extends Model
         'semester',
         'penandatangan_id',
         'jabatan_penandatangan',
+        'draft_path',
     ];
 
     protected $casts = [

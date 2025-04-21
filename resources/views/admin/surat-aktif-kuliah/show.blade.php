@@ -98,13 +98,32 @@
                     <div class="mb-4">
                         <h5 class="fw-bold mb-3">File Surat</h5>
                         <div class="d-flex gap-2">
-                            <a href="{{ Storage::url($surat->file_surat_path) }}" target="_blank" class="btn btn-primary">
-                                <i class="bx bx-show me-1"></i> Lihat
-                            </a>
-                            <a href="{{ route('admin.surat-aktif-kuliah.download', $surat->id) }}" class="btn btn-success">
-                                <i class="bx bx-download me-1"></i> Unduh
-                            </a>
+                            @if ($surat->draft_path && in_array($surat->status, ['diajukan', 'diproses']))
+                                <a href="{{ Storage::url($surat->draft_path) }}" target="_blank" class="btn btn-info">
+                                    <i class="bx bx-show me-1"></i> Lihat Draft
+                                </a>
+                            @endif
+
+                            @if ($surat->file_surat_path)
+                                <a href="{{ Storage::url($surat->file_surat_path) }}" target="_blank"
+                                    class="btn btn-primary">
+                                    <i class="bx bx-show me-1"></i> Lihat Surat Final
+                                </a>
+                                <a href="{{ route('admin.surat-aktif-kuliah.download', $surat->id) }}"
+                                    class="btn btn-success">
+                                    <i class="bx bx-download me-1"></i> Unduh Surat Final
+                                </a>
+                            @endif
                         </div>
+
+                        @if ($surat->draft_path && auth()->user()->hasRole('dosen'))
+                            <div class="mt-3">
+                                <div class="alert alert-warning">
+                                    <i class="bx bx-info-circle me-2"></i>
+                                    Ini adalah versi draft surat. Silakan review sebelum memberikan persetujuan.
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 @endif
             </div>
@@ -114,70 +133,125 @@
         @if (!in_array($surat->status, ['sudah_diambil', 'ditolak']))
             <div class="card mb-4">
                 <div class="card-header">
-                    <h5 class="card-title mb-0">Update Status Pengajuan</h5>
+                    <h5 class="card-title mb-0">
+                        @if (auth()->user()->hasRole('dosen'))
+                            Persetujuan Surat
+                        @else
+                            Update Status Pengajuan
+                        @endif
+                    </h5>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('admin.surat-aktif-kuliah.update-status', $surat->id) }}" method="POST">
-                        @csrf
-                        @method('PUT')
+                    @if (auth()->user()->hasRole('dosen'))
+                        <!-- Form khusus untuk dosen -->
+                        <form action="{{ route('admin.surat-aktif-kuliah.approve', $surat->id) }}" method="POST">
+                            @csrf
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="penandatangan_id" class="form-label">Penandatangan <span
+                                            class="text-danger">*</span></label>
+                                    <select name="penandatangan_id" id="penandatangan_id" class="form-select" required>
+                                        <option value="">Pilih Penandatangan</option>
+                                        @foreach ($penandatangans as $penandatangan)
+                                            <option value="{{ $penandatangan->id }}"
+                                                {{ $surat->penandatangan_id == $penandatangan->id ? 'selected' : '' }}>
+                                                {{ $penandatangan->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
 
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="status" class="form-label">Status Pengajuan <span
-                                        class="text-danger">*</span></label>
-                                <select name="status" id="status" class="form-select" required>
-                                    <option value="diajukan" {{ $surat->status === 'diajukan' ? 'selected' : '' }}>Diajukan
-                                    </option>
-                                    <option value="diproses" {{ $surat->status === 'diproses' ? 'selected' : '' }}>Diproses
-                                    </option>
-                                    <option value="disetujui" {{ $surat->status === 'disetujui' ? 'selected' : '' }}>
-                                        Disetujui</option>
-                                    <option value="ditolak" {{ $surat->status === 'ditolak' ? 'selected' : '' }}>Ditolak
-                                    </option>
-                                    <option value="siap_diambil" {{ $surat->status === 'siap_diambil' ? 'selected' : '' }}>
-                                        Siap Diambil</option>
-                                    @if ($surat->status === 'siap_diambil')
-                                        <option value="sudah_diambil"
-                                            {{ $surat->status === 'sudah_diambil' ? 'selected' : '' }}>Sudah Diambil
-                                        </option>
-                                    @endif
-                                </select>
-                            </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="jabatan_penandatangan" class="form-label">Jabatan Penandatangan <span
+                                            class="text-danger">*</span></label>
+                                    <input type="text" name="jabatan_penandatangan" id="jabatan_penandatangan"
+                                        class="form-control" value="{{ $surat->jabatan_penandatangan }}" required>
+                                </div>
 
-                            <div class="col-md-6 mb-3">
-                                <label for="penandatangan_id" class="form-label">Penandatangan</label>
-                                <select name="penandatangan_id" id="penandatangan_id" class="form-select">
-                                    <option value="">Pilih Penandatangan</option>
-                                    @foreach ($penandatangans as $penandatangan)
-                                        <option value="{{ $penandatangan->id }}"
-                                            {{ $surat->penandatangan_id == $penandatangan->id ? 'selected' : '' }}>
-                                            {{ $penandatangan->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
+                                <div class="col-12 mb-3">
+                                    <label for="catatan_admin" class="form-label">Catatan</label>
+                                    <textarea name="catatan_admin" id="catatan_admin" class="form-control" rows="3"></textarea>
+                                </div>
 
-                            <div class="col-md-6 mb-3">
-                                <label for="jabatan_penandatangan" class="form-label">Jabatan Penandatangan</label>
-                                <input type="text" name="jabatan_penandatangan" id="jabatan_penandatangan"
-                                    class="form-control" value="{{ $surat->jabatan_penandatangan }}"
-                                    placeholder="Masukkan jabatan penandatangan">
+                                <div class="col-12 text-end">
+                                    <button type="submit" name="action" value="approve" class="btn btn-success me-2">
+                                        <i class="bx bx-check me-1"></i> Setujui
+                                    </button>
+                                    <button type="submit" name="action" value="reject" class="btn btn-danger">
+                                        <i class="bx bx-x me-1"></i> Tolak
+                                    </button>
+                                </div>
                             </div>
+                        </form>
+                    @else
+                        <!-- Form untuk staff/admin -->
+                        <form action="{{ route('admin.surat-aktif-kuliah.update-status', $surat->id) }}" method="POST">
+                            @csrf
+                            @method('PUT')
 
-                            <div class="col-12 mb-3">
-                                <label for="catatan_admin" class="form-label">Catatan <span
-                                        class="text-danger">*</span></label>
-                                <textarea name="catatan_admin" id="catatan_admin" class="form-control" rows="3" required
-                                    placeholder="Masukkan catatan untuk mahasiswa">{{ $surat->status()->first()?->catatan_admin }}</textarea>
-                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="status" class="form-label">Status Pengajuan <span
+                                            class="text-danger">*</span></label>
+                                    <select name="status" id="status" class="form-select" required>
+                                        @php
+                                            $nextStatuses = [
+                                                'diajukan' => ['diproses', 'ditolak'],
+                                                'diproses' => ['disetujui', 'ditolak'],
+                                                'disetujui' => ['siap_diambil'],
+                                                'siap_diambil' => ['sudah_diambil'],
+                                            ];
+                                            $currentStatus = $surat->status;
+                                        @endphp
 
-                            <div class="col-12 text-end">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="bx bx-save me-1"></i> Simpan Perubahan
-                                </button>
+                                        @foreach ($nextStatuses[$currentStatus] ?? [] as $nextStatus)
+                                            <option value="{{ $nextStatus }}">
+                                                {{ ucfirst(str_replace('_', ' ', $nextStatus)) }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                @if (in_array($surat->status, ['diproses', 'disetujui']))
+                                    <!-- Form penandatangan hanya muncul untuk status tertentu -->
+                                    <div class="col-md-6 mb-3">
+                                        <label for="penandatangan_id" class="form-label">Penandatangan <span
+                                                class="text-danger">*</span></label>
+                                        <select name="penandatangan_id" id="penandatangan_id" class="form-select"
+                                            required>
+                                            <option value="">Pilih Penandatangan</option>
+                                            @foreach ($penandatangans as $penandatangan)
+                                                <option value="{{ $penandatangan->id }}"
+                                                    {{ $surat->penandatangan_id == $penandatangan->id ? 'selected' : '' }}>
+                                                    {{ $penandatangan->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label for="jabatan_penandatangan" class="form-label">Jabatan Penandatangan <span
+                                                class="text-danger">*</span></label>
+                                        <input type="text" name="jabatan_penandatangan" id="jabatan_penandatangan"
+                                            class="form-control" value="{{ $surat->jabatan_penandatangan }}"
+                                            placeholder="Masukkan jabatan penandatangan" required>
+                                    </div>
+                                @endif
+
+                                <div class="col-12 mb-3">
+                                    <label for="catatan_admin" class="form-label">Catatan <span
+                                            class="text-danger">*</span></label>
+                                    <textarea name="catatan_admin" id="catatan_admin" class="form-control" rows="3" required
+                                        placeholder="Masukkan catatan untuk mahasiswa">{{ $surat->status()->first()?->catatan_admin }}</textarea>
+                                </div>
+
+                                <div class="col-12 text-end">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bx bx-save me-1"></i> Simpan Perubahan
+                                    </button>
+                                </div>
                             </div>
-                        </div>
-                    </form>
+                        </form>
+                    @endif
                 </div>
             </div>
         @endif
@@ -230,15 +304,20 @@
             const jabatanRequired = document.getElementById('jabatan_required');
 
             function toggleRequiredFields() {
+                if (!statusSelect) return; // Skip if not staff form
+
                 const requiresPenandatangan = ['disetujui', 'siap_diambil'].includes(statusSelect.value);
-                penandatanganSelect.required = requiresPenandatangan;
-                jabatanInput.required = requiresPenandatangan;
-                penandatanganRequired.style.display = requiresPenandatangan ? 'inline' : 'none';
-                jabatanRequired.style.display = requiresPenandatangan ? 'inline' : 'none';
+                if (penandatanganSelect) penandatanganSelect.required = requiresPenandatangan;
+                if (jabatanInput) jabatanInput.required = requiresPenandatangan;
+                if (penandatanganRequired) penandatanganRequired.style.display = requiresPenandatangan ? 'inline' :
+                    'none';
+                if (jabatanRequired) jabatanRequired.style.display = requiresPenandatangan ? 'inline' : 'none';
             }
 
-            statusSelect.addEventListener('change', toggleRequiredFields);
-            toggleRequiredFields(); // Panggil saat load
+            if (statusSelect) {
+                statusSelect.addEventListener('change', toggleRequiredFields);
+                toggleRequiredFields(); // Panggil saat load
+            }
         });
     </script>
 @endpush

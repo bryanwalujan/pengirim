@@ -57,6 +57,12 @@ class PermissionSeeder extends Seeder
         $staffRole = Role::create(['name' => 'staff']);
         $staffRole->givePermissionTo(Permission::all());
 
+        $lecturerRole = Role::create(['name' => 'dosen']);
+        $lecturerRole->givePermissionTo([
+            'view dashboard',
+            'manage surat aktif kuliah',
+        ]);
+
         // $staffRole = Role::create(['name' => 'staff']);
         // $staffRole->givePermissionTo([
         //     'view dashboard',

@@ -22,30 +22,79 @@
             <li class="nav-item dropdown me-4">
                 <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
                     <i class="icon-base bx bx-bell icon-md"></i>
-                    @if (auth()->user()->unreadNotifications->count() > 0)
-                        <span
-                            class="badge badge-center bg-primary ms-1">{{ auth()->user()->unreadNotifications->count() }}</span>
+                    @php
+                        $unreadCount = auth()
+                            ->user()
+                            ->unreadNotifications()
+                            ->when(auth()->user()->hasRole('staff'), function ($query) {
+                                return $query->where('type', 'App\Notifications\SuratTakenNotification');
+                            })
+                            ->when(auth()->user()->hasRole('dosen'), function ($query) {
+                                return $query->where('type', 'App\Notifications\SuratNeedApprovalNotification');
+                            })
+                            ->count();
+                    @endphp
+                    @if ($unreadCount > 0)
+                        <span class="badge badge-center bg-primary ms-1">{{ $unreadCount }}</span>
                     @endif
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end" style="min-width: 300px;">
-                    @if (auth()->user()->unreadNotifications->isEmpty())
+                    @php
+                        $notifications = auth()
+                            ->user()
+                            ->unreadNotifications()
+                            ->when(auth()->user()->hasRole('staff'), function ($query) {
+                                return $query->where('type', 'App\Notifications\SuratTakenNotification');
+                            })
+                            ->when(auth()->user()->hasRole('dosen'), function ($query) {
+                                return $query->where('type', 'App\Notifications\SuratNeedApprovalNotification');
+                            })
+                            ->orderBy('created_at', 'desc')
+                            ->take(5)
+                            ->get();
+                    @endphp
+
+                    @if ($notifications->isEmpty())
                         <li class="dropdown-item text-center">
-                            <span>No new notifications</span>
+                            <span>Tidak ada notifikasi baru</span>
                         </li>
                     @else
-                        @foreach (auth()->user()->unreadNotifications as $notification)
+                        @foreach ($notifications as $notification)
                             <li class="dropdown-item">
                                 <div class="d-flex">
                                     <div class="flex-grow-1">
-                                        <strong>{{ $notification->data['message'] }}</strong>
-                                        <p class="mb-1">Mahasiswa: {{ $notification->data['mahasiswa'] }} (NIM:
-                                            {{ $notification->data['nim'] }})</p>
-                                        <a href="{{ $notification->data['link'] }}"
-                                            class="btn btn-sm btn-primary me-2">View Details</a>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary"
-                                            onclick="markAsRead('{{ $notification->id }}', this)">
-                                            Mark as Read
-                                        </button>
+                                        @if (auth()->user()->hasRole('staff'))
+                                            <!-- Notifikasi untuk staff -->
+                                            <strong>Surat Sudah Diambil</strong>
+                                            <p class="mb-1">
+                                                Mahasiswa:
+                                                {{ $notification->data['mahasiswa_name'] ?? 'Data mahasiswa tidak tersedia' }}<br>
+                                                NIM:
+                                                {{ $notification->data['mahasiswa_nim'] ?? 'NIM tidak tersedia' }}<br>
+                                                Jenis Surat: {{ $notification->data['surat_type'] ?? 'Surat' }}
+                                            </p>
+                                        @elseif(auth()->user()->hasRole('dosen'))
+                                            <!-- Notifikasi untuk dosen -->
+                                            <strong>Surat Perlu Persetujuan</strong>
+                                            <p class="mb-1">
+                                                Mahasiswa:
+                                                {{ $notification->data['mahasiswa_name'] ?? 'Data mahasiswa tidak tersedia' }}<br>
+                                                NIM:
+                                                {{ $notification->data['mahasiswa_nim'] ?? 'NIM tidak tersedia' }}<br>
+                                                Jenis Surat:
+                                                {{ $notification->data['surat_type'] ?? 'Surat Aktif Kuliah' }}
+                                            </p>
+                                        @endif
+                                        <small
+                                            class="text-muted">{{ $notification->created_at->diffForHumans() }}</small>
+                                        <div class="mt-2">
+                                            <a href="{{ $notification->data['url'] ?? '#' }}"
+                                                class="btn btn-sm btn-primary me-2">Lihat Detail</a>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary"
+                                                onclick="markAsRead('{{ $notification->id }}', this)">
+                                                Tandai Sudah Dibaca
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </li>
@@ -58,7 +107,6 @@
                     @endif
                 </ul>
             </li>
-            <!-- /Notification Dropdown -->
             <!-- User -->
             <li class="nav-item navbar-dropdown dropdown-user dropdown">
                 <a class="nav-link dropdown-toggle hide-arrow p-0" href="javascript:void(0);" data-bs-toggle="dropdown">

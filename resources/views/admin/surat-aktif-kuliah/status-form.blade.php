@@ -6,16 +6,23 @@
         <div class="col-md-6 mb-3">
             <label for="status" class="form-label">Status Pengajuan <span class="text-danger">*</span></label>
             <select name="status" id="status" class="form-select" required>
-                <option value="diajukan" {{ $surat->status === 'diajukan' ? 'selected' : '' }}>Diajukan</option>
-                <option value="diproses" {{ $surat->status === 'diproses' ? 'selected' : '' }}>Diproses</option>
-                <option value="disetujui" {{ $surat->status === 'disetujui' ? 'selected' : '' }}>Disetujui</option>
-                <option value="ditolak" {{ $surat->status === 'ditolak' ? 'selected' : '' }}>Ditolak</option>
-                <option value="siap_diambil" {{ $surat->status === 'siap_diambil' ? 'selected' : '' }}>Siap Diambil
-                </option>
-                @if ($surat->status === 'siap_diambil')
-                    <option value="sudah_diambil" {{ $surat->status === 'sudah_diambil' ? 'selected' : '' }}>Sudah
-                        Diambil</option>
-                @endif
+                @php
+                    $allowedStatuses = ['diajukan', 'diproses', 'ditolak'];
+                    if (auth()->user()->hasRole('dosen')) {
+                        $allowedStatuses = ['disetujui', 'ditolak'];
+                    } elseif (auth()->user()->hasRole('staff')) {
+                        $allowedStatuses = ['diajukan', 'diproses', 'siap_diambil', 'sudah_diambil'];
+                    }
+                @endphp
+
+                @foreach ($allowedStatuses as $statusOption)
+                    @if ($statusOption === 'sudah_diambil' && $surat->status !== 'siap_diambil')
+                        @continue
+                    @endif
+                    <option value="{{ $statusOption }}" {{ $surat->status === $statusOption ? 'selected' : '' }}>
+                        {{ ucfirst(str_replace('_', ' ', $statusOption)) }}
+                    </option>
+                @endforeach
             </select>
             @error('status')
                 <div class="invalid-feedback">{{ $message }}</div>

@@ -5,32 +5,40 @@
 @section('content')
     <div class="container-xxl flex-grow-1 container-p-y">
         <h4 class="fw-bold py-3 mb-2">
-            <span class="text-muted">Daftar Pengajuan Surat Aktif Kuliah</span>
+            @if (auth()->user()->hasRole('dosen'))
+                <span class="text-muted">Daftar Surat Menunggu Persetujuan</span>
+            @else
+                <span class="text-muted">Daftar Pengajuan Surat Aktif Kuliah</span>
+            @endif
         </h4>
 
         <div class="card">
             <div class="card-header border-bottom">
                 <div class="row align-items-center justify-content-between g-2">
-                    <!-- Status Filter -->
-                    <div class="col-4 col-md-3 col-lg-2">
-                        <select class="form-select" onchange="window.location.href=this.value">
-                            <option value="{{ route('admin.surat-aktif-kuliah.index') }}" {{ !$status ? 'selected' : '' }}>
-                                Semua Status
-                            </option>
-                            <option value="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'diajukan']) }}"
-                                {{ $status === 'diajukan' ? 'selected' : '' }}>Diajukan</option>
-                            <option value="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'diproses']) }}"
-                                {{ $status === 'diproses' ? 'selected' : '' }}>Diproses</option>
-                            <option value="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'disetujui']) }}"
-                                {{ $status === 'disetujui' ? 'selected' : '' }}>Disetujui</option>
-                            <option value="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'ditolak']) }}"
-                                {{ $status === 'ditolak' ? 'selected' : '' }}>Ditolak</option>
-                            <option value="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'siap_diambil']) }}"
-                                {{ $status === 'siap_diambil' ? 'selected' : '' }}>Siap Diambil</option>
-                            <option value="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'sudah_diambil']) }}"
-                                {{ $status === 'sudah_diambil' ? 'selected' : '' }}>Sudah Diambil</option>
-                        </select>
-                    </div>
+                    <!-- Status Filter - Hanya tampilkan untuk staff/admin -->
+                    @if (!auth()->user()->hasRole('dosen'))
+                        <div class="col-4 col-md-3 col-lg-2">
+                            <select class="form-select" onchange="window.location.href=this.value">
+                                <option value="{{ route('admin.surat-aktif-kuliah.index') }}"
+                                    {{ !$status ? 'selected' : '' }}>
+                                    Semua Status
+                                </option>
+                                <option value="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'diajukan']) }}"
+                                    {{ $status === 'diajukan' ? 'selected' : '' }}>Diajukan</option>
+                                <option value="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'diproses']) }}"
+                                    {{ $status === 'diproses' ? 'selected' : '' }}>Diproses</option>
+                                <option value="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'disetujui']) }}"
+                                    {{ $status === 'disetujui' ? 'selected' : '' }}>Disetujui</option>
+                                <option value="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'ditolak']) }}"
+                                    {{ $status === 'ditolak' ? 'selected' : '' }}>Ditolak</option>
+                                <option value="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'siap_diambil']) }}"
+                                    {{ $status === 'siap_diambil' ? 'selected' : '' }}>Siap Diambil</option>
+                                <option
+                                    value="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'sudah_diambil']) }}"
+                                    {{ $status === 'sudah_diambil' ? 'selected' : '' }}>Sudah Diambil</option>
+                            </select>
+                        </div>
+                    @endif
                     <!-- Search -->
                     <div class="col-4 col-md-4 col-lg-3">
                         <form action="{{ route('admin.surat-aktif-kuliah.index') }}" method="GET">

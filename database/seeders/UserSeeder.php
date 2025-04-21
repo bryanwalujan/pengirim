@@ -47,7 +47,7 @@ class UserSeeder extends Seeder
         // Mahasiswa
         User::factory()->create([
             'name' => 'Mahasiswa Pertama',
-            'nim' => '123456789',
+            'nim' => '20210047',
             'email' => 'mahasiswa@unima.ac.id',
             'password' => 'password',
         ])->assignRole('mahasiswa');

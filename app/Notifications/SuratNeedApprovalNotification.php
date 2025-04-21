@@ -2,11 +2,12 @@
 
 namespace App\Notifications;
 
-use Illuminate\Bus\Queueable;
 use App\Models\SuratAktifKuliah;
+use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Notifications\Messages\DatabaseMessage;
 
 class SuratNeedApprovalNotification extends Notification
 {
@@ -14,45 +15,25 @@ class SuratNeedApprovalNotification extends Notification
 
     public $surat;
 
-    /**
-     * Create a new notification instance.
-     */
     public function __construct(SuratAktifKuliah $surat)
     {
         $this->surat = $surat;
     }
 
-    /**
-     * Get the notification's delivery channels.
-     *
-     * @return array<int, string>
-     */
-    public function via(object $notifiable): array
+    public function via($notifiable)
     {
         return ['database'];
     }
 
-    /**
-     * Get the mail representation of the notification.
-     */
-    public function toMail(object $notifiable): MailMessage
-    {
-        return (new MailMessage)
-            ->line('The introduction to the notification.')
-            ->action('Notification Action', url('/'))
-            ->line('Thank you for using our application!');
-    }
-
-    /**
-     * Get the array representation of the notification.
-     *
-     * @return array<string, mixed>
-     */
-    public function toArray($notifiable)
+    public function toDatabase($notifiable)
     {
         return [
-            'message' => 'Surat Aktif Kuliah dari ' . $this->surat->mahasiswa->name . ' perlu persetujuan',
-            'url' => route('dosen.surat-aktif-kuliah.show', $this->surat->id),
+            'message' => 'Surat Aktif Kuliah membutuhkan persetujuan Anda',
+            'mahasiswa_name' => $this->surat->mahasiswa->name ?? 'Mahasiswa',
+            'mahasiswa_nim' => $this->surat->mahasiswa->nim ?? 'NIM tidak tersedia',
+            'surat_type' => 'Surat Aktif Kuliah',
+            'url' => route('admin.surat-aktif-kuliah.show', $this->surat->id),
+            'surat_id' => $this->surat->id,
         ];
     }
 }
