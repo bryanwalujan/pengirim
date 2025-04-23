@@ -22,11 +22,11 @@ class UpdateSuratAktifKuliahRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status' => 'required|in:diajukan,diproses,disetujui,ditolak,siap_diambil,sudah_diambil',
-            'catatan_admin' => 'required|string|max:500',
-            'catatan_internal' => 'nullable|string|max:500',
-            'penandatangan_id' => 'required_if:status,disetujui,siap_diambil|nullable|exists:users,id',
-            'jabatan_penandatangan' => 'required_if:status,disetujui,siap_diambil|nullable|string|max:100',
+            'status' => 'required|in:diajukan,diproses,disetujui,ditolak,siap_diambil',
+            'catatan_admin' => 'required|string',
+            'nomor_surat' => 'nullable|string|regex:/^\d{1,3}(\/UN41\.2\/TI\/\d{4})?$/',
+            'penandatangan_id' => 'required_if:status,disetujui',
+            'jabatan_penandatangan' => 'required_if:status,disetujui',
         ];
     }
 }

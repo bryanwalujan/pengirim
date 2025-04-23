@@ -165,6 +165,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::prefix('surat-aktif-kuliah')->name('surat-aktif-kuliah.')->group(function () {
         Route::get('/', [AdminSuratAktifKuliahController::class, 'index'])->name('index');
         Route::get('/{surat}', [AdminSuratAktifKuliahController::class, 'show'])->name('show');
+        // Route::put('/{surat}', [AdminSuratAktifKuliahController::class, 'update'])->name('update');
 
         // Hanya staff
         Route::middleware('role:staff')->group(function () {

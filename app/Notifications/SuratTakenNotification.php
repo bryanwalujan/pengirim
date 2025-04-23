@@ -31,7 +31,7 @@ class SuratTakenNotification extends Notification
             'surat_id' => $this->surat->id,
             'mahasiswa' => $this->surat->mahasiswa->name,
             'nim' => $this->surat->mahasiswa->nim,
-            'link' => route('admin.surat-aktif-kuliah.show', $this->surat->id),
+            'url' => route('admin.surat-aktif-kuliah.show', $this->surat->id),
         ];
     }
 

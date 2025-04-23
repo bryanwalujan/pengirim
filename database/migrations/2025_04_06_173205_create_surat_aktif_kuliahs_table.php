@@ -19,7 +19,6 @@ return new class extends Migration {
             $table->text('keterangan_tambahan')->nullable();
             $table->string('file_pendukung_path')->nullable();
             $table->string('file_surat_path')->nullable();
-            $table->string('draft_path')->nullable();
 
             // Sistem Persetujuan
             $table->string('signature_path')->nullable(); // Untuk menyimpan path QR code tanda tangan

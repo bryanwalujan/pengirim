@@ -54,22 +54,18 @@
                                     </form>
                                 </div>
                             @endif
-                            <div class="mb-4">
-                                <h5 class="section-title border-bottom pb-2">Informasi Surat</h5>
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label class="form-label">Nomor Surat</label>
-                                        <input type="text" class="form-control"
-                                            value="{{ $surat->nomor_surat ?? 'Belum ada nomor surat' }}" readonly>
+                            @if ($surat->status === 'diajukan' && auth()->user()->hasRole('staff'))
+                                <div class="mb-3">
+                                    <label class="form-label">Nomor Surat</label>
+                                    <div class="input-group">
+                                        <input type="text" name="nomor_surat" class="form-control"
+                                            value="{{ old('nomor_surat', explode('/', $surat->nomor_surat)[0] ?? '') }}"
+                                            placeholder="Contoh: 001">
+                                        <span class="input-group-text">/UN41.2/TI/{{ date('Y') }}</span>
                                     </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label class="form-label">Tanggal Surat</label>
-                                        <input type="text" class="form-control"
-                                            value="{{ $surat->tanggal_surat ? $surat->tanggal_surat->format('d F Y') : 'Belum ada tanggal' }}"
-                                            readonly>
-                                    </div>
+                                    <small class="text-muted">Biarkan kosong untuk generate otomatis</small>
                                 </div>
-                            </div>
+                            @endif
 
                             <div class="mb-4">
                                 <h5 class="section-title border-bottom pb-2">Informasi Mahasiswa</h5>

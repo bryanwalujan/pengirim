@@ -15,6 +15,12 @@
             text-align: center;
         }
 
+        .logo {
+            height: 80px;
+            float: left;
+            margin-right: 20px;
+        }
+
         .surat-info {
             margin-bottom: 30px;
         }
@@ -22,6 +28,7 @@
         .surat-info table {
             width: 100%;
             font-size: 12pt;
+            border-collapse: collapse;
         }
 
         .surat-info td {
@@ -34,28 +41,20 @@
             margin-bottom: 30px;
         }
 
-        .signature {
+        .signature-table {
+            width: 100%;
             margin-top: 50px;
-            text-align: center;
+            border-collapse: collapse;
+        }
+
+        .signature-table td {
+            padding: 10px;
+            vertical-align: top;
             width: 50%;
-            float: right;
         }
 
-        .signature p {
-            margin: 5px 0;
-        }
-
-        .draft-watermark {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotate(-45deg);
-            font-size: 80px;
-            opacity: 0.1;
-            z-index: 1000;
-            pointer-events: none;
-            color: #666;
-            font-weight: bold;
+        .underline {
+            text-decoration: underline;
         }
 
         .footer {
@@ -69,22 +68,18 @@
 </head>
 
 <body>
-    @if ($isDraft)
-        <div class="draft-watermark">DRAFT</div>
-    @endif
-
     <!-- Kop Surat -->
     <div class="header">
-        <img src="{{ storage_path('app/public/kop-surat/logo.png') }}"
-            style="height: 80px; float: left; margin-right: 20px;">
+        <img src="{{ storage_path('app/public/kop-surat/logo.png') }}" class="logo">
         <div style="text-align: center;">
-            <strong>KEMENTERIAN PENDIDIKAN, KEBUDAYAAN, RISET, DAN TEKNOLOGI</strong><br>
+            <strong>KEMENTERIAN PENDIDIKAN TINGGI, SAINS, DAN TEKNOLOGI</strong><br>
             <strong>UNIVERSITAS NEGERI MANADO</strong><br>
             <strong>FAKULTAS TEKNIK</strong><br>
-            <strong>PROGRAM STUDI TEKNIK INFORMATIKA</strong><br>
-            Jl. Kampus Unima, Kelurahan Koya, Kec. Tondano Selatan, Kab. Minahasa, Sulawesi Utara 95618<br>
-            Email: informatika@unima.ac.id | Website: ft.unima.ac.id
+            <strong>PROGRAM STUDI S1 TEKNIK INFORMATIKA</strong><br>
+            Kampus UNIMA Tondano 95618, Telp.(0431)7233580<br>
+            Website: ti.unima.ac.id, Email: teknikinformatika@unima.ac.id
         </div>
+        <div style="clear: both;"></div>
     </div>
 
     <!-- Informasi Surat -->
@@ -121,15 +116,10 @@
         <strong>Tondano</strong>
     </p>
 
-    <!-- Pembuka -->
-    <p style="text-align: justify; text-indent: 50px;">
-        Dengan hormat,
-    </p>
-
     <!-- Isi Surat -->
     <div class="content">
-        <p style="text-align: justify; text-indent: 50px;">
-            Bersama ini kami sampaikan bahwa mahasiswa yang tersebut di bawah ini:
+        <p style="text-align: justify;">
+            Pimpinan Program Studi S1 Teknik Informatika menerangkan bahwa:
         </p>
 
         <table style="margin-left: 50px; margin-bottom: 20px;">
@@ -155,53 +145,48 @@
             </tr>
         </table>
 
-        <p style="text-align: justify; text-indent: 50px;">
-            adalah benar mahasiswa aktif pada Program Studi S1 Teknik Informatika, Fakultas Teknik, Universitas Negeri
-            Manado Tahun Akademik {{ $surat->tahun_ajaran }}.
+        <p style="text-align: justify;">
+            Adalah benar mahasiswa Program Studi S1 Teknik Informatika Fakultas Teknik yang aktif dalam mengikuti
+            perkuliahan dan kegiatan lainnya pada tahun ajaran {{ $surat->tahun_ajaran }}. Untuk itu dimohon kiranya
+            Dekan berkenan menerbitkan surat keterangan aktif kuliah untuk mahasiswa tersebut.
         </p>
 
-        <p style="text-align: justify; text-indent: 50px;">
-            Surat keterangan ini diperlukan untuk keperluan: <strong>{{ $surat->tujuan_pengajuan }}</strong>.
+        <p style="text-align: justify;">
+            Adapun surat keterangan aktif kuliah ini akan digunakan untuk
+            <strong>{{ $surat->tujuan_pengajuan }}</strong>.
         </p>
 
-        <p style="text-align: justify; text-indent: 50px;">
-            Demikian surat keterangan ini dibuat dengan sebenarnya untuk dapat dipergunakan sebagaimana mestinya.
+        <p style="text-align: justify;">
+            Demikian permohonan ini, atas perhatiannya diucapkan terima kasih.
         </p>
     </div>
 
     <!-- Tanda Tangan -->
-    <div style="margin-top: 50px;">
-        <div style="width: 50%; float: right; text-align: center;">
-            @if ($surat->penandatangan && !$isDraft)
+    <table class="signature-table">
+        <tr>
+            <td style="text-align: center;">
                 <p>Mengetahui,</p>
-                <p>{{ $surat->jabatan_penandatangan }}</p>
-
-                @if ($surat->signature_path)
-                    <img src="{{ storage_path('app/public/' . $surat->signature_path) }}"
-                        style="height: 80px; margin: 10px 0;">
-                @else
-                    <div style="height: 80px; margin: 10px 0;"></div>
-                @endif
-
-                <p><strong>{{ $surat->penandatangan->name }}</strong></p>
-                <p>NIP. {{ $surat->penandatangan->nip ?? '[NIP]' }}</p>
-            @else
-                <p>Mengetahui,</p>
-                <p>Ketua Program Studi</p>
+                <p>Pimpinan Jurusan PTIK,</p>
+                <div style="height: 80px; margin: 10px 0;">
+                    @if ($surat->signature_path)
+                        <img src="{{ storage_path('app/public/' . $surat->signature_path) }}" style="height: 80px;">
+                    @endif
+                </div>
+                <p class="underline">
+                    <strong>{{ $surat->penandatangan ? $surat->penandatangan->name : '[Nama Penandatangan]' }}</strong>
+                </p>
+                <p>NIP. {{ $surat->penandatangan ? $surat->penandatangan->nip ?? '[NIP]' : '[NIP]' }}</p>
+            </td>
+            <td style="text-align: center;">
+                <p>Plh Koordinator Program Studi</p>
+                <p>Teknik Informatika,</p>
                 <div style="height: 80px; margin: 10px 0;"></div>
-                <p><strong>[Nama Ketua Prodi]</strong></p>
-                <p>NIP. [NIP Ketua Prodi]</p>
-            @endif
-        </div>
-        <div style="clear: both;"></div>
-    </div>
+                <p class="underline"><strong>[Nama Koordinator]</strong></p>
+                <p>NIP. [NIP Koordinator]</p>
+            </td>
+        </tr>
+    </table>
 
-    <!-- Footer -->
-    <div class="footer">
-        <p>Tembusan:</p>
-        <p>1. Arsip Program Studi</p>
-        <p>2. Yang bersangkutan</p>
-    </div>
 </body>
 
 </html>
