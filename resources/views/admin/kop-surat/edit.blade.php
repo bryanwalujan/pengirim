@@ -63,7 +63,14 @@
                             <label class="form-label">Upload Logo</label>
                             <input type="file" class="form-control" name="logo" accept=".png,.jpg,.jpeg">
                             <small class="text-muted">Format PNG/JPG. Maks 1MB. Rasio 1:1 direkomendasikan.</small>
+                            @if ($kopSurat->logo)
+                                <div class="current-logo mt-3">
+                                    <p class="mb-1">Logo Saat Ini:</p>
+                                    <img src="{{ asset('storage/' . $kopSurat->logo) }}" alt="Current Logo" width="120">
+                                </div>
+                            @endif
                         </div>
+
                     </div>
 
                     <div class="row">

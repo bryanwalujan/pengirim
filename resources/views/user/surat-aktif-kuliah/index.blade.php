@@ -289,14 +289,8 @@
 
                             <!-- Pagination -->
                             @if ($surats->hasPages())
-                                <div class="d-flex justify-content-between align-items-center mt-4">
-                                    <div class="text-muted small">
-                                        Menampilkan {{ $surats->firstItem() }} sampai {{ $surats->lastItem() }} dari
-                                        {{ $surats->total() }} entri
-                                    </div>
-                                    <div>
-                                        {{ $surats->links() }}
-                                    </div>
+                                <div class="align-items-center mt-3">
+                                    {{ $surats->links() }}
                                 </div>
                             @endif
                         </div>

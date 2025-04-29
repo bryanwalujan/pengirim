@@ -113,36 +113,44 @@ class AdminSuratAktifKuliahController extends Controller
 
         DB::beginTransaction();
         try {
-            // Proses nomor surat manual jika ada input
-            if (!empty($validated['nomor_surat'])) {
-                $manualNumber = trim($validated['nomor_surat']);
+            // HANYA proses nomor surat jika status diproses dan user adalah staff
+            if ($validated['status'] === 'diproses' && $user->hasRole('staff')) {
+                // Jika ada input nomor surat manual
+                if (!empty($validated['nomor_surat'])) {
+                    $manualNumber = trim($validated['nomor_surat']);
 
-                // Jika format belum lengkap (hanya angka), format ulang
-                if (preg_match('/^\d{1,3}$/', $manualNumber)) {
-                    $validated['nomor_surat'] = sprintf(
-                        '%03d/UN41.2/TI/%s',
-                        $manualNumber,
-                        date('Y')
-                    );
-                }
-                // Jika format salah tapi mengandung angka, ambil bagian angkanya
-                elseif (preg_match('/\b(\d{1,3})\b/', $manualNumber, $matches)) {
-                    $validated['nomor_surat'] = sprintf(
-                        '%03d/UN41.2/TI/%s',
-                        $matches[1],
-                        date('Y')
-                    );
-                }
-                // Jika format sudah benar, biarkan apa adanya
-                elseif (!preg_match('/^\d{3}\/UN41\.2\/TI\/\d{4}$/', $manualNumber)) {
-                    return back()->with('error', 'Format nomor surat tidak valid. Contoh: 001/UN41.2/TI/2024');
-                }
-            }
+                    // Format baru dengan 4 digit
+                    if (preg_match('#^\d{1,4}$#', $manualNumber)) {
+                        $proposedNumber = sprintf(
+                            '%04d/UN41.2/TI/%s',
+                            $manualNumber,
+                            date('Y')
+                        );
+                    } elseif (preg_match('#\b(\d{1,4})\b#', $manualNumber, $matches)) {
+                        $proposedNumber = sprintf(
+                            '%04d/UN41.2/TI/%s',
+                            $matches[1],
+                            date('Y')
+                        );
+                    } elseif (!preg_match('#^\d{4}/UN41\.2/TI/\d{4}$#', $manualNumber)) {
+                        return back()->with('error', 'Format nomor surat tidak valid. Contoh: 0001/UN41.2/TI/2024');
+                    } else {
+                        $proposedNumber = $manualNumber;
+                    }
 
-            // Generate PDF saat status diproses
-            if ($validated['status'] === 'diproses') {
-                // Hanya generate nomor otomatis jika TIDAK diisi manual
-                if (empty($validated['nomor_surat'])) {
+                    // Cek apakah nomor surat sudah digunakan oleh surat lain
+                    $existingSurat = SuratAktifKuliah::where('nomor_surat', $proposedNumber)
+                        ->where('id', '!=', $surat->id)
+                        ->first();
+
+                    if ($existingSurat) {
+                        DB::rollBack();
+                        return back()->with('error', 'Nomor surat sudah digunakan!')->withInput();
+                    }
+
+                    $validated['nomor_surat'] = $proposedNumber;
+                } else {
+                    // Jika tidak ada input manual, generate otomatis
                     $validated['nomor_surat'] = $this->generateNomorSurat();
                 }
 
@@ -354,8 +362,9 @@ class AdminSuratAktifKuliahController extends Controller
 
         $latestNumber = $latestSurat ? intval(explode('/', $latestSurat->nomor_surat)[0]) : 0;
 
-        return sprintf('%03d/UN41.2/TI/%s', $latestNumber + 1, $currentYear);
+        return sprintf('%04d/UN41.2/TI/%s', $latestNumber + 1, $currentYear);
     }
+
 
     protected function generateSuratFile(SuratAktifKuliah $surat)
     {

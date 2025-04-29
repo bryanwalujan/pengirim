@@ -10,17 +10,6 @@
             margin: 2.5cm;
         }
 
-        .header {
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .logo {
-            height: 80px;
-            float: left;
-            margin-right: 20px;
-        }
-
         .surat-info {
             margin-bottom: 30px;
         }
@@ -56,31 +45,12 @@
         .underline {
             text-decoration: underline;
         }
-
-        .footer {
-            font-size: 10pt;
-            text-align: center;
-            margin-top: 20px;
-            border-top: 1px solid #000;
-            padding-top: 5px;
-        }
     </style>
 </head>
 
 <body>
     <!-- Kop Surat -->
-    <div class="header">
-        <img src="{{ storage_path('app/public/kop-surat/logo.png') }}" class="logo">
-        <div style="text-align: center;">
-            <strong>KEMENTERIAN PENDIDIKAN TINGGI, SAINS, DAN TEKNOLOGI</strong><br>
-            <strong>UNIVERSITAS NEGERI MANADO</strong><br>
-            <strong>FAKULTAS TEKNIK</strong><br>
-            <strong>PROGRAM STUDI S1 TEKNIK INFORMATIKA</strong><br>
-            Kampus UNIMA Tondano 95618, Telp.(0431)7233580<br>
-            Website: ti.unima.ac.id, Email: teknikinformatika@unima.ac.id
-        </div>
-        <div style="clear: both;"></div>
-    </div>
+    @include('admin.kop-surat.template')
 
     <!-- Informasi Surat -->
     <div class="surat-info">
@@ -107,7 +77,7 @@
         </table>
     </div>
 
-    <!-- Tujuan -->
+    <!-- Tujuan Surat -->
     <p style="margin-bottom: 20px;">
         <strong>Kepada Yth.</strong><br>
         Dekan Fakultas Teknik<br>
@@ -118,7 +88,7 @@
 
     <!-- Isi Surat -->
     <div class="content">
-        <p style="text-align: justify;">
+        <p>
             Pimpinan Program Studi S1 Teknik Informatika menerangkan bahwa:
         </p>
 
@@ -145,18 +115,18 @@
             </tr>
         </table>
 
-        <p style="text-align: justify;">
+        <p>
             Adalah benar mahasiswa Program Studi S1 Teknik Informatika Fakultas Teknik yang aktif dalam mengikuti
             perkuliahan dan kegiatan lainnya pada tahun ajaran {{ $surat->tahun_ajaran }}. Untuk itu dimohon kiranya
             Dekan berkenan menerbitkan surat keterangan aktif kuliah untuk mahasiswa tersebut.
         </p>
 
-        <p style="text-align: justify;">
+        <p>
             Adapun surat keterangan aktif kuliah ini akan digunakan untuk
             <strong>{{ $surat->tujuan_pengajuan }}</strong>.
         </p>
 
-        <p style="text-align: justify;">
+        <p>
             Demikian permohonan ini, atas perhatiannya diucapkan terima kasih.
         </p>
     </div>

@@ -21,12 +21,25 @@ class UpdateSuratAktifKuliahRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'status' => 'required|in:diajukan,diproses,disetujui,ditolak,siap_diambil',
+        $rules = [
             'catatan_admin' => 'required|string',
-            'nomor_surat' => 'nullable|string|regex:/^\d{1,3}(\/UN41\.2\/TI\/\d{4})?$/',
-            'penandatangan_id' => 'required_if:status,disetujui',
-            'jabatan_penandatangan' => 'required_if:status,disetujui',
         ];
+
+        if ($this->user()->hasRole('staff')) {
+            $rules['status'] = 'required|in:diproses,ditolak,siap_diambil';
+
+            if ($this->status === 'diproses' && $this->surat->status === 'diajukan') {
+                $rules['nomor_surat'] = 'nullable|string|max:50|regex:/^\d{1,4}(\/UN41\.2\/TI\/\d{4})?$/';
+            }
+
+            if ($this->status === 'siap_diambil' && $this->surat->status === 'disetujui') {
+                $rules['penandatangan_id'] = 'required|exists:users,id';
+                $rules['jabatan_penandatangan'] = 'required|string|max:255';
+            }
+        }
+
+        // ... rules untuk dosen ...
+
+        return $rules;
     }
 }

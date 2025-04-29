@@ -174,9 +174,10 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         });
         // Hanya dosen
         Route::middleware('role:dosen')->group(function () {
-            Route::post('/{surat}/approve', [AdminSuratAktifKuliahController::class, 'approveByDosen'])
+            Route::put('/{surat}/approve', action: [AdminSuratAktifKuliahController::class, 'approveByDosen'])
                 ->name('approve');
         });
+
 
         Route::get('/{surat}/download', [AdminSuratAktifKuliahController::class, 'download'])->name('download'); // Opsional
     });
