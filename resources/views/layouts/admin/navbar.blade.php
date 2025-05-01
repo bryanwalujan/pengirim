@@ -88,8 +88,10 @@
                                         <small
                                             class="text-muted">{{ $notification->created_at->diffForHumans() }}</small>
                                         <div class="mt-2">
-                                            <a href="{{ $notification->data['url'] ?? '#' }}"
-                                                class="btn btn-sm btn-primary me-2">Lihat Detail</a>
+                                            <a href="{{ $notification->data['url'] }}"
+                                                class="btn btn-sm btn-primary me-2"
+                                                onclick="markNotificationAsRead('{{ $notification->id }}', this)">Lihat
+                                                Detail</a>
                                             <button type="button" class="btn btn-sm btn-outline-secondary"
                                                 onclick="markAsRead('{{ $notification->id }}', this)">
                                                 Tandai Sudah Dibaca
@@ -228,5 +230,72 @@
             .catch((error) => {
                 console.error("Error marking notification as read:", error);
             });
+    }
+
+    function markNotificationAsRead(notificationId, linkElement) {
+        // Kirim request untuk menandai notifikasi sebagai sudah dibaca
+        fetch(
+                '{{ route('admin.notifications.mark-as-read', ':notification') }}'.replace(
+                    ":notification",
+                    notificationId
+                ), {
+                    method: "POST",
+                    headers: {
+                        "X-CSRF-TOKEN": "{{ csrf_token() }}",
+                        "Content-Type": "application/json",
+                    },
+                }
+            )
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error("Network response was not ok: " + response.status);
+                }
+                return response.json();
+            })
+            .then((data) => {
+                if (data.success) {
+                    // Hapus notifikasi dari dropdown
+                    const notificationItem = linkElement.closest(".dropdown-item");
+                    const divider = notificationItem.nextElementSibling?.classList.contains("dropdown-divider") ?
+                        notificationItem.nextElementSibling :
+                        notificationItem.previousElementSibling?.classList.contains("dropdown-divider") ?
+                        notificationItem.previousElementSibling :
+                        null;
+
+                    notificationItem.remove();
+                    if (divider) divider.remove();
+
+                    // Update badge count
+                    const badge = document.querySelector(".nav-link .badge");
+                    const dropdownMenu = document.querySelector(".dropdown-menu");
+                    const remainingItems = dropdownMenu.querySelectorAll(".dropdown-item").length;
+
+                    if (remainingItems === 0) {
+                        dropdownMenu.innerHTML = `
+                    <li class="dropdown-item text-center">
+                        <span>Tidak ada notifikasi baru</span>
+                    </li>
+                `;
+                        if (badge) badge.remove();
+                    } else if (badge) {
+                        badge.textContent = remainingItems;
+                    }
+
+                    // Lanjutkan navigasi ke halaman detail
+                    window.location.href = linkElement.href;
+                } else {
+                    console.error("Failed to mark notification as read:", data);
+                    // Tetap lanjutkan navigasi meskipun gagal menandai notifikasi
+                    window.location.href = linkElement.href;
+                }
+            })
+            .catch((error) => {
+                console.error("Error marking notification as read:", error);
+                // Tetap lanjutkan navigasi meskipun terjadi error
+                window.location.href = linkElement.href;
+            });
+
+        // Mencegah navigasi default sampai proses selesai
+        return false;
     }
 </script>

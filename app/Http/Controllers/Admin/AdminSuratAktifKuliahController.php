@@ -441,4 +441,5 @@ class AdminSuratAktifKuliahController extends Controller
             'Surat_Aktif_Kuliah_' . $surat->mahasiswa->nim . '.pdf'
         );
     }
+
 }

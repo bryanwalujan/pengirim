@@ -132,17 +132,34 @@
 
                             <div class="mb-4">
                                 <h5 class="section-title border-bottom pb-2">File Surat</h5>
-                                @if ($surat->file_surat_path && in_array($surat->status, ['siap_diambil', 'sudah_diambil']))
-                                    <div class="d-flex align-items-center">
-                                        <i class="bi bi-file-earmark-pdf me-2 fs-4"></i>
-                                        <a href="{{ route('user.surat-aktif-kuliah.download', $surat->id) }}"
-                                            class="text-decoration-none">
-                                            Unduh Surat Aktif Kuliah
-                                        </a>
-                                    </div>
+                                @if ($surat->file_surat_path)
+                                    @if ($surat->status === 'sudah_diambil')
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-file-earmark-pdf me-2 fs-4"></i>
+                                            <a href="{{ route('user.surat-aktif-kuliah.download', $surat->id) }}"
+                                                class="text-decoration-none">
+                                                Unduh Surat Aktif Kuliah
+                                            </a>
+                                        </div>
+                                    @elseif ($surat->status === 'siap_diambil')
+                                        <div class="alert alert-warning">
+                                            <p>Silakan konfirmasi penerimaan surat terlebih dahulu untuk mengunduh.</p>
+                                            <form action="{{ route('user.surat-aktif-kuliah.confirm-taken', $surat->id) }}"
+                                                method="POST" class="d-inline">
+                                                @csrf
+                                                <button type="submit" class="btn btn-primary">
+                                                    <i class="bi bi-check-circle"></i> Konfirmasi Sudah Diambil
+                                                </button>
+                                            </form>
+                                        </div>
+                                    @else
+                                        <p class="text-muted">File surat belum tersedia. Silakan tunggu hingga status
+                                            berubah
+                                            menjadi "Siap Diambil".</p>
+                                    @endif
                                 @else
                                     <p class="text-muted">File surat belum tersedia. Silakan tunggu hingga status berubah
-                                        menjadi "Siap Diambil" atau "Sudah Diambil".</p>
+                                        menjadi "Siap Diambil".</p>
                                 @endif
                             </div>
 

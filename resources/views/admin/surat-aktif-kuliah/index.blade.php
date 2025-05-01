@@ -19,10 +19,6 @@
                     @if (!auth()->user()->hasRole('dosen'))
                         <div class="col-4 col-md-3 col-lg-2">
                             <select class="form-select" onchange="window.location.href=this.value">
-                                <option value="{{ route('admin.surat-aktif-kuliah.index') }}"
-                                    {{ !$status ? 'selected' : '' }}>
-                                    Semua Status
-                                </option>
                                 <option value="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'diajukan']) }}"
                                     {{ $status === 'diajukan' ? 'selected' : '' }}>Diajukan</option>
                                 <option value="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'diproses']) }}"

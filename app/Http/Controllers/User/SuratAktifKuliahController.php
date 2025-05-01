@@ -8,6 +8,7 @@ use App\Models\StatusSurat;
 use Illuminate\Http\Request;
 use App\Models\TrackingSurat;
 use App\Models\SuratAktifKuliah;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
@@ -89,11 +90,12 @@ class SuratAktifKuliahController extends Controller
         return view('user.surat-aktif-kuliah.show', compact('surat'));
     }
 
-    public function confirmTaken(SuratAktifKuliah $surat, $id)
+    public function confirmTaken($id)
     {
         $surat = SuratAktifKuliah::with(['status'])
             ->where('mahasiswa_id', Auth::id())
-            ->findOrFail($id);
+            ->where('id', $id)
+            ->firstOrFail();
 
         // Pastikan status saat ini adalah siap_diambil
         if ($surat->status !== 'siap_diambil') {
@@ -101,35 +103,45 @@ class SuratAktifKuliahController extends Controller
                 ->with('error', 'Surat belum siap diambil atau sudah diambil sebelumnya');
         }
 
-        // Update status
-        StatusSurat::updateOrCreate(
-            [
+        DB::beginTransaction();
+        try {
+            // Update status
+            StatusSurat::updateOrCreate(
+                [
+                    'surat_type' => SuratAktifKuliah::class,
+                    'surat_id' => $surat->id,
+                ],
+                [
+                    'status' => 'sudah_diambil',
+                    'updated_by' => Auth::id(),
+                ]
+            );
+
+            // Tambahkan tracking
+            TrackingSurat::create([
                 'surat_type' => SuratAktifKuliah::class,
                 'surat_id' => $surat->id,
-            ],
-            [
-                'status' => 'sudah_diambil',
-                'updated_by' => Auth::id(),
-            ]
-        );
+                'aksi' => 'sudah_diambil',
+                'keterangan' => 'Surat telah diambil oleh mahasiswa',
+                'mahasiswa_id' => Auth::id(),
+                'confirmed_at' => now(), // Tambahkan timestamp konfirmasi
+            ]);
 
-        // Tambahkan tracking
-        TrackingSurat::create([
-            'surat_type' => SuratAktifKuliah::class,
-            'surat_id' => $surat->id,
-            'aksi' => 'sudah_diambil',
-            'keterangan' => 'Surat telah diambil oleh mahasiswa',
-            'mahasiswa_id' => Auth::id(),
-        ]);
+            // Send notification to all staff
+            $staffs = User::role('staff')->get();
+            foreach ($staffs as $staff) {
+                $staff->notify(new SuratTakenNotification($surat));
+            }
 
-        // Send notification to all staff
-        $staffs = User::role('staff')->get();
-        foreach ($staffs as $staff) {
-            $staff->notify(new SuratTakenNotification($surat));
+            DB::commit();
+
+            return redirect()->route('user.surat-aktif-kuliah.show', $surat->id)
+                ->with('success', 'Surat telah dikonfirmasi sebagai sudah diambil. Sekarang Anda bisa mengunduh surat.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()
+                ->with('error', 'Gagal mengkonfirmasi surat: ' . $e->getMessage());
         }
-
-        return redirect()->route('user.surat-aktif-kuliah.show', $surat->id)
-            ->with('success', 'Surat telah dikonfirmasi sebagai sudah diambil');
     }
 
     public function download(SuratAktifKuliah $surat)
@@ -140,9 +152,9 @@ class SuratAktifKuliahController extends Controller
                 return redirect()->back()->with('error', 'Anda tidak berhak mengunduh surat ini.');
             }
 
-            // Pastikan status memungkinkan download
-            if (!in_array($surat->status, ['siap_diambil', 'sudah_diambil'])) {
-                return redirect()->back()->with('error', 'Surat belum tersedia untuk diunduh.');
+            // Pastikan status sudah dikonfirmasi (sudah_diambil)
+            if ($surat->status !== 'sudah_diambil') {
+                return redirect()->back()->with('error', 'Anda harus mengkonfirmasi penerimaan surat terlebih dahulu sebelum mengunduh.');
             }
 
             // Pastikan file ada

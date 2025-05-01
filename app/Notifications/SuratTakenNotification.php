@@ -27,21 +27,13 @@ class SuratTakenNotification extends Notification
     public function toDatabase($notifiable)
     {
         return [
-            'message' => 'Surat Aktif Kuliah telah diambil oleh mahasiswa',
-            'surat_id' => $this->surat->id,
-            'mahasiswa' => $this->surat->mahasiswa->name,
-            'nim' => $this->surat->mahasiswa->nim,
+            'message' => 'Mahasiswa telah mengkonfirmasi pengambilan surat',
+            'mahasiswa_name' => $this->surat->mahasiswa->name ?? 'Mahasiswa',
+            'mahasiswa_nim' => $this->surat->mahasiswa->nim ?? 'NIM tidak tersedia',
+            'surat_type' => 'Surat Aktif Kuliah',
             'url' => route('admin.surat-aktif-kuliah.show', $this->surat->id),
+            'confirmed_at' => now()->format('d/m/Y H:i'),
         ];
     }
 
-    // Opsional: Jika ingin mengirim email juga
-    //    public function toMail($notifiable)
-    //    {
-    //        return (new MailMessage)
-    //                    ->subject('Surat Aktif Kuliah Telah Diambil')
-    //                    ->line('Surat Aktif Kuliah dengan nomor '.$this->surat->nomor_surat.' telah diambil oleh mahasiswa.')
-    //                    ->action('Lihat Detail', route('admin.surat-aktif-kuliah.show', $this->surat->id))
-    //                    ->line('Terima kasih!');
-    //    }
 }
