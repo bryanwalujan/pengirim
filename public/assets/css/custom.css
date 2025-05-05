@@ -74,3 +74,35 @@
 .notifications-container .alert {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
+
+/* Style untuk dropdown notifikasi */
+.dropdown-menu {
+    scrollbar-width: thin;
+    scrollbar-color: #adb5bd #f8f9fa;
+}
+
+.dropdown-menu::-webkit-scrollbar {
+    width: 6px;
+}
+
+.dropdown-menu::-webkit-scrollbar-track {
+    background: #f8f9fa;
+    border-radius: 10px;
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb {
+    background-color: #adb5bd;
+    border-radius: 10px;
+}
+
+/* Batasi tinggi maksimal dan tambahkan scroll */
+.notification-dropdown {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+/* Style untuk item notifikasi */
+.dropdown-item {
+    white-space: normal;
+    padding: 0.75rem 1.25rem;
+}

@@ -17,6 +17,7 @@ return new class extends Migration {
             $table->string('aksi'); // diajukan, diproses, disetujui, dll.
             $table->text('keterangan')->nullable();
             $table->foreignId('mahasiswa_id')->nullable()->constrained('users')->onDelete('set null');
+            $table->timestamp('confirmed_at')->nullable(); // Waktu konfirmasi pengambilan surat
             $table->timestamps();
             // Index untuk performa query
             $table->index(['surat_type', 'surat_id']);

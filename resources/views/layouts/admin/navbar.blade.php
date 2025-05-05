@@ -38,7 +38,8 @@
                         <span class="badge badge-center bg-primary ms-1">{{ $unreadCount }}</span>
                     @endif
                 </a>
-                <ul class="dropdown-menu dropdown-menu-end" style="min-width: 300px;">
+                <ul class="dropdown-menu dropdown-menu-end"
+                    style="min-width: 300px; max-height: 400px; overflow-y: auto;">
                     @php
                         $notifications = auth()
                             ->user()
@@ -50,7 +51,6 @@
                                 return $query->where('type', 'App\Notifications\SuratNeedApprovalNotification');
                             })
                             ->orderBy('created_at', 'desc')
-                            ->take(5)
                             ->get();
                     @endphp
 
@@ -59,7 +59,8 @@
                             <span>Tidak ada notifikasi baru</span>
                         </li>
                     @else
-                        @foreach ($notifications as $notification)
+                        <!-- Tampilkan maksimal 5 notifikasi -->
+                        @foreach ($notifications->take(5) as $notification)
                             <li class="dropdown-item">
                                 <div class="d-flex">
                                     <div class="flex-grow-1">
@@ -106,6 +107,13 @@
                                 </li>
                             @endif
                         @endforeach
+
+                        <!-- Tampilkan indikator jika ada lebih dari 5 notifikasi -->
+                        @if ($notifications->count() > 5)
+                            <li class="dropdown-item text-center bg-light py-2">
+                                <small class="text-muted">+{{ $notifications->count() - 5 }} notifikasi lainnya</small>
+                            </li>
+                        @endif
                     @endif
                 </ul>
             </li>
@@ -167,6 +175,18 @@
 
 {{-- Core JS files --}}
 <script>
+    // Pastikan dropdown notifikasi diinisialisasi dengan benar
+    document.addEventListener('DOMContentLoaded', function() {
+        const notificationDropdown = document.querySelector('.nav-item.dropdown .dropdown-menu');
+
+        // Atur max-height berdasarkan jumlah notifikasi
+        const notificationItems = notificationDropdown.querySelectorAll('.dropdown-item:not(.text-center)');
+        if (notificationItems.length > 3) {
+            notificationDropdown.style.maxHeight = '400px';
+            notificationDropdown.style.overflowY = 'auto';
+        }
+    });
+
     function markAsRead(notificationId, buttonElement) {
         fetch(
                 '{{ route('admin.notifications.mark-as-read', ':notification') }}'.replace(
@@ -182,54 +202,54 @@
             )
             .then((response) => {
                 if (!response.ok) {
-                    throw new Error(
-                        "Network response was not ok: " + response.status
-                    );
+                    throw new Error("Network response was not ok: " + response.status);
                 }
                 return response.json();
             })
             .then((data) => {
                 if (data.success) {
-                    // Remove the notification item
-                    const notificationItem =
-                        buttonElement.closest(".dropdown-item");
-                    const divider =
-                        notificationItem.nextElementSibling?.classList.contains(
-                            "dropdown-divider"
-                        ) ?
+                    const notificationItem = buttonElement.closest(".dropdown-item");
+                    const divider = notificationItem.nextElementSibling?.classList.contains("dropdown-divider") ?
                         notificationItem.nextElementSibling :
-                        notificationItem.previousElementSibling?.classList.contains(
-                            "dropdown-divider"
-                        ) ?
+                        notificationItem.previousElementSibling?.classList.contains("dropdown-divider") ?
                         notificationItem.previousElementSibling :
                         null;
 
                     notificationItem.remove();
                     if (divider) divider.remove();
 
-                    // Update badge count
-                    const badge = document.querySelector(".nav-link .badge");
-                    const dropdownMenu = document.querySelector(".dropdown-menu");
-                    const remainingItems =
-                        dropdownMenu.querySelectorAll(".dropdown-item").length;
-
-                    if (remainingItems === 0) {
-                        dropdownMenu.innerHTML = `
-                    <li class="dropdown-item text-center">
-                        <span>No new notifications</span>
-                    </li>
-                `;
-                        if (badge) badge.remove();
-                    } else if (badge) {
-                        badge.textContent = remainingItems;
-                    }
-                } else {
-                    console.error("Failed to mark notification as read:", data);
+                    updateNotificationBadge();
+                    checkEmptyNotifications();
                 }
             })
             .catch((error) => {
                 console.error("Error marking notification as read:", error);
             });
+    }
+
+    function updateNotificationBadge() {
+        const badge = document.querySelector(".nav-link .badge");
+        if (badge) {
+            const currentCount = parseInt(badge.textContent);
+            if (currentCount > 1) {
+                badge.textContent = currentCount - 1;
+            } else {
+                badge.remove();
+            }
+        }
+    }
+
+    function checkEmptyNotifications() {
+        const dropdownMenu = document.querySelector(".dropdown-menu");
+        const remainingItems = dropdownMenu.querySelectorAll(".dropdown-item:not(.text-center)").length;
+
+        if (remainingItems === 0) {
+            dropdownMenu.innerHTML = `
+            <li class="dropdown-item text-center">
+                <span>Tidak ada notifikasi baru</span>
+            </li>
+        `;
+        }
     }
 
     function markNotificationAsRead(notificationId, linkElement) {

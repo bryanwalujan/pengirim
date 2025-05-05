@@ -10,6 +10,8 @@ use App\Http\Controllers\Admin\ServiceController;
 use App\Http\Controllers\Admin\KopSuratController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\User\UserServiceController;
+use App\Http\Controllers\Admin\TahunAjaranController;
+use App\Http\Controllers\Admin\PembayaranUktController;
 use App\Http\Controllers\User\SuratAktifKuliahController;
 use App\Http\Controllers\Admin\AcademicCalendarController;
 use App\Http\Controllers\Admin\AdminSuratAktifKuliahController;
@@ -35,7 +37,7 @@ Route::get('/storage/academic-calendars/{filename}', function ($filename) {
 
 
 // Student service routes
-Route::middleware(['auth', 'verified', 'role:mahasiswa'])->group(function () {
+Route::middleware(['auth', 'verified', 'role:mahasiswa',])->group(function () {
     Route::prefix('layanan')->name('user.services.')->group(function () {
         Route::get('/', [UserServiceController::class, 'index'])->name('index');
         Route::get('/{service}/ajukan', [UserServiceController::class, 'create'])->name('create');
@@ -91,6 +93,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         return response()->json(['success' => false, 'error' => 'Notification not found'], 404);
     })->name('notifications.mark-as-read');
 
+    // Route untuk menampilkan semua notifikasi
     Route::post('/notifications/{notification}/read', function ($notificationId) {
         $notification = \Illuminate\Support\Facades\Auth::user()->notifications->find($notificationId);
         $notification->markAsRead();
@@ -182,10 +185,30 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::get('/{surat}/download', [AdminSuratAktifKuliahController::class, 'download'])->name('download'); // Opsional
     });
 
+    // Dosen routes untuk Surat Aktif Kuliah
     Route::prefix('dosen/surat-aktif-kuliah')->name('dosen.surat-aktif-kuliah.')->group(function () {
         Route::get('/', [DosenSuratAktifKuliahController::class, 'index'])->name('index');
         Route::get('/{surat}', [DosenSuratAktifKuliahController::class, 'show'])->name('show');
         Route::post('/{surat}/approve', [DosenSuratAktifKuliahController::class, 'approve'])->name('approve');
+    });
+
+    Route::prefix('tahun-ajaran')->name('tahun-ajaran.')->group(function () {
+        Route::get('/', [TahunAjaranController::class, 'index'])->name('index');
+        Route::get('/create', [TahunAjaranController::class, 'create'])->name('create');
+        Route::post('/', [TahunAjaranController::class, 'store'])->name('store');
+        Route::get('/{tahunAjaran}/edit', [TahunAjaranController::class, 'edit'])->name('edit');
+        Route::put('/{tahunAjaran}', [TahunAjaranController::class, 'update'])->name('update');
+        Route::post('/{tahunAjaran}/activate', [TahunAjaranController::class, 'activate'])->name('activate');
+        Route::delete('/{tahunAjaran}', [TahunAjaranController::class, 'destroy'])->name('destroy');
+    });
+
+    Route::prefix('pembayaran-ukt')->name('pembayaran-ukt.')->group(function () {
+        Route::get('/', [PembayaranUktController::class, 'index'])->name('index');
+        Route::get('/import', [PembayaranUktController::class, 'importForm'])->name('import');
+        Route::post('/import', [PembayaranUktController::class, 'import'])->name('process-import');
+        Route::get('/report', [PembayaranUktController::class, 'report'])->name('report');
+        Route::get('/export', [PembayaranUktController::class, 'export'])->name('export');
+        Route::post('/reset/{tahunAjaran}', [PembayaranUktController::class, 'resetPayments'])->name('reset');
     });
 
 });

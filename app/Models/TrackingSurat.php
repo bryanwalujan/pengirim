@@ -15,6 +15,16 @@ class TrackingSurat extends Model
         'mahasiswa_id',
     ];
 
+    protected $dates = [
+        'created_at',
+        'updated_at',
+        'confirmed_at',
+    ];
+
+    protected $casts = [
+        'confirmed_at' => 'datetime',
+    ];
+
     public function surat()
     {
         return $this->morphTo();

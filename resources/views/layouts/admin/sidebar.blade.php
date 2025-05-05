@@ -206,5 +206,47 @@
             @endcan
         </ul>
         </li>
+        <!-- Tambahkan setelah Manajemen Pengguna -->
+        @if (auth()->user()->can('manage ukt') || auth()->user()->can('manage tahun ajaran'))
+            <li class="menu-header small text-uppercase">
+                <span class="menu-header-text">Manajemen UKT</span>
+            </li>
+            @can('manage tahun ajaran')
+                <li class="menu-item {{ request()->routeIs('admin.tahun-ajaran.*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.tahun-ajaran.index') }}" class="menu-link">
+                        <i class="menu-icon tf-icons bx bx-calendar-alt"></i>
+                        <div>Tahun Ajaran</div>
+                    </a>
+                </li>
+            @endcan
+            @can('manage ukt')
+                <li class="menu-item {{ request()->routeIs('admin.pembayaran-ukt.*') ? 'active open' : '' }}">
+                    <a href="javascript:void(0);" class="menu-link menu-toggle">
+                        <i class="menu-icon tf-icons bx bx-money"></i>
+                        <div>Pembayaran UKT</div>
+                    </a>
+                    <ul class="menu-sub">
+                        <li class="menu-item {{ request()->routeIs('admin.pembayaran-ukt.index') ? 'active' : '' }}">
+                            <a href="{{ route('admin.pembayaran-ukt.index') }}" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-list-ul"></i>
+                                <div>Daftar Pembayaran</div>
+                            </a>
+                        </li>
+                        <li class="menu-item {{ request()->routeIs('admin.pembayaran-ukt.import') ? 'active' : '' }}">
+                            <a href="{{ route('admin.pembayaran-ukt.import') }}" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-import"></i>
+                                <div>Import Data</div>
+                            </a>
+                        </li>
+                        <li class="menu-item {{ request()->routeIs('admin.pembayaran-ukt.report') ? 'active' : '' }}">
+                            <a href="{{ route('admin.pembayaran-ukt.report') }}" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-file"></i>
+                                <div>Laporan</div>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            @endcan
+        @endif
     </ul>
 </aside>

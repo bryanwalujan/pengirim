@@ -47,6 +47,9 @@ class PermissionSeeder extends Seeder
 
             // Role Management
             ['name' => 'manage roles', 'group' => 'roles'],
+
+            ['name' => 'manage tahun ajaran', 'group' => 'tahun-ajaran'],
+            ['name' => 'manage ukt', 'group' => 'ukt'],
         ];
 
         foreach ($permissions as $permission) {
