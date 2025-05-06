@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\TahunAjaran;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
@@ -37,7 +38,7 @@ Route::get('/storage/academic-calendars/{filename}', function ($filename) {
 
 
 // Student service routes
-Route::middleware(['auth', 'verified', 'role:mahasiswa',])->group(function () {
+Route::middleware(['auth', 'verified', 'role:mahasiswa', 'check.ukt'])->group(function () {
     Route::prefix('layanan')->name('user.services.')->group(function () {
         Route::get('/', [UserServiceController::class, 'index'])->name('index');
         Route::get('/{service}/ajukan', [UserServiceController::class, 'create'])->name('create');
@@ -53,6 +54,12 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa',])->group(function () {
             ->name('confirm-taken');
     });
 });
+
+// Route untuk halaman alert pembayaran
+Route::middleware(['auth', 'verified', 'role:mahasiswa'])->get('/payment-alert', function () {
+    $tahunAktif = TahunAjaran::where('status_aktif', true)->first();
+    return view('user.payment.alert', compact('tahunAktif'));
+})->name('user.payment.alert');
 
 // Untuk Mahasiswa
 // Route::middleware(['auth', 'verified', 'role:mahasiswa'])->prefix('surat-aktif-kuliah')->name('user.surat-aktif-kuliah.')->group(function () {
@@ -209,6 +216,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::get('/report', [PembayaranUktController::class, 'report'])->name('report');
         Route::get('/export', [PembayaranUktController::class, 'export'])->name('export');
         Route::post('/reset/{tahunAjaran}', [PembayaranUktController::class, 'resetPayments'])->name('reset');
+        Route::get('/download-template', [PembayaranUktController::class, 'downloadTemplate'])->name('download-template');
     });
 
 });

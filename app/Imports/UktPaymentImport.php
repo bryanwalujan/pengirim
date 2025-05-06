@@ -11,6 +11,9 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 class UktPaymentImport implements ToModel, WithHeadingRow
 {
     protected $tahunAjaranId;
+    private $rowCount = 0;
+    private $skippedCount = 0;
+
 
     public function __construct($tahunAjaranId)
     {
@@ -19,9 +22,11 @@ class UktPaymentImport implements ToModel, WithHeadingRow
 
     public function model(array $row)
     {
+        $this->rowCount++;
         $mahasiswa = User::where('nim', $row['nim'])->first();
 
         if (!$mahasiswa) {
+            $this->skippedCount++;
             return null;
         }
 
@@ -31,5 +36,25 @@ class UktPaymentImport implements ToModel, WithHeadingRow
             'status' => strtolower($row['status']) === 'bayar' ? 'bayar' : 'belum_bayar',
             'updated_by' => User::find(Auth::id())
         ]);
+    }
+
+    public function rules(): array
+    {
+        return [
+            'nim' => 'required|string',
+            'status' => 'required|in:lunas,belum_lunas',
+            'tanggal_bayar' => 'nullable|date_format:d/m/Y'
+        ];
+    }
+
+    public function getRowCount()
+    {
+        return $this->rowCount;
+    }
+
+    // Method to handle the skipped rows
+    public function getSkippedCount()
+    {
+        return $this->skippedCount;
     }
 }

@@ -8,9 +8,11 @@ use Illuminate\Http\Request;
 use App\Models\PembayaranUkt;
 use App\Exports\UktPaymentExport;
 use App\Imports\UktPaymentImport;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Concerns\FromArray;
 
 class PembayaranUktController extends Controller
 {
@@ -53,31 +55,46 @@ class PembayaranUktController extends Controller
     {
         $request->validate([
             'tahun_ajaran_id' => 'required|exists:tahun_ajaran,id',
-            'file' => 'required|mimes:xlsx,xls',
+            'file' => 'required|mimes:xlsx,xls|max:2048',
             'reset_existing' => 'sometimes|boolean'
         ]);
 
-        if ($request->reset_existing) {
-            PembayaranUkt::where('tahun_ajaran_id', $request->tahun_ajaran_id)->delete();
-        }
+        DB::beginTransaction();
 
         try {
-            Excel::import(new UktPaymentImport($request->tahun_ajaran_id), $request->file('file'));
+            if ($request->reset_existing) {
+                PembayaranUkt::where('tahun_ajaran_id', $request->tahun_ajaran_id)->delete();
+            }
 
-            return redirect()->route('admin.ukt.index')
-                ->with('success', 'Data pembayaran UKT berhasil diimport');
+            $import = new UktPaymentImport($request->tahun_ajaran_id);
+            Excel::import($import, $request->file('file'));
+
+            $importedCount = $import->getRowCount();
+            $skippedCount = $import->getSkippedCount();
+
+            DB::commit();
+
+            $message = "Import berhasil! {$importedCount} data diproses.";
+            if ($skippedCount > 0) {
+                $message .= " {$skippedCount} data dilewati (NIM tidak ditemukan).";
+            }
+
+            return redirect()->route('admin.pembayaran-ukt.index')
+                ->with('success', $message);
+
         } catch (\Exception $e) {
-            return back()->with('error', 'Error: ' . $e->getMessage());
+            DB::rollBack();
+            return back()
+                ->with('error', 'Gagal mengimpor data: ' . $e->getMessage())
+                ->withInput();
         }
     }
 
     public function verify(PembayaranUkt $pembayaranUkt)
     {
         $pembayaranUkt->update([
-            'status' => 'lunas',
-            'verified_by' => User::find(Auth::id()),
-            'verified_at' => now(),
-            'tanggal_bayar' => $pembayaranUkt->tanggal_bayar ?? now()
+            'status' => 'bayar',
+            'updated_by' => User::find(Auth::id())
         ]);
 
         return back()->with('success', 'Pembayaran berhasil diverifikasi');
@@ -90,12 +107,12 @@ class PembayaranUktController extends Controller
     {
         $pembayaranUkt->update([
             'status' => 'belum_bayar',
-            'verified_by' => null,
-            'verified_at' => null
+            'updated_by' => User::find(Auth::id())
         ]);
 
         return back()->with('success', 'Pembayaran berhasil ditolak');
     }
+
     public function resetPayments(TahunAjaran $tahunAjaran)
     {
         PembayaranUkt::where('tahun_ajaran_id', $tahunAjaran->id)
@@ -175,16 +192,47 @@ class PembayaranUktController extends Controller
     /**
      * Download the import template.
      */
+    /**
+     * Download the UKT payment import template
+     */
     public function downloadTemplate()
     {
-        $path = storage_path('app/public/templates/template_import_ukt.xlsx');
+        $headers = [
+            'NIM' => 'Nomor Induk Mahasiswa (harus sudah terdaftar)',
+            'Status' => 'Isi dengan "bayar" atau "belum_bayar"'
+        ];
 
-        if (!file_exists($path)) {
-            abort(404, 'Template file not found');
-        }
+        $examples = [
+            ['20210001', 'bayar'],
+            ['20210002', 'belum_bayar']
+        ];
 
-        return response()->download($path, 'template_import_pembayaran_ukt.xlsx');
+        $export = new class ($headers, $examples) implements FromArray {
+            private $headers;
+            private $examples;
+
+            public function __construct($headers, $examples)
+            {
+                $this->headers = $headers;
+                $this->examples = $examples;
+            }
+
+            public function array(): array
+            {
+                return [
+                    array_keys($this->headers),
+                    array_values($this->headers),
+                    [], // Empty row for separation
+                    ['CONTOH DATA:'],
+                    ...$this->examples
+                ];
+            }
+        };
+
+        return Excel::download($export, 'template-import-ukt.xlsx');
     }
+
+
 
     /**
      * Remove the specified payment.

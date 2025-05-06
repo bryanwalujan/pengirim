@@ -3,39 +3,41 @@
 namespace App\Http\Middleware;
 
 use Closure;
+use App\Models\User;
 use App\Models\TahunAjaran;
 use Illuminate\Http\Request;
 use App\Models\PembayaranUkt;
-use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 class CheckUktPayment
 {
+    /*************  ✨ Windsurf Command ⭐  *************/
     /**
-     * Handle an incoming request.
+     * Handle an incoming request to check UKT payment status for mahasiswa.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     */
+     * This middleware ensures that the authenticated user has paid the UKT for 
+     * the active academic year before accessing certain services. If there is no 
+
+/*******  7e712d56-b2d9-4193-873f-be8d2d9d878d  *******/
     public function handle(Request $request, Closure $next): Response
     {
-        // Jika user adalah mahasiswa
-        if (User::find(Auth::id())->hasRole('mahasiswa')) {
-            $tahunAktif = TahunAjaran::where('status_aktif', true)->first();
+        $user = User::find(Auth::id());
 
-            // Jika tidak ada tahun aktif, block akses
+        // Jika user adalah mahasiswa
+        if ($user && $user->hasRole('mahasiswa')) {
+            $tahunAktif = TahunAjaran::aktif()->first();
+
             if (!$tahunAktif) {
                 return redirect()->route('user.payment.alert')
                     ->with('error', 'Tidak ada tahun ajaran aktif. Silakan hubungi administrasi.');
             }
 
-            // Cek status pembayaran
-            $hasPaid = PembayaranUkt::where('mahasiswa_id', User::find(Auth::id()))
+            $hasPaid = PembayaranUkt::where('mahasiswa_id', $user->id)
                 ->where('tahun_ajaran_id', $tahunAktif->id)
-                ->where('status', 'paid')
+                ->where('status', 'bayar')
                 ->exists();
 
-            // Jika belum bayar, redirect ke halaman alert
             if (!$hasPaid) {
                 return redirect()->route('user.payment.alert')
                     ->with('error', 'Anda harus melunasi UKT terlebih dahulu untuk mengakses layanan');

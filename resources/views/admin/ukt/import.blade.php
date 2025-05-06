@@ -35,20 +35,18 @@
                 <div class="alert alert-info">
                     <h5 class="alert-heading">Petunjuk Import Data Pembayaran UKT</h5>
                     <ul class="mb-0">
-                        <li>Format file yang didukung: <strong>.xlsx, .xls</strong> (maksimum ukuran 2MB).</li>
-                        <li>Kolom yang harus ada: <strong>NIM, Status (lunas/belum_lunas), Tanggal Bayar
-                                (opsional)</strong>.</li>
-                        <li>Format tanggal: <strong>DD/MM/YYYY</strong> atau <strong>YYYY-MM-DD</strong>.</li>
-                        <li>Status harus diisi dengan <strong>lunas</strong> atau <strong>belum_lunas</strong>.</li>
-                        <li>Mahasiswa dengan NIM yang tidak terdaftar akan diabaikan.</li>
+                        <li>Kolom yang wajib diisi: <strong>NIM</strong> dan <strong>Status</strong></li>
+                        <li>Format status: <code>lunas</code> atau <code>belum_lunas</code> (huruf kecil)</li>
+                        <li>NIM harus sudah terdaftar dalam sistem</li>
+                        <li>Format tanggal: <strong>DD/MM/YYYY</strong> (opsional)</li>
+                        <li>File harus berformat <strong>.xlsx</strong> atau <strong>.xls</strong></li>
                     </ul>
                     <div class="mt-3">
                         <a href="{{ route('admin.pembayaran-ukt.download-template') }}" class="btn btn-outline-primary">
-                            <i class="bx bx-download me-1"></i> Download Template Excel
+                            <i class="bx bx-download me-1"></i> Download Template
                         </a>
                     </div>
                 </div>
-
                 <form action="{{ route('admin.pembayaran-ukt.process-import') }}" method="POST"
                     enctype="multipart/form-data">
                     @csrf

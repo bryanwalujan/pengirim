@@ -64,15 +64,11 @@ class TahunAjaranController extends Controller
     public function activate(TahunAjaran $tahunAjaran)
     {
         DB::transaction(function () use ($tahunAjaran) {
-            // Nonaktifkan semua tahun ajaran
             TahunAjaran::where('status_aktif', true)->update(['status_aktif' => false]);
-
-            // Aktifkan tahun ajaran yang dipilih
             $tahunAjaran->update(['status_aktif' => true]);
 
-            // Reset semua status pembayaran mahasiswa untuk tahun ajaran ini
             PembayaranUkt::where('tahun_ajaran_id', $tahunAjaran->id)
-                ->update(['status' => 'unpaid']);
+                ->update(['status' => 'belum_bayar']);
         });
 
         return back()->with('success', 'Tahun ajaran berhasil diaktifkan dan status pembayaran direset');

@@ -34,13 +34,10 @@ class UktPaymentExport implements FromCollection, WithHeadings, WithMapping, Sho
                 $query->where('status', $this->status);
             })
             ->orderBy('status')
-            ->orderBy('tanggal_bayar', 'desc')
+            ->orderBy('created_at', 'desc')
             ->get();
     }
 
-    /**
-     * Define the headings for the Excel sheet
-     */
     public function headings(): array
     {
         return [
@@ -50,13 +47,14 @@ class UktPaymentExport implements FromCollection, WithHeadings, WithMapping, Sho
             'Tahun Ajaran',
             'Semester',
             'Status Pembayaran',
-            'Tanggal Bayar',
-            'Nominal',
-            'Metode Pembayaran',
-            'Diverifikasi Oleh',
-            'Tanggal Verifikasi'
+            'Terakhir Diupdate'
         ];
     }
+
+    /**
+     * Define the headings for the Excel sheet
+     */
+
 
     /**
      * Map each payment record to the Excel row
@@ -70,11 +68,7 @@ class UktPaymentExport implements FromCollection, WithHeadings, WithMapping, Sho
             $payment->tahunAjaran->tahun,
             ucfirst($payment->tahunAjaran->semester),
             $this->getStatusText($payment->status),
-            $payment->tanggal_bayar ? $payment->tanggal_bayar->format('d/m/Y') : '-',
-            $payment->nominal ? 'Rp ' . number_format($payment->nominal, 0, ',', '.') : '-',
-            $payment->metode_pembayaran ?? '-',
-            $payment->verified_by ? $payment->verifier->name : '-',
-            $payment->verified_at ? $payment->verified_at->format('d/m/Y H:i') : '-'
+            $payment->updated_at->format('d/m/Y H:i')
         ];
     }
 
@@ -84,7 +78,6 @@ class UktPaymentExport implements FromCollection, WithHeadings, WithMapping, Sho
     public function styles(Worksheet $sheet)
     {
         return [
-            // Style the first row (headings) as bold
             1 => [
                 'font' => ['bold' => true],
                 'fill' => [
@@ -92,25 +85,14 @@ class UktPaymentExport implements FromCollection, WithHeadings, WithMapping, Sho
                     'startColor' => ['argb' => 'FFD9D9D9']
                 ]
             ],
-
-            // Center align columns
-            'A:K' => [
+            'A:G' => [
                 'alignment' => [
                     'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
                 ]
             ],
-
-            // Left align for name and program study
             'B:C' => [
                 'alignment' => [
                     'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT,
-                ]
-            ],
-
-            // Format for currency
-            'H' => [
-                'alignment' => [
-                    'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT,
                 ]
             ]
         ];
@@ -121,11 +103,6 @@ class UktPaymentExport implements FromCollection, WithHeadings, WithMapping, Sho
      */
     protected function getStatusText($status)
     {
-        $statuses = [
-            'lunas' => 'Lunas',
-            'belum_lunas' => 'Belum Lunas'
-        ];
-
-        return $statuses[$status] ?? $status;
+        return $status === 'bayar' ? 'Sudah Bayar' : 'Belum Bayar';
     }
 }
