@@ -211,17 +211,16 @@
                                     name="tahun_ajaran" required>
                                     <option value="" {{ old('tahun_ajaran') == '' ? 'selected' : '' }}>Pilih Tahun
                                         Ajaran</option>
-                                    @foreach (range(date('Y') - 1, date('Y') + 5) as $year)
-                                        <option value="{{ $year }}/{{ $year + 1 }}"
+                                    <option value="{{ $year }}/{{ $year + 1 }}"
+                                        @foreach (range(date('Y') - 1, date('Y') + 5) as $year)
                                             {{ old('tahun_ajaran') == $year . '/' . ($year + 1) ? 'selected' : '' }}>
                                             {{ $year }}/{{ $year + 1 }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                <label for="tahun_ajaran">Tahun Ajaran</label>
-                                @error('tahun_ajaran')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
+                                        </option> @endforeach
+                                        </select>
+                                        <label for="tahun_ajaran">Tahun Ajaran</label>
+                                        @error('tahun_ajaran')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
                             </div>
                         </div>
 

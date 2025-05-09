@@ -35,8 +35,6 @@
                             <th>Tahun Ajaran</th>
                             <th>Semester</th>
                             <th>Status</th>
-                            <th>Tanggal Mulai</th>
-                            <th>Tanggal Selesai</th>
                             <th width="15%">Aksi</th>
                         </tr>
                     </thead>
@@ -53,8 +51,6 @@
                                         <span class="badge bg-label-secondary">Nonaktif</span>
                                     @endif
                                 </td>
-                                <td>{{ $tahun->start_date ? $tahun->start_date->format('d/m/Y') : '-' }}</td>
-                                <td>{{ $tahun->end_date ? $tahun->end_date->format('d/m/Y') : '-' }}</td>
                                 <td>
                                     <div class="dropdown">
                                         <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
@@ -93,7 +89,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center">Tidak ada data tahun ajaran</td>
+                                <td colspan="5" class="text-center">Tidak ada data tahun ajaran</td>
                             </tr>
                         @endforelse
                     </tbody>

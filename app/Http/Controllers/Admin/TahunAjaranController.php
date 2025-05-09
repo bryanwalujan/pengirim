@@ -36,10 +36,19 @@ class TahunAjaranController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'tahun' => 'required|numeric|min:2000|max:2100',
+            'tahun' => 'required|regex:/^\d{4}\/\d{4}$/',
             'semester' => 'required|in:ganjil,genap',
             'status_aktif' => 'sometimes|boolean'
         ]);
+
+        // Validate year format and range
+        $years = explode('/', $request->tahun);
+        if ((int) $years[1] !== (int) $years[0] + 1) {
+            return back()->withErrors(['tahun' => 'Format tahun ajaran harus YYYY/YYYY dengan selisih 1 tahun'])->withInput();
+        }
+        if ((int) $years[0] < 2000 || (int) $years[1] > 2100) {
+            return back()->withErrors(['tahun' => 'Tahun ajaran harus antara 2000/2001 sampai 2100/2101'])->withInput();
+        }
 
         DB::transaction(function () use ($request) {
             // Jika mengaktifkan tahun ajaran baru, nonaktifkan yang lain
@@ -88,15 +97,24 @@ class TahunAjaranController extends Controller
     public function update(Request $request, TahunAjaran $tahunAjaran)
     {
         $request->validate([
-            'tahun' => 'required|numeric|min:2000|max:2100',
+            'tahun' => 'required|regex:/^\d{4}\/\d{4}$/',
             'semester' => 'required|in:ganjil,genap'
         ]);
-
+    
+        // Validate year format and range
+        $years = explode('/', $request->tahun);
+        if ((int)$years[1] !== (int)$years[0] + 1) {
+            return back()->withErrors(['tahun' => 'Format tahun ajaran harus YYYY/YYYY dengan selisih 1 tahun'])->withInput();
+        }
+        if ((int)$years[0] < 2000 || (int)$years[1] > 2100) {
+            return back()->withErrors(['tahun' => 'Tahun ajaran harus antara 2000/2001 sampai 2100/2101'])->withInput();
+        }
+    
         $tahunAjaran->update([
             'tahun' => $request->tahun,
             'semester' => $request->semester
         ]);
-
+    
         return redirect()->route('admin.tahun-ajaran.index')
             ->with('success', 'Tahun ajaran berhasil diperbarui');
     }

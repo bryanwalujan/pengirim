@@ -38,9 +38,18 @@
                     <div class="row">
                         <!-- Tahun Ajaran -->
                         <div class="col-md-6 mb-3">
-                            <label for="tahun" class="form-label required">Tahun Ajaran</label>
-                            <input type="text" class="form-control @error('tahun') is-invalid @enderror" id="tahun"
-                                name="tahun" value="{{ old('tahun') }}" placeholder="Contoh: 2023" required>
+                            <label for="tahun" class="form-label required">Tahun Ajaran</label> <select
+                                class="form-select @error('tahun') is-invalid @enderror" id="tahun" name="tahun"
+                                required>
+                                <option value="" {{ old('tahun') == '' ? 'selected' : '' }}>Pilih Tahun Ajaran
+                                </option>
+                                @foreach (range(date('Y') - 1, date('Y') + 5) as $year)
+                                    <option value="{{ $year }}/{{ $year + 1 }}"
+                                        {{ old('tahun') == $year . '/' . ($year + 1) ? 'selected' : '' }}>
+                                        {{ $year }}/{{ $year + 1 }}
+                                    </option>
+                                @endforeach
+                            </select>
                             @error('tahun')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -56,36 +65,6 @@
                                 <option value="genap" @selected(old('semester') == 'genap')>Genap</option>
                             </select>
                             @error('semester')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <!-- Start Date -->
-                        <div class="col-md-6 mb-3">
-                            <label for="start_date" class="form-label">Tanggal Mulai</label>
-                            <input type="date" class="form-control @error('start_date') is-invalid @enderror"
-                                id="start_date" name="start_date" value="{{ old('start_date') }}">
-                            @error('start_date')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <!-- End Date -->
-                        <div class="col-md-6 mb-3">
-                            <label for="end_date" class="form-label">Tanggal Selesai</label>
-                            <input type="date" class="form-control @error('end_date') is-invalid @enderror"
-                                id="end_date" name="end_date" value="{{ old('end_date') }}">
-                            @error('end_date')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <!-- UKT Deadline -->
-                        <div class="col-md-6 mb-3">
-                            <label for="ukt_deadline" class="form-label">Batas Pembayaran UKT</label>
-                            <input type="date" class="form-control @error('ukt_deadline') is-invalid @enderror"
-                                id="ukt_deadline" name="ukt_deadline" value="{{ old('ukt_deadline') }}">
-                            @error('ukt_deadline')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>

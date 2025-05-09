@@ -76,7 +76,13 @@
                             <th>NIM</th>
                             <th>Nama</th>
                             <th>Email</th>
-                            <th>Status</th>
+                            <th>
+                                Status UKT
+                                @if ($tahunAjaranAktif)
+                                    <small class="text-muted d-block">{{ $tahunAjaranAktif->tahun }} -
+                                        {{ ucfirst($tahunAjaranAktif->semester) }}</small>
+                                @endif
+                            </th>
                             <th width="15%">Aksi</th>
                         </tr>
                     </thead>
@@ -88,7 +94,32 @@
                                 <td>{{ $user->name }}</td>
                                 <td>{{ $user->email }}</td>
                                 <td>
-                                    <span class="badge bg-label-success">Aktif</span>
+                                    @php
+                                        $latestPayment = $user->pembayaranUkt->firstWhere(
+                                            'tahun_ajaran_id',
+                                            $tahunAjaranAktif->id ?? null,
+                                        );
+                                    @endphp
+
+                                    @if ($tahunAjaranAktif)
+                                        @if ($latestPayment)
+                                            @if ($latestPayment->status == 'bayar')
+                                                <span class="badge bg-label-success">Bayar</span>
+                                                <small class="text-muted d-block">{{ $tahunAjaranAktif->tahun }} -
+                                                    {{ ucfirst($tahunAjaranAktif->semester) }}</small>
+                                            @else
+                                                <span class="badge bg-label-warning">Belum Bayar</span>
+                                                <small class="text-muted d-block">{{ $tahunAjaranAktif->tahun }} -
+                                                    {{ ucfirst($tahunAjaranAktif->semester) }}</small>
+                                            @endif
+                                        @else
+                                            <span class="badge bg-label-danger">Belum Ada Data</span>
+                                            <small class="text-muted d-block">{{ $tahunAjaranAktif->tahun }} -
+                                                {{ ucfirst($tahunAjaranAktif->semester) }}</small>
+                                        @endif
+                                    @else
+                                        <span class="badge bg-label-secondary">Tahun Ajaran Tidak Aktif</span>
+                                    @endif
                                 </td>
                                 <td>
                                     <div class="dropdown">

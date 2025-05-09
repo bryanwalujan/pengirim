@@ -2,6 +2,34 @@
 
 @section('title', 'Manajemen Pembayaran UKT')
 
+@push('styles')
+    <style>
+        .dropdown-menu {
+            padding: 0.5rem;
+        }
+
+        .dropdown-header {
+            padding: 0.5rem 1rem;
+            font-size: 0.75rem;
+            color: #6c757d;
+            font-weight: 600;
+        }
+
+        .dropdown-item.active {
+            background-color: rgba(115, 103, 240, 0.1);
+            color: #7367f0;
+        }
+
+        .dropdown-item:hover {
+            background-color: rgba(115, 103, 240, 0.1);
+        }
+
+        .dropdown-divider {
+            margin: 0.5rem 0;
+        }
+    </style>
+@endpush
+
 @section('content')
     <div class="container-xxl flex-grow-1 container-p-y">
         <!-- Breadcrumb -->
@@ -50,8 +78,8 @@
                             <label for="status" class="form-label">Status</label>
                             <select class="form-select" id="status" name="status">
                                 <option value="">Semua Status</option>
-                                <option value="lunas" @selected(request('status') == 'lunas')>Lunas</option>
-                                <option value="belum_lunas" @selected(request('status') == 'belum_lunas')>Belum Lunas</option>
+                                <option value="bayar" @selected(request('status') == 'bayar')>Bayar</option>
+                                <option value="belum_bayar" @selected(request('status') == 'belum_bayar')>Belum Bayar</option>
                             </select>
                         </div>
                         <div class="col-md-4 mb-3">
@@ -80,7 +108,6 @@
                             <th>Nama Mahasiswa</th>
                             <th>Tahun Ajaran</th>
                             <th>Status</th>
-                            <th>Tanggal Bayar</th>
                             <th width="15%">Aksi</th>
                         </tr>
                     </thead>
@@ -92,17 +119,10 @@
                                 <td>{{ $item->mahasiswa->name }}</td>
                                 <td>{{ $item->tahunAjaran->tahun }} - {{ ucfirst($item->tahunAjaran->semester) }}</td>
                                 <td>
-                                    @if ($item->status == 'lunas')
-                                        <span class="badge bg-label-success">Lunas</span>
+                                    @if ($item->status == 'bayar')
+                                        <span class="badge bg-label-success">Bayar</span>
                                     @else
-                                        <span class="badge bg-label-warning">Belum Lunas</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    @if ($item->tanggal_bayar)
-                                        {{ $item->tanggal_bayar->format('d/m/Y') }}
-                                    @else
-                                        -
+                                        <span class="badge bg-label-warning">Belum bayar</span>
                                     @endif
                                 </td>
                                 <td>
@@ -112,17 +132,23 @@
                                             <i class="bx bx-dots-vertical-rounded"></i>
                                         </button>
                                         <div class="dropdown-menu">
-                                            @if ($item->status != 'lunas')
-                                                <a class="dropdown-item text-success" href="#"
-                                                    onclick="event.preventDefault(); document.getElementById('verify-form-{{ $item->id }}').submit();">
-                                                    <i class="bx bx-check me-1"></i> Verifikasi
-                                                </a>
-                                                <form id="verify-form-{{ $item->id }}"
-                                                    action="{{ route('admin.pembayaran-ukt.verify', $item->id) }}"
-                                                    method="POST" class="d-none">
-                                                    @csrf
-                                                </form>
-                                            @endif
+                                            <!-- Dropdown untuk ganti status -->
+                                            <div class="dropdown-header">Ubah Status</div>
+                                            <form action="{{ route('admin.pembayaran-ukt.update-status', $item->id) }}"
+                                                method="POST">
+                                                @csrf
+                                                @method('PUT')
+                                                <button type="submit" name="status" value="bayar"
+                                                    class="dropdown-item {{ $item->status == 'bayar' ? 'active' : '' }}">
+                                                    <i class="bx bx-check me-1"></i> Set Bayar
+                                                </button>
+                                                <button type="submit" name="status" value="belum_bayar"
+                                                    class="dropdown-item {{ $item->status == 'belum_bayar' ? 'active' : '' }}">
+                                                    <i class="bx bx-x me-1"></i> Set Belum Bayar
+                                                </button>
+                                            </form>
+                                            <div class="dropdown-divider"></div>
+                                            <!-- Tombol hapus -->
                                             <button type="button" class="dropdown-item text-danger delete-btn"
                                                 data-id="{{ $item->id }}">
                                                 <i class="bx bx-trash me-1"></i> Hapus

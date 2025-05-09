@@ -215,7 +215,8 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::post('/import', [PembayaranUktController::class, 'import'])->name('process-import');
         Route::get('/report', [PembayaranUktController::class, 'report'])->name('report');
         Route::get('/export', [PembayaranUktController::class, 'export'])->name('export');
-        Route::post('/reset/{tahunAjaran}', [PembayaranUktController::class, 'resetPayments'])->name('reset');
+        Route::put('/{pembayaranUkt}/status', [PembayaranUktController::class, 'updateStatus'])->name('update-status');
+        Route::delete('/{pembayaranUkt}', [PembayaranUktController::class, 'destroy'])->name('destroy');
         Route::get('/download-template', [PembayaranUktController::class, 'downloadTemplate'])->name('download-template');
     });
 

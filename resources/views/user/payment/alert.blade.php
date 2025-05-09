@@ -139,10 +139,10 @@
                 <div class="col-lg-8 mx-auto text-center">
                     <div class="alert-box">
                         <h4 class="display-6 mb-3"><i class="fas fa-exclamation-triangle me-2"></i> Akses Dibatasi</h4>
-                        <p class="mb-3">Anda belum melunasi pembayaran UKT untuk Tahun Ajaran {{ $tahunAktif->tahun }}
+                        <p class="mb-3">Anda belum melakukan pembayaran UKT untuk Tahun Ajaran {{ $tahunAktif->tahun }}
                             Semester {{ ucfirst($tahunAktif->semester) }}.</p>
                         <p class="mb-4">Silakan hubungi bagian administrasi untuk informasi lebih lanjut.</p>
-                        <a href="#contact-admin" class="btn btn-cta">Hubungi Administrasi</a>
+                        <a href="" class="btn btn-cta">Hubungi Administrasi</a>
 
                         @if (session('error'))
                             <div class="alert alert-warning mt-3">

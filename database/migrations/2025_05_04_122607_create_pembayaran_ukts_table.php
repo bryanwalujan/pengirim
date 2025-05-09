@@ -14,6 +14,7 @@ return new class extends Migration {
             $table->id();
             $table->foreignId('mahasiswa_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('tahun_ajaran_id')->constrained('tahun_ajarans')->onDelete('cascade');
+            $table->foreignId('updated_by')->nullable()->constrained('users');
             $table->enum('status', ['bayar', 'belum_bayar'])->default('belum_bayar');
             $table->timestamps();
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\User;
+use App\Models\TahunAjaran;
 use Illuminate\Http\Request;
 use App\Exports\MahasiswaExport;
 use App\Imports\MahasiswaImport;
@@ -34,7 +35,19 @@ class UserController extends Controller
     {
         $this->authorize('manage students');
         $search = $request->input('search');
-        $query = User::role('mahasiswa');
+
+        // Dapatkan tahun ajaran aktif
+        $tahunAjaranAktif = TahunAjaran::where('status_aktif', true)->first();
+
+        $query = User::role('mahasiswa')
+            ->with([
+                'pembayaranUkt' => function ($query) use ($tahunAjaranAktif) {
+                    $query->where('tahun_ajaran_id', $tahunAjaranAktif->id ?? null)
+                        ->latest()
+                        ->limit(1);
+                }
+            ]);
+
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', '%' . $search . '%')
@@ -43,7 +56,7 @@ class UserController extends Controller
             });
         }
         $users = $query->paginate(15);
-        return view('admin.users.mahasiswa.index', compact('users', 'search'));
+        return view('admin.users.mahasiswa.index', compact('users', 'search', 'tahunAjaranAktif'));
     }
 
 

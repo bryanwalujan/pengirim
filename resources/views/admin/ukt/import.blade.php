@@ -36,7 +36,7 @@
                     <h5 class="alert-heading">Petunjuk Import Data Pembayaran UKT</h5>
                     <ul class="mb-0">
                         <li>Kolom yang wajib diisi: <strong>NIM</strong> dan <strong>Status</strong></li>
-                        <li>Format status: <code>lunas</code> atau <code>belum_lunas</code> (huruf kecil)</li>
+                        <li>Format status: <code>bayar</code> atau <code>belum_bayar</code> (huruf kecil)</li>
                         <li>NIM harus sudah terdaftar dalam sistem</li>
                         <li>Format tanggal: <strong>DD/MM/YYYY</strong> (opsional)</li>
                         <li>File harus berformat <strong>.xlsx</strong> atau <strong>.xls</strong></li>
@@ -66,7 +66,6 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
-
                     <div class="mb-3">
                         <label for="file" class="form-label required">File Excel</label>
                         <input class="form-control @error('file') is-invalid @enderror" type="file" id="file"
@@ -76,22 +75,9 @@
                         @enderror
                         <div class="form-text">Format file: .xlsx, .xls (Max 2MB)</div>
                     </div>
-
-                    <div class="form-check mb-4">
-                        <input class="form-check-input" type="checkbox" id="reset_existing" name="reset_existing"
-                            value="1">
-                        <label class="form-check-label" for="reset_existing">
-                            Hapus semua data pembayaran untuk tahun ajaran ini sebelum import
-                        </label>
-                        <div class="form-text">Centang jika ingin mengosongkan data sebelumnya</div>
-                    </div>
-
                     <div class="mt-4">
                         <button type="submit" class="btn btn-primary me-2">
                             <i class="bx bx-upload me-1"></i> Import Data
-                        </button>
-                        <button type="reset" class="btn btn-outline-secondary">
-                            <i class="bx bx-reset me-1"></i> Reset Form
                         </button>
                     </div>
                 </form>

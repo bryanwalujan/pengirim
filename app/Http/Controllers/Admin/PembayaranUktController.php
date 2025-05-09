@@ -9,6 +9,7 @@ use App\Models\PembayaranUkt;
 use App\Exports\UktPaymentExport;
 use App\Imports\UktPaymentImport;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
@@ -54,72 +55,89 @@ class PembayaranUktController extends Controller
     public function import(Request $request)
     {
         $request->validate([
-            'tahun_ajaran_id' => 'required|exists:tahun_ajaran,id',
-            'file' => 'required|mimes:xlsx,xls|max:2048',
-            'reset_existing' => 'sometimes|boolean'
+            'tahun_ajaran_id' => 'required|exists:tahun_ajarans,id',
+            'file' => 'required|mimes:xlsx,xls|max:2048'
         ]);
+
+        // Debug: Log sebelum import
+        Log::info('Starting UKT import', ['tahun_ajaran_id' => $request->tahun_ajaran_id]);
 
         DB::beginTransaction();
 
         try {
-            if ($request->reset_existing) {
-                PembayaranUkt::where('tahun_ajaran_id', $request->tahun_ajaran_id)->delete();
-            }
-
             $import = new UktPaymentImport($request->tahun_ajaran_id);
             Excel::import($import, $request->file('file'));
 
-            $importedCount = $import->getRowCount();
-            $skippedCount = $import->getSkippedCount();
-
             DB::commit();
 
-            $message = "Import berhasil! {$importedCount} data diproses.";
-            if ($skippedCount > 0) {
-                $message .= " {$skippedCount} data dilewati (NIM tidak ditemukan).";
-            }
+            // Debug: Log hasil import
+            Log::info('UKT import completed', [
+                'imported' => $import->getRowCount(),
+                'skipped' => $import->getSkippedCount(),
+                'non_mahasiswa' => $import->getNonMahasiswaCount()
+            ]);
 
             return redirect()->route('admin.pembayaran-ukt.index')
-                ->with('success', $message);
+                ->with('success', $this->generateImportMessage(
+                    $import->getRowCount(),
+                    $import->getSkippedCount(),
+                    $import->getNonMahasiswaCount()
+                ));
 
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::error('UKT import failed', ['error' => $e->getMessage()]);
             return back()
                 ->with('error', 'Gagal mengimpor data: ' . $e->getMessage())
                 ->withInput();
         }
     }
 
-    public function verify(PembayaranUkt $pembayaranUkt)
+    private function generateImportMessage($imported, $skipped, $nonMahasiswa)
     {
-        $pembayaranUkt->update([
-            'status' => 'bayar',
-            'updated_by' => User::find(Auth::id())
+        $message = "Hasil Import: ";
+        $message .= "{$imported} data berhasil diimport. ";
+
+        if ($skipped > 0) {
+            $message .= "{$skipped} data dilewati (format tidak valid). ";
+        }
+
+        if ($nonMahasiswa > 0) {
+            $message .= "{$nonMahasiswa} data diabaikan (bukan mahasiswa).";
+        }
+
+        return $message;
+    }
+
+    /**
+     * Update status pembayaran
+     */
+    public function updateStatus(Request $request, PembayaranUkt $pembayaranUkt)
+    {
+        $request->validate([
+            'status' => 'required|in:bayar,belum_bayar'
         ]);
 
-        return back()->with('success', 'Pembayaran berhasil diverifikasi');
+        $pembayaranUkt->update([
+            'status' => $request->status,
+            'updated_by' => Auth::id()
+        ]);
+
+        return back()->with('success', 'Status pembayaran berhasil diperbarui');
     }
+
 
     /**
      * Reject a payment.
      */
-    public function reject(PembayaranUkt $pembayaranUkt)
-    {
-        $pembayaranUkt->update([
-            'status' => 'belum_bayar',
-            'updated_by' => User::find(Auth::id())
-        ]);
 
-        return back()->with('success', 'Pembayaran berhasil ditolak');
-    }
+    // public function resetPayments(TahunAjaran $tahunAjaran)
+    // {
+    //     PembayaranUkt::where('tahun_ajaran_id', $tahunAjaran->id)
+    //         ->update(['status' => 'belum_bayar']);
 
-    public function resetPayments(TahunAjaran $tahunAjaran)
-    {
-        PembayaranUkt::where('tahun_ajaran_id', $tahunAjaran->id)
-            ->update(['status' => 'belum_bayar']);
-
-        return back()->with('success', 'Status pembayaran berhasil direset');
-    }
+    //     return back()->with('success', 'Status pembayaran berhasil direset');
+    // }
 
     public function report(Request $request)
     {
@@ -154,7 +172,7 @@ class PembayaranUktController extends Controller
             })
             ->count();
 
-        $sudahBayar = (clone $query)->where('status', 'lunas')->count();
+        $sudahBayar = (clone $query)->where('status', 'bayar')->count();
         $belumBayar = $totalMahasiswa - $sudahBayar;
 
         $percentagePaid = $totalMahasiswa > 0 ? round(($sudahBayar / $totalMahasiswa) * 100, 2) : 0;
@@ -198,15 +216,14 @@ class PembayaranUktController extends Controller
     public function downloadTemplate()
     {
         $headers = [
-            'NIM' => 'Nomor Induk Mahasiswa (harus sudah terdaftar)',
+            'NIM' => 'Nomor Induk Mahasiswa (harus mahasiswa terdaftar)',
             'Status' => 'Isi dengan "bayar" atau "belum_bayar"'
         ];
 
         $examples = [
-            ['20210001', 'bayar'],
-            ['20210002', 'belum_bayar']
+            ['20210001', 'bayar'], // Example of paid student
+            ['20210002', 'belum_bayar'] // Example of unpaid student
         ];
-
         $export = new class ($headers, $examples) implements FromArray {
             private $headers;
             private $examples;
@@ -223,8 +240,12 @@ class PembayaranUktController extends Controller
                     array_keys($this->headers),
                     array_values($this->headers),
                     [], // Empty row for separation
-                    ['CONTOH DATA:'],
-                    ...$this->examples
+                    ['CONTOH DATA (Hanya untuk mahasiswa):'],
+                    ...$this->examples,
+                    ['CATATAN:'],
+                    ['- Sistem hanya akan memproses data mahasiswa'],
+                    ['- Status harus "bayar" atau "belum_bayar"'],
+                    ['- Data akan diupdate jika NIM sudah ada']
                 ];
             }
         };

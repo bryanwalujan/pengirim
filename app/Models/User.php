@@ -92,4 +92,15 @@ class User extends Authenticatable
             }
         });
     }
+
+
+    public function pembayaranUkt()
+    {
+        return $this->hasMany(PembayaranUkt::class, 'mahasiswa_id');
+    }
+
+    public function isMahasiswa()
+    {
+        return $this->hasRole('mahasiswa');
+    }
 }

@@ -8,6 +8,8 @@ class PembayaranUkt extends Model
 {
     protected $fillable = ['mahasiswa_id', 'tahun_ajaran_id', 'status', 'updated_by'];
 
+    protected $table = 'pembayaran_ukts';
+
     public function mahasiswa()
     {
         return $this->belongsTo(User::class, 'mahasiswa_id');
