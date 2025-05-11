@@ -207,37 +207,17 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <div class="form-floating">
-                                <select class="form-select @error('tahun_ajaran') is-invalid @enderror" id="tahun_ajaran"
-                                    name="tahun_ajaran" required>
-                                    <option value="" {{ old('tahun_ajaran') == '' ? 'selected' : '' }}>Pilih Tahun
-                                        Ajaran</option>
-                                    <option value="{{ $year }}/{{ $year + 1 }}"
-                                        @foreach (range(date('Y') - 1, date('Y') + 5) as $year)
-                                            {{ old('tahun_ajaran') == $year . '/' . ($year + 1) ? 'selected' : '' }}>
-                                            {{ $year }}/{{ $year + 1 }}
-                                        </option> @endforeach
-                                        </select>
-                                        <label for="tahun_ajaran">Tahun Ajaran</label>
-                                        @error('tahun_ajaran')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
+                                <input type="text" class="form-control" id="tahun_ajaran" name="tahun_ajaran"
+                                    value="{{ $tahunAjaranAktif->tahun ?? '' }}" readonly>
+                                <label for="tahun_ajaran">Tahun Ajaran</label>
                             </div>
                         </div>
 
                         <div class="col-md-6">
                             <div class="form-floating">
-                                <select class="form-select @error('semester') is-invalid @enderror" id="semester"
-                                    name="semester" required>
-                                    <option value="">Pilih Semester</option>
-                                    <option value="ganjil" {{ old('semester') == 'ganjil' ? 'selected' : '' }}>Ganjil
-                                    </option>
-                                    <option value="genap" {{ old('semester') == 'genap' ? 'selected' : '' }}>Genap
-                                    </option>
-                                </select>
+                                <input type="text" class="form-control" id="semester" name="semester"
+                                    value="{{ $tahunAjaranAktif->semester ?? '' }}" readonly>
                                 <label for="semester">Semester</label>
-                                @error('semester')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
                             </div>
                         </div>
                     </div>

@@ -24,4 +24,5 @@ class PembayaranUkt extends Model
     {
         return $query->where('status', 'bayar');
     }
+
 }

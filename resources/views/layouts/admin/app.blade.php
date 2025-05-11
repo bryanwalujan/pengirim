@@ -75,8 +75,19 @@
                     @include('layouts.admin.footer')
                     {{-- End Footer --}}
                 </div>
+                <!-- Loader Overlay -->
+                <div id="loading-overlay" class="d-none">
+                    <div class="typewriter">
+                        <div class="slide"><i></i></div>
+                        <div class="paper"></div>
+                        <div class="keyboard"></div>
+                    </div>
+                </div>
+
             </div>
+
         </div>
+
     </div>
 
     {{-- Core JS files --}}
@@ -103,6 +114,44 @@
     {{-- Trix editor --}}
     <script type="text/javascript" src="https://unpkg.com/trix@2.0.8/dist/trix.umd.min.js"></script>
 
+    {{-- Loader --}}
+    <script>
+        // Fungsi untuk menampilkan loader
+        function showLoader() {
+            document.getElementById('loading-overlay').classList.remove('d-none');
+        }
+
+        // Fungsi untuk menyembunyikan loader
+        function hideLoader() {
+            document.getElementById('loading-overlay').classList.add('d-none');
+        }
+
+        // Tangani saat form filter di-submit
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tangani form filter
+            const filterForm = document.getElementById('filter-form'); // Sesuaikan dengan ID form Anda
+            if (filterForm) {
+                filterForm.addEventListener('submit', function(e) {
+                    showLoader();
+                });
+            }
+
+            // Tangani saat refresh page
+            window.addEventListener('beforeunload', function() {
+                showLoader();
+            });
+
+            // Tangani saat AJAX selesai (jika menggunakan AJAX)
+            document.addEventListener('ajaxComplete', function() {
+                hideLoader();
+            });
+
+            // Sembunyikan loader saat page selesai load
+            window.addEventListener('load', function() {
+                hideLoader();
+            });
+        });
+    </script>
 
 
     {{-- SweetAlert2 --}}

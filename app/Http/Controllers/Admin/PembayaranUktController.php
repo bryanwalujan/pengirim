@@ -14,6 +14,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Concerns\FromArray;
+use Maatwebsite\Excel\Concerns\FromCollection;
 
 class PembayaranUktController extends Controller
 {
@@ -25,8 +26,8 @@ class PembayaranUktController extends Controller
             ->get();
 
         $pembayaran = PembayaranUkt::with(['mahasiswa', 'tahunAjaran'])
-            ->when($request->tahun_ajaran_id, function ($query) use ($request) {
-                $query->where('tahun_ajaran_id', $request->tahun_ajaran_id);
+            ->when($request->tahun_ajaran, function ($query) use ($request) { // Ubah dari tahun_ajaran_id ke tahun_ajaran
+                $query->where('tahun_ajaran_id', $request->tahun_ajaran);
             })
             ->when($request->status, function ($query) use ($request) {
                 $query->where('status', $request->status);
@@ -38,7 +39,8 @@ class PembayaranUktController extends Controller
                 });
             })
             ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->paginate(20)
+            ->withQueryString(); // Tambahkan ini untuk mempertahankan parameter filter
 
         return view('admin.ukt.index', compact('pembayaran', 'tahunAjaranList'));
     }
@@ -125,66 +127,52 @@ class PembayaranUktController extends Controller
 
         return back()->with('success', 'Status pembayaran berhasil diperbarui');
     }
-
-
-    /**
-     * Reject a payment.
-     */
-
-    // public function resetPayments(TahunAjaran $tahunAjaran)
-    // {
-    //     PembayaranUkt::where('tahun_ajaran_id', $tahunAjaran->id)
-    //         ->update(['status' => 'belum_bayar']);
-
-    //     return back()->with('success', 'Status pembayaran berhasil direset');
-    // }
-
     public function report(Request $request)
     {
+        // Ambil tahun ajaran aktif
+        $tahunAjaranAktif = TahunAjaran::where('status_aktif', true)->first();
+
+        // Ambil semua tahun ajaran untuk dropdown filter
         $tahunAjaranList = TahunAjaran::orderBy('tahun', 'desc')
             ->orderBy('semester', 'desc')
             ->get();
 
-        $prodiList = User::whereHas('roles', function ($q) {
-            $q->where('name', 'mahasiswa');
-        })
-            ->distinct()
-            ->pluck('prodi')
-            ->filter()
-            ->toArray();
-
+        // Query dasar
         $query = PembayaranUkt::with(['mahasiswa', 'tahunAjaran'])
-            ->when($request->tahun_ajaran_id, function ($query) use ($request) {
-                $query->where('tahun_ajaran_id', $request->tahun_ajaran_id);
+            ->when($request->tahun_ajaran_id, function ($q) use ($request) {
+                $q->where('tahun_ajaran_id', $request->tahun_ajaran_id);
+            }, function ($q) use ($tahunAjaranAktif) {
+                // Default filter tahun ajaran aktif jika tidak ada filter
+                if ($tahunAjaranAktif) {
+                    $q->where('tahun_ajaran_id', $tahunAjaranAktif->id);
+                }
             })
-            ->when($request->status, function ($query) use ($request) {
-                $query->where('status', $request->status);
+            ->when($request->status, function ($q) use ($request) {
+                $q->where('status', $request->status);
             })
-            ->when($request->prodi, function ($query) use ($request) {
-                $query->whereHas('mahasiswa', function ($q) use ($request) {
-                    $q->where('prodi', $request->prodi);
+            ->when($request->search, function ($q) use ($request) {
+                $q->whereHas('mahasiswa', function ($q) use ($request) {
+                    $q->where('nim', 'like', '%' . $request->search . '%')
+                        ->orWhere('name', 'like', '%' . $request->search . '%');
                 });
             });
 
-        $totalMahasiswa = User::role('mahasiswa')
-            ->when($request->prodi, function ($query) use ($request) {
-                $query->where('prodi', $request->prodi);
-            })
-            ->count();
-
+        // Hitung statistik
+        $totalMahasiswa = User::role('mahasiswa')->count();
         $sudahBayar = (clone $query)->where('status', 'bayar')->count();
         $belumBayar = $totalMahasiswa - $sudahBayar;
 
         $percentagePaid = $totalMahasiswa > 0 ? round(($sudahBayar / $totalMahasiswa) * 100, 2) : 0;
         $percentageUnpaid = $totalMahasiswa > 0 ? round(($belumBayar / $totalMahasiswa) * 100, 2) : 0;
 
+        // Ambil data untuk tabel
         $pembayaran = $query->orderBy('status')
-            ->orderBy('tanggal_bayar', 'desc')
+            ->orderBy('created_at', 'desc')
             ->paginate(20);
 
         return view('admin.ukt.report', compact(
             'tahunAjaranList',
-            'prodiList',
+            'tahunAjaranAktif',
             'pembayaran',
             'totalMahasiswa',
             'sudahBayar',
@@ -206,7 +194,6 @@ class PembayaranUktController extends Controller
             $request->status
         ), $fileName);
     }
-
     /**
      * Download the import template.
      */
@@ -252,9 +239,6 @@ class PembayaranUktController extends Controller
 
         return Excel::download($export, 'template-import-ukt.xlsx');
     }
-
-
-
     /**
      * Remove the specified payment.
      */

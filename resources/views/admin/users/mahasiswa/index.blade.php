@@ -37,7 +37,7 @@
                         </a>
                     </div>
                     <div class="col-auto me-auto">
-                        <a href="{{ route('admin.users.mahasiswa.export') }}"
+                        <a href="{{ route('admin.users.mahasiswa.export') }}" target="_blank"
                             class="btn btn-outline-success d-flex align-items-center ms-2">
                             <i class="bx bx-export d-flex d-sm-inline-flex"></i>
                             <span class="d-none d-sm-inline ms-2">Export</span>

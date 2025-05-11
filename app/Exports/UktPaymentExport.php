@@ -43,7 +43,6 @@ class UktPaymentExport implements FromCollection, WithHeadings, WithMapping, Sho
         return [
             'NIM',
             'Nama Mahasiswa',
-            'Program Studi',
             'Tahun Ajaran',
             'Semester',
             'Status Pembayaran',
@@ -64,7 +63,6 @@ class UktPaymentExport implements FromCollection, WithHeadings, WithMapping, Sho
         return [
             $payment->mahasiswa->nim,
             $payment->mahasiswa->name,
-            $payment->mahasiswa->prodi ?? '-',
             $payment->tahunAjaran->tahun,
             ucfirst($payment->tahunAjaran->semester),
             $this->getStatusText($payment->status),

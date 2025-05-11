@@ -33,7 +33,8 @@
                     <ul class="mb-0">
                         <li>Data yang diimport akan otomatis diberikan <strong>role mahasiswa</strong>.</li>
                         <li>Email mahasiswa akan <strong>dibuat otomatis</strong> berdasarkan NIM, contoh:
-                            <code>20210048@unima.ac.id</code>.</li>
+                            <code>20210048@unima.ac.id</code>.
+                        </li>
                         <li>Jika kolom <strong>password</strong> dikosongkan, sistem akan menggenerate password secara acak.
                         </li>
                         <li>Kolom yang dibutuhkan dalam file Excel: <strong>NIM, Nama, dan Password (opsional)</strong>.
@@ -43,7 +44,8 @@
                             2MB).</li>
                     </ul>
                     <div class="mt-3">
-                        <a href="{{ route('admin.users.mahasiswa.download-template') }}" class="btn btn-outline-primary">
+                        <a href="{{ route('admin.users.mahasiswa.download-template') }}" target="_blank"
+                            class="btn btn-outline-primary">
                             <i class="bx bx-download me-1"></i> Download Template Excel
                         </a>
                     </div>

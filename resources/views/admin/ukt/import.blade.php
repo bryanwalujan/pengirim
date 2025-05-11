@@ -42,7 +42,8 @@
                         <li>File harus berformat <strong>.xlsx</strong> atau <strong>.xls</strong></li>
                     </ul>
                     <div class="mt-3">
-                        <a href="{{ route('admin.pembayaran-ukt.download-template') }}" class="btn btn-outline-primary">
+                        <a href="{{ route('admin.pembayaran-ukt.download-template') }}" target="_blank"
+                            class="btn btn-outline-primary">
                             <i class="bx bx-download me-1"></i> Download Template
                         </a>
                     </div>

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\User;
 use App\Models\User;
 use App\Models\Service;
 use App\Models\StatusSurat;
+use App\Models\TahunAjaran;
 use Illuminate\Http\Request;
 use App\Models\TrackingSurat;
 use App\Models\SuratAktifKuliah;
@@ -39,7 +40,9 @@ class SuratAktifKuliahController extends Controller
     {
         $this->authorize('create', SuratAktifKuliah::class);
         $service = Service::where('slug', 'surat-aktif-kuliah')->firstOrFail();
-        return view('user.surat-aktif-kuliah.create', compact('service'));
+        // Ambil tahun ajaran aktif
+        $tahunAjaranAktif = TahunAjaran::where('status_aktif', true)->first();
+        return view('user.surat-aktif-kuliah.create', compact('service', 'tahunAjaranAktif'));
     }
 
     public function store(SuratAktifKuliahRequest $request)

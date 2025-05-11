@@ -52,7 +52,8 @@
                 <a href="{{ route('admin.pembayaran-ukt.import') }}" class="btn btn-outline-primary me-2">
                     <i class="bx bx-import me-1"></i> Import
                 </a>
-                <a href="{{ route('admin.pembayaran-ukt.export') }}" class="btn btn-outline-success">
+                <a href="{{ route('admin.pembayaran-ukt.export') }}" target="_blank"
+                    class="btn-export btn btn-outline-success">
                     <i class="bx bx-export me-1"></i> Export
                 </a>
             </div>
@@ -66,6 +67,7 @@
                         <div class="col-md-4 mb-3">
                             <label for="tahun_ajaran" class="form-label">Tahun Ajaran</label>
                             <select class="form-select" id="tahun_ajaran" name="tahun_ajaran">
+                                <!-- Pastikan name="tahun_ajaran" -->
                                 <option value="">Semua Tahun Ajaran</option>
                                 @foreach ($tahunAjaranList as $tahun)
                                     <option value="{{ $tahun->id }}" @selected(request('tahun_ajaran') == $tahun->id)>
@@ -205,6 +207,11 @@
                         }
                     });
                 });
+            });
+
+            // Reset filter
+            document.getElementById('resetFilter').addEventListener('click', function() {
+                window.location.href = "{{ route('admin.pembayaran-ukt.index') }}";
             });
         });
     </script>

@@ -25,7 +25,7 @@ class SuratAktifKuliahRequest extends FormRequest
             'tujuan_pengajuan' => 'required|string|max:500',
             'keterangan_tambahan' => 'nullable|string|max:500',
             'file_pendukung' => 'nullable|file|mimes:pdf,jpg,png|max:2048',
-            'tahun_ajaran' => ['required', 'string', 'regex:/^\d{4}\/\d{4}$/'],
+            'tahun_ajaran' => 'required|string',
             'semester' => 'required|in:ganjil,genap',
         ];
     }
