@@ -120,6 +120,9 @@
     justify-content: center;
     align-items: center;
 }
+#loading-overlay.d-none {
+    display: none !important;
+}
 .typewriter {
     --blue: #5c86ff;
     --blue-dark: #275efe;

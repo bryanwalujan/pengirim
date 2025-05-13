@@ -88,7 +88,7 @@
                                         @endif
                                         <small
                                             class="text-muted">{{ $notification->created_at->diffForHumans() }}</small>
-                                        <div class="mt-2">
+                                        <div class="mt-2 d-flex justify-content-start">
                                             <a href="{{ $notification->data['url'] }}"
                                                 class="btn btn-sm btn-primary me-2"
                                                 onclick="markNotificationAsRead('{{ $notification->id }}', this)">Lihat

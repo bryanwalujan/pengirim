@@ -50,37 +50,44 @@ class SuratAktifKuliahController extends Controller
         $this->authorize('create', SuratAktifKuliah::class);
         $validated = $request->validated();
 
-        $filePath = null;
-        if ($request->hasFile('file_pendukung')) {
-            $filePath = $request->file('file_pendukung')->store('surat-aktif-kuliah/pendukung', 'public');
+        DB::beginTransaction();
+        try {
+            $surat = SuratAktifKuliah::create([
+                'mahasiswa_id' => Auth::id(),
+                'tujuan_pengajuan' => $validated['tujuan_pengajuan'],
+                'keterangan_tambahan' => $validated['keterangan_tambahan'],
+                'tahun_ajaran' => $validated['tahun_ajaran'],
+                'semester' => $validated['semester'],
+            ]);
+
+            // Simpan multiple files
+            if ($request->hasFile('file_pendukung_path')) {
+                $surat->attachDokumenPendukung($request->file('file_pendukung_path'));
+            }
+
+            StatusSurat::create([
+                'surat_type' => SuratAktifKuliah::class,
+                'surat_id' => $surat->id,
+                'status' => 'diajukan',
+                'updated_by' => Auth::id(),
+            ]);
+
+            TrackingSurat::create([
+                'surat_type' => SuratAktifKuliah::class,
+                'surat_id' => $surat->id,
+                'aksi' => 'diajukan',
+                'keterangan' => 'Pengajuan surat aktif kuliah baru',
+                'mahasiswa_id' => Auth::id(),
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('user.surat-aktif-kuliah.index')
+                ->with('success', 'Surat aktif kuliah berhasil diajukan');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Gagal mengajukan surat: ' . $e->getMessage());
         }
-
-        $surat = SuratAktifKuliah::create([
-            'mahasiswa_id' => Auth::id(),
-            'tujuan_pengajuan' => $validated['tujuan_pengajuan'],
-            'keterangan_tambahan' => $validated['keterangan_tambahan'],
-            'file_pendukung_path' => $filePath,
-            'tahun_ajaran' => $validated['tahun_ajaran'],
-            'semester' => $validated['semester'],
-        ]);
-
-        StatusSurat::create([
-            'surat_type' => SuratAktifKuliah::class,
-            'surat_id' => $surat->id,
-            'status' => 'diajukan',
-            'updated_by' => Auth::id(),
-        ]);
-
-        TrackingSurat::create([
-            'surat_type' => SuratAktifKuliah::class,
-            'surat_id' => $surat->id,
-            'aksi' => 'diajukan',
-            'keterangan' => 'Pengajuan surat aktif kuliah baru',
-            'mahasiswa_id' => Auth::id(),
-        ]);
-
-        return redirect()->route('user.surat-aktif-kuliah.index')
-            ->with('success', 'Surat aktif kuliah berhasil diajukan');
     }
 
     public function show($id)

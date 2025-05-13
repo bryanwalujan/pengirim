@@ -7,6 +7,7 @@ use App\Models\TahunAjaran;
 use Illuminate\Http\Request;
 use App\Exports\MahasiswaExport;
 use App\Imports\MahasiswaImport;
+use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
@@ -205,14 +206,22 @@ class UserController extends Controller
         $request->validate([
             'name' => 'required',
             'email' => 'required|email|unique:users,email,' . $user->id,
-            'nim' => 'required|unique:users,nim,' . $user->id
+            'nim' => 'required|unique:users,nim,' . $user->id,
+            'password' => 'nullable|min:8' // Tambahkan validasi password
         ]);
 
-        $user->update([
+        $data = [
             'name' => $request->name,
             'email' => $request->email,
             'nim' => $request->nim
-        ]);
+        ];
+
+        // Jika password diisi, update password
+        if ($request->filled('password')) {
+            $data['password'] = Hash::make($request->password);
+        }
+
+        $user->update($data);
 
         return redirect()->route('admin.users.mahasiswa')->with('success', 'Data mahasiswa berhasil diperbarui');
     }
@@ -225,14 +234,22 @@ class UserController extends Controller
         $request->validate([
             'name' => 'required',
             'email' => 'required|email|unique:users,email,' . $user->id,
-            'nidn' => 'required|unique:users,nidn,' . $user->id
+            'nidn' => 'required|unique:users,nidn,' . $user->id,
+            'password' => 'nullable|min:8' // Tambahkan validasi password
         ]);
 
-        $user->update([
+        $data = [
             'name' => $request->name,
             'email' => $request->email,
             'nidn' => $request->nidn
-        ]);
+        ];
+
+        // Jika password diisi, update password
+        if ($request->filled('password')) {
+            $data['password'] = Hash::make($request->password);
+        }
+
+        $user->update($data);
 
         return redirect()->route('admin.users.dosen')->with('success', 'Data dosen berhasil diperbarui');
     }
@@ -247,10 +264,17 @@ class UserController extends Controller
             'email' => 'required|email|unique:users,email,' . $user->id,
         ]);
 
-        $user->update([
+        $data = [
             'name' => $request->name,
             'email' => $request->email,
-        ]);
+        ];
+
+        // Jika password diisi, update password
+        if ($request->filled('password')) {
+            $data['password'] = Hash::make($request->password);
+        }
+
+        $user->update($data);
 
         return redirect()->route('admin.users.staff')->with('success', 'Data staff berhasil diperbarui');
     }
@@ -324,21 +348,47 @@ class UserController extends Controller
             'file' => 'required|mimes:xlsx,xls|max:2048'
         ]);
 
+        DB::beginTransaction();
+
         try {
-            // Pastikan role mahasiswa ada
+            // Ensure mahasiswa role exists
             Role::firstOrCreate(['name' => 'mahasiswa']);
 
-            Excel::import(new MahasiswaImport, $request->file('file'));
+            $import = new MahasiswaImport();
+            Excel::import($import, $request->file('file'));
+
+            DB::commit();
 
             return redirect()
                 ->route('admin.users.mahasiswa')
-                ->with('success', 'Data mahasiswa berhasil diimport');
+                ->with('success', $this->generateImportMessage(
+                    $import->getRowCount(),
+                    $import->getSkippedCount(),
+                    $import->getNonMahasiswaCount()
+                ));
 
         } catch (\Exception $e) {
+            DB::rollBack();
             return back()
                 ->with('error', 'Terjadi kesalahan: ' . $e->getMessage())
                 ->withInput();
         }
+    }
+
+    private function generateImportMessage($imported, $skipped, $nonMahasiswa)
+    {
+        $message = "Hasil Import: ";
+        $message .= "{$imported} data berhasil diimport. ";
+
+        if ($skipped > 0) {
+            $message .= "{$skipped} data dilewati (sudah ada atau format tidak valid). ";
+        }
+
+        if ($nonMahasiswa > 0) {
+            $message .= "{$nonMahasiswa} data diabaikan (bukan mahasiswa).";
+        }
+
+        return $message;
     }
 
     /**

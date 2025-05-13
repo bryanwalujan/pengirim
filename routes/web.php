@@ -188,8 +188,11 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
                 ->name('approve');
         });
 
-
         Route::get('/{surat}/download', [AdminSuratAktifKuliahController::class, 'download'])->name('download'); // Opsional
+
+        // Dokumen pendukung surat aktif kuliah
+        Route::get('/{surat}/download-pendukung', [AdminSuratAktifKuliahController::class, 'downloadPendukung'])
+            ->name('download-pendukung');
     });
 
     // Dosen routes untuk Surat Aktif Kuliah

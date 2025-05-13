@@ -126,31 +126,56 @@
             document.getElementById('loading-overlay').classList.add('d-none');
         }
 
+        // Variabel untuk melacak apakah ini navigasi back
+        let isNavigatingBack = false;
+
         // Tangani saat form filter di-submit
         document.addEventListener('DOMContentLoaded', function() {
             // Tangani form filter
-            const filterForm = document.getElementById('filter-form'); // Sesuaikan dengan ID form Anda
+            const filterForm = document.getElementById('filter-form');
             if (filterForm) {
                 filterForm.addEventListener('submit', function(e) {
                     showLoader();
                 });
             }
 
-            // Tangani saat refresh page
-            window.addEventListener('beforeunload', function() {
-                showLoader();
+            // Tangani saat page akan di-unload (refresh/tutup tab/navigasi)
+            window.addEventListener('beforeunload', function(e) {
+                // Hanya tampilkan loader jika bukan navigasi back
+                if (!isNavigatingBack) {
+                    showLoader();
+                }
             });
 
-            // Tangani saat AJAX selesai (jika menggunakan AJAX)
-            document.addEventListener('ajaxComplete', function() {
-                hideLoader();
-            });
-
-            // Sembunyikan loader saat page selesai load
+            // Tangani saat page selesai load
             window.addEventListener('load', function() {
                 hideLoader();
+                isNavigatingBack = false;
+            });
+
+            // Tangani saat popstate (navigasi back/forward)
+            window.addEventListener('popstate', function() {
+                isNavigatingBack = true;
+                showLoader(); // Tetap tampilkan loader tapi dengan flag khusus
+            });
+
+            // Tangani event pageshow untuk kasus cache browser
+            window.addEventListener('pageshow', function(event) {
+                // Jika page di-load dari cache (bfcache)
+                if (event.persisted) {
+                    hideLoader();
+                }
             });
         });
+
+        // Tangani AJAX jika ada
+        if (window.jQuery) {
+            $(document).ajaxStart(function() {
+                showLoader();
+            }).ajaxStop(function() {
+                hideLoader();
+            });
+        }
     </script>
 
 

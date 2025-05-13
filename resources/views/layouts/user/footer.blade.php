@@ -1,12 +1,14 @@
 <footer id="footer" class="footer">
     <div class="container footer-top">
-        <div class="row gy-4">
+        <div class="row gy-3">
             <!-- Bagian Tentang E-Services -->
             <div class="col-lg-4 col-md-6 footer-about">
                 <a href="{{ route('user.home.index') }}" class="logo d-flex align-items-center">
-                    <span class="sitename">E-Services</span>
+                    <span class="sitename me-2">E-Services</span>
+                    <img src="{{ asset('/img/logo-unima.png') }}" alt="E-Services Logo"
+                        style="height: 45px; width: auto;">
                 </a>
-                <div class="footer-contact pt-3">
+                <div class="footer-contact">
                     <p>Program Studi Teknik Informatika</p>
                     <p>Fakultas Teknik, Universitas Negeri Manado</p>
                     <p>Tondano, Sulawesi Utara, Indonesia</p>

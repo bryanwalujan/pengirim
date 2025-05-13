@@ -3,43 +3,73 @@
 namespace App\Imports;
 
 use App\Models\User;
-use Spatie\Permission\Models\Role;
-use Illuminate\Support\Facades\Hash;
-use Maatwebsite\Excel\Concerns\ToModel;
+use Illuminate\Support\Collection;
+use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Maatwebsite\Excel\Concerns\WithValidation;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
-class MahasiswaImport implements ToModel, WithHeadingRow, WithValidation
+class MahasiswaImport implements ToCollection, WithHeadingRow
 {
-    public function model(array $row)
+    protected $importedCount = 0;
+    protected $skippedCount = 0;
+    protected $nonMahasiswaCount = 0;
+
+    public function collection(Collection $rows)
     {
-        $password = $row['password'] ?? $this->generateRandomPassword();
-        $email = $row['nim'] . '@unima.ac.id'; // Email otomatis dari nim
+        foreach ($rows as $row) {
+            // Skip if NIM is empty
+            if (empty($row['nim'])) {
+                $this->skippedCount++;
+                continue;
+            }
 
-        $user = User::create([
-            'nim' => $row['nim'],
-            'name' => $row['nama'],
-            'email' => $email,
-            'username' => $row['nim'],
-            'password' => Hash::make($password),
-        ]);
+            // Check if student already exists
+            $existingStudent = User::where('nim', $row['nim'])->first();
 
-        Role::firstOrCreate(['name' => 'mahasiswa']);
-        $user->assignRole('mahasiswa');
+            if ($existingStudent) {
+                $this->skippedCount++;
+                continue;
+            }
 
-        return $user;
+            try {
+                // Create new student
+                $user = User::create([
+                    'nim' => $row['nim'],
+                    'name' => $row['nama'] ?? $row['name'] ?? 'Mahasiswa Baru',
+                    'email' => $row['email'] ?? $row['nim'] . '@unima.ac.id',
+                    'password' => Hash::make($row['password'] ?? $this->generateRandomPassword())
+                ]);
+
+                $user->assignRole('mahasiswa');
+                $this->importedCount++;
+
+            } catch (\Exception $e) {
+                Log::error('Error importing student: ' . $e->getMessage());
+                $this->skippedCount++;
+            }
+        }
     }
 
-    public function rules(): array
+    public function getRowCount()
     {
-        return [
-            'nim' => 'required|unique:users,nim',
-            'nama' => 'required',
-        ];
+        return $this->importedCount;
+    }
+
+    public function getSkippedCount()
+    {
+        return $this->skippedCount;
+    }
+
+    public function getNonMahasiswaCount()
+    {
+        return $this->nonMahasiswaCount;
     }
 
     private function generateRandomPassword($length = 12)
     {
         return substr(str_shuffle('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'), 0, $length);
     }
+
+
 }

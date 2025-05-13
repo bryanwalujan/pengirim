@@ -7,6 +7,7 @@ use App\Models\StatusSurat;
 use Illuminate\Http\Request;
 use App\Models\TrackingSurat;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Models\DokumenPendukung;
 use App\Models\SuratAktifKuliah;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
@@ -440,6 +441,18 @@ class AdminSuratAktifKuliahController extends Controller
             $filePath,
             'Surat_Aktif_Kuliah_' . $surat->mahasiswa->nim . '.pdf'
         );
+    }
+
+    public function downloadPendukung($id)
+    {
+        $dokumen = DokumenPendukung::findOrFail($id);
+
+        if (!Storage::disk('public')->exists($dokumen->path)) {
+            return back()->with('error', 'Dokumen pendukung tidak ditemukan.');
+        }
+
+        $filePath = Storage::disk('public')->path($dokumen->path);
+        return response()->download($filePath, $dokumen->nama_asli);
     }
 
 }

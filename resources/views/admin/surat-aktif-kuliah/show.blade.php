@@ -108,6 +108,42 @@
                     </div>
                 </div>
 
+                {{-- Dokumen Pendukung --}}
+                @if ($surat->dokumenPendukung->count() > 0)
+                    <div class="mb-4">
+                        <h5 class="fw-bold mb-3">Dokumen Pendukung</h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Nama File</th>
+                                        <th>Ukuran</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($surat->dokumenPendukung as $dokumen)
+                                        <tr>
+                                            <td>{{ $dokumen->nama_asli }}</td>
+                                            <td>{{ round($dokumen->size / (1024 * 1024), 2) }} MB</td>
+                                            <td>
+                                                <a href="{{ Storage::url($dokumen->path) }}" target="_blank"
+                                                    class="btn btn-sm btn-info">
+                                                    <i class="bx bx-show"></i> Lihat
+                                                </a>
+                                                <a href="{{ route('admin.surat-aktif-kuliah.download-pendukung', $dokumen->id) }}"
+                                                    class="btn btn-sm btn-success">
+                                                    <i class="bx bx-download"></i> Unduh
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                @endif
+
                 <!-- File Surat -->
                 @if ($surat->file_surat_path)
                     <div class="mb-4">

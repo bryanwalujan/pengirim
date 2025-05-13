@@ -268,16 +268,17 @@
                     </h5>
 
                     <div class="file-upload-wrapper">
-                        <label class="file-upload-label" for="file_pendukung">
+                        <label class="file-upload-label" for="file_pendukung_path">
                             <i class="bi bi-cloud-arrow-up" style="font-size: 2rem; color: var(--accent-color);"></i>
-                            <div class="mt-2">Klik untuk mengunggah dokumen</div>
-                            <div class="file-info">Format: PDF, JPG, PNG (maks. 2MB)</div>
+                            <div class="mt-2">Klik untuk mengunggah dokumen (Bisa multiple)</div>
+                            <div class="file-info">Format: PDF, JPG, PNG (maks. 2MB per file)</div>
                         </label>
-                        <input type="file" class="file-upload-input @error('file_pendukung') is-invalid @enderror"
-                            id="file_pendukung" name="file_pendukung">
-                        @error('file_pendukung')
+                        <input type="file" class="file-upload-input @error('file_pendukung_path') is-invalid @enderror"
+                            id="file_pendukung_path" name="file_pendukung_path[]" multiple>
+                        @error('file_pendukung_path')
                             <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
+                        <div id="file-list" class="mt-3"></div>
                     </div>
                 </div>
 
@@ -305,28 +306,38 @@
         });
 
         // File upload preview
-        document.getElementById('file_pendukung').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            const label = document.querySelector('.file-upload-label');
-            const fileInfo = document.querySelector('.file-info');
+        document.getElementById('file_pendukung_path').addEventListener('change', function(e) {
+            const files = e.target.files;
+            const fileList = document.getElementById('file-list');
+            fileList.innerHTML = '';
 
-            if (file) {
-                const fileSize = (file.size / (1024 * 1024)).toFixed(2);
-                const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
-                const maxSize = 2 * 1024 * 1024; // 2MB
+            if (files.length > 0) {
+                const list = document.createElement('ul');
+                list.className = 'list-group';
 
-                if (!allowedTypes.includes(file.type) || file.size > maxSize) {
-                    alert('File harus berupa PDF, JPG, atau PNG dengan ukuran maksimal 2MB');
-                    e.target.value = '';
-                    fileInfo.textContent = 'Format: PDF, JPG, PNG (maks. 2MB)';
-                    return;
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    const fileSize = (file.size / (1024 * 1024)).toFixed(2);
+                    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+                    const maxSize = 2 * 1024 * 1024; // 2MB
+
+                    if (!allowedTypes.includes(file.type) || file.size > maxSize) {
+                        alert(`File ${file.name} harus berupa PDF, JPG, atau PNG dengan ukuran maksimal 2MB`);
+                        e.target.value = '';
+                        fileList.innerHTML = '';
+                        return;
+                    }
+
+                    const item = document.createElement('li');
+                    item.className = 'list-group-item d-flex justify-content-between align-items-center';
+                    item.innerHTML = `
+                    <span>${file.name}</span>
+                    <span class="badge bg-primary rounded-pill">${fileSize} MB</span>
+                `;
+                    list.appendChild(item);
                 }
 
-                label.innerHTML = `
-                    <i class="bi bi-file-earmark-check" style="font-size: 2rem; color: #28a745;"></i>
-                    <div class="mt-2">${file.name}</div>
-                    <div class="file-info">${fileSize} MB</div>
-                `;
+                fileList.appendChild(list);
             }
         });
 
