@@ -57,7 +57,6 @@
                     </div>
                     <div class="stat-content">
                         <h4>5.2k Surat Aktif Kuliah</h4>
-                        <p>Pengajuan dan penerbitan surat aktif kuliah</p>
                     </div>
                 </div>
                 <div class="stat-item">
@@ -66,7 +65,6 @@
                     </div>
                     <div class="stat-content">
                         <h4>1.8k Surat Cuti Akademik</h4>
-                        <p>Permohonan cuti akademik mahasiswa</p>
                     </div>
                 </div>
                 <div class="stat-item">
@@ -75,7 +73,6 @@
                     </div>
                     <div class="stat-content">
                         <h4>750 Surat Pindah</h4>
-                        <p>Proses mutasi mahasiswa ke perguruan tinggi lain</p>
                     </div>
                 </div>
                 <div class="stat-item">
@@ -84,7 +81,6 @@
                     </div>
                     <div class="stat-content">
                         <h4>3.1k Surat Izin Survey</h4>
-                        <p>Penerbitan izin survey untuk penelitian</p>
                     </div>
                 </div>
             </div>
@@ -222,7 +218,7 @@
     <!-- End Layanan Section -->
 
     <!-- Kalender Akademik Section -->
-    <section id="academic-calendar" class="academic-calendar-section light-background">
+    <section id="academic-calendar" class="academic-calendar-section">
         <div class="container" data-aos="fade-up">
             <div class="section-title pb-4">
                 <h2>Kalender Akademik</h2>

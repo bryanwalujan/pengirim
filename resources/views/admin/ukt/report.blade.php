@@ -178,13 +178,14 @@
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h5 class="card-title mb-0">
-                        @if ($tahunAjaranAktif)
+                        @if ($selectedTahunAjaran)
                             <span class="badge bg-label-primary me-2">
-                                {{ $tahunAjaranAktif->tahun }} - {{ ucfirst($tahunAjaranAktif->semester) }}
+                                {{ $selectedTahunAjaran->tahun }} - {{ ucfirst($selectedTahunAjaran->semester) }}
                             </span>
                         @endif
                         Detail Pembayaran
                     </h5>
+
                     <form action="{{ route('admin.pembayaran-ukt.report') }}" method="GET" class="d-flex gap-2">
                         <select class="form-select form-select-sm" id="status" name="status" style="width: 150px;">
                             <option value="">Semua Status</option>
@@ -202,28 +203,29 @@
                 </div>
 
                 <!-- Summary Cards -->
-                <div class="row mb-4">
-                    <div class="col-md-4 mb-3">
-                        <div class="card summary-card bg-white text-dark">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <h6 class="mb-2 fw-bold btn btn-sm btn-outline-primary">Total Mahasiswa</h6>
-                                        <div class="summary-value">{{ number_format($totalMahasiswa) }}</div>
-                                        @if ($totalMahasiswa == 0)
-                                            <small class="text-danger"><i class="bx bx-error"></i> Data mahasiswa
-                                                kosong</small>
-                                        @endif
-                                    </div>
-                                    <div class="avatar">
-                                        <span class="avatar-initial rounded bg-label-primary">
-                                            <i class="bx bx-user fs-4"></i>
-                                        </span>
-                                    </div>
+
+                <div class="col-auto mb-3">
+                    <div class="card summary-card bg-white text-dark">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-2 fw-bold btn btn-sm btn-outline-primary">Total Mahasiswa</h6>
+                                    <div class="summary-value">{{ number_format($totalMahasiswa) }}</div>
+                                    @if ($totalMahasiswa == 0)
+                                        <small class="text-danger"><i class="bx bx-error"></i> Data mahasiswa
+                                            kosong</small>
+                                    @endif
+                                </div>
+                                <div class="avatar">
+                                    <span class="avatar-initial rounded bg-label-primary">
+                                        <i class="bx bx-user fs-4"></i>
+                                    </span>
                                 </div>
                             </div>
                         </div>
                     </div>
+                </div>
+                <div class="row">
                     <div class="col-md-4 mb-3">
                         <div class="card summary-card bg-white text-dark">
                             <div class="card-body">
@@ -240,7 +242,8 @@
                                                     aria-valuemax="100"></div>
                                             </div>
                                         @else
-                                            <small class="text-danger"><i class="bx bx-error"></i> Tidak ada data</small>
+                                            <small class="text-danger"><i class="bx bx-error"></i> Tidak ada
+                                                data</small>
                                         @endif
                                     </div>
                                     <div class="avatar">
@@ -268,12 +271,42 @@
                                                     aria-valuemax="100"></div>
                                             </div>
                                         @else
-                                            <small class="text-danger"><i class="bx bx-error"></i> Tidak ada data</small>
+                                            <small class="text-danger"><i class="bx bx-error"></i> Tidak ada
+                                                data</small>
                                         @endif
                                     </div>
                                     <div class="avatar">
                                         <span class="avatar-initial rounded bg-label-warning">
                                             <i class="bx bx-time fs-4"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card summary-card bg-white text-dark">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-2 fw-bold btn btn-sm btn-outline-secondary">Belum Ada Data</h6>
+                                        <div class="summary-value">{{ number_format($belumAdaData) }}</div>
+                                        @if ($totalMahasiswa > 0)
+                                            <small>{{ $percentageNoData }}% dari total</small>
+                                            <div class="progress mt-2">
+                                                <div class="progress-bar bg-secondary" role="progressbar"
+                                                    style="width: {{ $percentageNoData }}%"
+                                                    aria-valuenow="{{ $percentageNoData }}" aria-valuemin="0"
+                                                    aria-valuemax="100"></div>
+                                            </div>
+                                        @else
+                                            <small class="text-danger"><i class="bx bx-error"></i> Tidak ada
+                                                data</small>
+                                        @endif
+                                    </div>
+                                    <div class="avatar">
+                                        <span class="avatar-initial rounded bg-label-secondary">
+                                            <i class="bx bx-question-mark fs-4"></i>
                                         </span>
                                     </div>
                                 </div>

@@ -21,13 +21,23 @@ class PembayaranUktController extends Controller
 
     public function index(Request $request)
     {
+        // Ambil tahun ajaran aktif
+        $tahunAjaranAktif = TahunAjaran::where('status_aktif', true)->first();
+
         $tahunAjaranList = TahunAjaran::orderBy('tahun', 'desc')
             ->orderBy('semester', 'desc')
             ->get();
 
         $pembayaran = PembayaranUkt::with(['mahasiswa', 'tahunAjaran'])
-            ->when($request->tahun_ajaran, function ($query) use ($request) { // Ubah dari tahun_ajaran_id ke tahun_ajaran
+            ->when($request->tahun_ajaran, function ($query) use ($request) {
+                // Hanya terapkan filter jika tahun_ajaran ada dan tidak kosong
                 $query->where('tahun_ajaran_id', $request->tahun_ajaran);
+            }, function ($query) use ($tahunAjaranAktif, $request) {
+                // Default ke tahun ajaran aktif hanya jika tidak ada filter tahun_ajaran
+                if ($tahunAjaranAktif && !$request->tahun_ajaran) {
+                    $query->where('tahun_ajaran_id', $tahunAjaranAktif->id);
+                }
+                // Jika tahun_ajaran kosong atau tidak ada tahun ajaran aktif, tidak perlu filter
             })
             ->when($request->status, function ($query) use ($request) {
                 $query->where('status', $request->status);
@@ -40,9 +50,9 @@ class PembayaranUktController extends Controller
             })
             ->orderBy('created_at', 'desc')
             ->paginate(20)
-            ->withQueryString(); // Tambahkan ini untuk mempertahankan parameter filter
+            ->withQueryString();
 
-        return view('admin.ukt.index', compact('pembayaran', 'tahunAjaranList'));
+        return view('admin.ukt.index', compact('pembayaran', 'tahunAjaranList', 'tahunAjaranAktif'));
     }
 
     public function importForm()
@@ -132,12 +142,17 @@ class PembayaranUktController extends Controller
         // Ambil tahun ajaran aktif
         $tahunAjaranAktif = TahunAjaran::where('status_aktif', true)->first();
 
-        // Ambil semua tahun ajaran untuk dropdown filter
+        // Ambil tahun ajaran yang dipilih jika ada
+        $selectedTahunAjaran = $request->tahun_ajaran_id
+            ? TahunAjaran::find($request->tahun_ajaran_id)
+            : $tahunAjaranAktif;
+
+        // Ambil semua tahun ajaran dengan pagination
         $tahunAjaranList = TahunAjaran::orderBy('tahun', 'desc')
             ->orderBy('semester', 'desc')
-            ->get();
+            ->paginate(6, ['*'], 'tahun_page'); // Paginate 6 item per halaman
 
-        // Query dasar
+        // Query dasar untuk data pembayaran
         $query = PembayaranUkt::with(['mahasiswa', 'tahunAjaran'])
             ->when($request->tahun_ajaran_id, function ($q) use ($request) {
                 $q->where('tahun_ajaran_id', $request->tahun_ajaran_id);
@@ -160,10 +175,12 @@ class PembayaranUktController extends Controller
         // Hitung statistik
         $totalMahasiswa = User::role('mahasiswa')->count();
         $sudahBayar = (clone $query)->where('status', 'bayar')->count();
-        $belumBayar = $totalMahasiswa - $sudahBayar;
+        $belumBayar = (clone $query)->where('status', 'belum_bayar')->count();
+        $belumAdaData = $totalMahasiswa - ($sudahBayar + $belumBayar);
 
         $percentagePaid = $totalMahasiswa > 0 ? round(($sudahBayar / $totalMahasiswa) * 100, 2) : 0;
         $percentageUnpaid = $totalMahasiswa > 0 ? round(($belumBayar / $totalMahasiswa) * 100, 2) : 0;
+        $percentageNoData = $totalMahasiswa > 0 ? round(($belumAdaData / $totalMahasiswa) * 100, 2) : 0;
 
         // Ambil data untuk tabel
         $pembayaran = $query->orderBy('status')
@@ -173,12 +190,15 @@ class PembayaranUktController extends Controller
         return view('admin.ukt.report', compact(
             'tahunAjaranList',
             'tahunAjaranAktif',
+            'selectedTahunAjaran',
             'pembayaran',
             'totalMahasiswa',
             'sudahBayar',
             'belumBayar',
+            'belumAdaData',
             'percentagePaid',
-            'percentageUnpaid'
+            'percentageUnpaid',
+            'percentageNoData'
         ));
     }
 

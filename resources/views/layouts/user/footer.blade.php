@@ -1,60 +1,65 @@
 <footer id="footer" class="footer">
-
-    <div class="container footer-top ">
+    <div class="container footer-top">
         <div class="row gy-4">
+            <!-- Bagian Tentang E-Services -->
             <div class="col-lg-4 col-md-6 footer-about">
-                <a href="index.html" class="logo d-flex align-items-center">
-                    <span class="sitename">E-Service</span>
-
+                <a href="{{ route('user.home.index') }}" class="logo d-flex align-items-center">
+                    <span class="sitename">E-Services</span>
                 </a>
-                {{-- <div class="footer-contact pt-3">
-                    <p>A108 Adam Street</p>
-                    <p>New York, NY 535022</p>
-                    <p class="mt-3"><strong>Phone:</strong> <span>+1 5589 55488 55</span></p>
-                    <p><strong>Email:</strong> <span>info@example.com</span></p>
+                <div class="footer-contact pt-3">
+                    <p>Program Studi Teknik Informatika</p>
+                    <p>Fakultas Teknik, Universitas Negeri Manado</p>
+                    <p>Tondano, Sulawesi Utara, Indonesia</p>
+                    <p class="mt-3"><strong>Phone:</strong> <span>+62 431 123456</span></p>
+                    <p><strong>Email:</strong> <span>informatika@unima.ac.id</span></p>
                 </div>
                 <div class="social-links d-flex mt-4">
-                    <a href=""><i class="bi bi-twitter-x"></i></a>
-                    <a href=""><i class="bi bi-facebook"></i></a>
-                    <a href=""><i class="bi bi-instagram"></i></a>
-                    <a href=""><i class="bi bi-linkedin"></i></a>
-                </div> --}}
+                    <a href="https://twitter.com/unima_official"><i class="bi bi-twitter-x"></i></a>
+                    <a href="https://facebook.com/unima.official"><i class="bi bi-facebook"></i></a>
+                    <a href="https://instagram.com/unima_official"><i class="bi bi-instagram"></i></a>
+                    <a href="https://linkedin.com/company/universitas-negeri-manado"><i class="bi bi-linkedin"></i></a>
+                </div>
             </div>
 
+            <!-- Bagian Tautan Layanan Utama -->
             <div class="col-lg-2 col-md-3 footer-links">
-                <h4>Tautan yang berguna</h4>
+                <h4>Layanan Mahasiswa</h4>
                 <ul>
-                    <li><a href="#home">Beranda</a></li>
-                    <li><a href="#about">Tentang</a></li>
-                    <li><a href="#services">Layanan</a></li>
-                    <li><a href="#faq">FAQ</a></li>
+                    <li><a href="{{ route('user.surat-aktif-kuliah.index') }}">Surat Aktif Kuliah</a></li>
+                    <li><a href="{{ route('user.services.index') }}">Layanan Akademik</a></li>
+                    <li><a href="{{ route('academic-calendar.view', ['filename' => 'latest.pdf']) }}">Kalender
+                            Akademik</a></li>
                 </ul>
             </div>
 
+            <!-- Bagian Tautan Informasi -->
             <div class="col-lg-2 col-md-3 footer-links">
-                <h4>Our Services</h4>
+                <h4>Informasi</h4>
                 <ul>
-                    <li><a href="#">Web Design</a></li>
-                    <li><a href="#">Web Development</a></li>
-                    <li><a href="#">Product Management</a></li>
-                    <li><a href="#">Marketing</a></li>
-                    <li><a href="#">Graphic Design</a></li>
+                    <li><a href="#">Tentang E-Services</a></li>
+                    <li><a href="#">FAQ</a></li>
+                    <li><a href="#">Kontak Kami</a></li>
                 </ul>
             </div>
 
-
+            <!-- Bagian Tautan Eksternal -->
+            <div class="col-lg-2 col-md-3 footer-links">
+                <h4>Tautan Eksternal</h4>
+                <ul>
+                    <li><a href="https://unima.ac.id">Universitas Negeri Manado</a></li>
+                    <li><a href="https://ft.unima.ac.id">Fakultas Teknik</a></li>
+                    <li><a href="https://informatika.ft.unima.ac.id">Prodi Teknik Informatika</a></li>
+                </ul>
+            </div>
         </div>
     </div>
 
     <div class="container copyright text-center mt-4">
-        {{-- <p>© <span>Copyright</span> <strong class="px-1 sitename">iLanding</strong> <span>All Rights Reserved</span></p> --}}
+        <p>© <span>2025</span> <strong class="px-1 sitename">E-Services Teknik Informatika</strong> <span>All Rights
+                Reserved</span></p>
         <div class="credits">
-            <!-- All the links in the footer should remain intact. -->
-            <!-- You can delete the links only if you've purchased the pro version. -->
-            <!-- Licensing information: https://bootstrapmade.com/license/ -->
-            <!-- Purchase the pro version with working PHP/AJAX contact form: [buy-url] -->
-            Designed by <a href="https://bootstrapmade.com/">BootstrapMade</a>
+            Developed by <a href="https://informatika.ft.unima.ac.id">Program Studi Teknik Informatika, Universitas
+                Negeri Manado</a>
         </div>
     </div>
-
 </footer>

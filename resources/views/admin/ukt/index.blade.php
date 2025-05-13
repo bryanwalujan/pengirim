@@ -67,10 +67,9 @@
                         <div class="col-md-4 mb-3">
                             <label for="tahun_ajaran" class="form-label">Tahun Ajaran</label>
                             <select class="form-select" id="tahun_ajaran" name="tahun_ajaran">
-                                <!-- Pastikan name="tahun_ajaran" -->
-                                <option value="">Semua Tahun Ajaran</option>
+                                <option value="" @selected(!request('tahun_ajaran'))>Semua Tahun Ajaran</option>
                                 @foreach ($tahunAjaranList as $tahun)
-                                    <option value="{{ $tahun->id }}" @selected(request('tahun_ajaran') == $tahun->id)>
+                                    <option value="{{ $tahun->id }}" @selected(request('tahun_ajaran') == $tahun->id || (!request('tahun_ajaran') && $tahunAjaranAktif && $tahunAjaranAktif->id == $tahun->id))>
                                         {{ $tahun->tahun }} - {{ ucfirst($tahun->semester) }}
                                     </option>
                                 @endforeach
