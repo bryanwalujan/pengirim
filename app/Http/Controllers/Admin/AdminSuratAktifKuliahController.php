@@ -15,10 +15,11 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use App\Notifications\SuratTakenNotification;
+use App\Http\Controllers\Admin\DocumentController;
 use App\Http\Requests\UpdateSuratAktifKuliahRequest;
 use App\Notifications\SuratNeedApprovalNotification;
 
-class AdminSuratAktifKuliahController extends Controller
+class AdminSuratAktifKuliahController extends DocumentController
 {
     public function index(Request $request)
     {
@@ -181,12 +182,26 @@ class AdminSuratAktifKuliahController extends Controller
                 // Generate QR Code
                 $signatureData = [
                     'surat_id' => $surat->id,
-                    'approver_id' => $user->id,
+                    'nomor_surat' => $surat->nomor_surat,
+                    'tanggal_surat' => $surat->tanggal_surat->format('Y-m-d'),
+                    'mahasiswa' => [
+                        'nama' => $surat->mahasiswa->name,
+                        'nim' => $surat->mahasiswa->nim,
+                    ],
+                    'penandatangan' => [
+                        'nama' => $user->name,
+                        'jabatan' => $request->jabatan_penandatangan,
+                        'nip' => $user->nip ?? null,
+                    ],
                     'approval_date' => now()->toDateTimeString(),
+                    'kontak_verifikasi' => [
+                        'email' => 'ti@univ.ac.id',
+                        'telepon' => '+62 123 4567 8910',
+                    ],
+                    'verification_code' => $surat->verification_code,
                 ];
 
-                $qrPath = 'signatures/sign_' . $surat->id . '.svg';
-                Storage::disk('public')->put($qrPath, QrCode::size(200)->generate(json_encode($signatureData)));
+                $qrPath = $this->processSignature($surat, $user, $request);
 
                 $surat->update([
                     'penandatangan_id' => $request->penandatangan_id,

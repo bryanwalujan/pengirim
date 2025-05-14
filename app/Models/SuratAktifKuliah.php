@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\HasQrSignature;
 use App\Traits\HasDokumenPendukung;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class SuratAktifKuliah extends Model
 {
-    use SoftDeletes, HasDokumenPendukung;
+    use SoftDeletes, HasDokumenPendukung, HasQrSignature;
 
     protected $fillable = [
         'mahasiswa_id',

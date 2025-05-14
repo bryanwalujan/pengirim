@@ -3,6 +3,20 @@
 @section('title', 'Detail Surat Aktif Kuliah')
 
 @push('styles')
+    <style>
+        .alert-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            background-color: rgb(255, 255, 255);
+        }
+
+        .alert-icon i {
+            font-size: 1.25rem;
+        }
+    </style>
 @endpush
 
 @section('content')
@@ -14,20 +28,43 @@
         <div class="card mb-4">
             <div class="card-body">
                 <!-- Status -->
+                <!-- Enhanced Status Alert -->
                 @php
                     $alertClass = match ($surat->status ?? 'diajukan') {
                         'disetujui', 'siap_diambil', 'sudah_diambil' => 'success',
                         'ditolak' => 'danger',
                         default => 'warning',
                     };
+
+                    $alertIcon = match ($surat->status ?? 'diajukan') {
+                        'disetujui', 'siap_diambil', 'sudah_diambil' => 'bx bx-check-circle',
+                        'ditolak' => 'bx bx-error-circle',
+                        default => 'bx bx-time',
+                    };
                 @endphp
-                <div class="alert alert-{{ $alertClass }} mb-4">
-                    <h6 class="alert-heading mb-1">Status:
-                        <strong>{{ str_replace('_', ' ', ucfirst($surat->status ?? 'Diajukan')) }}</strong>
-                    </h6>
-                    @if ($surat->status()->first()?->catatan_admin)
-                        <p class="mb-0"><strong>Catatan Admin:</strong> {{ $surat->status()->first()->catatan_admin }}</p>
-                    @endif
+
+                <div class="alert alert-{{ $alertClass }} alert-dismissible mb-4" role="alert">
+                    <div class="d-flex align-items-center">
+                        <span class="alert-icon rounded me-3">
+                            <i class="icon-base {{ $alertIcon }}"></i>
+                        </span>
+                        <div class="flex-grow-1">
+                            <h6 class="alert-heading mb-1 d-flex align-items-center gap-2">
+                                Status:
+                                <strong class="text-capitalize">
+                                    {{ str_replace('_', ' ', $surat->status ?? 'Diajukan') }}
+                                </strong>
+                            </h6>
+                            @if ($surat->status()->first()?->catatan_admin)
+                                <hr class="my-2">
+                                <p class="mb-0">
+                                    <strong>Catatan Admin:</strong>
+                                    {{ $surat->status()->first()->catatan_admin }}
+                                </p>
+                            @endif
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
                 </div>
 
                 <!-- Informasi Surat -->
