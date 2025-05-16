@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Traits\HasQrSignature;
 use App\Traits\HasDokumenPendukung;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -11,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class SuratAktifKuliah extends Model
 {
-    use SoftDeletes, HasDokumenPendukung, HasQrSignature;
+    use SoftDeletes, HasDokumenPendukung;
 
     protected $fillable = [
         'mahasiswa_id',
@@ -19,16 +18,20 @@ class SuratAktifKuliah extends Model
         'keterangan_tambahan',
         'file_pendukung_path',
         'file_surat_path',
+        'signature_path',
         'nomor_surat',
         'tanggal_surat',
         'tahun_ajaran',
         'semester',
         'penandatangan_id',
         'jabatan_penandatangan',
+        'approved_at',
+        'approved_by',
     ];
 
     protected $casts = [
         'tanggal_surat' => 'date',
+        'approved_at' => 'datetime',
     ];
 
     public function mahasiswa(): BelongsTo
@@ -51,9 +54,31 @@ class SuratAktifKuliah extends Model
         return $this->morphMany(TrackingSurat::class, 'surat', 'surat_type', 'surat_id');
     }
 
+    // Get the status of the document
     public function getStatusAttribute()
     {
         return $this->status()->first()->status ?? null;
+    }
+
+    // Get the QR code data for the document
+    public function getQrCodeDataAttribute()
+    {
+        return [
+            'document_type' => 'Surat Aktif Kuliah',
+            'document_number' => $this->nomor_surat,
+            'student' => [
+                'name' => $this->mahasiswa->name,
+                'nim' => $this->mahasiswa->nim,
+            ],
+            'signer' => $this->penandatangan ? [
+                'name' => $this->penandatangan->name,
+                'position' => $this->jabatan_penandatangan,
+                'nip' => $this->penandatangan->nip ?? null,
+            ] : null,
+            'date' => $this->tanggal_surat->format('Y-m-d'),
+            'verification_code' => $this->verification_code,
+            'verification_url' => route('document.verify', ['code' => $this->verification_code]),
+        ];
     }
 
 

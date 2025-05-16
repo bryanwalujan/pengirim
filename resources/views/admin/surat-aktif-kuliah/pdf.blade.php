@@ -7,7 +7,7 @@
             font-family: "Times New Roman", Times, serif;
             font-size: 12pt;
             line-height: 1.5;
-            margin: 2.5cm;
+            margin: 0.9cm 2.5cm 2.5cm 2.5cm;
         }
 
         .surat-info {
@@ -44,6 +44,36 @@
 
         .underline {
             text-decoration: underline;
+        }
+
+        .qr-code-container {
+            text-align: center;
+            margin-top: 20px;
+            page-break-inside: avoid;
+        }
+
+        .qr-code {
+            width: 120px;
+            height: 120px;
+            /* Tambahkan border untuk memastikan gambar muncul */
+            border: 1px solid #eee;
+        }
+
+        .qr-code-text {
+            font-size: 10px;
+            margin-top: 5px;
+            color: #555;
+        }
+
+        .signature-space {
+            height: 80px;
+            margin: 10px 0;
+            position: relative;
+        }
+
+        .signature-image {
+            max-height: 80px;
+            max-width: 200px;
         }
     </style>
 </head>
@@ -137,9 +167,9 @@
             <td style="text-align: center;">
                 <p>Mengetahui,</p>
                 <p>Pimpinan Jurusan PTIK,</p>
-                <div style="height: 80px; margin: 10px 0;">
+                <div class="signature-space">
                     @if ($surat->signature_path)
-                        <img src="{{ storage_path('app/public/' . $surat->signature_path) }}" style="height: 80px;">
+                        <img src="{{ $qr_code }}" class="signature-image">
                     @endif
                 </div>
                 <p class="underline">
@@ -148,14 +178,34 @@
                 <p>NIP. {{ $surat->penandatangan ? $surat->penandatangan->nip ?? '[NIP]' : '[NIP]' }}</p>
             </td>
             <td style="text-align: center;">
-                <p>Plh Koordinator Program Studi</p>
+                <p>Koordinator Program Studi</p>
                 <p>Teknik Informatika,</p>
-                <div style="height: 80px; margin: 10px 0;"></div>
-                <p class="underline"><strong>[Nama Koordinator]</strong></p>
-                <p>NIP. [NIP Koordinator]</p>
+                <div class="signature-space">
+                    @if ($surat->signature_path)
+                        <img src="{{ $qr_code }}" class="signature-image">
+                    @endif
+                </div>
+                <p class="underline">
+                    <strong>{{ $surat->penandatangan ? $surat->penandatangan->name : '[Nama Penandatangan]' }}</strong>
+                </p>
+                <p>NIP. {{ $surat->penandatangan ? $surat->penandatangan->nip ?? '[NIP]' : '[NIP]' }}</p>
             </td>
         </tr>
     </table>
+
+    <!-- QR Code -->
+    <div class="qr-code-container">
+        @if (!empty($qr_code))
+            <img src="{{ $qr_code }}" class="qr-code">
+            <p class="qr-code-text">
+                Scan untuk verifikasi: {{ $surat->verification_code }}
+            </p>
+        @else
+            <div style="color: red; font-size: 10px;">
+                [QR Code tidak tersedia]
+            </div>
+        @endif
+    </div>
 
 </body>
 

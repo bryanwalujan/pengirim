@@ -35,6 +35,8 @@ Route::get('/storage/academic-calendars/{filename}', function ($filename) {
     ]);
 })->name('academic-calendar.view');
 
+// Route untuk verifikasi dokumen
+Route::get('/verify/{code}', 'DocumentVerificationController@verify')->name('document.verify');
 
 
 // Student service routes

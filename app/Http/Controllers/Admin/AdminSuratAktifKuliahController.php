@@ -10,6 +10,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\DokumenPendukung;
 use App\Models\SuratAktifKuliah;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -179,34 +180,9 @@ class AdminSuratAktifKuliahController extends DocumentController
                     'jabatan_penandatangan' => 'required|string|max:255',
                 ]);
 
-                // Generate QR Code
-                $signatureData = [
-                    'surat_id' => $surat->id,
-                    'nomor_surat' => $surat->nomor_surat,
-                    'tanggal_surat' => $surat->tanggal_surat->format('Y-m-d'),
-                    'mahasiswa' => [
-                        'nama' => $surat->mahasiswa->name,
-                        'nim' => $surat->mahasiswa->nim,
-                    ],
-                    'penandatangan' => [
-                        'nama' => $user->name,
-                        'jabatan' => $request->jabatan_penandatangan,
-                        'nip' => $user->nip ?? null,
-                    ],
-                    'approval_date' => now()->toDateTimeString(),
-                    'kontak_verifikasi' => [
-                        'email' => 'ti@univ.ac.id',
-                        'telepon' => '+62 123 4567 8910',
-                    ],
-                    'verification_code' => $surat->verification_code,
-                ];
-
-                $qrPath = $this->processSignature($surat, $user, $request);
-
                 $surat->update([
                     'penandatangan_id' => $request->penandatangan_id,
                     'jabatan_penandatangan' => $request->jabatan_penandatangan,
-                    'signature_path' => $qrPath,
                     'approved_at' => now(),
                     'approved_by' => $user->id,
                 ]);
@@ -270,6 +246,7 @@ class AdminSuratAktifKuliahController extends DocumentController
         DB::beginTransaction();
         try {
             if ($request->action === 'approve') {
+
                 // Jangan generate nomor surat jika sudah ada
                 $nomorSurat = $surat->nomor_surat ?: $this->generateNomorSurat();
 
@@ -280,18 +257,6 @@ class AdminSuratAktifKuliahController extends DocumentController
                     'nomor_surat' => $nomorSurat, // Gunakan yang sudah ada atau generate baru
                     'tanggal_surat' => $surat->tanggal_surat ?? now(),
                 ]);
-
-                // Generate QR Code
-                $signatureData = [
-                    'surat_id' => $surat->id,
-                    'approver_id' => $user->id,
-                    'approval_date' => now()->toDateTimeString(),
-                ];
-
-                $qrCode = QrCode::size(200)->generate(json_encode($signatureData));
-                $fileName = 'signature_' . $surat->id . '_' . time() . '.svg';
-                $path = 'signatures/' . $fileName;
-                Storage::disk('public')->put($path, $qrCode);
 
                 // Update status
                 StatusSurat::updateOrCreate(
@@ -315,14 +280,15 @@ class AdminSuratAktifKuliahController extends DocumentController
                     'mahasiswa_id' => $surat->mahasiswa_id,
                 ]);
 
-                // Generate file surat final dan hapus draft
+                // Generate final PDF file
                 $filePath = $this->generateSuratFile($surat);
+
+                // Update surat with all final data
                 $surat->update([
                     'file_surat_path' => $filePath,
-                    'signature_path' => $path,
                     'approved_at' => now(),
                     'approved_by' => $user->id,
-                    'draft_path' => null, // Hapus draft setelah disetujui
+                    'draft_path' => null,
                 ]);
 
                 // Notifikasi ke mahasiswa
@@ -404,10 +370,19 @@ class AdminSuratAktifKuliahController extends DocumentController
         $semesterNumber = ($tahunMulai - $tahunMasuk) * 2 + ($surat->semester === 'ganjil' ? 1 : 2);
         $semesterNumber = min($semesterNumber, 14);
 
-        // Generate PDF
+        // Generate QR Code langsung sebagai base64
+        $qrCode = $this->generateQrCodeBase64($surat);
+
         $pdf = Pdf::loadView('admin.surat-aktif-kuliah.pdf', [
             'surat' => $surat,
             'semester_roman' => $this->getRomanSemester($semesterNumber),
+            'qr_code' => $qrCode
+        ]);
+
+        $pdf = Pdf::loadView('admin.surat-aktif-kuliah.pdf', [
+            'surat' => $surat,
+            'semester_roman' => $this->getRomanSemester($semesterNumber),
+            'qr_code' => $qrCode // Langsung kirim base64 ke view
         ]);
 
         $filename = 'surat_aktif_kuliah_' . $surat->mahasiswa->nim . '_' . now()->format('YmdHis') . '.pdf';
@@ -415,6 +390,42 @@ class AdminSuratAktifKuliahController extends DocumentController
         Storage::disk('public')->put($path, $pdf->output());
 
         return $path;
+    }
+
+    protected function generateQrCodeBase64(SuratAktifKuliah $surat): ?string
+    {
+        if (!$surat->penandatangan) {
+            return null;
+        }
+
+        try {
+            $qrData = [
+                'document_type' => 'Surat Aktif Kuliah',
+                'document_number' => $surat->nomor_surat,
+                'student' => [
+                    'name' => $surat->mahasiswa->name,
+                    'nim' => $surat->mahasiswa->nim,
+                ],
+                'signer' => [
+                    'name' => $surat->penandatangan->name,
+                    'position' => $surat->jabatan_penandatangan,
+                    'nip' => $surat->penandatangan->nip ?? null,
+                ],
+                'date' => $surat->tanggal_surat->format('Y-m-d'),
+                'verification_code' => $surat->verification_code,
+            ];
+
+            $qrImage = QrCode::format('png')
+                ->size(300)
+                ->margin(2)
+                ->backgroundColor(255, 255, 255)
+                ->generate(json_encode($qrData));
+
+            return 'data:image/png;base64,' . base64_encode($qrImage);
+        } catch (\Exception $e) {
+            Log::error('Gagal generate QR Code: ' . $e->getMessage());
+            return null;
+        }
     }
 
     protected function getRomanSemester($number)

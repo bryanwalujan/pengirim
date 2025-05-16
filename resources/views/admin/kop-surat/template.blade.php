@@ -4,7 +4,8 @@
 
 <div class="kop-surat-template">
     @if ($kopSurat->logo)
-        <img src="{{ asset('storage/' . $kopSurat->logo) }}" style="height: 80px; float: left; margin-right: 15px;">
+        <img src="{{ storage_path('app/public/' . $kopSurat->logo) }}"
+            style="height: 80px; float: left; margin-right: 15px;">
     @endif
 
     <div style="overflow: hidden;">
