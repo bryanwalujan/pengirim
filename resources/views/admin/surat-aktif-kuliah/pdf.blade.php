@@ -3,11 +3,17 @@
 
 <head>
     <style>
+        @page {
+            size: A4 portrait;
+            margin: 0.39in 1in 1in 1in
+        }
+
         body {
             font-family: "Times New Roman", Times, serif;
+            margin: 0;
+            padding: 0;
             font-size: 12pt;
             line-height: 1.5;
-            margin: 0.9cm 2.5cm 2.5cm 2.5cm;
         }
 
         .surat-info {
@@ -65,15 +71,21 @@
             color: #555;
         }
 
-        .signature-space {
-            height: 80px;
-            margin: 10px 0;
-            position: relative;
+        /* Di bagian style template PDF */
+        .signature-image {
+            max-width: 120px;
+            max-height: 120px;
+            border: 1px solid #ddd;
+            padding: 5px;
+            background: white;
         }
 
-        .signature-image {
-            max-height: 80px;
-            max-width: 200px;
+        .signature-space {
+            height: 100px;
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
     </style>
 </head>
@@ -109,11 +121,8 @@
 
     <!-- Tujuan Surat -->
     <p style="margin-bottom: 20px;">
-        <strong>Kepada Yth.</strong><br>
-        Dekan Fakultas Teknik<br>
-        Universitas Negeri Manado<br>
-        di<br>
-        <strong>Tondano</strong>
+        Kepada Yth.<br>
+        Dekan Fakultas Teknik Universitas Negeri Manado di Tondano
     </p>
 
     <!-- Isi Surat -->
@@ -126,17 +135,20 @@
             <tr>
                 <td width="150">Nama</td>
                 <td width="10">:</td>
-                <td><strong>{{ $surat->mahasiswa->name }}</strong></td>
+                {{-- <td><strong>{{ $surat->mahasiswa->name }}</strong></td> --}}
+                <td><strong>Name</strong></td>
             </tr>
             <tr>
                 <td>NIM</td>
                 <td>:</td>
-                <td><strong>{{ $surat->mahasiswa->nim }}</strong></td>
+                {{-- <td><strong>{{ $surat->mahasiswa->nim }}</strong></td> --}}
+                <td><strong>nim</strong></td>
             </tr>
             <tr>
                 <td>Semester</td>
                 <td>:</td>
-                <td><strong>{{ $semester_roman }}</strong></td>
+                {{-- <td><strong>{{ $semester_roman }}</strong></td> --}}
+                <td><strong>semester</strong></td>
             </tr>
             <tr>
                 <td>Program Studi</td>
@@ -160,7 +172,6 @@
             Demikian permohonan ini, atas perhatiannya diucapkan terima kasih.
         </p>
     </div>
-
     <!-- Tanda Tangan -->
     <table class="signature-table">
         <tr>
@@ -168,9 +179,10 @@
                 <p>Mengetahui,</p>
                 <p>Pimpinan Jurusan PTIK,</p>
                 <div class="signature-space">
-                    @if ($surat->signature_path)
-                        <img src="{{ $qr_code }}" class="signature-image">
-                    @endif
+                    {{-- @if ($surat->penandatangan)
+                        <img src="{{ $signature_qr }}" class="signature-image">
+                    @endif --}}
+                    <img src="{{ asset('img/qrcode.png') }}" alt="" style="width:120px; height: auto;">
                 </div>
                 <p class="underline">
                     <strong>{{ $surat->penandatangan ? $surat->penandatangan->name : '[Nama Penandatangan]' }}</strong>
@@ -181,9 +193,7 @@
                 <p>Koordinator Program Studi</p>
                 <p>Teknik Informatika,</p>
                 <div class="signature-space">
-                    @if ($surat->signature_path)
-                        <img src="{{ $qr_code }}" class="signature-image">
-                    @endif
+                    <!-- Kosongkan bagian ini -->
                 </div>
                 <p class="underline">
                     <strong>{{ $surat->penandatangan ? $surat->penandatangan->name : '[Nama Penandatangan]' }}</strong>
@@ -194,7 +204,7 @@
     </table>
 
     <!-- QR Code -->
-    <div class="qr-code-container">
+    {{-- <div class="qr-code-container">
         @if (!empty($qr_code))
             <img src="{{ $qr_code }}" class="qr-code">
             <p class="qr-code-text">
@@ -205,7 +215,7 @@
                 [QR Code tidak tersedia]
             </div>
         @endif
-    </div>
+    </div> --}}
 
 </body>
 

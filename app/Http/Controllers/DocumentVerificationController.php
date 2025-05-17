@@ -9,40 +9,52 @@ class DocumentVerificationController extends Controller
 {
     public function verify($code)
     {
-        $document = SuratAktifKuliah::with(['mahasiswa', 'penandatangan'])
+        $document = SuratAktifKuliah::with(['mahasiswa', 'penandatangan', 'status'])
             ->where('verification_code', $code)
             ->first();
 
         if (!$document) {
-            return view('verification.invalid');
+            return view('verification.invalid', [
+                'message' => 'Dokumen tidak ditemukan atau kode verifikasi tidak valid'
+            ]);
         }
+
+        // Pastikan status tersedia
+        $status = is_object($document->status) ? $document->status->status : ($document->status ?? 'unknown');
 
         return view('verification.show', [
             'document' => $document,
-            'qrData' => $document->qr_code_data
+            'verification_data' => $this->prepareVerificationData($document, $status)
         ]);
     }
 
-    public function verifyByQr(Request $request)
+    protected function prepareVerificationData($document, $status)
     {
-        $request->validate([
-            'qr_data' => 'required|json',
-        ]);
-
-        $qrData = json_decode($request->qr_data, true);
-
-        $document = SuratAktifKuliah::with(['mahasiswa', 'penandatangan'])
-            ->where('verification_code', $qrData['verification_code'] ?? null)
-            ->first();
-
-        if (!$document) {
-            return response()->json(['valid' => false], 404);
-        }
-
-        return response()->json([
-            'valid' => true,
-            'document' => $document,
-            'verification_data' => $document->qr_code_data
-        ]);
+        return [
+            'document' => [
+                'type' => 'Surat Aktif Kuliah',
+                'number' => $document->nomor_surat,
+                'date' => optional($document->tanggal_surat)->format('d F Y'),
+                'academic_year' => $document->tahun_ajaran,
+                'semester' => $document->semester,
+                'purpose' => $document->tujuan_pengajuan,
+            ],
+            'student' => [
+                'name' => $document->mahasiswa->name,
+                'nim' => $document->mahasiswa->nim,
+                'study_program' => 'S1 Teknik Informatika'
+            ],
+            'signer' => $document->penandatangan ? [
+                'name' => $document->penandatangan->name,
+                'position' => $document->jabatan_penandatangan,
+                'nip' => $document->penandatangan->nip,
+                'signature_date' => optional($document->approved_at)->format('d F Y H:i')
+            ] : null,
+            'verification' => [
+                'status' => $status,
+                'verified_at' => now()->format('d F Y H:i'),
+                'verification_code' => $document->verification_code
+            ]
+        ];
     }
 }

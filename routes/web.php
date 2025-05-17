@@ -1,9 +1,13 @@
 <?php
 
+use App\Models\User;
 use App\Models\TahunAjaran;
+use Barryvdh\DomPDF\Facade\Pdf;
+use App\Models\SuratAktifKuliah;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use App\Http\Controllers\User\HomeController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
@@ -13,6 +17,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\User\UserServiceController;
 use App\Http\Controllers\Admin\TahunAjaranController;
 use App\Http\Controllers\Admin\PembayaranUktController;
+use App\Http\Controllers\DocumentVerificationController;
 use App\Http\Controllers\User\SuratAktifKuliahController;
 use App\Http\Controllers\Admin\AcademicCalendarController;
 use App\Http\Controllers\Admin\AdminSuratAktifKuliahController;
@@ -35,9 +40,34 @@ Route::get('/storage/academic-calendars/{filename}', function ($filename) {
     ]);
 })->name('academic-calendar.view');
 
-// Route untuk verifikasi dokumen
-Route::get('/verify/{code}', 'DocumentVerificationController@verify')->name('document.verify');
+Route::get('/verify/{code}', [DocumentVerificationController::class, 'verify'])
+    ->name('document.verify');
 
+Route::get('/preview-dummy-pdf', function () {
+    $pdf = Pdf::loadView('admin.surat-aktif-kuliah.pdf', [
+        'surat' => new SuratAktifKuliah([
+            'nomor_surat' => 'PREVIEW/2023',
+            'tanggal_surat' => now(),
+            'tujuan_pengajuan' => 'Contoh tujuan pengajuan',
+            'tahun_ajaran' => '2023/2024',
+            'semester' => 'ganjil',
+            'jabatan_penandatangan' => 'Koordinator Program Studi',
+            'verification_code' => 'PREVIEW123'
+        ]),
+        'semester_roman' => 'IV (Empat)',
+        'mahasiswa' => new User([
+            'name' => 'Nama Mahasiswa Contoh',
+            'nim' => '20230001'
+        ]),
+        'penandatangan' => new User([
+            'name' => 'Dr. Contoh Penandatangan, M.Kom',
+            'nip' => '197001012000121001'
+        ]),
+        'is_preview' => true
+    ])->setPaper('a4', 'landscape');
+
+    return $pdf->stream('preview-surat-aktif-kuliah.pdf');
+})->name('preview.dummy');
 
 // Student service routes
 Route::middleware(['auth', 'verified', 'role:mahasiswa', 'check.ukt'])->group(function () {

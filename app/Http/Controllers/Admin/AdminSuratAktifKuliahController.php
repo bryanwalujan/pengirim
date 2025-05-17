@@ -370,19 +370,23 @@ class AdminSuratAktifKuliahController extends DocumentController
         $semesterNumber = ($tahunMulai - $tahunMasuk) * 2 + ($surat->semester === 'ganjil' ? 1 : 2);
         $semesterNumber = min($semesterNumber, 14);
 
-        // Generate QR Code langsung sebagai base64
-        $qrCode = $this->generateQrCodeBase64($surat);
+        $signatureQr = null;
+        if ($surat->penandatangan) {
+            $verificationUrl = route('document.verify', ['code' => $surat->verification_code]);
+
+            $signatureQr = 'data:image/png;base64,' . base64_encode(
+                QrCode::format('png')
+                    ->size(120) // Ukuran optimal untuk tanda tangan
+                    ->margin(1)
+                    ->errorCorrection('H')
+                    ->generate($verificationUrl)
+            );
+        }
 
         $pdf = Pdf::loadView('admin.surat-aktif-kuliah.pdf', [
             'surat' => $surat,
             'semester_roman' => $this->getRomanSemester($semesterNumber),
-            'qr_code' => $qrCode
-        ]);
-
-        $pdf = Pdf::loadView('admin.surat-aktif-kuliah.pdf', [
-            'surat' => $surat,
-            'semester_roman' => $this->getRomanSemester($semesterNumber),
-            'qr_code' => $qrCode // Langsung kirim base64 ke view
+            'signature_qr' => $signatureQr // Hanya kirim QR untuk tanda tangan
         ]);
 
         $filename = 'surat_aktif_kuliah_' . $surat->mahasiswa->nim . '_' . now()->format('YmdHis') . '.pdf';
@@ -392,41 +396,41 @@ class AdminSuratAktifKuliahController extends DocumentController
         return $path;
     }
 
-    protected function generateQrCodeBase64(SuratAktifKuliah $surat): ?string
-    {
-        if (!$surat->penandatangan) {
-            return null;
-        }
+    // protected function generateQrCodeBase64(SuratAktifKuliah $surat): ?string
+    // {
+    //     if (!$surat->penandatangan) {
+    //         return null;
+    //     }
 
-        try {
-            $qrData = [
-                'document_type' => 'Surat Aktif Kuliah',
-                'document_number' => $surat->nomor_surat,
-                'student' => [
-                    'name' => $surat->mahasiswa->name,
-                    'nim' => $surat->mahasiswa->nim,
-                ],
-                'signer' => [
-                    'name' => $surat->penandatangan->name,
-                    'position' => $surat->jabatan_penandatangan,
-                    'nip' => $surat->penandatangan->nip ?? null,
-                ],
-                'date' => $surat->tanggal_surat->format('Y-m-d'),
-                'verification_code' => $surat->verification_code,
-            ];
+    //     try {
+    //         $qrData = [
+    //             'document_type' => 'Surat Aktif Kuliah',
+    //             'document_number' => $surat->nomor_surat,
+    //             'student' => [
+    //                 'name' => $surat->mahasiswa->name,
+    //                 'nim' => $surat->mahasiswa->nim,
+    //             ],
+    //             'signer' => [
+    //                 'name' => $surat->penandatangan->name,
+    //                 'position' => $surat->jabatan_penandatangan,
+    //                 'nip' => $surat->penandatangan->nip ?? null,
+    //             ],
+    //             'date' => $surat->tanggal_surat->format('Y-m-d'),
+    //             'verification_code' => $surat->verification_code,
+    //         ];
 
-            $qrImage = QrCode::format('png')
-                ->size(300)
-                ->margin(2)
-                ->backgroundColor(255, 255, 255)
-                ->generate(json_encode($qrData));
+    //         $qrImage = QrCode::format('png')
+    //             ->size(300)
+    //             ->margin(2)
+    //             ->backgroundColor(255, 255, 255)
+    //             ->generate(json_encode($qrData));
 
-            return 'data:image/png;base64,' . base64_encode($qrImage);
-        } catch (\Exception $e) {
-            Log::error('Gagal generate QR Code: ' . $e->getMessage());
-            return null;
-        }
-    }
+    //         return 'data:image/png;base64,' . base64_encode($qrImage);
+    //     } catch (\Exception $e) {
+    //         Log::error('Gagal generate QR Code: ' . $e->getMessage());
+    //         return null;
+    //     }
+    // }
 
     protected function getRomanSemester($number)
     {
@@ -480,5 +484,6 @@ class AdminSuratAktifKuliahController extends DocumentController
         $filePath = Storage::disk('public')->path($dokumen->path);
         return response()->download($filePath, $dokumen->nama_asli);
     }
+
 
 }

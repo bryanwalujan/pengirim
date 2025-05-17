@@ -46,7 +46,10 @@ class SuratAktifKuliah extends Model
 
     public function status()
     {
-        return $this->morphOne(StatusSurat::class, 'surat', 'surat_type', 'surat_id');
+        return $this->morphOne(StatusSurat::class, 'surat', 'surat_type', 'surat_id')
+            ->withDefault([
+                'status' => 'unknown'
+            ]);
     }
 
     public function trackings(): MorphMany
@@ -65,22 +68,40 @@ class SuratAktifKuliah extends Model
     {
         return [
             'document_type' => 'Surat Aktif Kuliah',
+            'document_id' => $this->id,
             'document_number' => $this->nomor_surat,
             'student' => [
                 'name' => $this->mahasiswa->name,
                 'nim' => $this->mahasiswa->nim,
             ],
-            'signer' => $this->penandatangan ? [
-                'name' => $this->penandatangan->name,
-                'position' => $this->jabatan_penandatangan,
-                'nip' => $this->penandatangan->nip ?? null,
-            ] : null,
-            'date' => $this->tanggal_surat->format('Y-m-d'),
-            'verification_code' => $this->verification_code,
-            'verification_url' => route('document.verify', ['code' => $this->verification_code]),
+            'approval' => [
+                'signer' => $this->penandatangan ? [
+                    'name' => $this->penandatangan->name,
+                    'position' => $this->jabatan_penandatangan,
+                    'nip' => $this->penandatangan->nip
+                ] : null,
+                'date' => $this->approved_at?->toDateTimeString()
+            ],
+            'verification' => [
+                'code' => $this->verification_code,
+                'url' => route('document.verify', ['code' => $this->verification_code])
+            ]
         ];
     }
 
+    public function getVerificationUrlAttribute()
+    {
+        return route('document.verify', ['code' => $this->verification_code]);
+    }
+
+    public function getStatusTextAttribute()
+    {
+        if (is_string($this->status)) {
+            return $this->status;
+        }
+
+        return $this->status->status ?? 'unknown';
+    }
 
     protected static function booted()
     {
