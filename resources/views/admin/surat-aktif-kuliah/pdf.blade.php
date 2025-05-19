@@ -14,6 +14,7 @@
             padding: 0;
             font-size: 12pt;
             line-height: 1.5;
+            /* border: 1px solid black; */
         }
 
         .surat-info {
@@ -29,11 +30,12 @@
         .surat-info td {
             padding: 2px 0;
             vertical-align: top;
+            line-height: 1;
         }
 
         .content {
             text-align: justify;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
 
         .signature-table {
@@ -73,16 +75,14 @@
 
         /* Di bagian style template PDF */
         .signature-image {
-            max-width: 120px;
-            max-height: 120px;
-            border: 1px solid #ddd;
-            padding: 5px;
+            width: 120px;
+            height: auto;
             background: white;
         }
 
         .signature-space {
             height: 100px;
-            margin: 15px 0;
+            padding-bottom: .4rem;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -107,7 +107,7 @@
             <tr>
                 <td>Lampiran</td>
                 <td>:</td>
-                <td>1 (satu) lembar</td>
+                <td>1 berkas</td>
                 <td></td>
             </tr>
             <tr>
@@ -120,80 +120,77 @@
     </div>
 
     <!-- Tujuan Surat -->
-    <p style="margin-bottom: 20px;">
+    <p style="margin-bottom: 10px;">
         Kepada Yth.<br>
         Dekan Fakultas Teknik Universitas Negeri Manado di Tondano
     </p>
 
     <!-- Isi Surat -->
     <div class="content">
-        <p>
+        <p style="margin-bottom: 2px">
             Pimpinan Program Studi S1 Teknik Informatika menerangkan bahwa:
         </p>
-
-        <table style="margin-left: 50px; margin-bottom: 20px;">
+        <table style="margin-left: 40px; margin-bottom: 10px;">
             <tr>
-                <td width="150">Nama</td>
+                <td width="110">Nama</td>
                 <td width="10">:</td>
-                {{-- <td><strong>{{ $surat->mahasiswa->name }}</strong></td> --}}
-                <td><strong>Name</strong></td>
+                <td>{{ $surat->mahasiswa->name }}</td>
             </tr>
             <tr>
                 <td>NIM</td>
                 <td>:</td>
-                {{-- <td><strong>{{ $surat->mahasiswa->nim }}</strong></td> --}}
-                <td><strong>nim</strong></td>
+                <td>{{ $surat->mahasiswa->nim }}</td>
             </tr>
             <tr>
                 <td>Semester</td>
                 <td>:</td>
-                {{-- <td><strong>{{ $semester_roman }}</strong></td> --}}
-                <td><strong>semester</strong></td>
+                <td>{{ $semester_roman }}</td>
             </tr>
             <tr>
-                <td>Program Studi</td>
+                <td>Jurusan/Prodi</td>
                 <td>:</td>
-                <td><strong>S1 Teknik Informatika</strong></td>
+                <td>S1 Teknik Informatika</td>
             </tr>
         </table>
-
-        <p>
+        <p style="text-indent: 2.5rem">
             Adalah benar mahasiswa Program Studi S1 Teknik Informatika Fakultas Teknik yang aktif dalam mengikuti
             perkuliahan dan kegiatan lainnya pada tahun ajaran {{ $surat->tahun_ajaran }}. Untuk itu dimohon kiranya
             Dekan berkenan menerbitkan surat keterangan aktif kuliah untuk mahasiswa tersebut.
         </p>
 
-        <p>
-            Adapun surat keterangan aktif kuliah ini akan digunakan untuk
+        <p style="text-indent: 2.5rem">
+            Adapun surat keterangan aktif kuliah ini akan digunakan untuk melengkapi berkas
             <strong>{{ $surat->tujuan_pengajuan }}</strong>.
         </p>
 
-        <p>
+        <p style="margin-top: -10px;">
             Demikian permohonan ini, atas perhatiannya diucapkan terima kasih.
         </p>
     </div>
     <!-- Tanda Tangan -->
-    <table class="signature-table">
+    <table style="vertical-align: top; width: 100%; line-height: 0.8;">
         <tr>
-            <td style="text-align: center;">
+            <td>
                 <p>Mengetahui,</p>
                 <p>Pimpinan Jurusan PTIK,</p>
                 <div class="signature-space">
                     {{-- @if ($surat->penandatangan)
                         <img src="{{ $signature_qr }}" class="signature-image">
-                    @endif --}}
-                    <img src="{{ asset('img/qrcode.png') }}" alt="" style="width:120px; height: auto;">
+                    @endif
+                    <img src="{{ asset('img/qrcode.png') }}" class="signature-image" alt=""> --}}
                 </div>
                 <p class="underline">
                     <strong>{{ $surat->penandatangan ? $surat->penandatangan->name : '[Nama Penandatangan]' }}</strong>
                 </p>
                 <p>NIP. {{ $surat->penandatangan ? $surat->penandatangan->nip ?? '[NIP]' : '[NIP]' }}</p>
             </td>
-            <td style="text-align: center;">
+            <td style="padding-left: 8rem;">
                 <p>Koordinator Program Studi</p>
                 <p>Teknik Informatika,</p>
                 <div class="signature-space">
-                    <!-- Kosongkan bagian ini -->
+                    @if ($show_qr_signature && $signature_qr)
+                        <img src="{{ $signature_qr }}" class="signature-image" alt="QR Signature">
+                    @endif
                 </div>
                 <p class="underline">
                     <strong>{{ $surat->penandatangan ? $surat->penandatangan->name : '[Nama Penandatangan]' }}</strong>

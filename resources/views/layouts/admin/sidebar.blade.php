@@ -27,7 +27,10 @@
             <span class="menu-header-text">Manajemen Surat</span>
         </li>
         @can('manage surat aktif kuliah')
-            <li class="menu-item {{ request()->routeIs('admin.surat-aktif-kuliah.*') ? 'active open' : '' }}">
+            <li
+                class="menu-item {{ request()->routeIs('admin.surat-aktif-kuliah.*') || request()->routeIs('admin.surat-aktif-kuliah.show')
+                    ? 'active open'
+                    : '' }}">
                 <a href="javascript:void(0);" class="menu-link menu-toggle">
                     <i class="menu-icon tf-icons bx bx-file"></i>
                     <div>Surat Aktif Kuliah</div>
@@ -56,7 +59,11 @@
                     @else
                         <!-- Tampilkan semua menu untuk staff/admin -->
                         <li
-                            class="menu-item {{ request()->routeIs('admin.surat-aktif-kuliah.index') && request()->input('status', 'diajukan') === 'diajukan' ? 'active' : '' }}">
+                            class="menu-item {{ (request()->routeIs('admin.surat-aktif-kuliah.index') &&
+                                request()->input('status', 'diajukan') === 'diajukan') ||
+                            (request()->routeIs('admin.surat-aktif-kuliah.show') && $surat->status === 'diajukan')
+                                ? 'active'
+                                : '' }}">
                             <a href="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'diajukan']) }}"
                                 class="menu-link">
                                 <i class="menu-icon tf-icons bx bx-time"></i>
@@ -64,7 +71,10 @@
                             </a>
                         </li>
                         <li
-                            class="menu-item {{ request()->routeIs('admin.surat-aktif-kuliah.index') && request()->input('status') === 'diproses' ? 'active' : '' }}">
+                            class="menu-item {{ (request()->routeIs('admin.surat-aktif-kuliah.index') && request()->input('status') === 'diproses') ||
+                            (request()->routeIs('admin.surat-aktif-kuliah.show') && $surat->status === 'diproses')
+                                ? 'active'
+                                : '' }}">
                             <a href="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'diproses']) }}"
                                 class="menu-link">
                                 <i class="menu-icon tf-icons bx bx-loader"></i>
@@ -72,7 +82,10 @@
                             </a>
                         </li>
                         <li
-                            class="menu-item {{ request()->routeIs('admin.surat-aktif-kuliah.index') && request()->input('status') === 'disetujui' ? 'active' : '' }}">
+                            class="menu-item {{ (request()->routeIs('admin.surat-aktif-kuliah.index') && request()->input('status') === 'disetujui') ||
+                            (request()->routeIs('admin.surat-aktif-kuliah.show') && $surat->status === 'disetujui')
+                                ? 'active'
+                                : '' }}">
                             <a href="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'disetujui']) }}"
                                 class="menu-link">
                                 <i class="menu-icon tf-icons bx bx-check"></i>
@@ -80,7 +93,10 @@
                             </a>
                         </li>
                         <li
-                            class="menu-item {{ request()->routeIs('admin.surat-aktif-kuliah.index') && request()->input('status') === 'ditolak' ? 'active' : '' }}">
+                            class="menu-item {{ (request()->routeIs('admin.surat-aktif-kuliah.index') && request()->input('status') === 'ditolak') ||
+                            (request()->routeIs('admin.surat-aktif-kuliah.show') && $surat->status === 'ditolak')
+                                ? 'active'
+                                : '' }}">
                             <a href="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'ditolak']) }}"
                                 class="menu-link">
                                 <i class="menu-icon tf-icons bx bx-x"></i>
@@ -88,7 +104,10 @@
                             </a>
                         </li>
                         <li
-                            class="menu-item {{ request()->routeIs('admin.surat-aktif-kuliah.index') && request()->input('status') === 'siap_diambil' ? 'active' : '' }}">
+                            class="menu-item {{ (request()->routeIs('admin.surat-aktif-kuliah.index') && request()->input('status') === 'siap_diambil') ||
+                            (request()->routeIs('admin.surat-aktif-kuliah.show') && $surat->status === 'siap_diambil')
+                                ? 'active'
+                                : '' }}">
                             <a href="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'siap_diambil']) }}"
                                 class="menu-link">
                                 <i class="menu-icon tf-icons bx bx-package"></i>
@@ -96,7 +115,10 @@
                             </a>
                         </li>
                         <li
-                            class="menu-item {{ request()->routeIs('admin.surat-aktif-kuliah.index') && request()->input('status') === 'sudah_diambil' ? 'active' : '' }}">
+                            class="menu-item {{ (request()->routeIs('admin.surat-aktif-kuliah.index') && request()->input('status') === 'sudah_diambil') ||
+                            (request()->routeIs('admin.surat-aktif-kuliah.show') && $surat->status === 'sudah_diambil')
+                                ? 'active'
+                                : '' }}">
                             <a href="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'sudah_diambil']) }}"
                                 class="menu-link">
                                 <i class="menu-icon tf-icons bx bx-check-circle"></i>

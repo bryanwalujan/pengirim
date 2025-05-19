@@ -31,14 +31,20 @@
                 <!-- Enhanced Status Alert -->
                 @php
                     $alertClass = match ($surat->status ?? 'diajukan') {
-                        'disetujui', 'siap_diambil', 'sudah_diambil' => 'success',
+                        'diproses' => 'info',
+                        'disetujui' => 'success',
                         'ditolak' => 'danger',
+                        'siap_diambil' => 'primary',
+                        'sudah_diambil' => 'secondary',
                         default => 'warning',
                     };
 
                     $alertIcon = match ($surat->status ?? 'diajukan') {
-                        'disetujui', 'siap_diambil', 'sudah_diambil' => 'bx bx-check-circle',
+                        'diproses' => 'bx bx-loader',
+                        'disetujui' => 'bx bx-check',
                         'ditolak' => 'bx bx-error-circle',
+                        'siap_diambil' => 'bx bx-package',
+                        'sudah_diambil' => 'bx bx-check-circle',
                         default => 'bx bx-time',
                     };
                 @endphp
@@ -181,23 +187,54 @@
                     </div>
                 @endif
 
-                <!-- File Surat -->
+                <!-- File Surat Section - Modified -->
                 @if ($surat->file_surat_path)
                     <div class="mb-4">
-                        <h5 class="fw-bold mb-3">File Surat</h5>
-                        <div class="d-flex gap-2">
-                            @if ($surat->file_surat_path)
-                                <a href="{{ Storage::url($surat->file_surat_path) }}" target="_blank"
-                                    class="btn btn-primary">
-                                    <i class="bx bx-show me-1"></i> Lihat Surat Final
-                                </a>
-                                <a href="{{ route('admin.surat-aktif-kuliah.download', $surat->id) }}"
-                                    class="btn btn-success">
-                                    <i class="bx bx-download me-1"></i> Unduh Surat Final
-                                </a>
+                        <h5 class="fw-bold mb-3">
+                            @if ($surat->status === 'diproses')
+                                Preview Surat
+                            @elseif (in_array($surat->status, ['disetujui', 'siap_diambil', 'sudah_diambil']))
+                                Surat Final
+                            @else
+                                File Surat
                             @endif
+                        </h5>
+
+                        <div
+                            class="alert 
+        @if ($surat->status === 'diproses') alert-info @else alert-success @endif
+        mb-3">
+                            <div class="d-flex align-items-center">
+                                <i
+                                    class="bx 
+                @if ($surat->status === 'diproses') bx-info-circle @else bx-check-circle @endif
+                me-2"></i>
+                                <div>
+                                    @if ($surat->status === 'diproses')
+                                        Ini adalah preview surat sebelum disetujui. Dokumen belum memiliki tanda tangan dan
+                                        QR code verifikasi.
+                                    @else
+                                        Ini adalah surat final yang telah disetujui dan memiliki tanda tangan lengkap.
+                                    @endif
+                                </div>
+                            </div>
                         </div>
 
+                        <div class="d-flex gap-2">
+                            <a href="{{ Storage::url($surat->file_surat_path) }}" target="_blank"
+                                class="btn btn-primary">
+                                <i class="bx bx-show me-1"></i>
+                                @if ($surat->status === 'diproses')
+                                    Lihat Preview
+                                @else
+                                    Lihat Surat Final
+                                @endif
+                            </a>
+                            <a href="{{ route('admin.surat-aktif-kuliah.download', $surat->id) }}"
+                                class="btn btn-success">
+                                <i class="bx bx-download me-1"></i> Unduh
+                            </a>
+                        </div>
                     </div>
                 @endif
             </div>

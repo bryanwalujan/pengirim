@@ -162,8 +162,8 @@ class AdminSuratAktifKuliahController extends DocumentController
                     'tanggal_surat' => now(),
                 ]);
 
-                // Generate PDF final langsung (tanpa draft)
-                $filePath = $this->generateSuratFile($surat);
+                // Generate PDF tanpa QR code
+                $filePath = $this->generateSuratFile($surat, false);
                 $surat->update(['file_surat_path' => $filePath]);
 
                 // Notifikasi ke dosen
@@ -256,6 +256,8 @@ class AdminSuratAktifKuliahController extends DocumentController
                     'jabatan_penandatangan' => $request->jabatan_penandatangan,
                     'nomor_surat' => $nomorSurat, // Gunakan yang sudah ada atau generate baru
                     'tanggal_surat' => $surat->tanggal_surat ?? now(),
+                    'approved_at' => now(),
+                    'approved_by' => $user->id,
                 ]);
 
                 // Update status
@@ -281,7 +283,7 @@ class AdminSuratAktifKuliahController extends DocumentController
                 ]);
 
                 // Generate final PDF file
-                $filePath = $this->generateSuratFile($surat);
+                $filePath = $this->generateSuratFile($surat, true);
 
                 // Update surat with all final data
                 $surat->update([
@@ -348,7 +350,7 @@ class AdminSuratAktifKuliahController extends DocumentController
     }
 
 
-    protected function generateSuratFile(SuratAktifKuliah $surat)
+    protected function generateSuratFile(SuratAktifKuliah $surat, $isFinalApproval = false)
     {
         // Validasi data wajib
         if (!$surat->nomor_surat || !$surat->tanggal_surat) {
@@ -370,13 +372,14 @@ class AdminSuratAktifKuliahController extends DocumentController
         $semesterNumber = ($tahunMulai - $tahunMasuk) * 2 + ($surat->semester === 'ganjil' ? 1 : 2);
         $semesterNumber = min($semesterNumber, 14);
 
+        // HANYA generate QR code jika ini approval final dari dosen
         $signatureQr = null;
-        if ($surat->penandatangan) {
+        if ($isFinalApproval && $surat->penandatangan) {
             $verificationUrl = route('document.verify', ['code' => $surat->verification_code]);
 
             $signatureQr = 'data:image/png;base64,' . base64_encode(
                 QrCode::format('png')
-                    ->size(120) // Ukuran optimal untuk tanda tangan
+                    ->size(120)
                     ->margin(1)
                     ->errorCorrection('H')
                     ->generate($verificationUrl)
@@ -386,7 +389,8 @@ class AdminSuratAktifKuliahController extends DocumentController
         $pdf = Pdf::loadView('admin.surat-aktif-kuliah.pdf', [
             'surat' => $surat,
             'semester_roman' => $this->getRomanSemester($semesterNumber),
-            'signature_qr' => $signatureQr // Hanya kirim QR untuk tanda tangan
+            'show_qr_signature' => $isFinalApproval,
+            'signature_qr' => $signatureQr
         ]);
 
         $filename = 'surat_aktif_kuliah_' . $surat->mahasiswa->nim . '_' . now()->format('YmdHis') . '.pdf';

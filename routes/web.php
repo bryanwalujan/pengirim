@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\PembayaranUktController;
 use App\Http\Controllers\DocumentVerificationController;
 use App\Http\Controllers\User\SuratAktifKuliahController;
 use App\Http\Controllers\Admin\AcademicCalendarController;
+use App\Http\Controllers\Admin\AdminSuratIjinSurveyController;
 use App\Http\Controllers\Admin\AdminSuratAktifKuliahController;
 use App\Http\Controllers\Admin\DosenSuratAktifKuliahController;
 
@@ -48,7 +49,7 @@ Route::get('/preview-dummy-pdf', function () {
         'surat' => new SuratAktifKuliah([
             'nomor_surat' => 'PREVIEW/2023',
             'tanggal_surat' => now(),
-            'tujuan_pengajuan' => 'Contoh tujuan pengajuan',
+            'tujuan_pengajuan' => 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Sapiente ad quaerat natus voluptatem commodi. Dolorem exercitationem officiis corporis, aliquid laudantium doloremque in consequuntur, aperiam aliquam, perferendis earum vitae possimus? ',
             'tahun_ajaran' => '2023/2024',
             'semester' => 'ganjil',
             'jabatan_penandatangan' => 'Koordinator Program Studi',
@@ -207,7 +208,6 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::prefix('surat-aktif-kuliah')->name('surat-aktif-kuliah.')->group(function () {
         Route::get('/', [AdminSuratAktifKuliahController::class, 'index'])->name('index');
         Route::get('/{surat}', [AdminSuratAktifKuliahController::class, 'show'])->name('show');
-        // Route::put('/{surat}', [AdminSuratAktifKuliahController::class, 'update'])->name('update');
 
         // Hanya staff
         Route::middleware('role:staff')->group(function () {
@@ -224,6 +224,29 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 
         // Dokumen pendukung surat aktif kuliah
         Route::get('/{surat}/download-pendukung', [AdminSuratAktifKuliahController::class, 'downloadPendukung'])
+            ->name('download-pendukung');
+    });
+
+    // Admin Routes untuk Surat Ijin Survey
+    Route::prefix('surat-ijin-survey')->name('surat-ijin-survey.')->group(function () {
+        Route::get('/', [AdminSuratIjinSurveyController::class, 'index'])->name('index');
+        Route::get('/{surat}', [AdminSuratIjinSurveyController::class, 'show'])->name('show');
+
+        // Hanya staff
+        Route::middleware('role:staff')->group(function () {
+            Route::put('/{surat}/status', [AdminSuratIjinSurveyController::class, 'updateStatus'])
+                ->name('update-status');
+        });
+        // Hanya dosen
+        Route::middleware('role:dosen')->group(function () {
+            Route::put('/{surat}/approve', action: [AdminSuratIjinSurveyController::class, 'approveByDosen'])
+                ->name('approve');
+        });
+
+        Route::get('/{surat}/download', [AdminSuratIjinSurveyController::class, 'download'])->name('download'); // Opsional
+
+        // Dokumen pendukung surat aktif kuliah
+        Route::get('/{surat}/download-pendukung', [AdminSuratIjinSurveyController::class, 'downloadPendukung'])
             ->name('download-pendukung');
     });
 
