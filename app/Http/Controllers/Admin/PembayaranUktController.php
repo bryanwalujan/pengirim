@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\FromCollection;
 
@@ -55,6 +56,83 @@ class PembayaranUktController extends Controller
         return view('admin.ukt.index', compact('pembayaran', 'tahunAjaranList', 'tahunAjaranAktif'));
     }
 
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        $mahasiswa = User::role('mahasiswa')->orderBy('nim')->get();
+        $tahunAjaranList = TahunAjaran::orderBy('tahun', 'desc')
+            ->orderBy('semester', 'desc')
+            ->get();
+
+        return view('admin.ukt.create', compact('mahasiswa', 'tahunAjaranList'));
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'mahasiswa_id' => 'required|exists:users,id',
+            'tahun_ajaran_id' => 'required|exists:tahun_ajarans,id',
+            'status' => 'required|in:bayar,belum_bayar'
+        ]);
+
+        // Check if the payment record already exists
+        $exists = PembayaranUkt::where('mahasiswa_id', $request->mahasiswa_id)
+            ->where('tahun_ajaran_id', $request->tahun_ajaran_id)
+            ->exists();
+
+        if ($exists) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Data pembayaran untuk mahasiswa ini pada tahun ajaran tersebut sudah ada');
+        }
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        PembayaranUkt::create([
+            'mahasiswa_id' => $request->mahasiswa_id,
+            'tahun_ajaran_id' => $request->tahun_ajaran_id,
+            'status' => $request->status,
+            'updated_by' => Auth::id()
+        ]);
+
+        return redirect()->route('admin.pembayaran-ukt.index')
+            ->with('success', 'Data pembayaran berhasil ditambahkan');
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(PembayaranUkt $pembayaranUkt)
+    {
+        return view('admin.ukt.edit', ['pembayaran' => $pembayaranUkt]);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, PembayaranUkt $pembayaranUkt)
+    {
+        $request->validate([
+            'status' => 'required|in:bayar,belum_bayar'
+        ]);
+
+        $pembayaranUkt->update([
+            'status' => $request->status,
+            'updated_by' => Auth::id()
+        ]);
+
+        return redirect()->route('admin.pembayaran-ukt.index')
+            ->with('success', 'Data pembayaran berhasil diperbarui');
+    }
     public function importForm()
     {
         $tahunAjaranList = TahunAjaran::orderBy('tahun', 'desc')

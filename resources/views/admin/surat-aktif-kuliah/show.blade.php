@@ -367,25 +367,17 @@
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="penandatangan_id" class="form-label">Penandatangan <span
-                                        class="text-danger">*</span></label>
-                                <select name="penandatangan_id" id="penandatangan_id" class="form-select" required>
-                                    <option value="">Pilih Penandatangan</option>
-                                    @foreach ($penandatangans as $penandatangan)
-                                        <option value="{{ $penandatangan->id }}"
-                                            {{ $surat->penandatangan_id == $penandatangan->id ? 'selected' : '' }}>
-                                            {{ $penandatangan->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
+                                <label class="form-label">Penandatangan</label>
+                                <input type="text" class="form-control" value="{{ auth()->user()->name }}" readonly>
+                                <input type="hidden" name="penandatangan_id" value="{{ auth()->user()->id }}">
                             </div>
 
                             <div class="col-md-6 mb-3">
-                                <label for="jabatan_penandatangan" class="form-label">Jabatan Penandatangan <span
-                                        class="text-danger">*</span></label>
-                                <input type="text" name="jabatan_penandatangan" id="jabatan_penandatangan"
-                                    class="form-control" value="{{ $surat->jabatan_penandatangan }}"
-                                    placeholder="Masukkan jabatan penandatangan" required>
+                                <label class="form-label">Jabatan Penandatangan</label>
+                                <input type="text" class="form-control" value="{{ auth()->user()->jabatan }}"
+                                    readonly>
+                                <input type="hidden" name="jabatan_penandatangan"
+                                    value="{{ auth()->user()->jabatan }}">
                             </div>
 
                             <div class="col-12 mb-3">

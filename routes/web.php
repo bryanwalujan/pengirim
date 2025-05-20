@@ -269,6 +269,11 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 
     Route::prefix('pembayaran-ukt')->name('pembayaran-ukt.')->group(function () {
         Route::get('/', [PembayaranUktController::class, 'index'])->name('index');
+        Route::get('/create', [PembayaranUktController::class, 'create'])->name('create');
+        Route::post('/', [PembayaranUktController::class, 'store'])->name('store');
+        Route::get('/{pembayaranUkt}/edit', [PembayaranUktController::class, 'edit'])->name('edit');
+        Route::put('/{pembayaranUkt}', [PembayaranUktController::class, 'update'])->name('update');
+        Route::delete('/{pembayaranUkt}', [PembayaranUktController::class, 'destroy'])->name('destroy');
         Route::get('/import', [PembayaranUktController::class, 'importForm'])->name('import');
         Route::post('/import', [PembayaranUktController::class, 'import'])->name('process-import');
         Route::get('/report', [PembayaranUktController::class, 'report'])->name('report');

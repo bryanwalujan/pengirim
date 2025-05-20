@@ -372,6 +372,10 @@ class AdminSuratAktifKuliahController extends DocumentController
         $semesterNumber = ($tahunMulai - $tahunMasuk) * 2 + ($surat->semester === 'ganjil' ? 1 : 2);
         $semesterNumber = min($semesterNumber, 14);
 
+        // Tentukan jabatan penandatangan secara dinamis
+        $jabatanPimpinan = $surat->jabatan_penandatangan ?? 'Pimpinan Jurusan PTIK';
+        $jabatanKoordinator = $surat->jabatan_penandatangan ?? 'Koordinator Program Studi';
+
         // HANYA generate QR code jika ini approval final dari dosen
         $signatureQr = null;
         if ($isFinalApproval && $surat->penandatangan) {
@@ -390,7 +394,9 @@ class AdminSuratAktifKuliahController extends DocumentController
             'surat' => $surat,
             'semester_roman' => $this->getRomanSemester($semesterNumber),
             'show_qr_signature' => $isFinalApproval,
-            'signature_qr' => $signatureQr
+            'signature_qr' => $signatureQr,
+            'jabatanPimpinan' => $jabatanPimpinan,
+            'jabatanKoordinator' => $jabatanKoordinator,
         ]);
 
         $filename = 'surat_aktif_kuliah_' . $surat->mahasiswa->nim . '_' . now()->format('YmdHis') . '.pdf';

@@ -172,7 +172,7 @@
         <tr>
             <td>
                 <p>Mengetahui,</p>
-                <p>Pimpinan Jurusan PTIK,</p>
+                <p>{{ $jabatanPimpinan }},</p>
                 <div class="signature-space">
                     {{-- @if ($surat->penandatangan)
                         <img src="{{ $signature_qr }}" class="signature-image">
@@ -185,7 +185,7 @@
                 <p>NIP. {{ $surat->penandatangan ? $surat->penandatangan->nip ?? '[NIP]' : '[NIP]' }}</p>
             </td>
             <td style="padding-left: 8rem;">
-                <p>Koordinator Program Studi</p>
+                <p>{{ $jabatanKoordinator }}</p>
                 <p>Teknik Informatika,</p>
                 <div class="signature-space">
                     @if ($show_qr_signature && $signature_qr)

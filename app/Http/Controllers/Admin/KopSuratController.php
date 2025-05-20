@@ -34,7 +34,7 @@ class KopSuratController extends Controller
             'fakultas' => 'FAKULTAS TEKNIK',
             'prodi' => 'PROGRAM STUDI S1 TEKNIK INFORMATIKA',
             'alamat' => 'Alamat : Kampus UNIMA Tondano 95618, Telp.(0431)7233580',
-            'kontak' => 'Website : ti.unima.ac.id, Email : teknikinformatika@unima.ac.id'
+            'kontak' => 'Website : https://ti.unima.ac.id, Email : teknikinformatika@unima.ac.id'
         ]);
 
         return view('admin.kop-surat.edit', compact('kopSurat'));

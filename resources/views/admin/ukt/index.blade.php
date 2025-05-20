@@ -49,11 +49,13 @@
                 <span class="text-muted">Daftar Pembayaran UKT</span>
             </h4>
             <div>
+                <a href="{{ route('admin.pembayaran-ukt.create') }}" class="btn btn-primary me-2">
+                    <i class="bx bx-plus me-1"></i> Tambah Data
+                </a>
                 <a href="{{ route('admin.pembayaran-ukt.import') }}" class="btn btn-outline-primary me-2">
                     <i class="bx bx-import me-1"></i> Import
                 </a>
-                <a href="{{ route('admin.pembayaran-ukt.export') }}" target="_blank"
-                    class="btn-export btn btn-outline-success">
+                <a href="{{ route('admin.pembayaran-ukt.export') }}" target="_blank" class="btn btn-outline-success">
                     <i class="bx bx-export me-1"></i> Export
                 </a>
             </div>
@@ -132,6 +134,11 @@
                                             <i class="bx bx-dots-vertical-rounded"></i>
                                         </button>
                                         <div class="dropdown-menu">
+                                            <a class="dropdown-item"
+                                                href="{{ route('admin.pembayaran-ukt.edit', $item->id) }}">
+                                                <i class="bx bx-edit me-1"></i> Edit
+                                            </a>
+
                                             <!-- Dropdown untuk ganti status -->
                                             <div class="dropdown-header">Ubah Status</div>
                                             <form action="{{ route('admin.pembayaran-ukt.update-status', $item->id) }}"
@@ -198,18 +205,14 @@
                         confirmButtonColor: '#3085d6',
                         cancelButtonColor: '#d33',
                         confirmButtonText: 'Ya, hapus!',
-                        cancelButtonText: 'Batal'
+                        cancelButtonText: 'Batal',
+                        reverseButtons: true
                     }).then((result) => {
                         if (result.isConfirmed) {
                             document.getElementById(`delete-form-${paymentId}`).submit();
                         }
                     });
                 });
-            });
-
-            // Reset filter
-            document.getElementById('resetFilter').addEventListener('click', function() {
-                window.location.href = "{{ route('admin.pembayaran-ukt.index') }}";
             });
         });
     </script>
