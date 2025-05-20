@@ -303,14 +303,13 @@
 
 /* Styling Dasar Footer */
 .footer {
-    background-color: #f8f9fa;
-    /* Warna latar belakang abu-abu muda */
     padding: 10px 0 30px 0;
     /* Padding atas-bawah, kiri-kanan 0 */
     font-size: 14px;
-    color: #444444;
+    font-weight: 500;
+    color: var(--contrast-color);
     /* Warna teks default */
-    border-top: 4px solid #0d6efd;
+    border-top: 4px solid var(--accent-color);
     /* Garis aksen biru di atas (sesuaikan dengan tema Anda) */
 }
 
@@ -337,14 +336,14 @@
     border: 1px solid #0d6efd40;
     /* Border tipis dengan warna aksen transparan */
     font-size: 16px;
-    color: #0d6efd;
+    color: var(--contrast-color);
     /* Warna ikon */
     margin-right: 10px;
     transition: all 0.3s ease-in-out;
 }
 
 .footer .social-links a:hover {
-    color: #fff;
+    color: var(--contrast-color);
     background: #0d6efd;
     /* Warna background saat hover */
     border-color: #0d6efd;
@@ -354,7 +353,7 @@
 .footer .footer-links h4 {
     font-size: 16px;
     font-weight: bold;
-    color: #333333;
+    color: var(--contrast-color);
     /* Warna judul lebih gelap */
     position: relative;
     padding-bottom: 12px;
@@ -392,7 +391,7 @@
 }
 
 .footer .footer-links ul a {
-    color: #777777;
+    color: var(--contrast-color);
     /* Warna link */
     transition: 0.3s;
     display: inline-block;
@@ -410,20 +409,20 @@
 .footer .copyright {
     text-align: center;
     padding-top: 30px;
-    border-top: 1px solid #0000001a;
+    border-top: 2px solid #0000001a;
     /* Garis pemisah tipis */
-    color: #555555;
+    color: var(--contrast-color);
 }
 
 .footer .credits {
     padding-top: 4px;
     text-align: center;
     font-size: 13px;
-    color: #555555;
+    color: var(--contrast-color);
 }
 
 .footer .credits a {
-    color: #0d6efd;
+    color: var(--contrast-color);
     transition: 0.3s;
 }
 
@@ -435,5 +434,5 @@
 /* Penyesuaian jika sitename di copyright berbeda */
 .footer .copyright .sitename {
     font-weight: 600;
-    color: #333;
+    color: var(--contrast-color);
 }

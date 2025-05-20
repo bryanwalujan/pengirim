@@ -70,11 +70,11 @@
                             </div>
 
                             <div class="mb-3">
-                                <label for="nidn" class="form-label">NIDN <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control @error('nidn') is-invalid @enderror"
-                                    id="nidn" name="nidn" value="{{ old('nidn') }}" required
-                                    placeholder="Masukkan NIDN" title="NIDN harus 10 digit angka">
-                                @error('nidn')
+                                <label for="nip" class="form-label">NIP <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control @error('nip') is-invalid @enderror" id="nip"
+                                    name="nip" value="{{ old('nip') }}" required placeholder="Masukkan NIP"
+                                    title="NIP harus 10 digit angka">
+                                @error('nip')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
@@ -91,10 +91,26 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
+
+                            <div class="mb-3">
+                                <label for="jabatan" class="form-label">Jabatan <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control @error('jabatan') is-invalid @enderror"
+                                    id="jabatan" name="jabatan" value="{{ old('jabatan') }}" required
+                                    placeholder="Masukkan jabatan (contoh: Dosen, Ketua Program Studi)">
+                                @error('jabatan')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
                             <!-- Password Field -->
                             <div class="mb-3">
-                   <label for="password" class="form-label required">Password</label>
-                                <div class="input-group input-group-merge">
+                                <label for="password" class="form-label required">Password <span
+                                        class="text-danger">*</span></label>
+                                <div class="input-group input-group-merge password-toggle">
                                     <input type="password" class="form-control @error('password') is-invalid @enderror"
                                         id="password" name="password" placeholder="Minimal 8 karakter" required>
                                     <span class="input-group-text cursor-pointer toggle-password">
@@ -130,14 +146,14 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Toggle password visibility
-            const togglePassword = document.querySelector('#togglePassword');
+            const togglePassword = document.querySelector('.toggle-password');
             const password = document.querySelector('#password');
 
             togglePassword.addEventListener('click', function() {
                 const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
                 password.setAttribute('type', type);
-                this.classList.toggle('bx-hide');
-                this.classList.toggle('bx-show');
+                this.querySelector('i').classList.toggle('bx-hide');
+                this.querySelector('i').classList.toggle('bx-show');
             });
 
             // Form validation
@@ -152,10 +168,17 @@
                     valid = false;
                 }
 
-                // Validate NIDN format (10 digits)
-                const nidn = document.getElementById('nidn').value;
-                if (!/^\d{10}$/.test(nidn)) {
-                    alert('NIDN harus terdiri dari 10 digit angka');
+                // Validate NIP format (10 digits)
+                const nip = document.getElementById('nip').value;
+                if (!/^\d{10,20}$/.test(nip)) {
+                    alert('NIP harus terdiri dari 10-20 digit angka');
+                    valid = false;
+                }
+
+                // Validate jabatan
+                const jabatan = document.getElementById('jabatan').value;
+                if (!jabatan) {
+                    alert('Jabatan harus dipilih');
                     valid = false;
                 }
 

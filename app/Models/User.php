@@ -24,7 +24,8 @@ class User extends Authenticatable
         'email',
         'password',
         'nim',    // For mahasiswa
-        'nidn',   // For dosen
+        'nip',   // For dosen
+        'jabatan' // For dosen
 
     ];
 

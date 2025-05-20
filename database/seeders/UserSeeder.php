@@ -39,7 +39,8 @@ class UserSeeder extends Seeder
         // Dosen
         User::factory()->create([
             'name' => 'Dr. Dosen Pertama, M.Kom',
-            'nidn' => '123456',
+            'nip' => '123456',
+            'jabatan' => 'Korprodi',
             'email' => 'dosen@unima.ac.id',
             'password' => 'password',
         ])->assignRole('dosen');

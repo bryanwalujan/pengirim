@@ -25,7 +25,7 @@
     --background-color: #ffffff; /* Background color for the entire website, including individual sections */
     --default-color: #212529; /* Default color used for the majority of the text content across the entire website */
     --heading-color: #2d465e; /* Color for headings, subheadings and title throughout the website */
-    --accent-color: #0d83fd; /* Accent color that represents your brand on the website. It's used for buttons, links, and other elements that need to stand out */
+    --accent-color: #ff8c00; /* Accent color that represents your brand on the website. It's used for buttons, links, and other elements that need to stand out */
     --surface-color: #ffffff; /* The surface color is used as a background of boxed elements within sections, such as cards, icon boxes, or other elements that require a visual separation from the global background. */
     --contrast-color: #ffffff; /* Contrast color for text, ensuring readability against backgrounds of accent, heading, or default colors. */
 }
@@ -33,7 +33,7 @@
 /* Nav Menu Colors - The following color variables are used specifically for the navigation menu. They are separate from the global colors to allow for more customization options */
 :root {
     --nav-color: #212529; /* The default color of the main navmenu links */
-    --nav-hover-color: #0d83fd; /* Applied to main navmenu links when they are hovered over or active */
+    --nav-hover-color: #ff8c00; /* Applied to main navmenu links when they are hovered over or active */
     --nav-mobile-background-color: #ffffff; /* Used as the background color for mobile navigation menu */
     --nav-dropdown-background-color: #ffffff; /* Used as the background color for dropdown items that appear when hovering over primary navigation items */
     --nav-dropdown-color: #212529; /* Used for navigation links of the dropdown items in the navigation menu. */
@@ -45,6 +45,14 @@
 .light-background {
     --background-color: #f3f9ff;
     --surface-color: #ffffff;
+}
+
+.orange-background {
+    --background-color: #fff8f3;
+    --default-color: #212529;
+    --heading-color: #2d465e;
+    --surface-color: #ffffff;
+    --contrast-color: #212529;
 }
 
 .dark-background {
@@ -511,10 +519,23 @@ h6 {
 # Global Footer
 --------------------------------------------------------------*/
 .footer {
-    color: var(--default-color);
-    background-color: var(--background-color);
+    color: var(--contrast-color);
+    background-color: rgb(255, 136, 17, 0.7);
     font-size: 14px;
     position: relative;
+}
+
+.footer::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url("../../../img/logo-ti.png");
+    background-position: center;
+    background-size: cover;
+    z-index: -1;
 }
 
 .footer .footer-top {
@@ -532,7 +553,7 @@ h6 {
 }
 
 .footer .footer-about .logo span {
-    color: var(--heading-color);
+    color: var(--contrast-color);
     font-family: var(--heading-font);
     font-size: 26px;
     font-weight: 700;
@@ -551,16 +572,16 @@ h6 {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    border: 1px solid color-mix(in srgb, var(--default-color), transparent 50%);
+    border: 1px solid color-mix(in srgb, var(--contrast-color), transparent 50%);
     font-size: 16px;
-    color: color-mix(in srgb, var(--default-color), transparent 20%);
+    color: color-mix(in srgb, var(--contrast-color), transparent 20%);
     margin-right: 10px;
     transition: 0.3s;
 }
 
 .footer .social-links a:hover {
-    color: var(--accent-color);
-    border-color: var(--accent-color);
+    color: var(--contrast-color);
+    border-color: var(--contrast-color);
 }
 
 .footer h4 {
@@ -597,7 +618,7 @@ h6 {
 }
 
 .footer .footer-links ul a {
-    color: color-mix(in srgb, var(--default-color), transparent 30%);
+    color: color-mix(in srgb, var(--contrast-color), transparent 30%);
     display: inline-block;
     line-height: 1;
 }
@@ -613,7 +634,7 @@ h6 {
 .footer .copyright {
     padding: 25px 0;
     border-top: 1px solid
-        color-mix(in srgb, var(--default-color), transparent 90%);
+        color-mix(in srgb, var(--contrast-color), transparent 90%);
 }
 
 .footer .copyright p {

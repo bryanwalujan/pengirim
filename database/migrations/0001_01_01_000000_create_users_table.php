@@ -15,7 +15,8 @@ return new class extends Migration {
             $table->string('name');
             $table->string('email')->unique();
             $table->string('nim')->unique()->nullable(); // Untuk mahasiswa
-            $table->string('nidn')->unique()->nullable(); // Untuk dosen
+            $table->string('nip')->unique()->nullable(); // Untuk dosen
+            $table->string('jabatan')->nullable(); // Default role
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();

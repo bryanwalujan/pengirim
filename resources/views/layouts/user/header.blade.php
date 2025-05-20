@@ -3,7 +3,8 @@
         class="header-container container-fluid container-xl position-relative d-flex align-items-center justify-content-between">
 
         <a href="{{ route('user.home.index') }}" class="logo d-flex align-items-center me-auto me-xl-0">
-            <h1 class="sitename">E-Service</h1>
+            <h1 class="sitename me-1">E-Service</h1>
+            <img src="{{ asset('/img/logo-unima.png') }}" alt="E-Services Logo" style="height: 45px; width: auto;">
         </a>
 
         <nav id="navmenu" class="navmenu">
@@ -62,7 +63,7 @@
                         <h6 class="mb-1" style="font-weight: 600; color: #212529;">{{ Auth::user()->name }}</h6>
                         <p class="text-muted mb-1 small">{{ Auth::user()->nim }}</p>
                         <p class="text-muted mb-1 small">{{ Auth::user()->email }}</p>
-                        <span class="badge bg-primary mt-2">S1 Teknik Informatika</span>
+                        <span class="badge mt-2" style="background-color: var(--accent-color)">S1 Teknik Informatika</span>
                     </li>
 
                     <!-- Logout Button -->

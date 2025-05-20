@@ -138,13 +138,15 @@ class UserController extends Controller
             'name' => 'required',
             'email' => 'required|email|unique:users',
             'password' => 'required|min:8',
-            'nidn' => 'required|unique:users'
+            'nip' => 'required|unique:users',
+            'jabatan' => 'required|string|max:255'
         ]);
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'nidn' => $request->nidn,
+            'nip' => $request->nip,
+            'jabatan' => $request->jabatan,
             'password' => Hash::make($request->password)
         ]);
 
@@ -234,14 +236,16 @@ class UserController extends Controller
         $request->validate([
             'name' => 'required',
             'email' => 'required|email|unique:users,email,' . $user->id,
-            'nidn' => 'required|unique:users,nidn,' . $user->id,
+            'nip' => 'required|unique:users,nip,' . $user->id,
+            'jabatan' => 'required|string|max:255',
             'password' => 'nullable|min:8' // Tambahkan validasi password
         ]);
 
         $data = [
             'name' => $request->name,
             'email' => $request->email,
-            'nidn' => $request->nidn
+            'nip' => $request->nip,
+            'jabatan' => $request->jabatan
         ];
 
         // Jika password diisi, update password

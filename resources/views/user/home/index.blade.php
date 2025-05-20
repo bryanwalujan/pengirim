@@ -178,7 +178,7 @@
     <!-- End Tentang Section -->
 
     <!-- Layanan Section -->
-    <section id="services" class="services-section light-background">
+    <section id="services" class="services-section orange-background">
         <div class="container" data-aos="fade-up">
             <div class="section-title pb-4">
                 <h2>Layanan E-Service</h2>
@@ -246,7 +246,7 @@
 
 
     <!-- FAQ Section -->
-    <section class="faq-9 faq section light-background" id="faq">
+    <section class="faq-9 faq section orange-background" id="faq">
         <div class="container">
             <div class="row">
                 <div class="col-lg-5" data-aos="fade-up">

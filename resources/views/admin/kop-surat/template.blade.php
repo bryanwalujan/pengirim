@@ -24,7 +24,7 @@
 
 <style>
     .kop-surat-template {
-        font-family: Calibri, Candara, Segoe, "Segoe UI", Optima, Arial, sans-serif;
+        font-family: 'Times New Roman', Times, serif;
         margin-bottom: 20px;
         text-align: center
     }

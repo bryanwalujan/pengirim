@@ -31,13 +31,16 @@
                 <div class="row align-items-center justify-content-end g-2">
                     <!-- Search Column -->
                     <div class="col-4 col-md-4 col-lg-3">
-                        <div class="input-group input-group-merge">
-                            <span class="input-group-text" id="basic-addon-search31">
-                                <i class="bx bx-search"></i>
-                            </span>
-                            <input type="text" class="form-control" placeholder="Search..." aria-label="Search..."
-                                aria-describedby="basic-addon-search31" />
-                        </div>
+                        <form action="{{ route('admin.users.dosen') }}" method="GET">
+                            <div class="input-group input-group-merge">
+                                <span class="input-group-text" id="basic-addon-search31">
+                                    <i class="bx bx-search"></i>
+                                </span>
+                                <input type="text" name="search" class="form-control" placeholder="Search..."
+                                    value="{{ request('search') }}" aria-label="Search..."
+                                    aria-describedby="basic-addon-search31">
+                            </div>
+                        </form>
                     </div>
                     <!-- Button Column -->
                     <div class="col-auto text-end">
@@ -54,8 +57,9 @@
                     <thead>
                         <tr>
                             <th width="5%">No</th>
-                            <th>NIDN</th>
+                            <th>NIP</th>
                             <th>Nama</th>
+                            <th>Jabatan</th>
                             <th>Email</th>
                             <th width="15%">Aksi</th>
                         </tr>
@@ -64,8 +68,9 @@
                         @forelse ($users as $user)
                             <tr>
                                 <td>{{ $loop->iteration + ($users->currentPage() - 1) * $users->perPage() }}</td>
-                                <td>{{ $user->nidn }}</td>
+                                <td>{{ $user->nip }}</td>
                                 <td>{{ $user->name }}</td>
+                                <td>{{ $user->jabatan ?? '-' }}</td>
                                 <td>{{ $user->email }}</td>
                                 <td>
                                     <div class="dropdown">
@@ -108,30 +113,7 @@
             <!-- Pagination -->
             @if ($users->hasPages())
                 <div class="card-footer border-top py-3">
-                    <nav aria-label="Page navigation">
-                        <ul class="pagination justify-content-end mb-0">
-                            {{-- Previous Page Link --}}
-                            <li class="page-item prev {{ $users->onFirstPage() ? 'disabled' : '' }}">
-                                <a class="page-link" href="{{ $users->previousPageUrl() }}">
-                                    <i class="bx bx-chevrons-left icon-sm"></i>
-                                </a>
-                            </li>
-
-                            {{-- Pagination Elements --}}
-                            @foreach ($users->getUrlRange(1, $users->lastPage()) as $page => $url)
-                                <li class="page-item {{ $users->currentPage() == $page ? 'active' : '' }}">
-                                    <a class="page-link" href="{{ $url }}">{{ $page }}</a>
-                                </li>
-                            @endforeach
-
-                            {{-- Next Page Link --}}
-                            <li class="page-item next {{ !$users->hasMorePages() ? 'disabled' : '' }}">
-                                <a class="page-link" href="{{ $users->nextPageUrl() }}">
-                                    <i class="bx bx-chevrons-right icon-sm"></i>
-                                </a>
-                            </li>
-                        </ul>
-                    </nav>
+                    {{ $users->links() }}
                 </div>
             @endif
         </div>
