@@ -174,10 +174,9 @@
                 <p>Mengetahui,</p>
                 <p>{{ $jabatanPimpinan }},</p>
                 <div class="signature-space">
-                    {{-- @if ($surat->penandatangan)
-                        <img src="{{ $signature_qr }}" class="signature-image">
+                    @if ($show_qr_signature && $pimpinan_qr)
+                        <img src="{{ $pimpinan_qr }}" alt="QR Code Pimpinan" class="signature-image">
                     @endif
-                    <img src="{{ asset('img/qrcode.png') }}" class="signature-image" alt=""> --}}
                 </div>
                 <p class="underline">
                     <strong>{{ $surat->penandatangan ? $surat->penandatangan->name : '[Nama Penandatangan]' }}</strong>
@@ -188,14 +187,15 @@
                 <p>{{ $jabatanKoordinator }}</p>
                 <p>Teknik Informatika,</p>
                 <div class="signature-space">
-                    @if ($show_qr_signature && $signature_qr)
-                        <img src="{{ $signature_qr }}" class="signature-image" alt="QR Signature">
+                    @if ($show_qr_signature && $kaprodi_qr)
+                        <img src="{{ $kaprodi_qr }}" class="signature-image" alt="QR Signature">
                     @endif
                 </div>
                 <p class="underline">
-                    <strong>{{ $surat->penandatangan ? $surat->penandatangan->name : '[Nama Penandatangan]' }}</strong>
+                    <strong>{{ $surat->penandatanganKaprodi ? $surat->penandatanganKaprodi->name : '[Nama Penandatangan]' }}</strong>
                 </p>
-                <p>NIP. {{ $surat->penandatangan ? $surat->penandatangan->nip ?? '[NIP]' : '[NIP]' }}</p>
+                <p>NIP. {{ $surat->penandatanganKaprodi ? $surat->penandatanganKaprodi->nip ?? '[NIP]' : '[NIP]' }}
+                </p>
             </td>
         </tr>
     </table>

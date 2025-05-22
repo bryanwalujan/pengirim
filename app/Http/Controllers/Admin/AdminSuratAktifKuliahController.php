@@ -10,6 +10,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\DokumenPendukung;
 use App\Models\SuratAktifKuliah;
 use Illuminate\Support\Facades\DB;
+use App\Traits\BaseSuratController;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
@@ -20,8 +21,15 @@ use App\Http\Controllers\Admin\DocumentController;
 use App\Http\Requests\UpdateSuratAktifKuliahRequest;
 use App\Notifications\SuratNeedApprovalNotification;
 
+
 class AdminSuratAktifKuliahController extends DocumentController
 {
+    use BaseSuratController;
+    protected function getNomorSuratPrefix()
+    {
+        return 'UN41.2/TI';
+    }
+
     public function index(Request $request)
     {
         $status = $request->input('status', 'diajukan');
@@ -60,6 +68,7 @@ class AdminSuratAktifKuliahController extends DocumentController
             'status',
             'trackings' => fn($query) => $query->latest(),
             'penandatangan',
+            'penandatanganKaprodi',
         ]);
 
         $penandatangans = User::role('dosen')->get();
@@ -122,20 +131,10 @@ class AdminSuratAktifKuliahController extends DocumentController
                 if (!empty($validated['nomor_surat'])) {
                     $manualNumber = trim($validated['nomor_surat']);
 
-                    // Format baru dengan 4 digit
+                    // Gunakan validasi dari trait
                     if (preg_match('#^\d{1,4}$#', $manualNumber)) {
-                        $proposedNumber = sprintf(
-                            '%04d/UN41.2/TI/%s',
-                            $manualNumber,
-                            date('Y')
-                        );
-                    } elseif (preg_match('#\b(\d{1,4})\b#', $manualNumber, $matches)) {
-                        $proposedNumber = sprintf(
-                            '%04d/UN41.2/TI/%s',
-                            $matches[1],
-                            date('Y')
-                        );
-                    } elseif (!preg_match('#^\d{4}/UN41\.2/TI/\d{4}$#', $manualNumber)) {
+                        $proposedNumber = $this->generateNomorSurat($manualNumber);
+                    } elseif (!$this->validateNomorSuratFormat($manualNumber, $this->getNomorSuratPrefix())) {
                         return back()->with('error', 'Format nomor surat tidak valid. Contoh: 0001/UN41.2/TI/2024');
                     } else {
                         $proposedNumber = $manualNumber;
@@ -178,11 +177,15 @@ class AdminSuratAktifKuliahController extends DocumentController
                 $request->validate([
                     'penandatangan_id' => 'required|exists:users,id',
                     'jabatan_penandatangan' => 'required|string|max:255',
+                    'penandatangan_kaprodi_id' => 'required|exists:users,id',
+                    'jabatan_penandatangan_kaprodi' => 'required|string|max:255',
                 ]);
 
                 $surat->update([
                     'penandatangan_id' => $request->penandatangan_id,
                     'jabatan_penandatangan' => $request->jabatan_penandatangan,
+                    'penandatangan_kaprodi_id' => $request->penandatangan_kaprodi_id,
+                    'jabatan_penandatangan_kaprodi' => $request->jabatan_penandatangan_kaprodi,
                     'approved_at' => now(),
                     'approved_by' => $user->id,
                 ]);
@@ -224,7 +227,6 @@ class AdminSuratAktifKuliahController extends DocumentController
         }
     }
 
-
     // Method untuk persetujuan dosen bersangkutan
     public function approveByDosen(Request $request, SuratAktifKuliah $surat)
     {
@@ -240,13 +242,14 @@ class AdminSuratAktifKuliahController extends DocumentController
             'action' => 'required|in:approve,reject',
             'penandatangan_id' => 'required_if:action,approve|exists:users,id',
             'jabatan_penandatangan' => 'required_if:action,approve|string|max:255',
+            'penandatangan_kaprodi_id' => 'required_if:action,approve|exists:users,id',
+            'jabatan_penandatangan_kaprodi' => 'required_if:action,approve|string|max:255',
             'catatan_admin' => 'required_if:action,reject|nullable|string',
         ]);
 
         DB::beginTransaction();
         try {
             if ($request->action === 'approve') {
-
                 // Jangan generate nomor surat jika sudah ada
                 $nomorSurat = $surat->nomor_surat ?: $this->generateNomorSurat();
 
@@ -254,7 +257,9 @@ class AdminSuratAktifKuliahController extends DocumentController
                 $surat->update([
                     'penandatangan_id' => $request->penandatangan_id,
                     'jabatan_penandatangan' => $request->jabatan_penandatangan,
-                    'nomor_surat' => $nomorSurat, // Gunakan yang sudah ada atau generate baru
+                    'penandatangan_kaprodi_id' => $request->penandatangan_kaprodi_id,
+                    'jabatan_penandatangan_kaprodi' => $request->jabatan_penandatangan_kaprodi,
+                    'nomor_surat' => $nomorSurat,
                     'tanggal_surat' => $surat->tanggal_surat ?? now(),
                     'approved_at' => now(),
                     'approved_by' => $user->id,
@@ -337,16 +342,8 @@ class AdminSuratAktifKuliahController extends DocumentController
     // Method generateNomorSurat untuk menghasilkan nomor surat
     protected function generateNomorSurat($customNumber = null)
     {
-        $currentYear = date('Y');
-        $latestSurat = SuratAktifKuliah::withTrashed()
-            ->whereYear('created_at', $currentYear)
-            ->whereNotNull('nomor_surat')
-            ->orderBy('nomor_surat', 'desc')
-            ->first();
-
-        $latestNumber = $latestSurat ? intval(explode('/', $latestSurat->nomor_surat)[0]) : 0;
-
-        return sprintf('%04d/UN41.2/TI/%s', $latestNumber + 1, $currentYear);
+        // Prefix khusus untuk Surat Aktif Kuliah
+        return $this->generateNomorSuratUniversal('UN41.2/TI', $customNumber);
     }
 
 
@@ -364,6 +361,9 @@ class AdminSuratAktifKuliahController extends DocumentController
         if (!$surat->relationLoaded('penandatangan') && $surat->penandatangan_id) {
             $surat->load('penandatangan');
         }
+        if (!$surat->relationLoaded('penandatanganKaprodi') && $surat->penandatangan_kaprodi_id) {
+            $surat->load('penandatanganKaprodi');
+        }
 
         // Hitung semester
         $tahunMasuk = 2000 + (int) substr($surat->mahasiswa->nim, 0, 2);
@@ -372,16 +372,23 @@ class AdminSuratAktifKuliahController extends DocumentController
         $semesterNumber = ($tahunMulai - $tahunMasuk) * 2 + ($surat->semester === 'ganjil' ? 1 : 2);
         $semesterNumber = min($semesterNumber, 14);
 
-        // Tentukan jabatan penandatangan secara dinamis
+        // Ambil jabatan penandatangan
         $jabatanPimpinan = $surat->jabatan_penandatangan ?? 'Pimpinan Jurusan PTIK';
-        $jabatanKoordinator = $surat->jabatan_penandatangan ?? 'Koordinator Program Studi';
+        $jabatanKoordinator = $surat->jabatan_penandatangan_kaprodi ?? 'Koordinator Program Studi';
 
-        // HANYA generate QR code jika ini approval final dari dosen
-        $signatureQr = null;
-        if ($isFinalApproval && $surat->penandatangan) {
+        // Generate QR code
+        $pimpinanQr = null;
+        $kaprodiQr = null;
+        if ($isFinalApproval && $surat->penandatangan && $surat->penandatanganKaprodi) {
             $verificationUrl = route('document.verify', ['code' => $surat->verification_code]);
-
-            $signatureQr = 'data:image/png;base64,' . base64_encode(
+            $pimpinanQr = 'data:image/png;base64,' . base64_encode(
+                QrCode::format('png')
+                    ->size(120)
+                    ->margin(1)
+                    ->errorCorrection('H')
+                    ->generate($verificationUrl)
+            );
+            $kaprodiQr = 'data:image/png;base64,' . base64_encode(
                 QrCode::format('png')
                     ->size(120)
                     ->margin(1)
@@ -394,7 +401,8 @@ class AdminSuratAktifKuliahController extends DocumentController
             'surat' => $surat,
             'semester_roman' => $this->getRomanSemester($semesterNumber),
             'show_qr_signature' => $isFinalApproval,
-            'signature_qr' => $signatureQr,
+            'pimpinan_qr' => $pimpinanQr,
+            'kaprodi_qr' => $kaprodiQr,
             'jabatanPimpinan' => $jabatanPimpinan,
             'jabatanKoordinator' => $jabatanKoordinator,
         ]);

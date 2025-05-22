@@ -34,6 +34,12 @@ class PermissionSeeder extends Seeder
             ['name' => 'edit surat aktif kuliah', 'group' => 'surat-aktif-kuliah'],
             ['name' => 'delete surat aktif kuliah', 'group' => 'surat-aktif-kuliah'],
 
+            // Surat Ijin Survey
+            ['name' => 'manage surat ijin survey', 'group' => 'surat-ijin-survey'],
+            ['name' => 'create surat ijin survey', 'group' => 'surat-ijin-survey'],
+            ['name' => 'edit surat ijin survey', 'group' => 'surat-ijin-survey'],
+            ['name' => 'delete surat ijin survey', 'group' => 'surat-ijin-survey'],
+
             // Academic Calendar
             ['name' => 'manage academic calendar', 'group' => 'academic'],
 

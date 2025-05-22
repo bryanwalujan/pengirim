@@ -21,8 +21,8 @@
                         </div>
 
                         <h1 class="mb-4">
-                            E-Service Teknik <br>
-                            Informatika <br>
+                            E-Service <br>
+                            Teknik Informatika <br>
                             <span class="accent-text">UNIMA</span>
                         </h1>
 

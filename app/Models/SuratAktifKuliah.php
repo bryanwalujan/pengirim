@@ -23,8 +23,10 @@ class SuratAktifKuliah extends Model
         'tanggal_surat',
         'tahun_ajaran',
         'semester',
-        'penandatangan_id',
+        'penandatangan_id', // Pimpinan Jurusan PTIK
         'jabatan_penandatangan',
+        'penandatangan_kaprodi_id', // Koordinator Program Studi
+        'jabatan_penandatangan_kaprodi',
         'approved_at',
         'approved_by',
     ];
@@ -42,6 +44,11 @@ class SuratAktifKuliah extends Model
     public function penandatangan(): BelongsTo
     {
         return $this->belongsTo(User::class, 'penandatangan_id');
+    }
+
+    public function penandatanganKaprodi(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'penandatangan_kaprodi_id');
     }
 
     public function status()
@@ -75,17 +82,22 @@ class SuratAktifKuliah extends Model
                 'nim' => $this->mahasiswa->nim,
             ],
             'approval' => [
-                'signer' => $this->penandatangan ? [
+                'pimpinan' => $this->penandatangan ? [
                     'name' => $this->penandatangan->name,
                     'position' => $this->jabatan_penandatangan,
-                    'nip' => $this->penandatangan->nip
+                    'nip' => $this->penandatangan->nip ?? null,
                 ] : null,
-                'date' => $this->approved_at?->toDateTimeString()
+                'kaprodi' => $this->penandatanganKaprodi ? [
+                    'name' => $this->penandatanganKaprodi->name,
+                    'position' => $this->jabatan_penandatangan_kaprodi,
+                    'nip' => $this->penandatanganKaprodi->nip ?? null,
+                ] : null,
+                'date' => $this->approved_at?->toDateTimeString(),
             ],
             'verification' => [
                 'code' => $this->verification_code,
-                'url' => route('document.verify', ['code' => $this->verification_code])
-            ]
+                'url' => route('document.verify', ['code' => $this->verification_code]),
+            ],
         ];
     }
 

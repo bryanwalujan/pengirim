@@ -34,6 +34,9 @@ return new class extends Migration {
             // Penandatangan
             $table->foreignId('penandatangan_id')->nullable()->constrained('users')->onDelete('set null');
             $table->string('jabatan_penandatangan')->nullable();
+            $table->unsignedBigInteger('penandatangan_kaprodi_id')->nullable();
+            $table->string('jabatan_penandatangan_kaprodi')->nullable();
+            $table->foreign('penandatangan_kaprodi_id')->references('id')->on('users')->onDelete('set null');
             $table->timestamps();
             $table->softDeletes();
         });

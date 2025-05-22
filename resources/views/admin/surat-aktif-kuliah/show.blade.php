@@ -28,7 +28,6 @@
         <div class="card mb-4">
             <div class="card-body">
                 <!-- Status -->
-                <!-- Enhanced Status Alert -->
                 @php
                     $alertClass = match ($surat->status ?? 'diajukan') {
                         'diproses' => 'info',
@@ -100,14 +99,26 @@
                         </div>
                         @if ($surat->penandatangan)
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Penandatangan</label>
+                                <label class="form-label">Penandatangan (Pimpinan)</label>
                                 <input type="text" class="form-control" value="{{ $surat->penandatangan->name }}"
                                     readonly>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Jabatan</label>
+                                <label class="form-label">Jabatan Pimpinan</label>
                                 <input type="text" class="form-control" value="{{ $surat->jabatan_penandatangan }}"
                                     readonly>
+                            </div>
+                        @endif
+                        @if ($surat->penandatanganKaprodi)
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Penandatangan (Kaprodi)</label>
+                                <input type="text" class="form-control" value="{{ $surat->penandatanganKaprodi->name }}"
+                                    readonly>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Jabatan Kaprodi</label>
+                                <input type="text" class="form-control"
+                                    value="{{ $surat->jabatan_penandatangan_kaprodi }}" readonly>
                             </div>
                         @endif
                     </div>
@@ -151,7 +162,6 @@
                     </div>
                 </div>
 
-                {{-- Dokumen Pendukung --}}
                 @if ($surat->dokumenPendukung->count() > 0)
                     <div class="mb-4">
                         <h5 class="fw-bold mb-3">Dokumen Pendukung</h5>
@@ -187,7 +197,6 @@
                     </div>
                 @endif
 
-                <!-- File Surat Section - Modified -->
                 @if ($surat->file_surat_path)
                     <div class="mb-4">
                         <h5 class="fw-bold mb-3">
@@ -200,15 +209,10 @@
                             @endif
                         </h5>
 
-                        <div
-                            class="alert 
-        @if ($surat->status === 'diproses') alert-info @else alert-success @endif
-        mb-3">
+                        <div class="alert @if ($surat->status === 'diproses') alert-info @else alert-success @endif mb-3">
                             <div class="d-flex align-items-center">
                                 <i
-                                    class="bx 
-                @if ($surat->status === 'diproses') bx-info-circle @else bx-check-circle @endif
-                me-2"></i>
+                                    class="bx @if ($surat->status === 'diproses') bx-info-circle @else bx-check-circle @endif me-2"></i>
                                 <div>
                                     @if ($surat->status === 'diproses')
                                         Ini adalah preview surat sebelum disetujui. Dokumen belum memiliki tanda tangan dan
@@ -240,7 +244,6 @@
             </div>
         </div>
 
-        <!-- Form untuk Staff (Diajukan atau Disetujui) -->
         @if (auth()->user()->hasRole('staff') && in_array($surat->status, ['diajukan', 'disetujui']))
             <div class="card mb-4">
                 <div class="card-header">
@@ -258,7 +261,6 @@
                         @method('PUT')
 
                         @if ($surat->status === 'diajukan')
-                            <!-- Field nomor surat hanya untuk status diajukan -->
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label for="nomor_surat" class="form-label">Nomor Surat</label>
@@ -310,9 +312,8 @@
                             </div>
 
                             @if ($surat->status === 'disetujui')
-                                <!-- Field tambahan untuk status disetujui -->
                                 <div class="col-md-6 mb-3">
-                                    <label for="penandatangan_id" class="form-label">Penandatangan <span
+                                    <label for="penandatangan_id" class="form-label">Penandatangan (Pimpinan) <span
                                             class="text-danger">*</span></label>
                                     <select name="penandatangan_id" id="penandatangan_id" class="form-select" required>
                                         <option value="">Pilih Penandatangan</option>
@@ -326,11 +327,35 @@
                                 </div>
 
                                 <div class="col-md-6 mb-3">
-                                    <label for="jabatan_penandatangan" class="form-label">Jabatan Penandatangan <span
+                                    <label for="jabatan_penandatangan" class="form-label">Jabatan Pimpinan <span
                                             class="text-danger">*</span></label>
                                     <input type="text" name="jabatan_penandatangan" id="jabatan_penandatangan"
                                         class="form-control" value="{{ $surat->jabatan_penandatangan }}"
-                                        placeholder="Masukkan jabatan penandatangan" required>
+                                        placeholder="Masukkan jabatan pimpinan" required>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label for="penandatangan_kaprodi_id" class="form-label">Penandatangan (Kaprodi) <span
+                                            class="text-danger">*</span></label>
+                                    <select name="penandatangan_kaprodi_id" id="penandatangan_kaprodi_id"
+                                        class="form-select" required>
+                                        <option value="">Pilih Penandatangan</option>
+                                        @foreach ($penandatangans as $penandatangan)
+                                            <option value="{{ $penandatangan->id }}"
+                                                {{ $surat->penandatangan_kaprodi_id == $penandatangan->id ? 'selected' : '' }}>
+                                                {{ $penandatangan->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label for="jabatan_penandatangan_kaprodi" class="form-label">Jabatan Kaprodi <span
+                                            class="text-danger">*</span></label>
+                                    <input type="text" name="jabatan_penandatangan_kaprodi"
+                                        id="jabatan_penandatangan_kaprodi" class="form-control"
+                                        value="{{ $surat->jabatan_penandatangan_kaprodi }}"
+                                        placeholder="Masukkan jabatan kaprodi" required>
                                 </div>
                             @endif
 
@@ -352,7 +377,6 @@
             </div>
         @endif
 
-        <!-- Form Persetujuan Dosen -->
         @if (auth()->user()->hasRole('dosen') && $surat->status === 'diproses')
             <div class="card mb-4">
                 <div class="card-header">
@@ -367,17 +391,41 @@
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Penandatangan</label>
-                                <input type="text" class="form-control" value="{{ auth()->user()->name }}" readonly>
-                                <input type="hidden" name="penandatangan_id" value="{{ auth()->user()->id }}">
+                                <label class="form-label">Penandatangan (Pimpinan)</label>
+                                <select name="penandatangan_id" class="form-select" required>
+                                    <option value="">Pilih Penandatangan</option>
+                                    @foreach ($penandatangans as $penandatangan)
+                                        <option value="{{ $penandatangan->id }}"
+                                            {{ $penandatangan->id == auth()->user()->id ? 'selected' : '' }}>
+                                            {{ $penandatangan->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
                             </div>
 
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Jabatan Penandatangan</label>
-                                <input type="text" class="form-control" value="{{ auth()->user()->jabatan }}"
-                                    readonly>
-                                <input type="hidden" name="jabatan_penandatangan"
-                                    value="{{ auth()->user()->jabatan }}">
+                                <label class="form-label">Jabatan Pimpinan</label>
+                                <input type="text" name="jabatan_penandatangan" class="form-control"
+                                    value="{{ auth()->user()->jabatan ?? 'Pimpinan Jurusan PTIK' }}" required>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Penandatangan (Kaprodi)</label>
+                                <select name="penandatangan_kaprodi_id" class="form-select" required>
+                                    <option value="">Pilih Penandatangan</option>
+                                    @foreach ($penandatangans as $penandatangan)
+                                        <option value="{{ $penandatangan->id }}"
+                                            {{ $penandatangan->id == auth()->user()->id ? 'selected' : '' }}>
+                                            {{ $penandatangan->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Jabatan Kaprodi</label>
+                                <input type="text" name="jabatan_penandatangan_kaprodi" class="form-control"
+                                    value="{{ auth()->user()->jabatan ?? 'Koordinator Program Studi' }}" required>
                             </div>
 
                             <div class="col-12 mb-3">
@@ -401,8 +449,6 @@
             </div>
         @endif
 
-
-        <!-- Timeline -->
         <div class="card">
             <div class="card-header">
                 <h5 class="card-title mb-0">Riwayat Status</h5>
@@ -443,36 +489,24 @@
 @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Untuk form dosen
-            const actionSelect = document.getElementById('action');
-            const penandatanganField = document.getElementById('penandatangan-field');
-            const jabatanField = document.getElementById('jabatan-field');
+            const actionSelect = document.querySelector('[name="action"]');
+            const penandatanganPimpinan = document.getElementById('penandatangan_id');
+            const jabatanPimpinan = document.getElementById('jabatan_penandatangan');
+            const penandatanganKaprodi = document.getElementById('penandatangan_kaprodi_id');
+            const jabatanKaprodi = document.getElementById('jabatan_penandatangan_kaprodi');
 
             if (actionSelect) {
                 function toggleDosenFields() {
-                    if (actionSelect.value === 'approve') {
-                        penandatanganField.style.display = 'block';
-                        jabatanField.style.display = 'block';
-                        penandatanganField.querySelector('select').required = true;
-                        jabatanField.querySelector('input').required = true;
-                    } else {
-                        penandatanganField.style.display = 'none';
-                        jabatanField.style.display = 'none';
-                        penandatanganField.querySelector('select').required = false;
-                        jabatanField.querySelector('input').required = false;
-                    }
+                    const isApprove = actionSelect.value === 'approve';
+                    [penandatanganPimpinan, jabatanPimpinan, penandatanganKaprodi, jabatanKaprodi].forEach(
+                    field => {
+                        field.closest('.col-md-6').style.display = isApprove ? 'block' : 'none';
+                        field.required = isApprove;
+                    });
                 }
 
                 actionSelect.addEventListener('change', toggleDosenFields);
-                toggleDosenFields(); // Initial call
-            }
-
-            // Untuk form staff
-            const statusSelect = document.getElementById('status');
-            if (statusSelect) {
-                statusSelect.addEventListener('change', function() {
-                    // Tambahkan logika tambahan jika diperlukan
-                });
+                toggleDosenFields();
             }
         });
     </script>
