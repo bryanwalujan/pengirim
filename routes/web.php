@@ -43,16 +43,16 @@ Route::get('/storage/academic-calendars/{filename}', function ($filename) {
 
 Route::get('/verify/{code}', [DocumentVerificationController::class, 'verify'])
     ->name('document.verify');
-
 Route::get('/preview-dummy-pdf', function () {
     $pdf = Pdf::loadView('admin.surat-aktif-kuliah.pdf', [
         'surat' => new SuratAktifKuliah([
             'nomor_surat' => 'PREVIEW/2023',
             'tanggal_surat' => now(),
-            'tujuan_pengajuan' => 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Sapiente ad quaerat natus voluptatem commodi. Dolorem exercitationem officiis corporis, aliquid laudantium doloremque in consequuntur, aperiam aliquam, perferendis earum vitae possimus? ',
+            'tujuan_pengajuan' => 'Lorem ipsum dolor sit amet consectetur adipisicing elit.',
             'tahun_ajaran' => '2023/2024',
             'semester' => 'ganjil',
-            'jabatan_penandatangan' => 'Koordinator Program Studi',
+            'jabatan_penandatangan' => 'Pimpinan Jurusan PTIK',
+            'jabatan_penandatangan_kaprodi' => 'Koordinator Program Studi',
             'verification_code' => 'PREVIEW123'
         ]),
         'semester_roman' => 'IV (Empat)',
@@ -64,8 +64,21 @@ Route::get('/preview-dummy-pdf', function () {
             'name' => 'Dr. Contoh Penandatangan, M.Kom',
             'nip' => '197001012000121001'
         ]),
-        'is_preview' => true
-    ])->setPaper('a4', 'landscape');
+        'penandatanganKaprodi' => new User([
+            'name' => 'Dr. Contoh Kaprodi, M.Kom',
+            'nip' => '197001012000121002'
+        ]),
+        'show_qr_signature' => true,
+        'pimpinan_qr' => 'data:image/png;base64,' . base64_encode(
+            QrCode::format('png')->size(120)->margin(1)->errorCorrection('H')->generate('PREVIEW123')
+        ),
+        'kaprodi_qr' => 'data:image/png;base64,' . base64_encode(
+            QrCode::format('png')->size(120)->margin(1)->errorCorrection('H')->generate('PREVIEW123')
+        ),
+        'jabatanPimpinan' => 'Pimpinan Jurusan PTIK',
+        'jabatanKoordinator' => 'Koordinator Program Studi',
+        'qr_type' => 'pimpinan',
+    ])->setPaper('a4');
 
     return $pdf->stream('preview-surat-aktif-kuliah.pdf');
 })->name('preview.dummy');
@@ -221,7 +234,6 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         });
 
         Route::get('/{surat}/download', [AdminSuratAktifKuliahController::class, 'download'])->name('download'); // Opsional
-
         // Dokumen pendukung surat aktif kuliah
         Route::get('/{surat}/download-pendukung', [AdminSuratAktifKuliahController::class, 'downloadPendukung'])
             ->name('download-pendukung');

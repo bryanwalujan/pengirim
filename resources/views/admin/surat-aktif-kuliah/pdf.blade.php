@@ -174,7 +174,7 @@
                 <p>Mengetahui,</p>
                 <p>{{ $jabatanPimpinan }},</p>
                 <div class="signature-space">
-                    @if ($show_qr_signature && $pimpinan_qr)
+                    @if ($show_qr_signature && $pimpinan_qr && $qr_type === 'pimpinan')
                         <img src="{{ $pimpinan_qr }}" alt="QR Code Pimpinan" class="signature-image">
                     @endif
                 </div>

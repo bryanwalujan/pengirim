@@ -29,6 +29,7 @@ class SuratAktifKuliah extends Model
         'jabatan_penandatangan_kaprodi',
         'approved_at',
         'approved_by',
+        'verification_code'
     ];
 
     protected $casts = [

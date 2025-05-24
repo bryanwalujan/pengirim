@@ -38,18 +38,25 @@ class UserSeeder extends Seeder
 
         // Dosen
         User::factory()->create([
-            'name' => 'Dr. Dosen Pertama, M.Kom',
-            'nip' => '123456',
-            'jabatan' => 'Korprodi',
+            'name' => 'Kristofel Santa, S,ST, M.MT',
+            'nip' => '19870531 201504 1 003',
+            'jabatan' => 'Koordinator Program Studi',
             'email' => 'dosen@unima.ac.id',
+            'password' => 'password',
+        ])->assignRole('dosen');
+        User::factory()->create([
+            'name' => 'Arje C. Djamen. ST, MT',
+            'nip' => '19870712 201012 1 006',
+            'jabatan' => 'Pimpinan Jurusan PTIK',
+            'email' => 'dosen2@unima.ac.id',
             'password' => 'password',
         ])->assignRole('dosen');
 
         // Mahasiswa
         User::factory()->create([
-            'name' => 'Mahasiswa Pertama',
-            'nim' => '123455677',
-            'email' => 'mahasiswa@unima.ac.id',
+            'name' => 'Patrick Rompas',
+            'nim' => '20210047',
+            'email' => '20210047@unima.ac.id',
             'password' => 'password',
         ])->assignRole('mahasiswa');
 

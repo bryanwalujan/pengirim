@@ -31,6 +31,8 @@
                 @php
                     $alertClass = match ($surat->status ?? 'diajukan') {
                         'diproses' => 'info',
+                        'disetujui_kaprodi' => 'success',
+                        'disetujui_pimpinan' => 'success',
                         'disetujui' => 'success',
                         'ditolak' => 'danger',
                         'siap_diambil' => 'primary',
@@ -40,6 +42,8 @@
 
                     $alertIcon = match ($surat->status ?? 'diajukan') {
                         'diproses' => 'bx bx-loader',
+                        'disetujui_kaprodi' => 'bx bx-check',
+                        'disetujui_pimpinan' => 'bx bx-check',
                         'disetujui' => 'bx bx-check',
                         'ditolak' => 'bx bx-error-circle',
                         'siap_diambil' => 'bx bx-package',
@@ -202,21 +206,26 @@
                         <h5 class="fw-bold mb-3">
                             @if ($surat->status === 'diproses')
                                 Preview Surat
-                            @elseif (in_array($surat->status, ['disetujui', 'siap_diambil', 'sudah_diambil']))
+                            @elseif ($surat->status === 'disetujui_kaprodi')
+                                Surat dengan Persetujuan Kaprodi
+                            @elseif (in_array($surat->status, ['disetujui_pimpinan', 'disetujui', 'siap_diambil', 'sudah_diambil']))
                                 Surat Final
                             @else
                                 File Surat
                             @endif
                         </h5>
 
-                        <div class="alert @if ($surat->status === 'diproses') alert-info @else alert-success @endif mb-3">
+                        <div
+                            class="alert @if ($surat->status === 'diproses') alert-info @elseif ($surat->status === 'disetujui_kaprodi') alert-success @else alert-success @endif mb-3">
                             <div class="d-flex align-items-center">
                                 <i
-                                    class="bx @if ($surat->status === 'diproses') bx-info-circle @else bx-check-circle @endif me-2"></i>
+                                    class="bx @if ($surat->status === 'diproses') bx-info-circle @elseif ($surat->status === 'disetujui_kaprodi') bx-check-circle @else bx-check-circle @endif me-2"></i>
                                 <div>
                                     @if ($surat->status === 'diproses')
                                         Ini adalah preview surat sebelum disetujui. Dokumen belum memiliki tanda tangan dan
                                         QR code verifikasi.
+                                    @elseif ($surat->status === 'disetujui_kaprodi')
+                                        Ini adalah surat dengan tanda tangan Kaprodi. Menunggu persetujuan Pimpinan.
                                     @else
                                         Ini adalah surat final yang telah disetujui dan memiliki tanda tangan lengkap.
                                     @endif
@@ -230,6 +239,8 @@
                                 <i class="bx bx-show me-1"></i>
                                 @if ($surat->status === 'diproses')
                                     Lihat Preview
+                                @elseif ($surat->status === 'disetujui_kaprodi')
+                                    Lihat Surat Kaprodi
                                 @else
                                     Lihat Surat Final
                                 @endif
@@ -311,54 +322,6 @@
                                 </select>
                             </div>
 
-                            @if ($surat->status === 'disetujui')
-                                <div class="col-md-6 mb-3">
-                                    <label for="penandatangan_id" class="form-label">Penandatangan (Pimpinan) <span
-                                            class="text-danger">*</span></label>
-                                    <select name="penandatangan_id" id="penandatangan_id" class="form-select" required>
-                                        <option value="">Pilih Penandatangan</option>
-                                        @foreach ($penandatangans as $penandatangan)
-                                            <option value="{{ $penandatangan->id }}"
-                                                {{ $surat->penandatangan_id == $penandatangan->id ? 'selected' : '' }}>
-                                                {{ $penandatangan->name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-
-                                <div class="col-md-6 mb-3">
-                                    <label for="jabatan_penandatangan" class="form-label">Jabatan Pimpinan <span
-                                            class="text-danger">*</span></label>
-                                    <input type="text" name="jabatan_penandatangan" id="jabatan_penandatangan"
-                                        class="form-control" value="{{ $surat->jabatan_penandatangan }}"
-                                        placeholder="Masukkan jabatan pimpinan" required>
-                                </div>
-
-                                <div class="col-md-6 mb-3">
-                                    <label for="penandatangan_kaprodi_id" class="form-label">Penandatangan (Kaprodi) <span
-                                            class="text-danger">*</span></label>
-                                    <select name="penandatangan_kaprodi_id" id="penandatangan_kaprodi_id"
-                                        class="form-select" required>
-                                        <option value="">Pilih Penandatangan</option>
-                                        @foreach ($penandatangans as $penandatangan)
-                                            <option value="{{ $penandatangan->id }}"
-                                                {{ $surat->penandatangan_kaprodi_id == $penandatangan->id ? 'selected' : '' }}>
-                                                {{ $penandatangan->name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-
-                                <div class="col-md-6 mb-3">
-                                    <label for="jabatan_penandatangan_kaprodi" class="form-label">Jabatan Kaprodi <span
-                                            class="text-danger">*</span></label>
-                                    <input type="text" name="jabatan_penandatangan_kaprodi"
-                                        id="jabatan_penandatangan_kaprodi" class="form-control"
-                                        value="{{ $surat->jabatan_penandatangan_kaprodi }}"
-                                        placeholder="Masukkan jabatan kaprodi" required>
-                                </div>
-                            @endif
-
                             <div class="col-12 mb-3">
                                 <label for="catatan_admin" class="form-label">Catatan <span
                                         class="text-danger">*</span></label>
@@ -377,7 +340,7 @@
             </div>
         @endif
 
-        @if (auth()->user()->hasRole('dosen') && $surat->status === 'diproses')
+        @if (auth()->user()->hasRole('dosen') && in_array($surat->status, ['diproses', 'disetujui_kaprodi']))
             <div class="card mb-4">
                 <div class="card-header">
                     <h5 class="card-title mb-0">Persetujuan Surat</h5>
@@ -387,52 +350,79 @@
                         @csrf
                         @method('PUT')
 
-                        <input type="hidden" name="status" value="disetujui">
+                        @if ($surat->status === 'diproses')
+                            <input type="hidden" name="status" value="disetujui_kaprodi">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Penandatangan (Kaprodi)</label>
+                                    <select name="penandatangan_kaprodi_id" id="penandatangan_kaprodi_id"
+                                        class="form-select @error('penandatangan_kaprodi_id') is-invalid @enderror"
+                                        required>
+                                        <option value="">Pilih Penandatangan</option>
+                                        @foreach ($penandatangans as $penandatangan)
+                                            <option value="{{ $penandatangan->id }}"
+                                                {{ old('penandatangan_kaprodi_id', auth()->user()->id) == $penandatangan->id ? 'selected' : '' }}>
+                                                {{ $penandatangan->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('penandatangan_kaprodi_id')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Jabatan Kaprodi</label>
+                                    <input type="text" name="jabatan_penandatangan_kaprodi"
+                                        id="jabatan_penandatangan_kaprodi"
+                                        class="form-control @error('jabatan_penandatangan_kaprodi') is-invalid @enderror"
+                                        value="{{ old('jabatan_penandatangan_kaprodi', auth()->user()->jabatan ?? 'Koordinator Program Studi') }}"
+                                        required>
+                                    @error('jabatan_penandatangan_kaprodi')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                        @elseif ($surat->status === 'disetujui_kaprodi')
+                            <input type="hidden" name="status" value="disetujui_pimpinan">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Penandatangan (Pimpinan)</label>
+                                    <select name="penandatangan_id" id="penandatangan_id"
+                                        class="form-select @error('penandatangan_id') is-invalid @enderror" required>
+                                        <option value="">Pilih Penandatangan</option>
+                                        @foreach ($penandatangans as $penandatangan)
+                                            <option value="{{ $penandatangan->id }}"
+                                                {{ old('penandatangan_id', auth()->user()->id) == $penandatangan->id ? 'selected' : '' }}>
+                                                {{ $penandatangan->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('penandatangan_id')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Jabatan Pimpinan</label>
+                                    <input type="text" name="jabatan_penandatangan" id="jabatan_penandatangan"
+                                        class="form-control @error('jabatan_penandatangan') is-invalid @enderror"
+                                        value="{{ old('jabatan_penandatangan', auth()->user()->jabatan ?? 'Pimpinan Jurusan PTIK') }}"
+                                        required>
+                                    @error('jabatan_penandatangan')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                        @endif
 
                         <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Penandatangan (Pimpinan)</label>
-                                <select name="penandatangan_id" class="form-select" required>
-                                    <option value="">Pilih Penandatangan</option>
-                                    @foreach ($penandatangans as $penandatangan)
-                                        <option value="{{ $penandatangan->id }}"
-                                            {{ $penandatangan->id == auth()->user()->id ? 'selected' : '' }}>
-                                            {{ $penandatangan->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Jabatan Pimpinan</label>
-                                <input type="text" name="jabatan_penandatangan" class="form-control"
-                                    value="{{ auth()->user()->jabatan ?? 'Pimpinan Jurusan PTIK' }}" required>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Penandatangan (Kaprodi)</label>
-                                <select name="penandatangan_kaprodi_id" class="form-select" required>
-                                    <option value="">Pilih Penandatangan</option>
-                                    @foreach ($penandatangans as $penandatangan)
-                                        <option value="{{ $penandatangan->id }}"
-                                            {{ $penandatangan->id == auth()->user()->id ? 'selected' : '' }}>
-                                            {{ $penandatangan->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Jabatan Kaprodi</label>
-                                <input type="text" name="jabatan_penandatangan_kaprodi" class="form-control"
-                                    value="{{ auth()->user()->jabatan ?? 'Koordinator Program Studi' }}" required>
-                            </div>
-
                             <div class="col-12 mb-3">
                                 <label for="catatan_admin" class="form-label">Catatan Persetujuan <span
                                         class="text-danger">*</span></label>
-                                <textarea name="catatan_admin" id="catatan_admin" class="form-control" rows="3" required
-                                    placeholder="Masukkan catatan persetujuan">{{ $surat->status()->first()?->catatan_admin }}</textarea>
+                                <textarea name="catatan_admin" id="catatan_admin" class="form-control @error('catatan_admin') is-invalid @enderror"
+                                    rows="3" required placeholder="Masukkan catatan persetujuan">{{ old('catatan_admin', $surat->status()->first()?->catatan_admin) }}</textarea>
+                                @error('catatan_admin')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
 
                             <div class="col-12 text-end">
@@ -460,7 +450,12 @@
                             <div class="timeline-marker">
                                 @php
                                     $timelineClass = match ($tracking->aksi) {
-                                        'disetujui', 'siap_diambil', 'sudah_diambil' => 'text-success',
+                                        'disetujui',
+                                        'disetujui_kaprodi',
+                                        'disetujui_pimpinan',
+                                        'siap_diambil',
+                                        'sudah_diambil'
+                                            => 'text-success',
                                         'ditolak' => 'text-danger',
                                         default => 'text-primary',
                                     };
@@ -498,8 +493,14 @@
             if (actionSelect) {
                 function toggleDosenFields() {
                     const isApprove = actionSelect.value === 'approve';
-                    [penandatanganPimpinan, jabatanPimpinan, penandatanganKaprodi, jabatanKaprodi].forEach(
-                    field => {
+                    const fields =
+                        @if ($surat->status === 'diproses')
+                            [penandatanganKaprodi, jabatanKaprodi]
+                        @else
+                            [penandatanganPimpinan, jabatanPimpinan]
+                        @endif ;
+
+                    fields.forEach(field => {
                         field.closest('.col-md-6').style.display = isApprove ? 'block' : 'none';
                         field.required = isApprove;
                     });

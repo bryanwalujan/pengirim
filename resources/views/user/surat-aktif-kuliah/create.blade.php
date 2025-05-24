@@ -158,6 +158,40 @@
                 padding: 1rem;
             }
         }
+
+        /* Tambahkan ini di bagian style Anda */
+        .list-group-item {
+            transition: all 0.2s ease;
+            border-radius: var(--border-radius) !important;
+            margin-bottom: 0.5rem;
+        }
+
+        .list-group-item:hover {
+            background-color: var(--light-gray);
+        }
+
+        .cancel-file {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            border-radius: 50%;
+            transition: var(--transition);
+        }
+
+        .cancel-file:hover {
+            background-color: #ff4444;
+            color: white;
+        }
+
+        .file-info {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-top: 0.5rem;
+            display: block;
+        }
     </style>
 @endpush
 
@@ -305,15 +339,16 @@
             once: true
         });
 
-        // File upload preview
+        // File upload preview with cancel button
         document.getElementById('file_pendukung_path').addEventListener('change', function(e) {
             const files = e.target.files;
             const fileList = document.getElementById('file-list');
             fileList.innerHTML = '';
 
-            if (files.length > 0) {
-                const list = document.createElement('ul');
+            if (files && files.length > 0) {
+                const list = document.createElement('div');
                 list.className = 'list-group';
+                let hasValidFiles = false;
 
                 for (let i = 0; i < files.length; i++) {
                     const file = files[i];
@@ -321,28 +356,83 @@
                     const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
                     const maxSize = 2 * 1024 * 1024; // 2MB
 
+                    // Skip invalid files
                     if (!allowedTypes.includes(file.type) || file.size > maxSize) {
-                        alert(`File ${file.name} harus berupa PDF, JPG, atau PNG dengan ukuran maksimal 2MB`);
-                        e.target.value = '';
-                        fileList.innerHTML = '';
-                        return;
+                        continue;
                     }
 
-                    const item = document.createElement('li');
+                    hasValidFiles = true;
+
+                    const item = document.createElement('div');
                     item.className = 'list-group-item d-flex justify-content-between align-items-center';
+                    item.dataset.index = i;
                     item.innerHTML = `
-                    <span>${file.name}</span>
-                    <span class="badge bg-primary rounded-pill">${fileSize} MB</span>
-                `;
+                        <div class="d-flex align-items-center">
+                            <span class="me-2">${file.name}</span>
+                            <small class="text-muted">${fileSize} MB</small>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-danger cancel-file" data-index="${i}">
+                            <i class="bi bi-x"></i>
+                        </button>
+                    `;
                     list.appendChild(item);
                 }
 
-                fileList.appendChild(list);
+                // Only show clear all button if there are valid files
+                if (hasValidFiles) {
+                    const clearAllBtn = document.createElement('button');
+                    clearAllBtn.type = 'button';
+                    clearAllBtn.className = 'btn btn-sm btn-outline-secondary mt-2';
+                    clearAllBtn.innerHTML = '<i class="bi bi-trash"></i> Hapus Semua';
+                    clearAllBtn.addEventListener('click', function() {
+                        document.getElementById('file_pendukung_path').value = '';
+                        fileList.innerHTML = '';
+                    });
+
+                    list.appendChild(clearAllBtn);
+                    fileList.appendChild(list);
+                } else {
+                    // Show error message if no valid files were selected
+                    const errorMsg = document.createElement('div');
+                    errorMsg.className = 'alert alert-danger mt-2';
+                    errorMsg.textContent =
+                        'Tidak ada file yang valid. Harap unggah file PDF, JPG, atau PNG (maks. 2MB)';
+                    fileList.appendChild(errorMsg);
+                }
+            }
+        });
+
+        // Handle cancel button clicks
+        document.addEventListener('click', function(e) {
+            const cancelBtn = e.target.closest('.cancel-file');
+            if (cancelBtn) {
+                const index = parseInt(cancelBtn.dataset.index);
+                const fileInput = document.getElementById('file_pendukung_path');
+
+                if (fileInput.files && fileInput.files.length > index) {
+                    // Create new FileList without the cancelled file
+                    const dataTransfer = new DataTransfer();
+
+                    // Add all files except the one being cancelled
+                    for (let i = 0; i < fileInput.files.length; i++) {
+                        if (i !== index) {
+                            dataTransfer.items.add(fileInput.files[i]);
+                        }
+                    }
+
+                    // Update file input
+                    fileInput.files = dataTransfer.files;
+
+                    // Trigger change event to update the UI
+                    const event = new Event('change');
+                    fileInput.dispatchEvent(event);
+                }
             }
         });
 
         // Form submission handler
-        document.getElementById('surat-form').addEventListener('submit', function() {
+        document.getElementById('surat-form').addEventListener('submit', function(e) {
+            // Optional: Add validation here if needed
             const btn = document.getElementById('submit-btn');
             btn.disabled = true;
             btn.innerHTML = '<i class="bi bi-hourglass"></i> Mengirim...';

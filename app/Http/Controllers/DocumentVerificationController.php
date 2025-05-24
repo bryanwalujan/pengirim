@@ -9,7 +9,7 @@ class DocumentVerificationController extends Controller
 {
     public function verify($code)
     {
-        $document = SuratAktifKuliah::with(['mahasiswa', 'penandatangan', 'status'])
+        $document = SuratAktifKuliah::with(['mahasiswa', 'penandatangan', 'penandatanganKaprodi', 'status'])
             ->where('verification_code', $code)
             ->first();
 
@@ -22,7 +22,7 @@ class DocumentVerificationController extends Controller
         // Pastikan status tersedia
         $status = is_object($document->status) ? $document->status->status : ($document->status ?? 'unknown');
 
-        return view('verification.show', [
+        return view('user.verification.show', [
             'document' => $document,
             'verification_data' => $this->prepareVerificationData($document, $status)
         ]);
@@ -33,27 +33,39 @@ class DocumentVerificationController extends Controller
         return [
             'document' => [
                 'type' => 'Surat Aktif Kuliah',
-                'number' => $document->nomor_surat,
-                'date' => optional($document->tanggal_surat)->format('d F Y'),
-                'academic_year' => $document->tahun_ajaran,
-                'semester' => $document->semester,
-                'purpose' => $document->tujuan_pengajuan,
+                'number' => $document->nomor_surat ?? '-',
+                'date' => optional($document->tanggal_surat)->format('d F Y') ?? '-',
+                'academic_year' => $document->tahun_ajaran ?? '-',
+                'semester' => ucfirst($document->semester ?? '-') ?? '-',
+                'purpose' => $document->tujuan_pengajuan ?? '-',
             ],
             'student' => [
-                'name' => $document->mahasiswa->name,
-                'nim' => $document->mahasiswa->nim,
-                'study_program' => 'S1 Teknik Informatika'
+                'name' => $document->mahasiswa->name ?? '-',
+                'nim' => $document->mahasiswa->nim ?? '-',
+                'study_program' => 'S1 Teknik Informatika' // Pastikan string
             ],
-            'signer' => $document->penandatangan ? [
-                'name' => $document->penandatangan->name,
-                'position' => $document->jabatan_penandatangan,
-                'nip' => $document->penandatangan->nip,
-                'signature_date' => optional($document->approved_at)->format('d F Y H:i')
-            ] : null,
+            'signers' => [
+                'kaprodi' => $document->penandatanganKaprodi ? [
+                    'name' => $document->penandatanganKaprodi->name ?? '-',
+                    'position' => is_string($document->jabatan_penandatangan_kaprodi)
+                        ? $document->jabatan_penandatangan_kaprodi
+                        : ($document->jabatan_penandatangan_kaprodi['title'] ?? 'Koordinator Program Studi'),
+                    'nip' => $document->penandatanganKaprodi->nip ?? '-',
+                    'signature_date' => optional($document->approved_at)->format('d F Y H:i') ?? '-'
+                ] : null,
+                'pimpinan' => $document->penandatangan ? [
+                    'name' => $document->penandatangan->name ?? '-',
+                    'position' => is_string($document->jabatan_penandatangan)
+                        ? $document->jabatan_penandatangan
+                        : ($document->jabatan_penandatangan['title'] ?? 'Pimpinan Jurusan PTIK'),
+                    'nip' => $document->penandatangan->nip ?? '-',
+                    'signature_date' => optional($document->approved_at)->format('d F Y H:i') ?? '-'
+                ] : null,
+            ],
             'verification' => [
                 'status' => $status,
                 'verified_at' => now()->format('d F Y H:i'),
-                'verification_code' => $document->verification_code
+                'verification_code' => $document->verification_code ?? '-'
             ]
         ];
     }

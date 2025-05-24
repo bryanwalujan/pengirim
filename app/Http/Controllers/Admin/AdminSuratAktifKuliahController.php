@@ -100,26 +100,19 @@ class AdminSuratAktifKuliahController extends DocumentController
         $allowedTransitions = [
             'staff' => [
                 'diproses' => ['diajukan'],
-                'ditolak' => ['diajukan'],
-                'siap_diambil' => ['disetujui']
+                'ditolak' => ['diajukan', 'disetujui_kaprodi', 'disetujui_pimpinan'],
+                'siap_diambil' => ['disetujui'],
             ],
-            'dosen' => [
-                'disetujui' => ['diproses'],
-                'ditolak' => ['diproses']
-            ]
         ];
+
 
         // Cek izin peran
         if ($user->hasRole('staff') && !array_key_exists($validated['status'], $allowedTransitions['staff'])) {
             return back()->with('error', 'Anda tidak memiliki izin untuk melakukan aksi ini');
         }
 
-        if ($user->hasRole('dosen') && !array_key_exists($validated['status'], $allowedTransitions['dosen'])) {
-            return back()->with('error', 'Anda tidak memiliki izin untuk melakukan aksi ini');
-        }
-
         // Cek validitas transisi status
-        if (!in_array($surat->status, $allowedTransitions[$user->hasRole('dosen') ? 'dosen' : 'staff'][$validated['status']] ?? [])) {
+        if (!in_array($surat->status, $allowedTransitions['staff'][$validated['status']] ?? [])) {
             return back()->with('error', 'Transisi status tidak valid');
         }
 
@@ -165,9 +158,11 @@ class AdminSuratAktifKuliahController extends DocumentController
                 $filePath = $this->generateSuratFile($surat, false);
                 $surat->update(['file_surat_path' => $filePath]);
 
-                // Notifikasi ke dosen
-                $dosenUsers = User::role('dosen')->get();
-                foreach ($dosenUsers as $dosen) {
+                // Notifikasi ke dosen dengan jabatan Koordinator Program Studi
+                $dosenKaprodi = User::role('dosen')
+                    ->where('jabatan', 'like', '%Koordinator Program Studi%')
+                    ->get();
+                foreach ($dosenKaprodi as $dosen) {
                     $dosen->notify(new SuratNeedApprovalNotification($surat));
                 }
             }
@@ -175,28 +170,55 @@ class AdminSuratAktifKuliahController extends DocumentController
             // Persetujuan dosen
             if ($validated['status'] === 'disetujui' && $user->hasRole('dosen')) {
                 $request->validate([
-                    'penandatangan_id' => 'required|exists:users,id',
-                    'jabatan_penandatangan' => 'required|string|max:255',
+                    // 'penandatangan_id' => 'required|exists:users,id',
+                    // 'jabatan_penandatangan' => 'required|string|max:255',
                     'penandatangan_kaprodi_id' => 'required|exists:users,id',
                     'jabatan_penandatangan_kaprodi' => 'required|string|max:255',
                 ]);
 
                 $surat->update([
-                    'penandatangan_id' => $request->penandatangan_id,
-                    'jabatan_penandatangan' => $request->jabatan_penandatangan,
                     'penandatangan_kaprodi_id' => $request->penandatangan_kaprodi_id,
                     'jabatan_penandatangan_kaprodi' => $request->jabatan_penandatangan_kaprodi,
                     'approved_at' => now(),
                     'approved_by' => $user->id,
                 ]);
 
-                // Generate ulang PDF dengan tanda tangan
-                $filePath = $this->generateSuratFile($surat);
+                // Generate PDF dengan QR code Kaprodi
+                $filePath = $this->generateSuratFile($surat, true, 'kaprodi');
                 $surat->update(['file_surat_path' => $filePath]);
 
+                // Notifikasi ke dosen dengan jabatan Pimpinan Jurusan PTIK
+                $dosenPimpinan = User::role('dosen')
+                    ->where('jabatan', 'like', '%Pimpinan Jurusan PTIK%')
+                    ->get();
+                foreach ($dosenPimpinan as $dosen) {
+                    $dosen->notify(new SuratNeedApprovalNotification($surat));
+                }
+            }
+            // Persetujuan Pimpinan
+            if ($validated['status'] === 'disetujui_pimpinan' && $user->hasRole('dosen')) {
+                $request->validate([
+                    'penandatangan_id' => 'required|exists:users,id',
+                    'jabatan_penandatangan' => 'required|string|max:255',
+                ]);
+
+                $surat->update([
+                    'penandatangan_id' => $request->penandatangan_id,
+                    'jabatan_penandatangan' => $request->jabatan_penandatangan,
+                    'approved_at' => now(),
+                    'approved_by' => $user->id,
+                ]);
+
+                // Generate final PDF dengan kedua QR code
+                $filePath = $this->generateSuratFile($surat, true, 'pimpinan');
+                $surat->update(['file_surat_path' => $filePath]);
+
+                // Update status ke disetujui
+                $validated['status'] = 'disetujui';
                 // Notifikasi ke mahasiswa
                 $surat->mahasiswa->notify(new SuratNeedApprovalNotification($surat));
             }
+
 
             // Update status
             StatusSurat::updateOrCreate(
@@ -233,37 +255,68 @@ class AdminSuratAktifKuliahController extends DocumentController
         // Validasi role
         $user = User::find(Auth::id());
         if (!$user->hasRole('dosen')) {
-            return redirect()->back()
-                ->with('error', 'Anda tidak memiliki izin untuk menyetujui surat');
+            return redirect()->back()->with('error', 'Anda tidak memiliki izin untuk menyetujui surat');
+        }
+
+        // Validasi status surat
+        $allowedTransitions = [
+            'disetujui_kaprodi' => ['diproses'],
+            'disetujui_pimpinan' => ['disetujui_kaprodi'],
+            'ditolak' => ['diproses', 'disetujui_kaprodi'],
+        ];
+
+        $status = $request->status;
+        if (!in_array($surat->status, $allowedTransitions[$status] ?? [])) {
+            return back()->with('error', 'Transisi status tidak valid');
         }
 
         // Validasi input
-        $request->validate([
+        $rules = [
             'action' => 'required|in:approve,reject',
-            'penandatangan_id' => 'required_if:action,approve|exists:users,id',
-            'jabatan_penandatangan' => 'required_if:action,approve|string|max:255',
-            'penandatangan_kaprodi_id' => 'required_if:action,approve|exists:users,id',
-            'jabatan_penandatangan_kaprodi' => 'required_if:action,approve|string|max:255',
-            'catatan_admin' => 'required_if:action,reject|nullable|string',
-        ]);
+            'catatan_admin' => 'required|string',
+        ];
+
+        if ($request->action === 'approve') {
+            if ($surat->status === 'diproses') {
+                $rules['penandatangan_kaprodi_id'] = 'required|exists:users,id';
+                $rules['jabatan_penandatangan_kaprodi'] = 'required|string|max:255';
+            } elseif ($surat->status === 'disetujui_kaprodi') {
+                $rules['penandatangan_id'] = 'required|exists:users,id';
+                $rules['jabatan_penandatangan'] = 'required|string|max:255';
+            }
+        }
+
+        $request->validate($rules);
 
         DB::beginTransaction();
         try {
             if ($request->action === 'approve') {
-                // Jangan generate nomor surat jika sudah ada
                 $nomorSurat = $surat->nomor_surat ?: $this->generateNomorSurat();
+                $qrType = $surat->status === 'diproses' ? 'kaprodi' : 'pimpinan';
+                $newStatus = $surat->status === 'diproses' ? 'disetujui_kaprodi' : 'disetujui_pimpinan';
 
                 // Update data surat
-                $surat->update([
-                    'penandatangan_id' => $request->penandatangan_id,
-                    'jabatan_penandatangan' => $request->jabatan_penandatangan,
-                    'penandatangan_kaprodi_id' => $request->penandatangan_kaprodi_id,
-                    'jabatan_penandatangan_kaprodi' => $request->jabatan_penandatangan_kaprodi,
+                $updateData = [
                     'nomor_surat' => $nomorSurat,
                     'tanggal_surat' => $surat->tanggal_surat ?? now(),
                     'approved_at' => now(),
                     'approved_by' => $user->id,
-                ]);
+                ];
+
+                if ($qrType === 'kaprodi') {
+                    $updateData['penandatangan_kaprodi_id'] = $request->penandatangan_kaprodi_id;
+                    $updateData['jabatan_penandatangan_kaprodi'] = $request->jabatan_penandatangan_kaprodi;
+                } else {
+                    $updateData['penandatangan_id'] = $request->penandatangan_id;
+                    $updateData['jabatan_penandatangan'] = $request->jabatan_penandatangan;
+                    $newStatus = 'disetujui'; // Final status after Pimpinan approval
+                }
+
+                $surat->update($updateData);
+
+                // Generate PDF
+                $filePath = $this->generateSuratFile($surat, true, $qrType);
+                $surat->update(['file_surat_path' => $filePath]);
 
                 // Update status
                 StatusSurat::updateOrCreate(
@@ -272,8 +325,8 @@ class AdminSuratAktifKuliahController extends DocumentController
                         'surat_id' => $surat->id,
                     ],
                     [
-                        'status' => 'disetujui',
-                        'catatan_admin' => $request->catatan_admin ?? 'Disetujui oleh Dosen/Kaprodi',
+                        'status' => $newStatus,
+                        'catatan_admin' => $request->catatan_admin,
                         'updated_by' => $user->id,
                     ]
                 );
@@ -282,28 +335,27 @@ class AdminSuratAktifKuliahController extends DocumentController
                 TrackingSurat::create([
                     'surat_type' => SuratAktifKuliah::class,
                     'surat_id' => $surat->id,
-                    'aksi' => 'disetujui',
-                    'keterangan' => $request->catatan_admin ?? 'Disetujui oleh Dosen/Kaprodi',
+                    'aksi' => $newStatus,
+                    'keterangan' => $request->catatan_admin,
                     'mahasiswa_id' => $surat->mahasiswa_id,
                 ]);
 
-                // Generate final PDF file
-                $filePath = $this->generateSuratFile($surat, true);
-
-                // Update surat with all final data
-                $surat->update([
-                    'file_surat_path' => $filePath,
-                    'approved_at' => now(),
-                    'approved_by' => $user->id,
-                    'draft_path' => null,
-                ]);
-
-                // Notifikasi ke mahasiswa
-                $surat->mahasiswa->notify(new SuratNeedApprovalNotification($surat));
+                // Notifikasi
+                if ($newStatus === 'disetujui_kaprodi') {
+                    $dosenPimpinan = User::role('dosen')
+                        ->where('jabatan', 'like', '%Pimpinan Jurusan PTIK%')
+                        ->get();
+                    foreach ($dosenPimpinan as $dosen) {
+                        $dosen->notify(new SuratNeedApprovalNotification($surat));
+                    }
+                } else {
+                    $surat->mahasiswa->notify(new SuratNeedApprovalNotification($surat));
+                }
 
                 DB::commit();
 
-                return redirect()->route('admin.surat-aktif-kuliah.index')->with('success', 'Surat berhasil disetujui dan file telah dibuat');
+                return redirect()->route('admin.surat-aktif-kuliah.index')
+                    ->with('success', 'Surat berhasil disetujui dan file telah dibuat');
             } else {
                 // Proses penolakan
                 StatusSurat::updateOrCreate(
@@ -333,6 +385,7 @@ class AdminSuratAktifKuliahController extends DocumentController
             }
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::error('approveByDosen failed', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             return redirect()->route('admin.surat-aktif-kuliah.index')
                 ->withInput()
                 ->with('error', 'Gagal memproses persetujuan: ' . $e->getMessage());
@@ -347,7 +400,7 @@ class AdminSuratAktifKuliahController extends DocumentController
     }
 
 
-    protected function generateSuratFile(SuratAktifKuliah $surat, $isFinalApproval = false)
+    protected function generateSuratFile(SuratAktifKuliah $surat, $isFinalApproval = false, $qrType = null)
     {
         // Validasi data wajib
         if (!$surat->nomor_surat || !$surat->tanggal_surat) {
@@ -379,22 +432,32 @@ class AdminSuratAktifKuliahController extends DocumentController
         // Generate QR code
         $pimpinanQr = null;
         $kaprodiQr = null;
-        if ($isFinalApproval && $surat->penandatangan && $surat->penandatanganKaprodi) {
+        if ($isFinalApproval && $surat->verification_code) {
             $verificationUrl = route('document.verify', ['code' => $surat->verification_code]);
-            $pimpinanQr = 'data:image/png;base64,' . base64_encode(
-                QrCode::format('png')
-                    ->size(120)
-                    ->margin(1)
-                    ->errorCorrection('H')
-                    ->generate($verificationUrl)
-            );
-            $kaprodiQr = 'data:image/png;base64,' . base64_encode(
-                QrCode::format('png')
-                    ->size(120)
-                    ->margin(1)
-                    ->errorCorrection('H')
-                    ->generate($verificationUrl)
-            );
+            if ($qrType === 'kaprodi' && $surat->penandatanganKaprodi) {
+                $kaprodiQr = 'data:image/png;base64,' . base64_encode(
+                    QrCode::format('png')
+                        ->size(120)
+                        ->margin(1)
+                        ->errorCorrection('H')
+                        ->generate($verificationUrl)
+                );
+            } elseif ($qrType === 'pimpinan' && $surat->penandatangan && $surat->penandatanganKaprodi) {
+                $pimpinanQr = 'data:image/png;base64,' . base64_encode(
+                    QrCode::format('png')
+                        ->size(120)
+                        ->margin(1)
+                        ->errorCorrection('H')
+                        ->generate($verificationUrl)
+                );
+                $kaprodiQr = 'data:image/png;base64,' . base64_encode(
+                    QrCode::format('png')
+                        ->size(120)
+                        ->margin(1)
+                        ->errorCorrection('H')
+                        ->generate($verificationUrl)
+                );
+            }
         }
 
         $pdf = Pdf::loadView('admin.surat-aktif-kuliah.pdf', [
@@ -405,6 +468,7 @@ class AdminSuratAktifKuliahController extends DocumentController
             'kaprodi_qr' => $kaprodiQr,
             'jabatanPimpinan' => $jabatanPimpinan,
             'jabatanKoordinator' => $jabatanKoordinator,
+            'qr_type' => $qrType,
         ]);
 
         $filename = 'surat_aktif_kuliah_' . $surat->mahasiswa->nim . '_' . now()->format('YmdHis') . '.pdf';
