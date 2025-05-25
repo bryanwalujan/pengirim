@@ -32,10 +32,10 @@ class UpdateSuratAktifKuliahRequest extends FormRequest
                 $rules['nomor_surat'] = 'nullable|string|max:50|regex:/^\d{1,4}(\/UN41\.2\/TI\/\d{4})?$/';
             }
 
-            if ($this->status === 'siap_diambil' && $this->surat->status === 'disetujui') {
-                $rules['penandatangan_id'] = 'required|exists:users,id';
-                $rules['jabatan_penandatangan'] = 'required|string|max:255';
-            }
+            // if ($this->status === 'siap_diambil' && $this->surat->status === 'disetujui') {
+            //     $rules['penandatangan_id'] = 'required|exists:users,id';
+            //     $rules['jabatan_penandatangan'] = 'required|string|max:255';
+            // }
         }
 
         // ... rules untuk dosen ...

@@ -166,7 +166,12 @@ class AdminSuratAktifKuliahController extends DocumentController
                     $dosen->notify(new SuratNeedApprovalNotification($surat));
                 }
             }
-
+            // Handle siap_diambil status
+            if ($validated['status'] === 'siap_diambil' && $user->hasRole('staff')) {
+                // No special processing needed, just update the status
+                // Notifikasi ke mahasiswa
+                $surat->mahasiswa->notify(new SuratNeedApprovalNotification($surat));
+            }
             // Persetujuan dosen
             if ($validated['status'] === 'disetujui' && $user->hasRole('dosen')) {
                 $request->validate([

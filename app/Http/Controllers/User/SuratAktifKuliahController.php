@@ -178,7 +178,19 @@ class SuratAktifKuliahController extends Controller
                 return redirect()->back()->with('error', 'File surat tidak ditemukan.');
             }
 
-            return response()->download($filePath, 'surat-aktif-kuliah-' . $surat->id . '.pdf');
+            // Get the confirmation date from tracking
+            $tracking = TrackingSurat::where('surat_type', SuratAktifKuliah::class)
+                ->where('surat_id', $surat->id)
+                ->where('aksi', 'sudah_diambil')
+                ->first();
+
+            $downloadDate = $tracking && $tracking->confirmed_at
+                ? $tracking->confirmed_at->format('Ymd')
+                : now()->format('Ymd');
+
+            $filename = 'Surat_Aktif_Kuliah_' . $surat->mahasiswa->nim . '_' . $downloadDate . '.pdf';
+
+            return response()->download($filePath, $filename);
         } catch (\Exception $e) {
             Log::error('Error saat download PDF untuk surat ID: ' . $surat->id . ' - ' . $e->getMessage());
             return redirect()->back()->with('error', 'Terjadi kesalahan saat mengunduh surat.');

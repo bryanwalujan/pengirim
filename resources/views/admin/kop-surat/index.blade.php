@@ -1,5 +1,7 @@
     @extends('layouts.admin.app')
 
+    @section('title', 'Manajemen Kop Surat')
+
     @push('styles')
         <style>
             .kop-surat-preview {
