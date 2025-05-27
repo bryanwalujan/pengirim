@@ -9,10 +9,11 @@
                         style="height: 45px; width: auto;">
                 </a>
                 <div class="footer-contact">
-                    <p>Program Studi Teknik Informatika</p>
-                    <p>Fakultas Teknik, Universitas Negeri Manado</p>
-                    <p>Tondano, Sulawesi Utara, Indonesia</p>
-                    <p class="mt-3"><strong>Phone:</strong> <span>+62 431 123456</span></p>
+                    <p><strong>Alamat:</strong> <a href="https://maps.app.goo.gl/zAKXtUMxn6YBs8qq9" target="_blank">Jl.
+                            Unima, Tataaran
+                            Satu, Kec. Tondano Sel.,
+                            Kabupaten Minahasa, Sulawesi Utara</a></p>
+                    <p><strong>Phone:</strong> <span>+62 431 123456</span></p>
                     <p><strong>Email:</strong> <span>informatika@unima.ac.id</span></p>
                 </div>
                 <div class="social-links d-flex mt-4">
@@ -45,12 +46,13 @@
             </div>
 
             <!-- Bagian Tautan Eksternal -->
-            <div class="col-lg-2 col-md-3 footer-links">
+            <div class="col-lg-3 col-md-3 footer-links">
                 <h4>Tautan Eksternal</h4>
                 <ul>
-                    <li><a href="https://unima.ac.id">Universitas Negeri Manado</a></li>
-                    <li><a href="https://ft.unima.ac.id">Fakultas Teknik</a></li>
-                    <li><a href="https://informatika.ft.unima.ac.id">Prodi Teknik Informatika</a></li>
+                    <li><a href="https://unima.ac.id" target="_blank">Universitas Negeri Manado</a></li>
+                    <li><a href="https://ft.unima.ac.id" target="_blank">Fakultas Teknik</a></li>
+                    <li><a href="https://ti.unima.ac.id" target="_blank">Prodi Teknik Informatika Unima</a>
+                    </li>
                 </ul>
             </div>
         </div>

@@ -326,6 +326,13 @@
     margin-bottom: 5px;
 }
 
+.footer .footer-contact p a:hover {
+    color: #0d6efd;
+    /* Warna link saat hover */
+    text-decoration: none;
+    /* Hilangkan underline jika tidak diinginkan */
+}
+
 .footer .social-links a {
     display: flex;
     align-items: center;

@@ -38,16 +38,16 @@ class UpdateSuratAktifKuliahRequest extends FormRequest
             // }
         }
 
-        // ... rules untuk dosen ...
+        // Validasi untuk dosen
         if ($this->user()->hasRole('dosen')) {
-            $rules['status'] = 'required|in:disetujui_kaprodi,disetujui_pimpinan,ditolak';
+            $rules['status'] = 'required|in:disetujui_kaprodi,disetujui,ditolak';
 
             if ($this->status === 'disetujui_kaprodi' && $this->surat->status === 'diproses') {
                 $rules['penandatangan_kaprodi_id'] = 'required|exists:users,id';
                 $rules['jabatan_penandatangan_kaprodi'] = 'required|string|max:255';
             }
 
-            if ($this->status === 'disetujui_pimpinan' && $this->surat->status === 'disetujui_kaprodi') {
+            if ($this->status === 'disetujui' && $this->surat->status === 'disetujui_kaprodi') {
                 $rules['penandatangan_id'] = 'required|exists:users,id';
                 $rules['jabatan_penandatangan'] = 'required|string|max:255';
             }

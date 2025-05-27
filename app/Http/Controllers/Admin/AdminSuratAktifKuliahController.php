@@ -35,9 +35,14 @@ class AdminSuratAktifKuliahController extends DocumentController
         $status = $request->input('status', 'diajukan');
         $search = $request->input('search');
 
-        // Jika user adalah dosen, hanya tampilkan yang status diproses
-        if (User::find(Auth::id())->hasRole('dosen')) {
-            $status = 'diproses';
+        // Tentukan status default berdasarkan peran dan jabatan
+        if (Auth::check() && User::find(Auth::id())->hasRole('dosen')) {
+            $user = Auth::user();
+            if (str_contains(strtolower($user->jabatan), 'koordinator program studi')) {
+                $status = 'diproses'; // Kaprodi hanya melihat status diproses
+            } elseif (str_contains(strtolower($user->jabatan), 'pimpinan jurusan') || str_contains(strtolower($user->jabatan), 'ptik')) {
+                $status = 'disetujui_kaprodi'; // Pimpinan melihat status disetujui_kaprodi
+            }
         }
 
         $surats = SuratAktifKuliah::with(['mahasiswa', 'status'])
@@ -96,12 +101,16 @@ class AdminSuratAktifKuliahController extends DocumentController
         $validated = $request->validated();
         $user = User::find(Auth::id());
 
-        // Validasi peran dan transisi status
         $allowedTransitions = [
             'staff' => [
                 'diproses' => ['diajukan'],
-                'ditolak' => ['diajukan', 'disetujui_kaprodi', 'disetujui_pimpinan'],
+                'ditolak' => ['diajukan', 'disetujui_kaprodi', 'disetujui'],
                 'siap_diambil' => ['disetujui'],
+            ],
+            'dosen' => [
+                'disetujui_kaprodi' => ['diproses'],
+                'disetujui' => ['disetujui_kaprodi'],
+                'ditolak' => ['diproses', 'disetujui_kaprodi'],
             ],
         ];
 
@@ -263,15 +272,32 @@ class AdminSuratAktifKuliahController extends DocumentController
             return redirect()->back()->with('error', 'Anda tidak memiliki izin untuk menyetujui surat');
         }
 
-        // Validasi status surat
+        // Validasi jabatan
+        $isKaprodi = str_contains(strtolower($user->jabatan), 'koordinator program studi');
+        $isPimpinan = str_contains(strtolower($user->jabatan), 'pimpinan jurusan') ||
+            str_contains(strtolower($user->jabatan), 'ptik');
+
+        if ($surat->status === 'diproses' && !$isKaprodi) {
+            return back()->with('error', 'Hanya Koordinator Program Studi yang dapat menyetujui surat pada tahap ini');
+        }
+
+        if ($surat->status === 'disetujui_kaprodi' && !$isPimpinan) {
+            return back()->with('error', 'Hanya Pimpinan Jurusan PTIK yang dapat menyetujui surat pada tahap ini');
+        }
+
+        // Definisikan transisi status yang diizinkan
         $allowedTransitions = [
             'disetujui_kaprodi' => ['diproses'],
-            'disetujui_pimpinan' => ['disetujui_kaprodi'],
+            'disetujui' => ['disetujui_kaprodi'],
             'ditolak' => ['diproses', 'disetujui_kaprodi'],
         ];
 
         $status = $request->status;
         if (!in_array($surat->status, $allowedTransitions[$status] ?? [])) {
+            Log::error('Invalid status transition', [
+                'current_status' => $surat->status,
+                'requested_status' => $status,
+            ]);
             return back()->with('error', 'Transisi status tidak valid');
         }
 
@@ -298,7 +324,7 @@ class AdminSuratAktifKuliahController extends DocumentController
             if ($request->action === 'approve') {
                 $nomorSurat = $surat->nomor_surat ?: $this->generateNomorSurat();
                 $qrType = $surat->status === 'diproses' ? 'kaprodi' : 'pimpinan';
-                $newStatus = $surat->status === 'diproses' ? 'disetujui_kaprodi' : 'disetujui_pimpinan';
+                $newStatus = $surat->status === 'diproses' ? 'disetujui_kaprodi' : 'disetujui';
 
                 // Update data surat
                 $updateData = [
@@ -314,7 +340,6 @@ class AdminSuratAktifKuliahController extends DocumentController
                 } else {
                     $updateData['penandatangan_id'] = $request->penandatangan_id;
                     $updateData['jabatan_penandatangan'] = $request->jabatan_penandatangan;
-                    $newStatus = 'disetujui'; // Final status after Pimpinan approval
                 }
 
                 $surat->update($updateData);

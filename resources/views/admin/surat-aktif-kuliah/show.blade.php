@@ -340,92 +340,74 @@
             </div>
         @endif
 
-        @if (auth()->user()->hasRole('dosen') && in_array($surat->status, ['diproses', 'disetujui_kaprodi']))
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Persetujuan Surat</h5>
-                </div>
-                <div class="card-body">
-                    <form action="{{ route('admin.surat-aktif-kuliah.approve', $surat->id) }}" method="POST">
-                        @csrf
-                        @method('PUT')
+        @if (auth()->user()->hasRole('dosen'))
+            @php
+                $isKaprodi = str_contains(strtolower(auth()->user()->jabatan), 'koordinator program studi');
+                $isPimpinan =
+                    str_contains(strtolower(auth()->user()->jabatan), 'pimpinan jurusan') ||
+                    str_contains(strtolower(auth()->user()->jabatan), 'ptik');
+            @endphp
 
-                        @if ($surat->status === 'diproses')
-                            <input type="hidden" name="status" value="disetujui_kaprodi">
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Penandatangan (Kaprodi)</label>
-                                    <select name="penandatangan_kaprodi_id" id="penandatangan_kaprodi_id"
-                                        class="form-select @error('penandatangan_kaprodi_id') is-invalid @enderror"
-                                        required>
-                                        <option value="">Pilih Penandatangan</option>
-                                        @foreach ($penandatangans as $penandatangan)
-                                            <option value="{{ $penandatangan->id }}"
-                                                {{ old('penandatangan_kaprodi_id', auth()->user()->id) == $penandatangan->id ? 'selected' : '' }}>
-                                                {{ $penandatangan->name }}
+            @if (($surat->status === 'diproses' && $isKaprodi) || ($surat->status === 'disetujui_kaprodi' && $isPimpinan))
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            @if ($surat->status === 'diproses')
+                                Persetujuan Kaprodi
+                            @else
+                                Persetujuan Pimpinan
+                            @endif
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="{{ route('admin.surat-aktif-kuliah.approve', $surat->id) }}" method="POST">
+                            @csrf
+                            @method('PUT')
+
+                            <input type="hidden" name="action" value="approve">
+                            <input type="hidden" name="status"
+                                value="{{ $surat->status === 'diproses' ? 'disetujui_kaprodi' : 'disetujui' }}">
+
+                            @if ($surat->status === 'diproses')
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Penandatangan (Kaprodi)</label>
+                                        <select name="penandatangan_kaprodi_id" class="form-select" required>
+                                            <option value="{{ auth()->user()->id }}" selected>
+                                                {{ auth()->user()->name }} (Anda)
                                             </option>
-                                        @endforeach
-                                    </select>
-                                    @error('penandatangan_kaprodi_id')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Jabatan Kaprodi</label>
+                                        <input type="text" name="jabatan_penandatangan_kaprodi" class="form-control"
+                                            value="{{ auth()->user()->jabatan ?? 'Koordinator Program Studi' }}" required>
+                                    </div>
                                 </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Jabatan Kaprodi</label>
-                                    <input type="text" name="jabatan_penandatangan_kaprodi"
-                                        id="jabatan_penandatangan_kaprodi"
-                                        class="form-control @error('jabatan_penandatangan_kaprodi') is-invalid @enderror"
-                                        value="{{ old('jabatan_penandatangan_kaprodi', auth()->user()->jabatan ?? 'Koordinator Program Studi') }}"
-                                        required>
-                                    @error('jabatan_penandatangan_kaprodi')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-                        @elseif ($surat->status === 'disetujui_kaprodi')
-                            <input type="hidden" name="status" value="disetujui_pimpinan">
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Penandatangan (Pimpinan)</label>
-                                    <select name="penandatangan_id" id="penandatangan_id"
-                                        class="form-select @error('penandatangan_id') is-invalid @enderror" required>
-                                        <option value="">Pilih Penandatangan</option>
-                                        @foreach ($penandatangans as $penandatangan)
-                                            <option value="{{ $penandatangan->id }}"
-                                                {{ old('penandatangan_id', auth()->user()->id) == $penandatangan->id ? 'selected' : '' }}>
-                                                {{ $penandatangan->name }}
+                            @else
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Penandatangan (Pimpinan)</label>
+                                        <select name="penandatangan_id" class="form-select" required>
+                                            <option value="{{ auth()->user()->id }}" selected>
+                                                {{ auth()->user()->name }} (Anda)
                                             </option>
-                                        @endforeach
-                                    </select>
-                                    @error('penandatangan_id')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Jabatan Pimpinan</label>
+                                        <input type="text" name="jabatan_penandatangan" class="form-control"
+                                            value="{{ auth()->user()->jabatan ?? 'Pimpinan Jurusan PTIK' }}" required>
+                                    </div>
                                 </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Jabatan Pimpinan</label>
-                                    <input type="text" name="jabatan_penandatangan" id="jabatan_penandatangan"
-                                        class="form-control @error('jabatan_penandatangan') is-invalid @enderror"
-                                        value="{{ old('jabatan_penandatangan', auth()->user()->jabatan ?? 'Pimpinan Jurusan PTIK') }}"
-                                        required>
-                                    @error('jabatan_penandatangan')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-                        @endif
+                            @endif
 
-                        <div class="row">
-                            <div class="col-12 mb-3">
-                                <label for="catatan_admin" class="form-label">Catatan Persetujuan <span
-                                        class="text-danger">*</span></label>
-                                <textarea name="catatan_admin" id="catatan_admin" class="form-control @error('catatan_admin') is-invalid @enderror"
-                                    rows="3" required placeholder="Masukkan catatan persetujuan">{{ old('catatan_admin', $surat->status()->first()?->catatan_admin) }}</textarea>
-                                @error('catatan_admin')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
+                            <div class="mb-3">
+                                <label for="catatan_admin" class="form-label">Catatan Persetujuan</label>
+                                <textarea name="catatan_admin" class="form-control" rows="3" required>{{ $surat->status()->first()?->catatan_admin }}</textarea>
                             </div>
 
-                            <div class="col-12 text-end">
+                            <div class="text-end">
                                 <button type="submit" name="action" value="approve" class="btn btn-success me-2">
                                     <i class="bx bx-check me-1"></i> Setujui
                                 </button>
@@ -433,10 +415,19 @@
                                     <i class="bx bx-x me-1"></i> Tolak
                                 </button>
                             </div>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
                 </div>
-            </div>
+            @elseif(auth()->user()->hasRole('dosen'))
+                <div class="alert alert-warning">
+                    <i class="bx bx-info-circle me-2"></i>
+                    @if ($surat->status === 'diproses')
+                        Hanya Koordinator Program Studi yang dapat menyetujui surat pada tahap ini
+                    @elseif($surat->status === 'disetujui_kaprodi')
+                        Hanya Pimpinan Jurusan PTIK yang dapat menyetujui surat pada tahap ini
+                    @endif
+                </div>
+            @endif
         @endif
 
         <div class="card">

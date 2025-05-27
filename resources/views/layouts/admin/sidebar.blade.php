@@ -37,20 +37,28 @@
                 </a>
                 <ul class="menu-sub">
                     @if (auth()->user()->hasRole('dosen'))
-                        <!-- Hanya tampilkan menu Menunggu Persetujuan untuk dosen -->
+                        <!-- Menu khusus dosen (Kaprodi/Pimpinan) -->
+                        @php
+                            $unreadCount = auth()
+                                ->user()
+                                ->unreadNotifications()
+                                ->where('type', 'App\Notifications\SuratNeedApprovalNotification')
+                                ->count();
+
+                            // Tentukan menu berdasarkan jabatan
+                            $isKaprodi = str_contains(auth()->user()->jabatan, 'Koordinator Program Studi');
+                            $isPimpinan = str_contains(auth()->user()->jabatan, 'Pimpinan Jurusan PTIK');
+                        @endphp
                         <li
-                            class="menu-item {{ request()->routeIs('admin.surat-aktif-kuliah.index') && request()->input('status') === 'diproses' ? 'active' : '' }}">
+                            class="menu-item {{ request()->routeIs('admin.surat-aktif-kuliah.index') &&
+                            (request()->input('status') === 'diproses' ||
+                                (auth()->user()->hasRole('dosen') && str_contains(auth()->user()->jabatan, 'Koordinator Program Studi')))
+                                ? 'active'
+                                : '' }}">
                             <a href="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'diproses']) }}"
                                 class="menu-link">
                                 <i class="menu-icon tf-icons bx bx-time"></i>
                                 <div>Menunggu Persetujuan</div>
-                                @php
-                                    $unreadCount = auth()
-                                        ->user()
-                                        ->unreadNotifications()
-                                        ->where('type', 'App\Notifications\SuratNeedApprovalNotification')
-                                        ->count();
-                                @endphp
                                 @if ($unreadCount > 0)
                                     <span class="badge bg-danger rounded-pill ms-auto">{{ $unreadCount }}</span>
                                 @endif

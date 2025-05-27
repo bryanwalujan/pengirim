@@ -22,7 +22,7 @@ class DocumentVerificationController extends Controller
         // Pastikan status tersedia
         $status = is_object($document->status) ? $document->status->status : ($document->status ?? 'unknown');
 
-        return view('user.verification.show', [
+        return view('qrcode.surat-aktif-kuliah.show', [
             'document' => $document,
             'verification_data' => $this->prepareVerificationData($document, $status)
         ]);

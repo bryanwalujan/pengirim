@@ -623,12 +623,16 @@ h6 {
     line-height: 1;
 }
 
-.footer .footer-links ul a:hover {
-    color: var(--accent-color);
-}
-
 .footer .footer-contact p {
     margin-bottom: 5px;
+}
+
+.footer .footer-contact a {
+    color: var(--contrast-color);
+}
+
+.footer .footer-contact a:hover {
+    color: var(--accent-color);
 }
 
 .footer .copyright {
