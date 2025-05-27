@@ -29,7 +29,9 @@ class SuratAktifKuliah extends Model
         'jabatan_penandatangan_kaprodi',
         'approved_at',
         'approved_by',
-        'verification_code'
+        'verification_code',
+        'verification_code_kaprodi', // Kode verifikasi untuk Kaprodi
+        'verification_code_pimpinan', // Kode verifikasi untuk Pimpinan
     ];
 
     protected $casts = [
@@ -119,7 +121,18 @@ class SuratAktifKuliah extends Model
     protected static function booted()
     {
         static::creating(function ($model) {
-            $model->verification_code = substr(md5(uniqid(mt_rand(), true)), 0, 12);
+            $model->verification_code = substr(md5(uniqid(mt_rand(), true)), 0, 12); // Kode umum (opsional)
+            $model->verification_code_kaprodi = null; // Akan diisi saat persetujuan Kaprodi
+            $model->verification_code_pimpinan = null; // Akan diisi saat persetujuan Pimpinan
+        });
+
+        static::updating(function ($model) {
+            if ($model->isDirty('penandatangan_kaprodi_id') && !$model->verification_code_kaprodi) {
+                $model->verification_code_kaprodi = substr(md5(uniqid(mt_rand(), true) . $model->penandatanganKaprodi->id), 0, 12);
+            }
+            if ($model->isDirty('penandatangan_id') && !$model->verification_code_pimpinan) {
+                $model->verification_code_pimpinan = substr(md5(uniqid(mt_rand(), true) . $model->penandatangan->id), 0, 12);
+            }
         });
     }
 }

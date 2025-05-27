@@ -199,21 +199,6 @@
             </td>
         </tr>
     </table>
-
-    <!-- QR Code -->
-    {{-- <div class="qr-code-container">
-        @if (!empty($qr_code))
-            <img src="{{ $qr_code }}" class="qr-code">
-            <p class="qr-code-text">
-                Scan untuk verifikasi: {{ $surat->verification_code }}
-            </p>
-        @else
-            <div style="color: red; font-size: 10px;">
-                [QR Code tidak tersedia]
-            </div>
-        @endif
-    </div> --}}
-
 </body>
 
 </html>

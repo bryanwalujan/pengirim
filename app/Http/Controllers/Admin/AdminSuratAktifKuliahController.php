@@ -462,30 +462,25 @@ class AdminSuratAktifKuliahController extends DocumentController
         // Generate QR code
         $pimpinanQr = null;
         $kaprodiQr = null;
-        if ($isFinalApproval && $surat->verification_code) {
-            $verificationUrl = route('document.verify', ['code' => $surat->verification_code]);
-            if ($qrType === 'kaprodi' && $surat->penandatanganKaprodi) {
+        if ($isFinalApproval) {
+            if ($surat->verification_code_kaprodi && ($qrType === 'kaprodi' || $qrType === 'pimpinan')) {
+                $kaprodiVerificationUrl = route('document.verify', ['code' => $surat->verification_code_kaprodi]);
                 $kaprodiQr = 'data:image/png;base64,' . base64_encode(
                     QrCode::format('png')
                         ->size(120)
                         ->margin(1)
                         ->errorCorrection('H')
-                        ->generate($verificationUrl)
+                        ->generate($kaprodiVerificationUrl)
                 );
-            } elseif ($qrType === 'pimpinan' && $surat->penandatangan && $surat->penandatanganKaprodi) {
+            }
+            if ($surat->verification_code_pimpinan && $qrType === 'pimpinan') {
+                $pimpinanVerificationUrl = route('document.verify', ['code' => $surat->verification_code_pimpinan]);
                 $pimpinanQr = 'data:image/png;base64,' . base64_encode(
                     QrCode::format('png')
                         ->size(120)
                         ->margin(1)
                         ->errorCorrection('H')
-                        ->generate($verificationUrl)
-                );
-                $kaprodiQr = 'data:image/png;base64,' . base64_encode(
-                    QrCode::format('png')
-                        ->size(120)
-                        ->margin(1)
-                        ->errorCorrection('H')
-                        ->generate($verificationUrl)
+                        ->generate($pimpinanVerificationUrl)
                 );
             }
         }

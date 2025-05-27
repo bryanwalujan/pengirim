@@ -10,7 +10,11 @@ class DocumentVerificationController extends Controller
     public function verify($code)
     {
         $document = SuratAktifKuliah::with(['mahasiswa', 'penandatangan', 'penandatanganKaprodi', 'status'])
-            ->where('verification_code', $code)
+            ->where(function ($query) use ($code) {
+                $query->where('verification_code', $code)
+                    ->orWhere('verification_code_kaprodi', $code)
+                    ->orWhere('verification_code_pimpinan', $code);
+            })
             ->first();
 
         if (!$document) {
@@ -19,17 +23,45 @@ class DocumentVerificationController extends Controller
             ]);
         }
 
-        // Pastikan status tersedia
         $status = is_object($document->status) ? $document->status->status : ($document->status ?? 'unknown');
+        $verificationCodeUsed = $code;
+
+        $verificationData = $this->prepareVerificationData($document, $status, $verificationCodeUsed);
+
+        // Tentukan penandatangan aktif berdasarkan kode yang discan
+        $activeSigner = null;
+        if ($verificationCodeUsed === $document->verification_code_kaprodi && !empty($verificationData['signers']['kaprodi'])) {
+            $activeSigner = $verificationData['signers']['kaprodi'];
+        } elseif ($verificationCodeUsed === $document->verification_code_pimpinan && !empty($verificationData['signers']['pimpinan'])) {
+            $activeSigner = $verificationData['signers']['pimpinan'];
+        }
 
         return view('qrcode.surat-aktif-kuliah.show', [
             'document' => $document,
-            'verification_data' => $this->prepareVerificationData($document, $status)
+            'verification_data' => $verificationData,
+            'active_signer' => $activeSigner,
         ]);
     }
 
-    protected function prepareVerificationData($document, $status)
+    protected function prepareVerificationData($document, $status, $verificationCodeUsed)
     {
+        $signers = [
+            'kaprodi' => $document->penandatanganKaprodi ? [
+                'name' => $document->penandatanganKaprodi->name ?? '-',
+                'position' => $document->jabatan_penandatangan_kaprodi ?? 'Koordinator Program Studi',
+                'nip' => $document->penandatanganKaprodi->nip ?? '-',
+                'signature_date' => optional($document->approved_at)->format('d F Y H:i') ?? '-',
+                'verification_code' => $document->verification_code_kaprodi,
+            ] : null,
+            'pimpinan' => $document->penandatangan ? [
+                'name' => $document->penandatangan->name ?? '-',
+                'position' => $document->jabatan_penandatangan ?? 'Pimpinan Jurusan PTIK',
+                'nip' => $document->penandatangan->nip ?? '-',
+                'signature_date' => optional($document->approved_at)->format('d F Y H:i') ?? '-',
+                'verification_code' => $document->verification_code_pimpinan,
+            ] : null,
+        ];
+
         return [
             'document' => [
                 'type' => 'Surat Aktif Kuliah',
@@ -42,31 +74,14 @@ class DocumentVerificationController extends Controller
             'student' => [
                 'name' => $document->mahasiswa->name ?? '-',
                 'nim' => $document->mahasiswa->nim ?? '-',
-                'study_program' => 'S1 Teknik Informatika' // Pastikan string
+                'study_program' => 'S1 Teknik Informatika',
             ],
-            'signers' => [
-                'kaprodi' => $document->penandatanganKaprodi ? [
-                    'name' => $document->penandatanganKaprodi->name ?? '-',
-                    'position' => is_string($document->jabatan_penandatangan_kaprodi)
-                        ? $document->jabatan_penandatangan_kaprodi
-                        : ($document->jabatan_penandatangan_kaprodi['title'] ?? 'Koordinator Program Studi'),
-                    'nip' => $document->penandatanganKaprodi->nip ?? '-',
-                    'signature_date' => optional($document->approved_at)->format('d F Y H:i') ?? '-'
-                ] : null,
-                'pimpinan' => $document->penandatangan ? [
-                    'name' => $document->penandatangan->name ?? '-',
-                    'position' => is_string($document->jabatan_penandatangan)
-                        ? $document->jabatan_penandatangan
-                        : ($document->jabatan_penandatangan['title'] ?? 'Pimpinan Jurusan PTIK'),
-                    'nip' => $document->penandatangan->nip ?? '-',
-                    'signature_date' => optional($document->approved_at)->format('d F Y H:i') ?? '-'
-                ] : null,
-            ],
+            'signers' => $signers,
             'verification' => [
                 'status' => $status,
                 'verified_at' => now()->format('d F Y H:i'),
-                'verification_code' => $document->verification_code ?? '-'
-            ]
+                'verification_code' => $verificationCodeUsed,
+            ],
         ];
     }
 }
