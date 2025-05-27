@@ -22,11 +22,32 @@ class SuratAktifKuliahController extends Controller
 {
     use AuthorizesRequests;
 
-    public function index()
+    public function index(Request $request)
     {
         $service = Service::where('slug', 'surat-aktif-kuliah')->firstOrFail();
+
         $surats = SuratAktifKuliah::with(['status', 'trackings', 'mahasiswa'])
             ->where('mahasiswa_id', Auth::id())
+            ->when($request->search, function ($query) use ($request) {
+                $query->where(function ($q) use ($request) {
+                    $q->where('nomor_surat', 'like', '%' . $request->search . '%')
+                        ->orWhere('tujuan_pengajuan', 'like', '%' . $request->search . '%')
+                        ->orWhere('keterangan_tambahan', 'like', '%' . $request->search . '%')
+                        ->orWhere('tahun_ajaran', 'like', '%' . $request->search . '%')
+                        ->orWhere('semester', 'like', '%' . $request->search . '%');
+                });
+            })
+            ->when($request->status, function ($query) use ($request) {
+                $query->whereHas('status', function ($q) use ($request) {
+                    $q->where('status', $request->status);
+                });
+            })
+            ->when($request->tahun, function ($query) use ($request) {
+                $query->where('tahun_ajaran', 'like', '%' . $request->tahun . '%');
+            })
+            ->when($request->semester, function ($query) use ($request) {
+                $query->where('semester', $request->semester);
+            })
             ->latest()
             ->paginate(10);
 

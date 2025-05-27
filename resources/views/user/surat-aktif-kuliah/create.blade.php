@@ -2,7 +2,7 @@
 
 @section('title', 'Pengajuan Surat Aktif Kuliah')
 
-@push('style')
+@push('styles')
     <style>
         :root {
             --primary-color: #4361ee;
@@ -10,123 +10,143 @@
             --accent-color: #4895ef;
             --light-gray: #f8f9fa;
             --dark-gray: #343a40;
-            --border-radius: 12px;
-            --box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            --border-radius: 15px;
+            --box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
             --transition: all 0.3s ease;
         }
 
         .form-container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
-            padding: 2rem;
+            padding: 2.5rem 1rem;
         }
 
         .form-card {
             border: none;
             border-radius: var(--border-radius);
             box-shadow: var(--box-shadow);
+            background: linear-gradient(145deg, #ffffff, #f9f9f9);
             overflow: hidden;
-            background: white;
         }
 
         .form-header {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
-            padding: 1.5rem;
+            padding: 2rem;
             text-align: center;
-            margin-bottom: 2rem;
+            border-bottom: 4px solid var(--accent-color);
         }
 
         .form-header h4 {
-            font-weight: 600;
+            font-weight: 700;
             margin: 0;
-            font-size: 1.5rem;
+            font-size: 1.75rem;
+            letter-spacing: 0.5px;
         }
 
         .form-section {
-            padding: 0 2rem 1.5rem;
+            padding: 1rem 2.5rem 2rem;
             margin-bottom: 1.5rem;
             border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 10px;
         }
 
         .section-title {
             display: flex;
             align-items: center;
             color: var(--dark-gray);
-            font-weight: 600;
+            font-weight: 700;
             margin-bottom: 1.5rem;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
+            text-transform: uppercase;
         }
 
         .section-title i {
             margin-right: 0.75rem;
             color: var(--accent-color);
-            font-size: 1.2rem;
+            font-size: 1.5rem;
         }
 
         .form-label {
-            font-weight: 500;
+            font-weight: 600;
             margin-bottom: 0.5rem;
             color: var(--dark-gray);
+            font-size: 0.95rem;
         }
 
         .form-control,
         .form-select {
-            border-radius: var(--border-radius);
-            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            padding: 0.85rem 1.25rem;
             border: 1px solid #e0e0e0;
             transition: var(--transition);
+            background: #fff;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.03);
         }
 
         .form-control:focus,
         .form-select:focus {
             border-color: var(--accent-color);
-            box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.15);
+            box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.2);
+        }
+
+        .form-floating>label {
+            padding: 0.85rem 1.25rem;
+            color: #6c757d;
         }
 
         .btn-submit {
-            background-color: var(--primary-color);
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             border: none;
-            padding: 0.75rem 2rem;
-            font-weight: 500;
+            padding: 0.85rem 2.5rem;
+            font-weight: 600;
+            border-radius: 50px;
             transition: var(--transition);
         }
 
         .btn-submit:hover {
-            background-color: var(--secondary-color);
-            transform: translateY(-2px);
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
         }
 
         .btn-back {
-            background-color: white;
-            border: 1px solid #e0e0e0;
+            background: #fff;
+            border: 2px solid #e0e0e0;
             color: var(--dark-gray);
-            padding: 0.75rem 2rem;
+            padding: 0.85rem 2.5rem;
+            border-radius: 50px;
             transition: var(--transition);
         }
 
         .btn-back:hover {
-            background-color: var(--light-gray);
+            background: var(--light-gray);
+            border-color: var(--accent-color);
             color: var(--dark-gray);
+            transform: translateY(-3px);
         }
 
         .file-upload-wrapper {
             position: relative;
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
         }
 
         .file-upload-label {
             display: block;
-            padding: 1.5rem;
-            border: 2px dashed #e0e0e0;
+            padding: 2rem;
+            border: 2px dashed var(--accent-color);
             border-radius: var(--border-radius);
             text-align: center;
             cursor: pointer;
+            background: rgba(72, 149, 239, 0.05);
             transition: var(--transition);
         }
 
         .file-upload-label:hover {
-            border-color: var(--accent-color);
+            background: rgba(72, 149, 239, 0.1);
+            border-color: var(--primary-color);
+            transform: scale(1.01);
         }
 
         .file-upload-input {
@@ -140,39 +160,29 @@
         }
 
         .file-info {
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             color: #6c757d;
             margin-top: 0.5rem;
+            display: block;
         }
 
-        @media (max-width: 768px) {
-            .form-container {
-                padding: 1rem;
-            }
-
-            .form-section {
-                padding: 0 1rem 1rem;
-            }
-
-            .form-header {
-                padding: 1rem;
-            }
-        }
-
-        /* Tambahkan ini di bagian style Anda */
         .list-group-item {
-            transition: all 0.2s ease;
-            border-radius: var(--border-radius) !important;
-            margin-bottom: 0.5rem;
+            transition: var(--transition);
+            border-radius: 10px !important;
+            margin-bottom: 0.75rem;
+            background: #fff;
+            border: 1px solid #e0e0e0;
         }
 
         .list-group-item:hover {
-            background-color: var(--light-gray);
+            background: var(--light-gray);
+            transform: translateY(-2px);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
         }
 
         .cancel-file {
-            width: 24px;
-            height: 24px;
+            width: 28px;
+            height: 28px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -184,19 +194,32 @@
         .cancel-file:hover {
             background-color: #ff4444;
             color: white;
+            transform: scale(1.1);
         }
 
-        .file-info {
-            font-size: 0.85rem;
-            color: #6c757d;
-            margin-top: 0.5rem;
-            display: block;
+        @media (max-width: 768px) {
+            .form-container {
+                padding: 1.5rem 0.5rem;
+            }
+
+            .form-section {
+                padding: 1rem 1.5rem 1.5rem;
+            }
+
+            .form-header {
+                padding: 1.5rem;
+            }
+
+            .btn-submit,
+            .btn-back {
+                padding: 0.75rem 1.5rem;
+            }
         }
     </style>
 @endpush
 
 @section('form-content')
-    <div class="form-container" data-aos="fade-up">
+    <div class="form-container" data-aos="fade-up" data-aos-delay="100">
         <div class="form-card">
             <div class="form-header">
                 <h4>Formulir Pengajuan Surat Aktif Kuliah</h4>
@@ -207,13 +230,13 @@
                 @csrf
 
                 <!-- Informasi Mahasiswa Section -->
-                <div class="form-section">
+                <div class="form-section" data-aos="fade-up" data-aos-delay="200">
                     <h5 class="section-title">
                         <i class="bi bi-person-circle"></i>
                         Informasi Mahasiswa
                     </h5>
 
-                    <div class="row g-3">
+                    <div class="row g-4">
                         <div class="col-md-6">
                             <div class="form-floating">
                                 <input type="text" class="form-control" id="nama" value="{{ Auth::user()->name }}"
@@ -233,12 +256,12 @@
                 </div>
 
                 <!-- Informasi Akademik Section -->
-                <div class="form-section">
+                <div class="form-section" data-aos="fade-up" data-aos-delay="300">
                     <h5 class="section-title">
                         <i class="bi bi-book-half"></i>
                         Informasi Akademik
                     </h5>
-                    <div class="row g-3">
+                    <div class="row g-4">
                         <div class="col-md-6">
                             <div class="form-floating">
                                 <input type="text" class="form-control" id="tahun_ajaran" name="tahun_ajaran"
@@ -258,18 +281,19 @@
                 </div>
 
                 <!-- Tujuan Pengajuan Section -->
-                <div class="form-section">
+                <div class="form-section" data-aos="fade-up" data-aos-delay="400">
                     <h5 class="section-title">
                         <i class="bi bi-card-text"></i>
                         Tujuan Pengajuan
                     </h5>
 
-                    <div class="mb-3">
+                    <div class="mb-4">
                         <label for="tujuan_pengajuan" class="form-label">Tujuan Pengajuan Surat <span
                                 class="text-danger">*</span></label>
                         <textarea class="form-control @error('tujuan_pengajuan') is-invalid @enderror" id="tujuan_pengajuan"
-                            name="tujuan_pengajuan" rows="3" required>{{ old('tujuan_pengajuan') }}</textarea>
-                        <div class="form-text">Contoh: Untuk beasiswa, pengajuan KIP-Kuliah, atau melamar kerja.</div>
+                            name="tujuan_pengajuan" rows="4" required>{{ old('tujuan_pengajuan') }}</textarea>
+                        <div class="form-text mt-2">Contoh: Untuk keperluan beasiswa, pengajuan KIP-Kuliah, atau melamar
+                            pekerjaan.</div>
                         @error('tujuan_pengajuan')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -277,17 +301,18 @@
                 </div>
 
                 <!-- Keterangan Tambahan Section -->
-                <div class="form-section">
+                <div class="form-section" data-aos="fade-up" data-aos-delay="500">
                     <h5 class="section-title">
                         <i class="bi bi-chat-square-text"></i>
                         Keterangan Tambahan
                     </h5>
 
-                    <div class="mb-3">
+                    <div class="mb-4">
                         <label for="keterangan_tambahan" class="form-label">Keterangan Tambahan (Opsional)</label>
                         <textarea class="form-control @error('keterangan_tambahan') is-invalid @enderror" id="keterangan_tambahan"
-                            name="keterangan_tambahan" rows="3">{{ old('keterangan_tambahan') }}</textarea>
-                        <div class="form-text">Isi jika ada informasi penting seperti kebutuhan mendesak.</div>
+                            name="keterangan_tambahan" rows="4">{{ old('keterangan_tambahan') }}</textarea>
+                        <div class="form-text mt-2">Isi jika ada informasi penting, seperti kebutuhan mendesak atau dokumen
+                            tambahan.</div>
                         @error('keterangan_tambahan')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -295,7 +320,7 @@
                 </div>
 
                 <!-- File Upload Section -->
-                <div class="form-section">
+                <div class="form-section" data-aos="fade-up" data-aos-delay="600">
                     <h5 class="section-title">
                         <i class="bi bi-paperclip"></i>
                         Dokumen Pendukung
@@ -303,8 +328,8 @@
 
                     <div class="file-upload-wrapper">
                         <label class="file-upload-label" for="file_pendukung_path">
-                            <i class="bi bi-cloud-arrow-up" style="font-size: 2rem; color: var(--accent-color);"></i>
-                            <div class="mt-2">Klik untuk mengunggah dokumen (Bisa multiple)</div>
+                            <i class="bi bi-cloud-arrow-up" style="font-size: 2.5rem; color: var(--accent-color);"></i>
+                            <div class="mt-3 fw-semibold">Klik untuk mengunggah dokumen (Bisa multiple)</div>
                             <div class="file-info">Format: PDF, JPG, PNG (maks. 2MB per file)</div>
                         </label>
                         <input type="file" class="file-upload-input @error('file_pendukung_path') is-invalid @enderror"
@@ -312,18 +337,18 @@
                         @error('file_pendukung_path')
                             <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
-                        <div id="file-list" class="mt-3"></div>
+                        <div id="file-list" class="mt-4"></div>
                     </div>
                 </div>
 
                 <!-- Form Actions -->
-                <div class="form-section pt-0">
-                    <div class="d-flex justify-content-between">
+                <div class="form-section pt-0" data-aos="fade-up" data-aos-delay="700">
+                    <div class="d-flex justify-content-between gap-3">
                         <a href="{{ route('user.surat-aktif-kuliah.index') }}" class="btn btn-back">
-                            <i class="bi bi-arrow-left"></i> Kembali
+                            <i class="bi bi-arrow-left me-2"></i> Kembali
                         </a>
                         <button type="submit" class="btn btn-submit text-white" id="submit-btn">
-                            <i class="bi bi-send-check"></i> Ajukan Surat
+                            <i class="bi bi-send-check me-2"></i> Ajukan Surat
                         </button>
                     </div>
                 </div>
@@ -333,10 +358,12 @@
 @endsection
 
 @push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         AOS.init({
-            duration: 700,
-            once: true
+            duration: 400,
+            once: true,
+            offset: 100
         });
 
         // File upload preview with cancel button
@@ -368,7 +395,8 @@
                     item.dataset.index = i;
                     item.innerHTML = `
                         <div class="d-flex align-items-center">
-                            <span class="me-2">${file.name}</span>
+                            <i class="bi bi-file-earmark-text me-2 text-primary"></i>
+                            <span class="me-3">${file.name}</span>
                             <small class="text-muted">${fileSize} MB</small>
                         </div>
                         <button type="button" class="btn btn-sm btn-outline-danger cancel-file" data-index="${i}">
@@ -382,8 +410,8 @@
                 if (hasValidFiles) {
                     const clearAllBtn = document.createElement('button');
                     clearAllBtn.type = 'button';
-                    clearAllBtn.className = 'btn btn-sm btn-outline-secondary mt-2';
-                    clearAllBtn.innerHTML = '<i class="bi bi-trash"></i> Hapus Semua';
+                    clearAllBtn.className = 'btn btn-sm btn-outline-danger mt-3';
+                    clearAllBtn.innerHTML = '<i class="bi bi-trash me-2"></i> Hapus Semua';
                     clearAllBtn.addEventListener('click', function() {
                         document.getElementById('file_pendukung_path').value = '';
                         fileList.innerHTML = '';
@@ -393,11 +421,13 @@
                     fileList.appendChild(list);
                 } else {
                     // Show error message if no valid files were selected
-                    const errorMsg = document.createElement('div');
-                    errorMsg.className = 'alert alert-danger mt-2';
-                    errorMsg.textContent =
-                        'Tidak ada file yang valid. Harap unggah file PDF, JPG, atau PNG (maks. 2MB)';
-                    fileList.appendChild(errorMsg);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'File Tidak Valid',
+                        text: 'Harap unggah file PDF, JPG, atau PNG (maks. 2MB)',
+                        confirmButtonColor: '#4361ee'
+                    });
+                    document.getElementById('file_pendukung_path').value = '';
                 }
             }
         });
@@ -430,12 +460,15 @@
             }
         });
 
-        // Form submission handler
+        // Form submission handler with SweetAlert
         document.getElementById('surat-form').addEventListener('submit', function(e) {
-            // Optional: Add validation here if needed
+            e.preventDefault();
             const btn = document.getElementById('submit-btn');
             btn.disabled = true;
-            btn.innerHTML = '<i class="bi bi-hourglass"></i> Mengirim...';
+            btn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i> Mengirim...';
+
+            // Simulate form submission
+            this.submit();
         });
     </script>
 @endpush

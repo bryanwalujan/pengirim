@@ -26,6 +26,13 @@
     <link href="{{ asset('user/assets/vendor/glightbox/css/glightbox.min.css') }}" rel="stylesheet">
     <link href="{{ asset('user/assets/vendor/swiper/swiper-bundle.min.css') }}" rel="stylesheet">
 
+    {{-- Datatables --}}
+    <link href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css" rel="stylesheet">
+
+    {{-- SweetAlert2 --}}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+
     <!-- Main CSS File -->
     <link href="{{ asset('user/assets/css/main.css') }}" rel="stylesheet">
 
@@ -78,6 +85,9 @@
     {{-- Select2 --}}
     <script src="{{ asset('library/select2/dist/js/select2.full.min.js') }}"></script>
 
+    <!-- DataTables -->
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+
     <!-- Main JS File -->
     <script src="{{ asset('user/assets/js/main.js') }}"></script>
 
@@ -85,8 +95,77 @@
     <script src="{{ asset('user/assets/js/custom.js') }}"></script>
 
 
-
     @stack('scripts')
+
+    {{-- SweetAlert2 --}}
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        //flash message
+        @if (session()->has('success'))
+            Swal.fire({
+                type: "success",
+                icon: "success",
+                title: "BERHASIL!",
+                text: "{{ session('success') }}",
+                timer: 1500,
+                showConfirmButton: false,
+                showCancelButton: false,
+                buttons: false,
+            });
+        @elseif (session()->has('error'))
+            Swal.fire({
+                type: "error",
+                icon: "error",
+                title: "GAGAL!",
+                text: "{{ session('error') }}",
+                timer: 1500,
+                showConfirmButton: false,
+                showCancelButton: false,
+                buttons: false,
+            });
+        @endif
+        const Toast = Swal.mixin({
+            toast: true,
+            position: "top-end",
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            width: '380px',
+            padding: '1em',
+            color: '#ffffff',
+            background: 'linear-gradient(135deg, rgba(41,47,63,0.95) 0%, rgba(30,35,48,0.95) 100%)',
+            backdrop: false,
+            showClass: {
+                popup: 'animate__animated animate__fadeInRight animate__faster'
+            },
+            hideClass: {
+                popup: 'animate__animated animate__fadeOutRight animate__faster'
+            },
+            customClass: {
+                popup: 'shadow-2xl rounded-xl border border-gray-700/30',
+                title: 'font-semibold',
+                timerProgressBar: 'bg-gradient-to-r from-cyan-400 to-blue-500',
+                icon: 'text-white'
+            },
+            didOpen: (toast) => {
+                toast.onmouseenter = Swal.stopTimer;
+                toast.onmouseleave = Swal.resumeTimer;
+            }
+        });
+
+        @if (session()->has('success'))
+            Toast.fire({
+                icon: 'success',
+                text: "{{ session('success') }}",
+            });
+        @elseif (session()->has('error'))
+            Toast.fire({
+                icon: 'error',
+                text: "{{ session('error') }}",
+            });
+        @endif
+    </script>
 
     {{-- Scroll to Section --}}
     <script>

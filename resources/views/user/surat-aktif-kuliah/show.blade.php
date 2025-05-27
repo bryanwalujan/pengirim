@@ -2,11 +2,163 @@
 
 @section('title', 'Detail Surat Aktif Kuliah')
 
+@push('styles')
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #f5f7fb;
+        }
+
+        .page-title h1 {
+            font-weight: 600;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .breadcrumbs ol {
+            margin-bottom: 0;
+            padding-left: 0;
+            list-style: none;
+            display: flex;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+
+        .breadcrumbs a {
+            color: #0d6efd;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .breadcrumbs a:hover {
+            text-decoration: underline;
+        }
+
+        .card {
+            border-radius: 1.5rem;
+            border: none;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            background: #fff;
+        }
+
+        .card-header {
+            border-bottom: none;
+            background: linear-gradient(135deg, #4361ee, #3f37c9);
+            border-top-left-radius: 1.5rem;
+            border-top-right-radius: 1.5rem;
+            padding: 2rem;
+        }
+
+        .card-body {
+            padding: 2.5rem;
+        }
+
+        .section-title {
+            color: #343a40;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            font-size: 1.25rem;
+            text-transform: uppercase;
+            border-bottom: 2px solid #4361ee;
+            padding-bottom: 0.5rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #343a40;
+            font-size: 0.95rem;
+        }
+
+        .form-control {
+            border-radius: 10px;
+            padding: 0.85rem 1.25rem;
+            border: 1px solid #e0e0e0;
+            background: #f8f9fa;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.03);
+        }
+
+        .alert {
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .alert-heading {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .btn-primary,
+        .btn-secondary {
+            border-radius: 50px;
+            padding: 0.75rem 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4361ee, #3f37c9);
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #3f37c9, #4361ee);
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+            transform: translateY(-3px);
+        }
+
+        .btn-secondary {
+            background: #fff;
+            border: 2px solid #e0e0e0;
+            color: #343a40;
+        }
+
+        .btn-secondary:hover {
+            background: #f8f9fa;
+            border-color: #4361ee;
+            transform: translateY(-3px);
+        }
+
+        .progress {
+            height: 30px;
+            border-radius: 15px;
+            background: #e9ecef;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress-bar {
+            border-radius: 15px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: width 0.5s ease;
+        }
+
+        .file-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+
+        .file-link:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+@endpush
+
 @section('main')
     <div class="page-title light-background">
         <div class="container">
-            <h1>Detail Surat Aktif Kuliah</h1>
-            <nav class="breadcrumbs">
+            <h1 data-aos="fade-up">Detail Surat Aktif Kuliah</h1>
+            <nav class="breadcrumbs" data-aos="fade-up" data-aos-delay="100">
                 <ol>
                     <li><a href="{{ route('user.home.index') }}">Beranda</a></li>
                     <li><a href="{{ route('user.surat-aktif-kuliah.index') }}">Surat Aktif Kuliah</a></li>
@@ -16,131 +168,142 @@
         </div>
     </div>
 
-    <section id="services" class="detail-surat section">
-        <div class="container" data-aos="fade-up">
+    <section id="services" class="detail-surat section py-5">
+        <div class="container">
             <div class="row justify-content-center">
-                <div class="col-lg-8">
-                    <div class="card shadow">
-                        <div class="card-header bg-primary text-white">
-                            <h4 class="mb-0 text-center">Detail Pengajuan Surat Aktif Kuliah</h4>
+                <div class="col-lg-10">
+                    <div class="card" data-aos="fade-up">
+                        <div class="card-header text-white">
+                            <h4 class="mb-0 fw-bold text-center">Detail Pengajuan Surat Aktif Kuliah</h4>
                         </div>
                         <div class="card-body">
-                            @php
+                            {{-- @php
                                 $statusClass = match ($surat->status ?? 'diajukan') {
                                     'disetujui', 'siap_diambil', 'sudah_diambil' => 'success',
                                     'ditolak' => 'danger',
                                     default => 'warning',
                                 };
-                            @endphp
-                            <div class="alert alert-{{ $statusClass }} text-center">
-                                <h5 class="alert-heading">Status:
-                                    <strong class="text-uppercase">{{ $surat->status ?? 'diajukan' }}</strong>
-                                </h5>
+                                $statusProgress = match ($surat->status ?? 'diajukan') {
+                                    'diajukan' => 20,
+                                    'diproses' => 40,
+                                    'disetujui' => 60,
+                                    'siap_diambil' => 80,
+                                    'sudah_diambil' => 100,
+                                    'ditolak' => 0,
+                                    default => 20,
+                                };
+                                $progressColor = match ($surat->status ?? 'diajukan') {
+                                    'disetujui', 'siap_diambil', 'sudah_diambil' => 'bg-success',
+                                    'ditolak' => 'bg-danger',
+                                    default => 'bg-warning',
+                                };
+                            @endphp --}}
+
+                            <!-- Status Progress -->
+                            {{-- <div class="mb-5">
+                                <h5 class="section-title">Status Pengajuan</h5>
+                                <div class="progress" role="progressbar" aria-label="Status Progress"
+                                    aria-valuenow="{{ $statusProgress }}" aria-valuemin="0" aria-valuemax="100">
+                                    <div class="progress-bar {{ $progressColor }}" style="width: {{ $statusProgress }}%">
+                                        {{ $surat->status ?? 'diajukan' }}
+                                    </div>
+                                </div>
                                 @if ($surat->status()->first()?->catatan_admin)
-                                    <hr>
-                                    <p class="mb-0"><strong>Catatan Admin:</strong>
-                                        {{ $surat->status()->first()->catatan_admin }}</p>
+                                    <div class="alert alert-{{ $statusClass }} mt-4">
+                                        <h5 class="alert-heading">Catatan Admin:</h5>
+                                        <p class="mb-0">{{ $surat->status()->first()->catatan_admin }}</p>
+                                    </div>
                                 @endif
-                            </div>
+                            </div> --}}
+
                             @if ($surat->status === 'siap_diambil')
-                                <div class="alert alert-info mt-4">
+                                <div class="alert alert-info mt-4" data-aos="fade-up">
                                     <form action="{{ route('user.surat-aktif-kuliah.confirm-taken', $surat->id) }}"
                                         method="POST" class="d-inline">
                                         @csrf
-                                        <p>Jika Anda sudah mengambil surat ini, silakan konfirmasi:</p>
+                                        <p class="mb-3">Surat Anda sudah siap diambil. Silakan konfirmasi setelah
+                                            mengambil surat:</p>
                                         <button type="submit" class="btn btn-primary">
-                                            <i class="bi bi-check-circle"></i> Konfirmasi Sudah Diambil
+                                            <i class="bi bi-check-circle me-2"></i> Konfirmasi Sudah Diambil
                                         </button>
                                     </form>
                                 </div>
                             @endif
-                            @if ($surat->status === 'diajukan' && auth()->user()->hasRole('staff'))
-                                <div class="mb-3">
-                                    <label class="form-label">Nomor Surat</label>
-                                    <div class="input-group">
-                                        <input type="text" name="nomor_surat" class="form-control"
-                                            value="{{ old('nomor_surat', explode('/', $surat->nomor_surat)[0] ?? '') }}"
-                                            placeholder="Contoh: 001">
-                                        <span class="input-group-text">/UN41.2/TI/{{ date('Y') }}</span>
-                                    </div>
-                                    <small class="text-muted">Biarkan kosong untuk generate otomatis</small>
-                                </div>
-                            @endif
 
-                            <div class="mb-4">
-                                <h5 class="section-title border-bottom pb-2">Informasi Mahasiswa</h5>
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
+                            <!-- Informasi Mahasiswa -->
+                            <div class="mb-5" data-aos="fade-up" data-aos-delay="100">
+                                <h5 class="section-title">Informasi Mahasiswa</h5>
+                                <div class="row g-4">
+                                    <div class="col-md-6">
                                         <label class="form-label">Nama Lengkap</label>
                                         <input type="text" class="form-control" value="{{ $surat->mahasiswa->name }}"
                                             readonly>
                                     </div>
-                                    <div class="col-md-6 mb-3">
+                                    <div class="col-md-6">
                                         <label class="form-label">NIM</label>
                                         <input type="text" class="form-control"
                                             value="{{ $surat->mahasiswa->nim ?? '-' }}" readonly>
                                     </div>
-                                    <div class="col-md-6 mb-3">
+                                    <div class="col-md-6">
                                         <label class="form-label">Program Studi</label>
                                         <input type="text" class="form-control"
-                                            value="{{ $surat->mahasiswa->prodi ?? '-' }}" readonly>
+                                            value="{{ $surat->mahasiswa->prodi ?? 'S1 Teknik Informatika' }}" readonly>
                                     </div>
-                                    <div class="col-md-6 mb-3">
+                                    <div class="col-md-6">
                                         <label class="form-label">Semester</label>
-                                        <input type="text" class="form-control"
-                                            value="{{ $surat->mahasiswa->semester ?? '-' }}" readonly>
+                                        <input type="text" class="form-control" value="{{ $surat->semester ?? '-' }}"
+                                            readonly>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="mb-4">
-                                <h5 class="section-title border-bottom pb-2">Detail Pengajuan</h5>
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
+                            <!-- Detail Pengajuan -->
+                            <div class="mb-5" data-aos="fade-up" data-aos-delay="200">
+                                <h5 class="section-title">Detail Pengajuan</h5>
+                                <div class="row g-4">
+                                    <div class="col-md-6">
                                         <label class="form-label">Tahun Ajaran</label>
-                                        <input type="text" class="form-control"
-                                            value="{{ $surat->tahun_ajaran ?? '-' }}" readonly>
+                                        <input type="text" class="form-control" value="{{ $surat->tahun_ajaran ?? '-' }}"
+                                            readonly>
                                     </div>
-                                    <div class="col-md-6 mb-3">
+                                    <div class="col-md-6">
                                         <label class="form-label">Semester</label>
                                         <input type="text" class="form-control"
                                             value="{{ ucfirst($surat->semester ?? '-') }}" readonly>
                                     </div>
-                                    <div class="col-12 mb-3">
+                                    <div class="col-12">
                                         <label class="form-label">Tujuan Pengajuan</label>
-                                        <textarea class="form-control" rows="3" readonly>{{ $surat->tujuan_pengajuan ?? '-' }}</textarea>
+                                        <textarea class="form-control" rows="4" readonly>{{ $surat->tujuan_pengajuan ?? '-' }}</textarea>
                                     </div>
-                                    <div class="col-12 mb-3">
+                                    <div class="col-12">
                                         <label class="form-label">Keterangan Tambahan</label>
-                                        <textarea class="form-control" rows="2" readonly>{{ $surat->keterangan_tambahan ?? '-' }}</textarea>
+                                        <textarea class="form-control" rows="3" readonly>{{ $surat->keterangan_tambahan ?? '-' }}</textarea>
                                     </div>
                                 </div>
                             </div>
 
+                            <!-- Dokumen Pendukung -->
                             @if ($surat->file_pendukung_path)
-                                <div class="mb-4">
-                                    <h5 class="section-title border-bottom pb-2">Dokumen Pendukung</h5>
-                                    <div class="d-flex align-items-center">
-                                        <i class="bi bi-file-earmark-text me-2 fs-4"></i>
-                                        <a href="{{ Storage::url($surat->file_pendukung_path) }}" target="_blank"
-                                            class="text-decoration-none">
-                                            Lihat Dokumen Pendukung
-                                        </a>
-                                    </div>
+                                <div class="mb-5" data-aos="fade-up" data-aos-delay="300">
+                                    <h5 class="section-title">Dokumen Pendukung</h5>
+                                    <a href="{{ Storage::url($surat->file_pendukung_path) }}" target="_blank"
+                                        class="file-link text-decoration-none">
+                                        <i class="bi bi-file-earmark-text fs-4 text-primary"></i>
+                                        Lihat Dokumen Pendukung
+                                    </a>
                                 </div>
                             @endif
 
-                            <div class="mb-4">
-                                <h5 class="section-title border-bottom pb-2">File Surat</h5>
+                            <!-- File Surat -->
+                            <div class="mb-5" data-aos="fade-up" data-aos-delay="400">
+                                <h5 class="section-title">File Surat</h5>
                                 @if ($surat->file_surat_path)
                                     @if ($surat->status === 'sudah_diambil')
-                                        <div class="d-flex align-items-center">
-                                            <i class="bi bi-file-earmark-pdf me-2 fs-4"></i>
-                                            <a href="{{ route('user.surat-aktif-kuliah.download', $surat->id) }}"
-                                                class="text-decoration-none">
-                                                Unduh Surat Aktif Kuliah
-                                            </a>
-                                        </div>
+                                        <a href="{{ route('user.surat-aktif-kuliah.download', $surat->id) }}"
+                                            class="file-link text-decoration-none">
+                                            <i class="bi bi-file-earmark-pdf fs-4 text-success"></i>
+                                            Unduh Surat Aktif Kuliah
+                                        </a>
                                     @elseif ($surat->status === 'siap_diambil')
                                         <div class="alert alert-warning">
                                             <p>Silakan konfirmasi penerimaan surat terlebih dahulu untuk mengunduh.</p>
@@ -148,14 +311,13 @@
                                                 method="POST" class="d-inline">
                                                 @csrf
                                                 <button type="submit" class="btn btn-primary">
-                                                    <i class="bi bi-check-circle"></i> Konfirmasi Sudah Diambil
+                                                    <i class="bi bi-check-circle me-2"></i> Konfirmasi Sudah Diambil
                                                 </button>
                                             </form>
                                         </div>
                                     @else
                                         <p class="text-muted">File surat belum tersedia. Silakan tunggu hingga status
-                                            berubah
-                                            menjadi "Siap Diambil".</p>
+                                            berubah menjadi "Siap Diambil".</p>
                                     @endif
                                 @else
                                     <p class="text-muted">File surat belum tersedia. Silakan tunggu hingga status berubah
@@ -163,54 +325,25 @@
                                 @endif
                             </div>
 
-                            <div class="d-flex justify-content-between mt-4">
+                            <!-- Actions -->
+                            <div class="d-flex justify-content-between mt-5" data-aos="fade-up" data-aos-delay="500">
                                 <a href="{{ route('user.surat-aktif-kuliah.index') }}" class="btn btn-secondary">
-                                    <i class="bi bi-arrow-left"></i> Kembali ke Daftar
+                                    <i class="bi bi-arrow-left me-2"></i> Kembali ke Daftar
                                 </a>
                             </div>
                         </div>
                     </div>
-
-
                 </div>
             </div>
         </div>
     </section>
 @endsection
 
-@push('style')
-    <style>
-        .section-title {
-            color: #4154f1;
-            font-weight: 600;
-            margin-bottom: 1rem;
-        }
-
-        .timeline {
-            position: relative;
-            padding-left: 1rem;
-        }
-
-        .timeline-item {
-            position: relative;
-            padding-bottom: 1.5rem;
-            padding-left: 1.5rem;
-            border-left: 2px solid #dee2e6;
-        }
-
-        .timeline-item:last-child {
-            border-left: 2px solid transparent;
-        }
-
-        .timeline-marker {
-            position: absolute;
-            left: -7px;
-            top: 0;
-            z-index: 1;
-        }
-
-        .timeline-content {
-            margin-left: 0.5rem;
-        }
-    </style>
+@push('scripts')
+    <script>
+        AOS.init({
+            duration: 400,
+            once: true
+        });
+    </script>
 @endpush
