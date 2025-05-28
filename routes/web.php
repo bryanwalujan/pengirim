@@ -18,6 +18,7 @@ use App\Http\Controllers\User\UserServiceController;
 use App\Http\Controllers\Admin\TahunAjaranController;
 use App\Http\Controllers\Admin\PembayaranUktController;
 use App\Http\Controllers\DocumentVerificationController;
+use App\Http\Controllers\User\SuratIjinSurveyController;
 use App\Http\Controllers\User\SuratAktifKuliahController;
 use App\Http\Controllers\Admin\AcademicCalendarController;
 use App\Http\Controllers\Admin\AdminSuratIjinSurveyController;
@@ -97,6 +98,16 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa', 'check.ukt'])->group(fu
         Route::get('/{surat}', [SuratAktifKuliahController::class, 'show'])->name('show');
         Route::get('/{surat}/download', [SuratAktifKuliahController::class, 'download'])->name('download');
         Route::post('/{id}/confirm-taken', [SuratAktifKuliahController::class, 'confirmTaken'])
+            ->name('confirm-taken');
+    });
+
+    Route::prefix('surat-ijin-survey')->name('user.surat-ijin-survey.')->group(function () {
+        Route::get('/', [SuratIjinSurveyController::class, 'index'])->name('index');
+        Route::get('/ajukan', [SuratIjinSurveyController::class, 'create'])->name('create');
+        Route::post('/', [SuratIjinSurveyController::class, 'store'])->name('store');
+        Route::get('/{surat}', [SuratIjinSurveyController::class, 'show'])->name('show');
+        Route::get('/{surat}/download', [SuratIjinSurveyController::class, 'download'])->name('download');
+        Route::post('/{id}/confirm-taken', [SuratIjinSurveyController::class, 'confirmTaken'])
             ->name('confirm-taken');
     });
 });

@@ -174,7 +174,7 @@
                 <div class="col-lg-10">
                     <div class="card" data-aos="fade-up">
                         <div class="card-header text-white">
-                            <h4 class="mb-0 fw-bold text-center">Detail Pengajuan Surat Aktif Kuliah</h4>
+                            <h4 class="mb-0 fw-bold text-center text-white">Detail Pengajuan Surat Aktif Kuliah</h4>
                         </div>
                         <div class="card-body">
                             {{-- @php
@@ -215,20 +215,6 @@
                                     </div>
                                 @endif
                             </div> --}}
-
-                            @if ($surat->status === 'siap_diambil')
-                                <div class="alert alert-info mt-4" data-aos="fade-up">
-                                    <form action="{{ route('user.surat-aktif-kuliah.confirm-taken', $surat->id) }}"
-                                        method="POST" class="d-inline">
-                                        @csrf
-                                        <p class="mb-3">Surat Anda sudah siap diambil. Silakan konfirmasi setelah
-                                            mengambil surat:</p>
-                                        <button type="submit" class="btn btn-primary">
-                                            <i class="bi bi-check-circle me-2"></i> Konfirmasi Sudah Diambil
-                                        </button>
-                                    </form>
-                                </div>
-                            @endif
 
                             <!-- Informasi Mahasiswa -->
                             <div class="mb-5" data-aos="fade-up" data-aos-delay="100">

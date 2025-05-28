@@ -215,6 +215,30 @@
                 padding: 0.75rem 1.5rem;
             }
         }
+
+        .highlight-text {
+            background-color: #fff3cd;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-weight: 500;
+            color: #856404;
+        }
+
+        .surat-preview {
+            background-color: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+        }
+
+        /* Untuk contoh tujuan pengajuan */
+        #contohTujuan ul {
+            padding-left: 20px;
+            margin-bottom: 0;
+        }
+
+        #contohTujuan li {
+            margin-bottom: 5px;
+        }
     </style>
 @endpush
 
@@ -292,11 +316,130 @@
                                 class="text-danger">*</span></label>
                         <textarea class="form-control @error('tujuan_pengajuan') is-invalid @enderror" id="tujuan_pengajuan"
                             name="tujuan_pengajuan" rows="4" required>{{ old('tujuan_pengajuan') }}</textarea>
-                        <div class="form-text mt-2">Contoh: Untuk keperluan beasiswa, pengajuan KIP-Kuliah, atau melamar
-                            pekerjaan.</div>
+
+                        <div class="form-text mt-2">
+                            <button type="button" class="btn btn-sm btn-outline-primary mb-2" data-bs-toggle="collapse"
+                                data-bs-target="#contohTujuan">
+                                <i class="bi bi-lightbulb me-1"></i> Lihat Contoh
+                            </button>
+                            <div id="contohTujuan" class="collapse">
+                                <div class="card card-body mb-3">
+                                    <strong>Contoh Tujuan Pengajuan:</strong>
+                                    <ul class="mb-0">
+                                        <li>Untuk keperluan pengajuan beasiswa KIP-Kuliah tahun 2024</li>
+                                        <li>Sebagai persyaratan magang di PT. Teknologi Maju Indonesia</li>
+                                        <li>Untuk melengkapi dokumen pendaftaran lomba Hackathon Nasional 2024</li>
+                                        <li>Sebagai lampiran aplikasi Beyond Borders Scholarship Award 2025</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            Tujuan pengajuan akan muncul di bagian bawah surat seperti contoh di samping.
+                        </div>
                         @error('tujuan_pengajuan')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
+                    </div>
+                </div>
+
+                <!-- Preview Surat Section -->
+                <div class="form-section" data-aos="fade-up" data-aos-delay="450">
+                    <h5 class="section-title">
+                        <i class="bi bi-eye"></i>
+                        Preview Surat
+                    </h5>
+
+                    <div class="card border-primary">
+                        <div class="card-header bg-primary text-white">
+                            <h6 class="mb-0">Contoh Surat Aktif Kuliah</h6>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="surat-preview p-4"
+                                style="font-family: 'Times New Roman', serif; font-size: 14px; line-height: 1.5;">
+                                <div class="text-center mb-4">
+                                    <h5 style="font-weight: bold; margin-bottom: 5px;">KEMENTERIAN PENDIDIKAN TINGGI, SAINS,
+                                        DAN TEKNOLOGI</h5>
+                                    <h5 style="font-weight: bold; margin-bottom: 5px;">UNIVERSITAS NEGERI MANADO</h5>
+                                    <h6 style="font-weight: bold; margin-bottom: 5px;">FAKULTAS TEKNIK</h6>
+                                    <h6 style="font-weight: bold; margin-bottom: 5px;">PROGRAM STUDI S1 TEKNIK INFORMATIKA
+                                    </h6>
+                                    <p style="margin-bottom: 0; font-size: 12px;">
+                                        Alamat : Kampus UNIMA Tondano 95618, Telp.(0431)7233580<br>
+                                        Website : tt.unima.ac.id, Email : teknikinformatika@unima.ac.id
+                                    </p>
+                                </div>
+
+                                <hr style="border-top: 2px solid #000; margin: 10px 0;">
+
+                                <div class="d-flex justify-content-between mb-4">
+                                    <div style="width: 30%;">
+                                        <p style="margin-bottom: 5px;">No &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:
+                                            3108/UN41.2/TI/2024</p>
+                                        <p style="margin-bottom: 5px;">Lampiran : 1 Berkas</p>
+                                        <p style="margin-bottom: 0;">Perihal &nbsp;: Permohonan Aktif Kuliah</p>
+                                    </div>
+                                    <div style="width: 30%; text-align: right;">
+                                        <p style="margin-bottom: 0;">Tondano, 10 Desember 2024</p>
+                                    </div>
+                                </div>
+
+                                <div class="mb-4">
+                                    <p style="margin-bottom: 5px;">Kepada Yth;</p>
+                                    <p style="margin-bottom: 5px;">Dekan Fakultas Teknik</p>
+                                    <p style="margin-bottom: 0;">Universitas Negeri Manado</p>
+                                </div>
+
+                                <div class="mb-4">
+                                    <p style="text-align: justify; text-indent: 50px; margin-bottom: 15px;">
+                                        Pimpinan Program Studi S1 Teknik Informatika menerangkan bahwa:
+                                    </p>
+
+                                    <table style="margin-left: 50px; margin-bottom: 15px;">
+                                        <tr>
+                                            <td style="width: 120px; vertical-align: top;">Nama</td>
+                                            <td style="vertical-align: top;">: {{ Auth::user()->name }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="vertical-align: top;">NIM</td>
+                                            <td style="vertical-align: top;">: {{ Auth::user()->nim }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="vertical-align: top;">Semester</td>
+                                            <td style="vertical-align: top;">: V (Lima)</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="vertical-align: top;">Jurusan/Prodi</td>
+                                            <td style="vertical-align: top;">: Teknik Informatika</td>
+                                        </tr>
+                                    </table>
+
+                                    <p style="text-align: justify; text-indent: 50px; margin-bottom: 15px;">
+                                        Adalah benar mahasiswa Program Studi S1 Teknik Informatika Fakultas Teknik yang
+                                        aktif dalam mengikuti perkuliahan dan kegiatan lainnya pada tahun ajaran 2024/2025.
+                                        Untuk itu dimohon kiranya Dekan berkenan menerbitkan surat keterangan aktif kuliah
+                                        untuk mahasiswa tersebut.
+                                    </p>
+
+                                    <p style="text-align: justify; text-indent: 50px; margin-bottom: 15px;"
+                                        id="preview-tujuan">
+                                        Adapun surat keterangan aktif kuliah itu akan digunakan untuk <span
+                                            class="highlight-text">melengkapi berkas Besiswa Beyond Borders Scholarship
+                                            Award 2025</span>
+                                    </p>
+
+                                    <p style="text-align: justify; text-indent: 50px; margin-bottom: 0;">
+                                        Demikian permohonan ini, atasnya diucapkan terima kasih.
+                                    </p>
+                                </div>
+
+                                <div class="d-flex justify-content-end mt-5">
+                                    <div style="text-align: center; width: 250px;">
+                                        <p style="margin-bottom: 50px;">Koordinator Program Studi</p>
+                                        <p style="margin-bottom: 5px; font-weight: bold;">Dr. John Doe, M.Kom.</p>
+                                        <p style="margin-bottom: 0;">NIP. 197001011995121001</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -469,6 +612,27 @@
 
             // Simulate form submission
             this.submit();
+        });
+
+        // Preview tujuan pengajuan
+        document.addEventListener('DOMContentLoaded', function() {
+            const tujuanInput = document.getElementById('tujuan_pengajuan');
+            const previewTujuan = document.getElementById('preview-tujuan');
+
+            // Update preview saat input berubah
+            tujuanInput.addEventListener('input', function() {
+                if (this.value.trim() === '') {
+                    previewTujuan.innerHTML =
+                        'Adapun surat keterangan aktif kuliah itu akan digunakan untuk melengkapi berkas <span class="highlight-text">Besiswa Beyond Borders Scholarship Award 2025</span>';
+                } else {
+                    previewTujuan.innerHTML =
+                        'Adapun surat keterangan aktif kuliah itu akan digunakan untuk melengkapi berkas <span class="highlight-text">' +
+                        this.value + '</span>';
+                }
+            });
+
+            // Trigger input event untuk inisialisasi
+            tujuanInput.dispatchEvent(new Event('input'));
         });
     </script>
 @endpush
