@@ -282,20 +282,12 @@
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                     <small class="text-muted">
-                                        Nomor berikutnya: <span class="fw-bold">
-                                            @php
-                                                $latestSurat = App\Models\SuratAktifKuliah::withTrashed()
-                                                    ->whereYear('created_at', date('Y'))
-                                                    ->whereNotNull('nomor_surat')
-                                                    ->orderBy('nomor_surat', 'desc')
-                                                    ->first();
-                                                $nextNumber = $latestSurat
-                                                    ? intval(explode('/', $latestSurat->nomor_surat)[0]) + 1
-                                                    : 1;
-                                                echo sprintf('%04d/UN41.2/TI/%s', $nextNumber, date('Y'));
-                                            @endphp
-                                        </span>
-                                        <br>Biarkan kosong untuk menggunakan nomor di atas, atau isi manual
+                                        Nomor terakhir digunakan: <span
+                                            class="fw-bold">{{ $lastNomorSurat ?? 'Belum ada' }}</span>
+                                        <br>Nomor berikutnya yang akan digunakan: <span
+                                            class="fw-bold text-primary">{{ $nextNomorSurat }}</span>
+                                        <br>Kosongkan input di form proses untuk menggunakan nomor di atas, atau masukkan
+                                        nomor manual (contoh: 0001 atau 0001/UN41.2/TI/{{ date('Y') }})
                                     </small>
                                 </div>
                             </div>

@@ -304,8 +304,8 @@
                     <div class="row g-4">
                         <div class="col-md-6">
                             <label for="judul" class="form-label">Judul Survey <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('judul') is-invalid @enderror" id="judul"
-                                name="judul" value="{{ old('judul') }}" required>
+                            <textarea class="form-control @error('judul') is-invalid @enderror" id="judul" name="judul" rows="3"
+                                required>{{ old('judul') }}</textarea>
                             @error('judul')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -313,8 +313,8 @@
                         <div class="col-md-6">
                             <label for="tempat_survey" class="form-label">Tempat Survey <span
                                     class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('tempat_survey') is-invalid @enderror"
-                                id="tempat_survey" name="tempat_survey" value="{{ old('tempat_survey') }}" required>
+                            <textarea class="form-control @error('tempat_survey') is-invalid @enderror" id="tempat_survey" name="tempat_survey"
+                                rows="3" required>{{ old('tempat_survey') }}</textarea>
                             @error('tempat_survey')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror

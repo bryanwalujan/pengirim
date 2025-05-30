@@ -131,7 +131,7 @@
             Dengan Hormat,<br>
             Pimpinan Program Studi S1 Teknik Informatika menerangkan bahwa:
         </p>
-        <table style="margin-left: 40px; margin-bottom: 10px;">
+        <table style="margin-left: 40px; margin-bottom: 10px; border-collapse: collapse;">
             <tr>
                 <td width="110">Nama</td>
                 <td width="10">:</td>
@@ -148,9 +148,9 @@
                 <td>{{ $semester_roman }}</td>
             </tr>
             <tr>
-                <td>Judul Skripsi</td>
-                <td>:</td>
-                <td>{{ $surat->judul }}</td>
+                <td style="vertical-align: top">Judul Skripsi</td>
+                <td style="vertical-align: top">:</td>
+                <td style="vertical-align: top">{{ $surat->judul }}</td>
             </tr>
         </table>
         <p style="text-indent: 2.5rem">

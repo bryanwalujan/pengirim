@@ -4,11 +4,12 @@ namespace App\Http\Controllers\Admin;
 
 use App\Models\User;
 use App\Models\StatusSurat;
+use App\Models\TahunAjaran;
 use Illuminate\Http\Request;
 use App\Models\TrackingSurat;
+use App\Models\SuratIjinSurvey;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\DokumenPendukung;
-use App\Models\SuratIjinSurvey;
 use Illuminate\Support\Facades\DB;
 use App\Traits\BaseSuratController;
 use Illuminate\Support\Facades\Log;
@@ -33,6 +34,11 @@ class AdminSuratIjinSurveyController extends DocumentController
     protected function getNomorSuratPrefix()
     {
         return 'UN41.2/TI';
+    }
+
+    protected function getNextNomorSurat()
+    {
+        return $this->generateNomorSuratUniversal();
     }
 
     /**
@@ -96,8 +102,10 @@ class AdminSuratIjinSurveyController extends DocumentController
         ]);
 
         $penandatangans = User::role('dosen')->get();
+        $lastNomorSurat = $this->getLastUsedNomorSurat();
+        $nextNomorSurat = $this->getNextNomorSurat();
 
-        return view('admin.surat-ijin-survey.show', compact('surat', 'penandatangans'));
+        return view('admin.surat-ijin-survey.show', compact('surat', 'penandatangans', 'lastNomorSurat', 'nextNomorSurat'));
     }
 
     /**
@@ -176,14 +184,11 @@ class AdminSuratIjinSurveyController extends DocumentController
                         $proposedNumber = $manualNumber;
                     }
 
-                    // Check for duplicate
-                    $existingSurat = SuratIjinSurvey::where('nomor_surat', $proposedNumber)
-                        ->where('id', '!=', $surat->id)
-                        ->first();
-                    if ($existingSurat) {
+                    if (!$this->validateNomorSuratUnique($proposedNumber)) {
                         DB::rollBack();
-                        return back()->with('error', 'Nomor surat sudah digunakan!')->withInput();
+                        return back()->with('error', 'Nomor surat sudah digunakan di layanan lain!')->withInput();
                     }
+
                     $validated['nomor_surat'] = $proposedNumber;
                 } else {
                     $validated['nomor_surat'] = $this->generateNomorSurat();
@@ -354,7 +359,11 @@ class AdminSuratIjinSurveyController extends DocumentController
         DB::beginTransaction();
         try {
             if ($request->action === 'approve') {
-                $nomorSurat = $surat->nomor_surat ?: $this->generateNomorSurat();
+                $nomorSurat = $surat->nomor_surat ?: $this->generateNomorSuratUniversal();
+                if (!$this->validateNomorSuratUnique($nomorSurat)) {
+                    DB::rollBack();
+                    return back()->with('error', 'Nomor surat sudah digunakan di layanan lain!');
+                }
                 $qrType = $surat->status === 'diproses' ? 'kaprodi' : 'pimpinan';
                 $newStatus = $surat->status === 'diproses' ? 'disetujui_kaprodi' : 'disetujui';
 
@@ -486,11 +495,18 @@ class AdminSuratIjinSurveyController extends DocumentController
             $surat->load('penandatanganKaprodi');
         }
 
-        // Calculate semester
+        // Fetch active academic year
+        $activeTahunAjaran = TahunAjaran::where('status_aktif', true)->first();
+        if (!$activeTahunAjaran) {
+            throw new \Exception('Tidak ada tahun ajaran aktif yang ditemukan');
+        }
+
+        // Calculate semester based on active academic year
         $tahunMasuk = 2000 + (int) substr($surat->mahasiswa->nim, 0, 2);
-        $currentYear = now()->year;
-        $semesterNumber = ($currentYear - $tahunMasuk) * 2 + ($surat->semester === 'ganjil' ? 1 : 2);
-        $semesterNumber = min($semesterNumber, 14);
+        $tahunAjaranStart = (int) explode('/', $activeTahunAjaran->tahun)[0];
+        $semesterOffset = $activeTahunAjaran->semester === 'ganjil' ? 1 : 2;
+        $semesterNumber = ($tahunAjaranStart - $tahunMasuk) * 2 + $semesterOffset;
+        $semesterNumber = min(max($semesterNumber, 1), 14); // Cap between 1 and 14
 
         $jabatanPimpinan = $surat->jabatan_penandatangan ?? 'Pimpinan Jurusan PTIK';
         $jabatanKoordinator = $surat->jabatan_penandatangan_kaprodi ?? 'Koordinator Program Studi';

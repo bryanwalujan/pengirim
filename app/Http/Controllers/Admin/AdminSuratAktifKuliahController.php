@@ -30,6 +30,11 @@ class AdminSuratAktifKuliahController extends DocumentController
         return 'UN41.2/TI';
     }
 
+    protected function getNextNomorSurat()
+    {
+        return $this->generateNomorSuratUniversal();
+    }
+
     public function index(Request $request)
     {
         $status = $request->input('status', 'diajukan');
@@ -77,8 +82,15 @@ class AdminSuratAktifKuliahController extends DocumentController
         ]);
 
         $penandatangans = User::role('dosen')->get();
+        $lastNomorSurat = $this->getLastUsedNomorSurat();
+        $nextNomorSurat = $this->getNextNomorSurat();
 
-        return view('admin.surat-aktif-kuliah.show', compact('surat', 'penandatangans'));
+        return view('admin.surat-aktif-kuliah.show', [
+            'surat' => $surat,
+            'penandatangans' => $penandatangans,
+            'lastNomorSurat' => $lastNomorSurat,
+            'nextNomorSurat' => $nextNomorSurat,
+        ]);
     }
 
     public function update(Request $request, SuratAktifKuliah $surat)
@@ -142,14 +154,9 @@ class AdminSuratAktifKuliahController extends DocumentController
                         $proposedNumber = $manualNumber;
                     }
 
-                    // Cek apakah nomor surat sudah digunakan oleh surat lain
-                    $existingSurat = SuratAktifKuliah::where('nomor_surat', $proposedNumber)
-                        ->where('id', '!=', $surat->id)
-                        ->first();
-
-                    if ($existingSurat) {
+                    if (!$this->validateNomorSuratUnique($proposedNumber)) {
                         DB::rollBack();
-                        return back()->with('error', 'Nomor surat sudah digunakan!')->withInput();
+                        return back()->with('error', 'Nomor surat sudah digunakan di layanan lain!')->withInput();
                     }
 
                     $validated['nomor_surat'] = $proposedNumber;
@@ -322,7 +329,11 @@ class AdminSuratAktifKuliahController extends DocumentController
         DB::beginTransaction();
         try {
             if ($request->action === 'approve') {
-                $nomorSurat = $surat->nomor_surat ?: $this->generateNomorSurat();
+                $nomorSurat = $surat->nomor_surat ?: $this->generateNomorSuratUniversal();
+                if (!$this->validateNomorSuratUnique($nomorSurat)) {
+                    DB::rollBack();
+                    return back()->with('error', 'Nomor surat sudah digunakan di layanan lain!');
+                }
                 $qrType = $surat->status === 'diproses' ? 'kaprodi' : 'pimpinan';
                 $newStatus = $surat->status === 'diproses' ? 'disetujui_kaprodi' : 'disetujui';
 
