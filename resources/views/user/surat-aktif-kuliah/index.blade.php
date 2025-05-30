@@ -472,7 +472,7 @@
                                         @empty
                                             <tr>
                                                 <td colspan="6" class="empty-state">
-                                                    <img src="{{ asset('img/empty-state.svg') }}" alt="Empty state">
+                                                    <p><i class="bi bi-emoji-frown"></i></p>
                                                     <h5>Belum Ada Pengajuan Surat</h5>
                                                     <p>Anda belum pernah mengajukan surat aktif kuliah. Yuk, ajukan
                                                         sekarang!</p>

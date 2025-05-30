@@ -25,8 +25,7 @@ class Service extends Model
         // Daftar route index untuk layanan khusus
         $customIndexRoutes = [
             'surat-aktif-kuliah' => 'user.surat-aktif-kuliah.index',
-            'surat-keterangan' => 'user.surat-keterangan.index',
-            'transkrip-nilai' => 'user.transkrip.index',
+            'surat-ijin-survey' => 'user.surat-ijin-survey.index',
             // Tambahkan layanan khusus lainnya di sini
         ];
 

@@ -22,7 +22,7 @@ trait GeneratesNomorSurat
         // Daftar semua model surat yang menggunakan sistem penomoran ini
         $suratModels = [
             \App\Models\SuratAktifKuliah::class,
-            // \App\Models\SuratIjinSurvey::class,
+            \App\Models\SuratIjinSurvey::class,
             // \App\Models\SuratLainnya::class,
         ];
 

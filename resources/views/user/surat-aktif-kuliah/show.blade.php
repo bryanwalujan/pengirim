@@ -4,17 +4,6 @@
 
 @push('styles')
     <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: #f5f7fb;
-        }
-
-        .page-title h1 {
-            font-weight: 600;
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-        }
-
         .breadcrumbs ol {
             margin-bottom: 0;
             padding-left: 0;

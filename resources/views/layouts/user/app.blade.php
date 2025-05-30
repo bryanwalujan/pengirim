@@ -34,13 +34,13 @@
 
 
     <!-- Main CSS File -->
-    <link href="{{ asset('user/assets/css/main.css') }}" rel="stylesheet">
 
     {{-- Custom CSS --}}
     <link href="{{ asset('user/assets/css/style.css') }}" rel="stylesheet">
 
     @stack('styles')
 
+    <link href="{{ asset('user/assets/css/main.css') }}" rel="stylesheet">
     <!-- Boxicons CSS -->
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 

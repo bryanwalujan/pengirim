@@ -36,9 +36,9 @@ class ServiceSeeder extends Seeder
                 'is_active' => true,
             ],
             [
-                'name' => 'Surat Izin Survey',
+                'name' => 'Surat Ijin Survey',
                 'icon' => 'bx bx-search-alt', // Changed from bi bi-search
-                'description' => 'Pengajuan surat izin untuk melakukan survey atau penelitian sebagai bagian dari tugas akademik.',
+                'description' => 'Pengajuan surat ijin untuk melakukan survey atau penelitian sebagai bagian dari tugas akademik.',
                 'order' => 4,
                 'is_active' => true,
             ],
