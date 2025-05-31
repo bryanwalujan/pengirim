@@ -52,7 +52,7 @@ trait GeneratesNomorSurat
     /**
      * Validate if a nomor surat is unique across all letter types
      */
-    public function validateNomorSuratUnique($nomorSurat)
+    public function validateNomorSuratUnique($nomorSurat, $excludeId = null, $excludeType = null)
     {
         $suratModels = [
             SuratAktifKuliah::class,
@@ -62,7 +62,14 @@ trait GeneratesNomorSurat
         ];
 
         foreach ($suratModels as $model) {
-            if ($model::where('nomor_surat', $nomorSurat)->exists()) {
+            $query = $model::where('nomor_surat', $nomorSurat);
+
+            // Exclude current record if specified
+            if ($excludeId && $excludeType && $model === $excludeType) {
+                $query->where('id', '!=', $excludeId);
+            }
+
+            if ($query->exists()) {
                 return false;
             }
         }

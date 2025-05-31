@@ -4,6 +4,7 @@ use App\Models\User;
 use App\Models\TahunAjaran;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\SuratAktifKuliah;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
@@ -12,10 +13,12 @@ use App\Http\Controllers\User\HomeController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ServiceController;
+use App\Http\Controllers\Admin\ActivityController;
 use App\Http\Controllers\Admin\KopSuratController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\User\UserServiceController;
 use App\Http\Controllers\Admin\TahunAjaranController;
+use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\PembayaranUktController;
 use App\Http\Controllers\DocumentVerificationController;
 use App\Http\Controllers\User\SuratIjinSurveyController;
@@ -42,8 +45,10 @@ Route::get('/storage/academic-calendars/{filename}', function ($filename) {
     ]);
 })->name('academic-calendar.view');
 
+// Route untuk verifikasi dokumen
 Route::get('/verify/{code}', [DocumentVerificationController::class, 'verify'])
     ->name('document.verify');
+
 Route::get('/preview-dummy-pdf', function () {
     $pdf = Pdf::loadView('admin.surat-aktif-kuliah.pdf', [
         'surat' => new SuratAktifKuliah([
@@ -159,10 +164,27 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 
     // Route untuk menampilkan semua notifikasi
     Route::post('/notifications/{notification}/read', function ($notificationId) {
-        $notification = \Illuminate\Support\Facades\Auth::user()->notifications->find($notificationId);
+        $notification = Auth::user()->notifications->find($notificationId);
         $notification->markAsRead();
         return redirect($notification->data['url']);
     })->name('notifications.read');
+
+    Route::post('/notifications/{notification}/read-and-redirect', function ($notificationId) {
+        $notification = User::find(Auth::id())->notifications()->findOrFail($notificationId);
+
+        // Mark as read
+        $notification->markAsRead();
+
+        // Redirect to the notification URL
+        return redirect($notification->data['url']);
+    })->name('notifications.read-and-redirect');
+
+    // Route untuk menampilkan daftar notifikasi
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    // Route untuk menandai notifikasi sebagai dibaca
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'read'])->name('notifications.read');
+
+    Route::get('/activities', [ActivityController::class, 'index'])->name('activities');
 
     // Layanan-layanan
     Route::resource('services', ServiceController::class);

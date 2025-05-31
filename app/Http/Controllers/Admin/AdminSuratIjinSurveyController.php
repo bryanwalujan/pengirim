@@ -93,6 +93,29 @@ class AdminSuratIjinSurveyController extends DocumentController
      */
     public function show(SuratIjinSurvey $surat)
     {
+
+        // Mark related notifications as read
+        if (User::find(Auth::id())->hasRole('dosen')) {
+            User::find(Auth::id())->unreadNotifications()
+                ->where('type', 'App\Notifications\SuratNeedApprovalNotification')
+                ->where('data->surat_id', $surat->id)
+                ->update(['read_at' => now()]);
+        }
+
+        // Mark related notifications as read (both approval and taken notifications)
+        if (User::find(Auth::id())->hasRole('staff')) {
+            User::find(Auth::id())->unreadNotifications()
+                ->where(function ($query) use ($surat) {
+                    $query->where('type', 'App\Notifications\SuratTakenNotification')
+                        ->where('data->url', route('admin.surat-aktif-kuliah.show', $surat->id));
+                })
+                ->orWhere(function ($query) use ($surat) {
+                    $query->where('type', 'App\Notifications\SuratNeedApprovalNotification')
+                        ->where('data->surat_id', $surat->id);
+                })
+                ->update(['read_at' => now()]);
+        }
+
         $surat->load([
             'mahasiswa',
             'status',
@@ -360,7 +383,8 @@ class AdminSuratIjinSurveyController extends DocumentController
         try {
             if ($request->action === 'approve') {
                 $nomorSurat = $surat->nomor_surat ?: $this->generateNomorSuratUniversal();
-                if (!$this->validateNomorSuratUnique($nomorSurat)) {
+                // Modified validation to exclude current surat from uniqueness check
+                if (!$this->validateNomorSuratUnique($nomorSurat, $surat->id, get_class($surat))) {
                     DB::rollBack();
                     return back()->with('error', 'Nomor surat sudah digunakan di layanan lain!');
                 }

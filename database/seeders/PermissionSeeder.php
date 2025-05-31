@@ -70,6 +70,13 @@ class PermissionSeeder extends Seeder
         $lecturerRole->givePermissionTo([
             'view dashboard',
             'manage surat aktif kuliah',
+            'create surat aktif kuliah',
+            'edit surat aktif kuliah',
+            'delete surat aktif kuliah',
+            'manage surat ijin survey',
+            'create surat ijin survey',
+            'edit surat ijin survey',
+            'delete surat ijin survey',
         ]);
 
         // $staffRole = Role::create(['name' => 'staff']);

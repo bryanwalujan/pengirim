@@ -32,7 +32,7 @@
                     ? 'active open'
                     : '' }}">
                 <a href="javascript:void(0);" class="menu-link menu-toggle">
-                    <i class="menu-icon tf-icons bx bx-file"></i>
+                    <i class="menu-icon tf-icons bx bx-user-check"></i>
                     <div>Surat Aktif Kuliah</div>
                 </a>
                 <ul class="menu-sub">
@@ -43,6 +43,7 @@
                                 ->user()
                                 ->unreadNotifications()
                                 ->where('type', 'App\Notifications\SuratNeedApprovalNotification')
+                                ->whereJsonContains('data->surat_class', 'App\Models\SuratAktifKuliah')
                                 ->count();
 
                             // Tentukan menu berdasarkan jabatan
@@ -140,7 +141,7 @@
         @can('manage surat ijin survey')
             <li class="menu-item {{ request()->routeIs('admin.surat-ijin-survey.*') ? 'active open' : '' }}">
                 <a href="javascript:void(0);" class="menu-link menu-toggle">
-                    <i class="menu-icon tf-icons bx bx-file"></i>
+                    <i class="menu-icon tf-icons bx bx-search-alt"></i>
                     <div>Surat Ijin Survey</div>
                 </a>
                 <ul class="menu-sub">
@@ -150,7 +151,7 @@
                                 ->user()
                                 ->unreadNotifications()
                                 ->where('type', 'App\Notifications\SuratNeedApprovalNotification')
-                                ->where('data.surat_type', 'App\Models\SuratIjinSurvey')
+                                ->whereJsonContains('data->surat_class', 'App\Models\SuratIjinSurvey')
                                 ->count();
                         @endphp
                         <li

@@ -52,6 +52,7 @@ class SuratTakenNotification extends Notification
             'mahasiswa_name' => $this->surat->mahasiswa->name ?? 'Mahasiswa',
             'mahasiswa_nim' => $this->surat->mahasiswa->nim ?? 'NIM tidak tersedia',
             'surat_type' => $this->suratType,
+            'surat_id' => $this->surat->id, // Add this line
             'surat_class' => get_class($this->surat),
             'url' => route($this->routeName, $this->surat->id),
             'confirmed_at' => now()->format('d/m/Y H:i'),
