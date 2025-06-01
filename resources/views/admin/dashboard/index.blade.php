@@ -6,9 +6,6 @@
     <div class="container-xxl flex-grow-1 container-p-y">
         <!-- Header with Breadcrumb -->
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h4 class="fw-bold mb-0">
-                <span class="text-muted fw-light">Dashboard /</span> Admin
-            </h4>
             <small class="text-muted">Last Updated: {{ now()->format('d M Y H:i') }}</small>
         </div>
 
@@ -106,9 +103,8 @@
 
         <!-- Status Breakdown and Chart Row -->
         <div class="row mb-4">
-
             <!-- Notifications Card -->
-            <div class="col-lg-6 mb-4">
+            <div class="col-md-6 mb-4">
                 <div class="card h-100 border-0 shadow-sm">
                     <div class="card-header d-flex justify-content-between align-items-center border-bottom">
                         <h5 class="mb-0"><i class='bx bx-bell me-2'></i>Notifikasi</h5>
@@ -130,11 +126,7 @@
                     </div>
                 </div>
             </div>
-        </div>
-
-        <!-- Chart Row -->
-        <div class="row mb-4">
-            <div class="col-12">
+            <div class="col-md-6 mb-4">
                 <div class="card border-0 shadow-sm">
                     <div class="card-header d-flex justify-content-between align-items-center border-bottom">
                         <h5 class="mb-0"><i class='bx bx-bar-chart-alt-2 me-2'></i>Tren Pengajuan Surat</h5>
@@ -245,10 +237,10 @@
                     const chart = new Chart(ctx, {
                         type: 'bar',
                         data: {
-                            labels: @json($months),
+                            labels: @json($months), // Pastikan jumlah labels sesuai
                             datasets: [{
                                     label: 'Surat Aktif Kuliah',
-                                    data: @json($aktifKuliahCounts),
+                                    data: @json($aktifKuliahCounts), // Pastikan jumlah data sesuai
                                     borderColor: 'rgba(105, 108, 255, 1)',
                                     backgroundColor: 'rgba(105, 108, 255, 0.1)',
                                     tension: 0.3,

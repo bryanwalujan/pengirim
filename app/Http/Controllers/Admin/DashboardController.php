@@ -20,13 +20,13 @@ class DashboardController extends Controller
     {
         $this->authorize('view dashboard');
 
-        // Ambil data berdasarkan peran pengguna
+        // Get user and their role
         $user = User::find(Auth::id());
         $isStaff = $user->hasRole('staff');
         $isKaprodi = $user->hasRole('dosen') && str_contains(strtolower($user->jabatan), 'koordinator program studi');
         $isPimpinan = $user->hasRole('dosen') && (str_contains(strtolower($user->jabatan), 'pimpinan jurusan') || str_contains(strtolower($user->jabatan), 'ptik'));
 
-        // Ringkasan status surat (untuk semua jenis surat)
+        // Summary of letter statuses
         $statusCounts = [
             'diajukan' => StatusSurat::where('status', 'diajukan')->count(),
             'diproses' => StatusSurat::where('status', 'diproses')->count(),
@@ -36,23 +36,25 @@ class DashboardController extends Controller
             'siap_diambil' => StatusSurat::where('status', 'siap_diambil')->count(),
         ];
 
-        // Notifikasi yang belum dibaca
+        // Unread notifications
         $unreadNotifications = $user->unreadNotifications()
             ->whereIn('type', ['App\\Notifications\\SuratNeedApprovalNotification', 'App\\Notifications\\SuratTakenNotification'])
             ->count();
 
-        // Aktivitas terbaru (dari TrackingSurat)
+        // Recent activities (limited to 10)
         $recentActivities = TrackingSurat::with(['mahasiswa', 'surat'])
             ->latest()
             ->take(10)
             ->get();
 
-        // Data untuk grafik (pengajuan surat per bulan)
+        // Data for chart (submissions per month for each service)
         $months = [];
         $aktifKuliahCounts = [];
         $ijinSurveyCounts = [];
-        $cutiAkademikCounts = []; // Placeholder
-        $pindahCounts = []; // Placeholder
+        $cutiAkademikCounts = [];
+        $pindahCounts = [];
+
+        // Fetch data for the last 6 months
         for ($i = 5; $i >= 0; $i--) {
             $month = now()->subMonths($i);
             $months[] = $month->format('M Y');
@@ -62,9 +64,8 @@ class DashboardController extends Controller
             $ijinSurveyCounts[] = SuratIjinSurvey::whereYear('created_at', $month->year)
                 ->whereMonth('created_at', $month->month)
                 ->count();
-            // Placeholder untuk layanan yang belum diimplementasikan
-            $cutiAkademikCounts[] = 0; // Ganti dengan query jika model ada
-            $pindahCounts[] = 0; // Ganti dengan query jika model ada
+            $cutiAkademikCounts[] = 0; // Replace with actual query when model is available
+            $pindahCounts[] = 0; // Replace with actual query when model is available
         }
 
         return view('admin.dashboard.index', compact(
