@@ -24,9 +24,11 @@ use App\Http\Controllers\DocumentVerificationController;
 use App\Http\Controllers\User\SuratIjinSurveyController;
 use App\Http\Controllers\User\SuratAktifKuliahController;
 use App\Http\Controllers\Admin\AcademicCalendarController;
+use App\Http\Controllers\User\SuratCutiAkademikController;
 use App\Http\Controllers\Admin\AdminSuratIjinSurveyController;
 use App\Http\Controllers\Admin\AdminSuratAktifKuliahController;
 use App\Http\Controllers\Admin\DosenSuratAktifKuliahController;
+use App\Http\Controllers\Admin\AdminSuratCutiAkademikController;
 
 // Untuk User (Mahasiswa)
 Route::get('/', [HomeController::class, 'index'])->name('user.home.index');
@@ -96,6 +98,7 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa', 'check.ukt'])->group(fu
         Route::get('/{service}/ajukan', [UserServiceController::class, 'create'])->name('create');
     });
 
+    // Layanan Surat Aktif Kuliah 
     Route::prefix('surat-aktif-kuliah')->name('user.surat-aktif-kuliah.')->group(function () {
         Route::get('/', [SuratAktifKuliahController::class, 'index'])->name('index');
         Route::get('/ajukan', [SuratAktifKuliahController::class, 'create'])->name('create');
@@ -106,6 +109,7 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa', 'check.ukt'])->group(fu
             ->name('confirm-taken');
     });
 
+    // Layanan Surat Ijin Survey
     Route::prefix('surat-ijin-survey')->name('user.surat-ijin-survey.')->group(function () {
         Route::get('/', [SuratIjinSurveyController::class, 'index'])->name('index');
         Route::get('/ajukan', [SuratIjinSurveyController::class, 'create'])->name('create');
@@ -113,6 +117,17 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa', 'check.ukt'])->group(fu
         Route::get('/{surat}', [SuratIjinSurveyController::class, 'show'])->name('show');
         Route::get('/{surat}/download', [SuratIjinSurveyController::class, 'download'])->name('download');
         Route::post('/{id}/confirm-taken', [SuratIjinSurveyController::class, 'confirmTaken'])
+            ->name('confirm-taken');
+    });
+
+    // Layanan Surat Cuti Akademik
+    Route::prefix('surat-cuti-akademik')->name('user.surat-cuti-akademik.')->group(function () {
+        Route::get('/', [SuratCutiAkademikController::class, 'index'])->name('index');
+        Route::get('/ajukan', [SuratCutiAkademikController::class, 'create'])->name('create');
+        Route::post('/', [SuratCutiAkademikController::class, 'store'])->name('store');
+        Route::get('/{surat}', [SuratCutiAkademikController::class, 'show'])->name('show');
+        Route::get('/{surat}/download', [SuratCutiAkademikController::class, 'download'])->name('download');
+        Route::post('/{id}/confirm-taken', [SuratCutiAkademikController::class, 'confirmTaken'])
             ->name('confirm-taken');
     });
 });
@@ -292,6 +307,27 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 
         // Dokumen pendukung surat aktif kuliah
         Route::get('/{surat}/download-pendukung', [AdminSuratIjinSurveyController::class, 'downloadPendukung'])
+            ->name('download-pendukung');
+    });
+
+    // Admin Routes untuk Surat Cuti Akademik
+    Route::prefix('surat-cuti-akademik')->name('surat-cuti-akademik.')->group(function () {
+        Route::get('/', [AdminSuratCutiAkademikController::class, 'index'])->name('index');
+        Route::get('/{surat}', [AdminSuratCutiAkademikController::class, 'show'])->name('show');
+
+        // Hanya staff
+        Route::middleware('role:staff')->group(function () {
+            Route::put('/{surat}/status', [AdminSuratCutiAkademikController::class, 'updateStatus'])
+                ->name('update-status');
+        });
+        // Hanya dosen
+        Route::middleware('role:dosen')->group(function () {
+            Route::put('/{surat}/approve', action: [AdminSuratCutiAkademikController::class, 'approveByDosen'])
+                ->name('approve');
+        });
+
+        Route::get('/{surat}/download', [AdminSuratCutiAkademikController::class, 'download'])->name('download');
+        Route::get('/{surat}/download-pendukung', [AdminSuratCutiAkademikController::class, 'downloadPendukung'])
             ->name('download-pendukung');
     });
 

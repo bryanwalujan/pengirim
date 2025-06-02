@@ -16,6 +16,22 @@ class SuratNeedApprovalNotification extends Notification
     public $suratType;
     public $routeName;
 
+    // Mapping of model classes to their display names and routes
+    protected const SURAT_TYPES = [
+        'App\Models\SuratAktifKuliah' => [
+            'name' => 'Surat Aktif Kuliah',
+            'route' => 'admin.surat-aktif-kuliah.show'
+        ],
+        'App\Models\SuratIjinSurvey' => [
+            'name' => 'Surat Ijin Survey',
+            'route' => 'admin.surat-ijin-survey.show'
+        ],
+        'App\Models\SuratCutiAkademik' => [
+            'name' => 'Surat Cuti Akademik',
+            'route' => 'admin.surat-cuti-akademik.show'
+        ]
+    ];
+
     public function __construct($surat)
     {
         $this->surat = $surat;
@@ -26,18 +42,12 @@ class SuratNeedApprovalNotification extends Notification
     {
         $class = get_class($this->surat);
 
-        switch ($class) {
-            case 'App\Models\SuratAktifKuliah':
-                $this->suratType = 'Surat Aktif Kuliah';
-                $this->routeName = 'admin.surat-aktif-kuliah.show';
-                break;
-            case 'App\Models\SuratIjinSurvey':
-                $this->suratType = 'Surat Ijin Survey';
-                $this->routeName = 'admin.surat-ijin-survey.show';
-                break;
-            default:
-                $this->suratType = 'Surat';
-                $this->routeName = 'admin.dashboard.index';
+        if (array_key_exists($class, self::SURAT_TYPES)) {
+            $this->suratType = self::SURAT_TYPES[$class]['name'];
+            $this->routeName = self::SURAT_TYPES[$class]['route'];
+        } else {
+            $this->suratType = 'Surat';
+            $this->routeName = 'admin.dashboard.index';
         }
     }
 

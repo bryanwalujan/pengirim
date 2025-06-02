@@ -107,7 +107,7 @@
             <tr>
                 <td>Lampiran</td>
                 <td>:</td>
-                <td>1 berkas</td>
+                <td>3 berkas</td>
                 <td></td>
             </tr>
             <tr>
@@ -147,24 +147,20 @@
                 <td>{{ $semester_roman }}</td>
             </tr>
             <tr>
-                <td>Jurusan/Prodi</td>
+                <td>Prodi</td>
                 <td>:</td>
                 <td>Teknik Informatika</td>
             </tr>
         </table>
-        <p style="text-indent: 2.5rem">
-            Adalah benar mahasiswa Program Studi S1 Teknik Informatika Fakultas Teknik yang aktif dalam mengikuti
-            perkuliahan dan kegiatan lainnya pada tahun ajaran {{ $surat->tahun_ajaran }}. Untuk itu dimohon kiranya
-            Dekan berkenan menerbitkan surat keterangan aktif kuliah untuk mahasiswa tersebut.
-        </p>
-
-        <p style="text-indent: 2.5rem">
-            Adapun surat keterangan aktif kuliah ini akan digunakan untuk melengkapi berkas
-            <strong>{{ $surat->tujuan_pengajuan }}</strong>.
+        <p>
+            Mahasiswa tersebut bermaksud untuk cuti akademik dalam semester yang sedang berjalan ini, semester
+            {{ $surat->semester }} tahun ajaran {{ $surat->tahun_ajaran }} dengan alasan, (alasan). <br>
+            Kiranya Dekan
+            berkenan menerbitkan surat keterangan cuti akademik untuk mahasiswa tersebut.
         </p>
 
         <p style="margin-top: -10px;">
-            Demikian permohonan ini, atas perhatiannya diucapkan terima kasih.
+            Demikian permohonan ini, atasnya disampaikan terima kasih.
         </p>
     </div>
     <!-- Tanda Tangan -->
