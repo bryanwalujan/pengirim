@@ -60,7 +60,7 @@
         <p>© <span>2025</span> <strong class="px-1 sitename">E-Services Teknik Informatika</strong> <span>All Rights
                 Reserved</span></p>
         <div class="credits">
-            Developed by <a href="https://informatika.ft.unima.ac.id">Program Studi Teknik Informatika, Universitas
+          Developed by <a href="https://github.com/patrickrompas20">Trick20</a> <a href="https://ti.unima.ac.id">Program Studi Teknik Informatika, Universitas
                 Negeri Manado</a>
         </div>
     </div>
