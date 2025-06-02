@@ -4,6 +4,7 @@ use App\Models\User;
 use App\Models\TahunAjaran;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\SuratAktifKuliah;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
@@ -12,12 +13,15 @@ use App\Http\Controllers\User\HomeController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ServiceController;
+use App\Http\Controllers\Admin\ActivityController;
 use App\Http\Controllers\Admin\KopSuratController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\User\UserServiceController;
 use App\Http\Controllers\Admin\TahunAjaranController;
+use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\PembayaranUktController;
 use App\Http\Controllers\DocumentVerificationController;
+use App\Http\Controllers\User\SuratIjinSurveyController;
 use App\Http\Controllers\User\SuratAktifKuliahController;
 use App\Http\Controllers\Admin\AcademicCalendarController;
 use App\Http\Controllers\Admin\AdminSuratIjinSurveyController;
@@ -41,6 +45,7 @@ Route::get('/storage/academic-calendars/{filename}', function ($filename) {
     ]);
 })->name('academic-calendar.view');
 
+// Route untuk verifikasi dokumen
 Route::get('/verify/{code}', [DocumentVerificationController::class, 'verify'])
     ->name('document.verify');
 
@@ -49,10 +54,11 @@ Route::get('/preview-dummy-pdf', function () {
         'surat' => new SuratAktifKuliah([
             'nomor_surat' => 'PREVIEW/2023',
             'tanggal_surat' => now(),
-            'tujuan_pengajuan' => 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Sapiente ad quaerat natus voluptatem commodi. Dolorem exercitationem officiis corporis, aliquid laudantium doloremque in consequuntur, aperiam aliquam, perferendis earum vitae possimus? ',
+            'tujuan_pengajuan' => 'Lorem ipsum dolor sit amet consectetur adipisicing elit.',
             'tahun_ajaran' => '2023/2024',
             'semester' => 'ganjil',
-            'jabatan_penandatangan' => 'Koordinator Program Studi',
+            'jabatan_penandatangan' => 'Pimpinan Jurusan PTIK',
+            'jabatan_penandatangan_kaprodi' => 'Koordinator Program Studi',
             'verification_code' => 'PREVIEW123'
         ]),
         'semester_roman' => 'IV (Empat)',
@@ -64,8 +70,21 @@ Route::get('/preview-dummy-pdf', function () {
             'name' => 'Dr. Contoh Penandatangan, M.Kom',
             'nip' => '197001012000121001'
         ]),
-        'is_preview' => true
-    ])->setPaper('a4', 'landscape');
+        'penandatanganKaprodi' => new User([
+            'name' => 'Dr. Contoh Kaprodi, M.Kom',
+            'nip' => '197001012000121002'
+        ]),
+        'show_qr_signature' => true,
+        'pimpinan_qr' => 'data:image/png;base64,' . base64_encode(
+            QrCode::format('png')->size(120)->margin(1)->errorCorrection('H')->generate('PREVIEW123')
+        ),
+        'kaprodi_qr' => 'data:image/png;base64,' . base64_encode(
+            QrCode::format('png')->size(120)->margin(1)->errorCorrection('H')->generate('PREVIEW123')
+        ),
+        'jabatanPimpinan' => 'Pimpinan Jurusan PTIK',
+        'jabatanKoordinator' => 'Koordinator Program Studi',
+        'qr_type' => 'pimpinan',
+    ])->setPaper('a4');
 
     return $pdf->stream('preview-surat-aktif-kuliah.pdf');
 })->name('preview.dummy');
@@ -84,6 +103,16 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa', 'check.ukt'])->group(fu
         Route::get('/{surat}', [SuratAktifKuliahController::class, 'show'])->name('show');
         Route::get('/{surat}/download', [SuratAktifKuliahController::class, 'download'])->name('download');
         Route::post('/{id}/confirm-taken', [SuratAktifKuliahController::class, 'confirmTaken'])
+            ->name('confirm-taken');
+    });
+
+    Route::prefix('surat-ijin-survey')->name('user.surat-ijin-survey.')->group(function () {
+        Route::get('/', [SuratIjinSurveyController::class, 'index'])->name('index');
+        Route::get('/ajukan', [SuratIjinSurveyController::class, 'create'])->name('create');
+        Route::post('/', [SuratIjinSurveyController::class, 'store'])->name('store');
+        Route::get('/{surat}', [SuratIjinSurveyController::class, 'show'])->name('show');
+        Route::get('/{surat}/download', [SuratIjinSurveyController::class, 'download'])->name('download');
+        Route::post('/{id}/confirm-taken', [SuratIjinSurveyController::class, 'confirmTaken'])
             ->name('confirm-taken');
     });
 });
@@ -135,10 +164,27 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 
     // Route untuk menampilkan semua notifikasi
     Route::post('/notifications/{notification}/read', function ($notificationId) {
-        $notification = \Illuminate\Support\Facades\Auth::user()->notifications->find($notificationId);
+        $notification = Auth::user()->notifications->find($notificationId);
         $notification->markAsRead();
         return redirect($notification->data['url']);
     })->name('notifications.read');
+
+    Route::post('/notifications/{notification}/read-and-redirect', function ($notificationId) {
+        $notification = User::find(Auth::id())->notifications()->findOrFail($notificationId);
+
+        // Mark as read
+        $notification->markAsRead();
+
+        // Redirect to the notification URL
+        return redirect($notification->data['url']);
+    })->name('notifications.read-and-redirect');
+
+    // Route untuk menampilkan daftar notifikasi
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    // Route untuk menandai notifikasi sebagai dibaca
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'read'])->name('notifications.read');
+
+    Route::get('/activities', [ActivityController::class, 'index'])->name('activities');
 
     // Layanan-layanan
     Route::resource('services', ServiceController::class);
@@ -221,7 +267,6 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         });
 
         Route::get('/{surat}/download', [AdminSuratAktifKuliahController::class, 'download'])->name('download'); // Opsional
-
         // Dokumen pendukung surat aktif kuliah
         Route::get('/{surat}/download-pendukung', [AdminSuratAktifKuliahController::class, 'downloadPendukung'])
             ->name('download-pendukung');

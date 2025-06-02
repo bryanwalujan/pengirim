@@ -34,6 +34,12 @@ class PermissionSeeder extends Seeder
             ['name' => 'edit surat aktif kuliah', 'group' => 'surat-aktif-kuliah'],
             ['name' => 'delete surat aktif kuliah', 'group' => 'surat-aktif-kuliah'],
 
+            // Surat Ijin Survey
+            ['name' => 'manage surat ijin survey', 'group' => 'surat-ijin-survey'],
+            ['name' => 'create surat ijin survey', 'group' => 'surat-ijin-survey'],
+            ['name' => 'edit surat ijin survey', 'group' => 'surat-ijin-survey'],
+            ['name' => 'delete surat ijin survey', 'group' => 'surat-ijin-survey'],
+
             // Academic Calendar
             ['name' => 'manage academic calendar', 'group' => 'academic'],
 
@@ -64,6 +70,13 @@ class PermissionSeeder extends Seeder
         $lecturerRole->givePermissionTo([
             'view dashboard',
             'manage surat aktif kuliah',
+            'create surat aktif kuliah',
+            'edit surat aktif kuliah',
+            'delete surat aktif kuliah',
+            'manage surat ijin survey',
+            'create surat ijin survey',
+            'edit surat ijin survey',
+            'delete surat ijin survey',
         ]);
 
         // $staffRole = Role::create(['name' => 'staff']);

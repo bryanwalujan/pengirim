@@ -28,10 +28,11 @@
         <div class="card mb-4">
             <div class="card-body">
                 <!-- Status -->
-                <!-- Enhanced Status Alert -->
                 @php
                     $alertClass = match ($surat->status ?? 'diajukan') {
                         'diproses' => 'info',
+                        'disetujui_kaprodi' => 'success',
+                        'disetujui_pimpinan' => 'success',
                         'disetujui' => 'success',
                         'ditolak' => 'danger',
                         'siap_diambil' => 'primary',
@@ -41,6 +42,8 @@
 
                     $alertIcon = match ($surat->status ?? 'diajukan') {
                         'diproses' => 'bx bx-loader',
+                        'disetujui_kaprodi' => 'bx bx-check',
+                        'disetujui_pimpinan' => 'bx bx-check',
                         'disetujui' => 'bx bx-check',
                         'ditolak' => 'bx bx-error-circle',
                         'siap_diambil' => 'bx bx-package',
@@ -100,14 +103,26 @@
                         </div>
                         @if ($surat->penandatangan)
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Penandatangan</label>
+                                <label class="form-label">Penandatangan (Pimpinan)</label>
                                 <input type="text" class="form-control" value="{{ $surat->penandatangan->name }}"
                                     readonly>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Jabatan</label>
+                                <label class="form-label">Jabatan Pimpinan</label>
                                 <input type="text" class="form-control" value="{{ $surat->jabatan_penandatangan }}"
                                     readonly>
+                            </div>
+                        @endif
+                        @if ($surat->penandatanganKaprodi)
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Penandatangan (Kaprodi)</label>
+                                <input type="text" class="form-control" value="{{ $surat->penandatanganKaprodi->name }}"
+                                    readonly>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Jabatan Kaprodi</label>
+                                <input type="text" class="form-control"
+                                    value="{{ $surat->jabatan_penandatangan_kaprodi }}" readonly>
                             </div>
                         @endif
                     </div>
@@ -151,7 +166,6 @@
                     </div>
                 </div>
 
-                {{-- Dokumen Pendukung --}}
                 @if ($surat->dokumenPendukung->count() > 0)
                     <div class="mb-4">
                         <h5 class="fw-bold mb-3">Dokumen Pendukung</h5>
@@ -187,13 +201,14 @@
                     </div>
                 @endif
 
-                <!-- File Surat Section - Modified -->
                 @if ($surat->file_surat_path)
                     <div class="mb-4">
                         <h5 class="fw-bold mb-3">
                             @if ($surat->status === 'diproses')
                                 Preview Surat
-                            @elseif (in_array($surat->status, ['disetujui', 'siap_diambil', 'sudah_diambil']))
+                            @elseif ($surat->status === 'disetujui_kaprodi')
+                                Surat dengan Persetujuan Kaprodi
+                            @elseif (in_array($surat->status, ['disetujui_pimpinan', 'disetujui', 'siap_diambil', 'sudah_diambil']))
                                 Surat Final
                             @else
                                 File Surat
@@ -201,18 +216,16 @@
                         </h5>
 
                         <div
-                            class="alert 
-        @if ($surat->status === 'diproses') alert-info @else alert-success @endif
-        mb-3">
+                            class="alert @if ($surat->status === 'diproses') alert-info @elseif ($surat->status === 'disetujui_kaprodi') alert-success @else alert-success @endif mb-3">
                             <div class="d-flex align-items-center">
                                 <i
-                                    class="bx 
-                @if ($surat->status === 'diproses') bx-info-circle @else bx-check-circle @endif
-                me-2"></i>
+                                    class="bx @if ($surat->status === 'diproses') bx-info-circle @elseif ($surat->status === 'disetujui_kaprodi') bx-check-circle @else bx-check-circle @endif me-2"></i>
                                 <div>
                                     @if ($surat->status === 'diproses')
                                         Ini adalah preview surat sebelum disetujui. Dokumen belum memiliki tanda tangan dan
                                         QR code verifikasi.
+                                    @elseif ($surat->status === 'disetujui_kaprodi')
+                                        Ini adalah surat dengan tanda tangan Kaprodi. Menunggu persetujuan Pimpinan.
                                     @else
                                         Ini adalah surat final yang telah disetujui dan memiliki tanda tangan lengkap.
                                     @endif
@@ -226,6 +239,8 @@
                                 <i class="bx bx-show me-1"></i>
                                 @if ($surat->status === 'diproses')
                                     Lihat Preview
+                                @elseif ($surat->status === 'disetujui_kaprodi')
+                                    Lihat Surat Kaprodi
                                 @else
                                     Lihat Surat Final
                                 @endif
@@ -240,7 +255,6 @@
             </div>
         </div>
 
-        <!-- Form untuk Staff (Diajukan atau Disetujui) -->
         @if (auth()->user()->hasRole('staff') && in_array($surat->status, ['diajukan', 'disetujui']))
             <div class="card mb-4">
                 <div class="card-header">
@@ -258,7 +272,6 @@
                         @method('PUT')
 
                         @if ($surat->status === 'diajukan')
-                            <!-- Field nomor surat hanya untuk status diajukan -->
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label for="nomor_surat" class="form-label">Nomor Surat</label>
@@ -269,20 +282,12 @@
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                     <small class="text-muted">
-                                        Nomor berikutnya: <span class="fw-bold">
-                                            @php
-                                                $latestSurat = App\Models\SuratAktifKuliah::withTrashed()
-                                                    ->whereYear('created_at', date('Y'))
-                                                    ->whereNotNull('nomor_surat')
-                                                    ->orderBy('nomor_surat', 'desc')
-                                                    ->first();
-                                                $nextNumber = $latestSurat
-                                                    ? intval(explode('/', $latestSurat->nomor_surat)[0]) + 1
-                                                    : 1;
-                                                echo sprintf('%04d/UN41.2/TI/%s', $nextNumber, date('Y'));
-                                            @endphp
-                                        </span>
-                                        <br>Biarkan kosong untuk menggunakan nomor di atas, atau isi manual
+                                        Nomor terakhir digunakan: <span
+                                            class="fw-bold">{{ $lastNomorSurat ?? 'Belum ada' }}</span>
+                                        <br>Nomor berikutnya yang akan digunakan: <span
+                                            class="fw-bold text-primary">{{ $nextNomorSurat }}</span>
+                                        <br>Kosongkan input di form proses untuk menggunakan nomor di atas, atau masukkan
+                                        nomor manual (contoh: 0001 atau 0001/UN41.2/TI/{{ date('Y') }})
                                     </small>
                                 </div>
                             </div>
@@ -309,31 +314,6 @@
                                 </select>
                             </div>
 
-                            @if ($surat->status === 'disetujui')
-                                <!-- Field tambahan untuk status disetujui -->
-                                <div class="col-md-6 mb-3">
-                                    <label for="penandatangan_id" class="form-label">Penandatangan <span
-                                            class="text-danger">*</span></label>
-                                    <select name="penandatangan_id" id="penandatangan_id" class="form-select" required>
-                                        <option value="">Pilih Penandatangan</option>
-                                        @foreach ($penandatangans as $penandatangan)
-                                            <option value="{{ $penandatangan->id }}"
-                                                {{ $surat->penandatangan_id == $penandatangan->id ? 'selected' : '' }}>
-                                                {{ $penandatangan->name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-
-                                <div class="col-md-6 mb-3">
-                                    <label for="jabatan_penandatangan" class="form-label">Jabatan Penandatangan <span
-                                            class="text-danger">*</span></label>
-                                    <input type="text" name="jabatan_penandatangan" id="jabatan_penandatangan"
-                                        class="form-control" value="{{ $surat->jabatan_penandatangan }}"
-                                        placeholder="Masukkan jabatan penandatangan" required>
-                                </div>
-                            @endif
-
                             <div class="col-12 mb-3">
                                 <label for="catatan_admin" class="form-label">Catatan <span
                                         class="text-danger">*</span></label>
@@ -352,42 +332,74 @@
             </div>
         @endif
 
-        <!-- Form Persetujuan Dosen -->
-        @if (auth()->user()->hasRole('dosen') && $surat->status === 'diproses')
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Persetujuan Surat</h5>
-                </div>
-                <div class="card-body">
-                    <form action="{{ route('admin.surat-aktif-kuliah.approve', $surat->id) }}" method="POST">
-                        @csrf
-                        @method('PUT')
+        @if (auth()->user()->hasRole('dosen'))
+            @php
+                $isKaprodi = str_contains(strtolower(auth()->user()->jabatan), 'koordinator program studi');
+                $isPimpinan =
+                    str_contains(strtolower(auth()->user()->jabatan), 'pimpinan jurusan') ||
+                    str_contains(strtolower(auth()->user()->jabatan), 'ptik');
+            @endphp
 
-                        <input type="hidden" name="status" value="disetujui">
+            @if (($surat->status === 'diproses' && $isKaprodi) || ($surat->status === 'disetujui_kaprodi' && $isPimpinan))
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            @if ($surat->status === 'diproses')
+                                Persetujuan Kaprodi
+                            @else
+                                Persetujuan Pimpinan
+                            @endif
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="{{ route('admin.surat-aktif-kuliah.approve', $surat->id) }}" method="POST">
+                            @csrf
+                            @method('PUT')
 
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Penandatangan</label>
-                                <input type="text" class="form-control" value="{{ auth()->user()->name }}" readonly>
-                                <input type="hidden" name="penandatangan_id" value="{{ auth()->user()->id }}">
+                            <input type="hidden" name="action" value="approve">
+                            <input type="hidden" name="status"
+                                value="{{ $surat->status === 'diproses' ? 'disetujui_kaprodi' : 'disetujui' }}">
+
+                            @if ($surat->status === 'diproses')
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Penandatangan (Kaprodi)</label>
+                                        <select name="penandatangan_kaprodi_id" class="form-select" required>
+                                            <option value="{{ auth()->user()->id }}" selected>
+                                                {{ auth()->user()->name }} (Anda)
+                                            </option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Jabatan Kaprodi</label>
+                                        <input type="text" name="jabatan_penandatangan_kaprodi" class="form-control"
+                                            value="{{ auth()->user()->jabatan ?? 'Koordinator Program Studi' }}" required>
+                                    </div>
+                                </div>
+                            @else
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Penandatangan (Pimpinan)</label>
+                                        <select name="penandatangan_id" class="form-select" required>
+                                            <option value="{{ auth()->user()->id }}" selected>
+                                                {{ auth()->user()->name }} (Anda)
+                                            </option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Jabatan Pimpinan</label>
+                                        <input type="text" name="jabatan_penandatangan" class="form-control"
+                                            value="{{ auth()->user()->jabatan ?? 'Pimpinan Jurusan PTIK' }}" required>
+                                    </div>
+                                </div>
+                            @endif
+
+                            <div class="mb-3">
+                                <label for="catatan_admin" class="form-label">Catatan Persetujuan</label>
+                                <textarea name="catatan_admin" class="form-control" rows="3" required>{{ $surat->status()->first()?->catatan_admin }}</textarea>
                             </div>
 
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Jabatan Penandatangan</label>
-                                <input type="text" class="form-control" value="{{ auth()->user()->jabatan }}"
-                                    readonly>
-                                <input type="hidden" name="jabatan_penandatangan"
-                                    value="{{ auth()->user()->jabatan }}">
-                            </div>
-
-                            <div class="col-12 mb-3">
-                                <label for="catatan_admin" class="form-label">Catatan Persetujuan <span
-                                        class="text-danger">*</span></label>
-                                <textarea name="catatan_admin" id="catatan_admin" class="form-control" rows="3" required
-                                    placeholder="Masukkan catatan persetujuan">{{ $surat->status()->first()?->catatan_admin }}</textarea>
-                            </div>
-
-                            <div class="col-12 text-end">
+                            <div class="text-end">
                                 <button type="submit" name="action" value="approve" class="btn btn-success me-2">
                                     <i class="bx bx-check me-1"></i> Setujui
                                 </button>
@@ -395,14 +407,21 @@
                                     <i class="bx bx-x me-1"></i> Tolak
                                 </button>
                             </div>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
                 </div>
-            </div>
+            @elseif(auth()->user()->hasRole('dosen'))
+                <div class="alert alert-warning">
+                    <i class="bx bx-info-circle me-2"></i>
+                    @if ($surat->status === 'diproses')
+                        Hanya Koordinator Program Studi yang dapat menyetujui surat pada tahap ini
+                    @elseif($surat->status === 'disetujui_kaprodi')
+                        Hanya Pimpinan Jurusan PTIK yang dapat menyetujui surat pada tahap ini
+                    @endif
+                </div>
+            @endif
         @endif
 
-
-        <!-- Timeline -->
         <div class="card">
             <div class="card-header">
                 <h5 class="card-title mb-0">Riwayat Status</h5>
@@ -414,7 +433,12 @@
                             <div class="timeline-marker">
                                 @php
                                     $timelineClass = match ($tracking->aksi) {
-                                        'disetujui', 'siap_diambil', 'sudah_diambil' => 'text-success',
+                                        'disetujui',
+                                        'disetujui_kaprodi',
+                                        'disetujui_pimpinan',
+                                        'siap_diambil',
+                                        'sudah_diambil'
+                                            => 'text-success',
                                         'ditolak' => 'text-danger',
                                         default => 'text-primary',
                                     };
@@ -443,36 +467,30 @@
 @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Untuk form dosen
-            const actionSelect = document.getElementById('action');
-            const penandatanganField = document.getElementById('penandatangan-field');
-            const jabatanField = document.getElementById('jabatan-field');
+            const actionSelect = document.querySelector('[name="action"]');
+            const penandatanganPimpinan = document.getElementById('penandatangan_id');
+            const jabatanPimpinan = document.getElementById('jabatan_penandatangan');
+            const penandatanganKaprodi = document.getElementById('penandatangan_kaprodi_id');
+            const jabatanKaprodi = document.getElementById('jabatan_penandatangan_kaprodi');
 
             if (actionSelect) {
                 function toggleDosenFields() {
-                    if (actionSelect.value === 'approve') {
-                        penandatanganField.style.display = 'block';
-                        jabatanField.style.display = 'block';
-                        penandatanganField.querySelector('select').required = true;
-                        jabatanField.querySelector('input').required = true;
-                    } else {
-                        penandatanganField.style.display = 'none';
-                        jabatanField.style.display = 'none';
-                        penandatanganField.querySelector('select').required = false;
-                        jabatanField.querySelector('input').required = false;
-                    }
+                    const isApprove = actionSelect.value === 'approve';
+                    const fields =
+                        @if ($surat->status === 'diproses')
+                            [penandatanganKaprodi, jabatanKaprodi]
+                        @else
+                            [penandatanganPimpinan, jabatanPimpinan]
+                        @endif ;
+
+                    fields.forEach(field => {
+                        field.closest('.col-md-6').style.display = isApprove ? 'block' : 'none';
+                        field.required = isApprove;
+                    });
                 }
 
                 actionSelect.addEventListener('change', toggleDosenFields);
-                toggleDosenFields(); // Initial call
-            }
-
-            // Untuk form staff
-            const statusSelect = document.getElementById('status');
-            if (statusSelect) {
-                statusSelect.addEventListener('change', function() {
-                    // Tambahkan logika tambahan jika diperlukan
-                });
+                toggleDosenFields();
             }
         });
     </script>

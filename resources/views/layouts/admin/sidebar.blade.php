@@ -32,25 +32,34 @@
                     ? 'active open'
                     : '' }}">
                 <a href="javascript:void(0);" class="menu-link menu-toggle">
-                    <i class="menu-icon tf-icons bx bx-file"></i>
+                    <i class="menu-icon tf-icons bx bx-user-check"></i>
                     <div>Surat Aktif Kuliah</div>
                 </a>
                 <ul class="menu-sub">
                     @if (auth()->user()->hasRole('dosen'))
-                        <!-- Hanya tampilkan menu Menunggu Persetujuan untuk dosen -->
+                        <!-- Menu khusus dosen (Kaprodi/Pimpinan) -->
+                        @php
+                            $unreadCount = auth()
+                                ->user()
+                                ->unreadNotifications()
+                                ->where('type', 'App\Notifications\SuratNeedApprovalNotification')
+                                ->whereJsonContains('data->surat_class', 'App\Models\SuratAktifKuliah')
+                                ->count();
+
+                            // Tentukan menu berdasarkan jabatan
+                            $isKaprodi = str_contains(auth()->user()->jabatan, 'Koordinator Program Studi');
+                            $isPimpinan = str_contains(auth()->user()->jabatan, 'Pimpinan Jurusan PTIK');
+                        @endphp
                         <li
-                            class="menu-item {{ request()->routeIs('admin.surat-aktif-kuliah.index') && request()->input('status') === 'diproses' ? 'active' : '' }}">
+                            class="menu-item {{ request()->routeIs('admin.surat-aktif-kuliah.index') &&
+                            (request()->input('status') === 'diproses' ||
+                                (auth()->user()->hasRole('dosen') && str_contains(auth()->user()->jabatan, 'Koordinator Program Studi')))
+                                ? 'active'
+                                : '' }}">
                             <a href="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'diproses']) }}"
                                 class="menu-link">
                                 <i class="menu-icon tf-icons bx bx-time"></i>
                                 <div>Menunggu Persetujuan</div>
-                                @php
-                                    $unreadCount = auth()
-                                        ->user()
-                                        ->unreadNotifications()
-                                        ->where('type', 'App\Notifications\SuratNeedApprovalNotification')
-                                        ->count();
-                                @endphp
                                 @if ($unreadCount > 0)
                                     <span class="badge bg-danger rounded-pill ms-auto">{{ $unreadCount }}</span>
                                 @endif
@@ -120,6 +129,109 @@
                                 ? 'active'
                                 : '' }}">
                             <a href="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'sudah_diambil']) }}"
+                                class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-check-circle"></i>
+                                <div>Sudah Diambil</div>
+                            </a>
+                        </li>
+                    @endif
+                </ul>
+            </li>
+        @endcan
+        @can('manage surat ijin survey')
+            <li class="menu-item {{ request()->routeIs('admin.surat-ijin-survey.*') ? 'active open' : '' }}">
+                <a href="javascript:void(0);" class="menu-link menu-toggle">
+                    <i class="menu-icon tf-icons bx bx-search-alt"></i>
+                    <div>Surat Ijin Survey</div>
+                </a>
+                <ul class="menu-sub">
+                    @if (auth()->user()->hasRole('dosen'))
+                        @php
+                            $unreadCount = auth()
+                                ->user()
+                                ->unreadNotifications()
+                                ->where('type', 'App\Notifications\SuratNeedApprovalNotification')
+                                ->whereJsonContains('data->surat_class', 'App\Models\SuratIjinSurvey')
+                                ->count();
+                        @endphp
+                        <li
+                            class="menu-item {{ request()->routeIs('admin.surat-ijin-survey.index') &&
+                            (request()->input('status') === 'diproses' ||
+                                (auth()->user()->hasRole('dosen') && str_contains(auth()->user()->jabatan, 'Koordinator Program Studi')))
+                                ? 'active'
+                                : '' }}">
+                            <a href="{{ route('admin.surat-ijin-survey.index', ['status' => 'diproses']) }}"
+                                class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-time"></i>
+                                <div>Menunggu Persetujuan</div>
+                                @if ($unreadCount > 0)
+                                    <span class="badge bg-danger rounded-pill ms-auto">{{ $unreadCount }}</span>
+                                @endif
+                            </a>
+                        </li>
+                    @else
+                        <li
+                            class="menu-item {{ (request()->routeIs('admin.surat-ijin-survey.index') &&
+                                request()->input('status', 'diajukan') === 'diajukan') ||
+                            (isset($surat) && $surat instanceof App\Models\SuratIjinSurvey && $surat->status === 'diajukan')
+                                ? 'active'
+                                : '' }}">
+                            <a href="{{ route('admin.surat-ijin-survey.index', ['status' => 'diajukan']) }}"
+                                class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-time"></i>
+                                <div>Diajukan</div>
+                            </a>
+                        </li>
+                        <li
+                            class="menu-item {{ (request()->routeIs('admin.surat-ijin-survey.index') && request()->input('status') === 'diproses') ||
+                            (isset($surat) && $surat instanceof App\Models\SuratIjinSurvey && $surat->status === 'diproses')
+                                ? 'active'
+                                : '' }}">
+                            <a href="{{ route('admin.surat-ijin-survey.index', ['status' => 'diproses']) }}"
+                                class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-loader"></i>
+                                <div>Diproses</div>
+                            </a>
+                        </li>
+                        <li
+                            class="menu-item {{ (request()->routeIs('admin.surat-ijin-survey.index') && request()->input('status') === 'disetujui') ||
+                            (isset($surat) && $surat instanceof App\Models\SuratIjinSurvey && $surat->status === 'disetujui')
+                                ? 'active'
+                                : '' }}">
+                            <a href="{{ route('admin.surat-ijin-survey.index', ['status' => 'disetujui']) }}"
+                                class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-check"></i>
+                                <div>Disetujui</div>
+                            </a>
+                        </li>
+                        <li
+                            class="menu-item {{ (request()->routeIs('admin.surat-ijin-survey.index') && request()->input('status') === 'ditolak') ||
+                            (isset($surat) && $surat instanceof App\Models\SuratIjinSurvey && $surat->status === 'ditolak')
+                                ? 'active'
+                                : '' }}">
+                            <a href="{{ route('admin.surat-ijin-survey.index', ['status' => 'ditolak']) }}"
+                                class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-x"></i>
+                                <div>Ditolak</div>
+                            </a>
+                        </li>
+                        <li
+                            class="menu-item {{ (request()->routeIs('admin.surat-ijin-survey.index') && request()->input('status') === 'siap_diambil') ||
+                            (isset($surat) && $surat instanceof App\Models\SuratIjinSurvey && $surat->status === 'siap_diambil')
+                                ? 'active'
+                                : '' }}">
+                            <a href="{{ route('admin.surat-ijin-survey.index', ['status' => 'siap_diambil']) }}"
+                                class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-package"></i>
+                                <div>Siap Diambil</div>
+                            </a>
+                        </li>
+                        <li
+                            class="menu-item {{ (request()->routeIs('admin.surat-ijin-survey.index') && request()->input('status') === 'sudah_diambil') ||
+                            (isset($surat) && $surat instanceof App\Models\SuratIjinSurvey && $surat->status === 'sudah_diambil')
+                                ? 'active'
+                                : '' }}">
+                            <a href="{{ route('admin.surat-ijin-survey.index', ['status' => 'sudah_diambil']) }}"
                                 class="menu-link">
                                 <i class="menu-icon tf-icons bx bx-check-circle"></i>
                                 <div>Sudah Diambil</div>

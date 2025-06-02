@@ -26,11 +26,22 @@
                         $unreadCount = auth()
                             ->user()
                             ->unreadNotifications()
+                            ->whereIn('type', [
+                                'App\Notifications\SuratTakenNotification',
+                                'App\Notifications\SuratNeedApprovalNotification',
+                            ])
                             ->when(auth()->user()->hasRole('staff'), function ($query) {
                                 return $query->where('type', 'App\Notifications\SuratTakenNotification');
                             })
                             ->when(auth()->user()->hasRole('dosen'), function ($query) {
-                                return $query->where('type', 'App\Notifications\SuratNeedApprovalNotification');
+                                return $query
+                                    ->where('type', 'App\Notifications\SuratNeedApprovalNotification')
+                                    ->where(function ($q) {
+                                        $q->where('data->surat_class', 'App\Models\SuratAktifKuliah')->orWhere(
+                                            'data->surat_class',
+                                            'App\Models\SuratIjinSurvey',
+                                        );
+                                    });
                             })
                             ->count();
                     @endphp
@@ -44,11 +55,22 @@
                         $notifications = auth()
                             ->user()
                             ->unreadNotifications()
+                            ->whereIn('type', [
+                                'App\Notifications\SuratTakenNotification',
+                                'App\Notifications\SuratNeedApprovalNotification',
+                            ])
                             ->when(auth()->user()->hasRole('staff'), function ($query) {
                                 return $query->where('type', 'App\Notifications\SuratTakenNotification');
                             })
                             ->when(auth()->user()->hasRole('dosen'), function ($query) {
-                                return $query->where('type', 'App\Notifications\SuratNeedApprovalNotification');
+                                return $query
+                                    ->where('type', 'App\Notifications\SuratNeedApprovalNotification')
+                                    ->where(function ($q) {
+                                        $q->where('data->surat_class', 'App\Models\SuratAktifKuliah')->orWhere(
+                                            'data->surat_class',
+                                            'App\Models\SuratIjinSurvey',
+                                        );
+                                    });
                             })
                             ->orderBy('created_at', 'desc')
                             ->get();
@@ -72,27 +94,29 @@
                                                 {{ $notification->data['mahasiswa_name'] ?? 'Data mahasiswa tidak tersedia' }}<br>
                                                 NIM:
                                                 {{ $notification->data['mahasiswa_nim'] ?? 'NIM tidak tersedia' }}<br>
-                                                Jenis Surat: {{ $notification->data['surat_type'] ?? 'Surat' }}
+                                                Jenis Surat: {{ $notification->data['surat_type'] ?? 'Surat' }}<br>
+                                                Waktu Konfirmasi: {{ $notification->data['confirmed_at'] ?? '' }}
                                             </p>
                                         @elseif(auth()->user()->hasRole('dosen'))
                                             <!-- Notifikasi untuk dosen -->
-                                            <strong>Surat Perlu Persetujuan</strong>
+                                            <strong>{{ $notification->data['surat_type'] ?? 'Surat' }} Perlu
+                                                Persetujuan</strong>
                                             <p class="mb-1">
                                                 Mahasiswa:
                                                 {{ $notification->data['mahasiswa_name'] ?? 'Data mahasiswa tidak tersedia' }}<br>
-                                                NIM:
-                                                {{ $notification->data['mahasiswa_nim'] ?? 'NIM tidak tersedia' }}<br>
-                                                Jenis Surat:
-                                                {{ $notification->data['surat_type'] ?? 'Surat Aktif Kuliah' }}
+                                                NIM: {{ $notification->data['mahasiswa_nim'] ?? 'NIM tidak tersedia' }}
                                             </p>
                                         @endif
                                         <small
                                             class="text-muted">{{ $notification->created_at->diffForHumans() }}</small>
                                         <div class="mt-2 d-flex justify-content-start">
-                                            <a href="{{ $notification->data['url'] }}"
-                                                class="btn btn-sm btn-primary me-2"
-                                                onclick="markNotificationAsRead('{{ $notification->id }}', this)">Lihat
-                                                Detail</a>
+                                            <form
+                                                action="{{ route('admin.notifications.read-and-redirect', $notification->id) }}"
+                                                method="POST" class="d-inline">
+                                                @csrf
+                                                <button type="submit" class="btn btn-sm btn-primary me-2">Lihat
+                                                    Detail</button>
+                                            </form>
                                             <button type="button" class="btn btn-sm btn-outline-secondary"
                                                 onclick="markAsRead('{{ $notification->id }}', this)">
                                                 Tandai Sudah Dibaca
@@ -238,6 +262,7 @@
             }
         }
     }
+
 
     function checkEmptyNotifications() {
         const dropdownMenu = document.querySelector(".dropdown-menu");

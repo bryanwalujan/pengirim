@@ -6,7 +6,11 @@
     <div class="container-xxl flex-grow-1 container-p-y">
         <h4 class="fw-bold py-3 mb-2">
             @if (auth()->user()->hasRole('dosen'))
-                <span class="text-muted">Daftar Surat Menunggu Persetujuan</span>
+                @if (str_contains(auth()->user()->jabatan, 'Koordinator Program Studi'))
+                    <span class="text-muted">Daftar Surat Menunggu Persetujuan Kaprodi</span>
+                @else
+                    <span class="text-muted">Daftar Surat Menunggu Persetujuan Pimpinan</span>
+                @endif
             @else
                 <span class="text-muted">Daftar Pengajuan Surat Aktif Kuliah</span>
             @endif
@@ -23,6 +27,12 @@
                                     {{ $status === 'diajukan' ? 'selected' : '' }}>Diajukan</option>
                                 <option value="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'diproses']) }}"
                                     {{ $status === 'diproses' ? 'selected' : '' }}>Diproses</option>
+                                <option
+                                    value="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'disetujui_kaprodi']) }}"
+                                    {{ $status === 'disetujui_kaprodi' ? 'selected' : '' }}>Disetujui Kaprodi</option>
+                                <option
+                                    value="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'disetujui_pimpinan']) }}"
+                                    {{ $status === 'disetujui_pimpinan' ? 'selected' : '' }}>Disetujui Pimpinan</option>
                                 <option value="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'disetujui']) }}"
                                     {{ $status === 'disetujui' ? 'selected' : '' }}>Disetujui</option>
                                 <option value="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'ditolak']) }}"
@@ -45,6 +55,9 @@
                                 <input type="text" class="form-control" name="search" value="{{ $search ?? '' }}"
                                     placeholder="Cari nama/NIM..." aria-label="Search..."
                                     aria-describedby="basic-addon-search31" />
+                                @if (auth()->user()->hasRole('dosen'))
+                                    <input type="hidden" name="status" value="{{ $status }}">
+                                @endif
                             </div>
                         </form>
                     </div>
@@ -86,6 +99,8 @@
                                         $statusClass = match ($surat->status ?? 'diajukan') {
                                             'diajukan' => 'warning',
                                             'diproses' => 'info',
+                                            'disetujui_kaprodi' => 'primary',
+                                            'disetujui_pimpinan' => 'primary',
                                             'disetujui' => 'success',
                                             'ditolak' => 'danger',
                                             'siap_diambil' => 'primary',
@@ -121,7 +136,11 @@
                         @empty
                             <tr>
                                 <td colspan="6" class="text-center">
-                                    Tidak ada pengajuan surat aktif kuliah
+                                    @if (auth()->user()->hasRole('dosen'))
+                                        Tidak ada surat yang menunggu persetujuan Anda
+                                    @else
+                                        Tidak ada pengajuan surat aktif kuliah
+                                    @endif
                                 </td>
                             </tr>
                         @endforelse
@@ -131,7 +150,7 @@
 
             @if ($surats->hasPages())
                 <div class="card-footer border-top py-3">
-                    {{ $surats->links() }}
+                    {{ $surats->withQueryString()->links() }}
                 </div>
             @endif
         </div>

@@ -62,6 +62,7 @@ class ServiceController extends Controller
             'is_active' => 'sometimes|boolean'
         ]);
 
+        $validated['slug'] = Str::slug($request->name);
         $validated['is_active'] = $request->has('is_active');
 
         $service->update($validated);

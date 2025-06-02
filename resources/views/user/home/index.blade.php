@@ -21,8 +21,8 @@
                         </div>
 
                         <h1 class="mb-4">
-                            E-Service Teknik <br>
-                            Informatika <br>
+                            E-Service <br>
+                            Teknik Informatika <br>
                             <span class="accent-text">UNIMA</span>
                         </h1>
 
@@ -56,7 +56,7 @@
                         <i class="bi bi-file-earmark-text"></i>
                     </div>
                     <div class="stat-content">
-                        <h4>5.2k Surat Aktif Kuliah</h4>
+                        <h4>{{ number_format($letterCounts['aktif_kuliah']) }} Surat Aktif Kuliah</h4>
                     </div>
                 </div>
                 <div class="stat-item">
@@ -64,7 +64,7 @@
                         <i class="bi bi-calendar-x"></i>
                     </div>
                     <div class="stat-content">
-                        <h4>1.8k Surat Cuti Akademik</h4>
+                        <h4>Surat Cuti Akademik</h4>
                     </div>
                 </div>
                 <div class="stat-item">
@@ -72,7 +72,7 @@
                         <i class="bi bi-arrow-right-circle"></i>
                     </div>
                     <div class="stat-content">
-                        <h4>750 Surat Pindah</h4>
+                        <h4>Surat Pindah</h4>
                     </div>
                 </div>
                 <div class="stat-item">
@@ -80,56 +80,11 @@
                         <i class="bi bi-search"></i>
                     </div>
                     <div class="stat-content">
-                        <h4>3.1k Surat Izin Survey</h4>
+                        <h4>{{ number_format($letterCounts['ijin_survey']) }} Surat Izin Survey</h4>
                     </div>
                 </div>
             </div>
-            {{-- <div class="row stats-row gy-4 mt-5" data-aos="fade-up" data-aos-delay="500">
-                <div class="col-lg-3 col-md-6">
-                    <div class="stat-item">
-                        <div class="stat-icon">
-                            <i class="bi bi-file-earmark-text"></i>
-                        </div>
-                        <div class="stat-content">
-                            <h4>5.2k Surat Aktif Kuliah</h4>
-                            <p class="mb-0">Pengajuan dan penerbitan surat aktif kuliah</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <div class="stat-item">
-                        <div class="stat-icon">
-                            <i class="bi bi-calendar-x"></i>
-                        </div>
-                        <div class="stat-content">
-                            <h4>1.8k Surat Cuti Akademik</h4>
-                            <p class="mb-0">Permohonan cuti akademik mahasiswa</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <div class="stat-item">
-                        <div class="stat-icon">
-                            <i class="bi bi-arrow-right-circle"></i>
-                        </div>
-                        <div class="stat-content">
-                            <h4>750 Surat Pindah</h4>
-                            <p class="mb-0">Proses mutasi mahasiswa ke perguruan tinggi lain</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <div class="stat-item">
-                        <div class="stat-icon">
-                            <i class="bi bi-search"></i>
-                        </div>
-                        <div class="stat-content">
-                            <h4>3.1k Surat Izin Survey</h4>
-                            <p class="mb-0">Penerbitan izin survey untuk penelitian</p>
-                        </div>
-                    </div>
-                </div>
-            </div> --}}
+
 
         </div>
     </section>

@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="{{ asset('user/assets/css/style.css') }}" />
 
 
-    @stack('style')
+    @stack('styles')
 </head>
 
 <body>

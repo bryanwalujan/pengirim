@@ -23,10 +23,15 @@ class SuratAktifKuliah extends Model
         'tanggal_surat',
         'tahun_ajaran',
         'semester',
-        'penandatangan_id',
+        'penandatangan_id', // Pimpinan Jurusan PTIK
         'jabatan_penandatangan',
+        'penandatangan_kaprodi_id', // Koordinator Program Studi
+        'jabatan_penandatangan_kaprodi',
         'approved_at',
         'approved_by',
+        'verification_code',
+        'verification_code_kaprodi', // Kode verifikasi untuk Kaprodi
+        'verification_code_pimpinan', // Kode verifikasi untuk Pimpinan
     ];
 
     protected $casts = [
@@ -42,6 +47,11 @@ class SuratAktifKuliah extends Model
     public function penandatangan(): BelongsTo
     {
         return $this->belongsTo(User::class, 'penandatangan_id');
+    }
+
+    public function penandatanganKaprodi(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'penandatangan_kaprodi_id');
     }
 
     public function status()
@@ -75,17 +85,22 @@ class SuratAktifKuliah extends Model
                 'nim' => $this->mahasiswa->nim,
             ],
             'approval' => [
-                'signer' => $this->penandatangan ? [
+                'pimpinan' => $this->penandatangan ? [
                     'name' => $this->penandatangan->name,
                     'position' => $this->jabatan_penandatangan,
-                    'nip' => $this->penandatangan->nip
+                    'nip' => $this->penandatangan->nip ?? null,
                 ] : null,
-                'date' => $this->approved_at?->toDateTimeString()
+                'kaprodi' => $this->penandatanganKaprodi ? [
+                    'name' => $this->penandatanganKaprodi->name,
+                    'position' => $this->jabatan_penandatangan_kaprodi,
+                    'nip' => $this->penandatanganKaprodi->nip ?? null,
+                ] : null,
+                'date' => $this->approved_at?->toDateTimeString(),
             ],
             'verification' => [
                 'code' => $this->verification_code,
-                'url' => route('document.verify', ['code' => $this->verification_code])
-            ]
+                'url' => route('document.verify', ['code' => $this->verification_code]),
+            ],
         ];
     }
 
@@ -106,7 +121,18 @@ class SuratAktifKuliah extends Model
     protected static function booted()
     {
         static::creating(function ($model) {
-            $model->verification_code = substr(md5(uniqid(mt_rand(), true)), 0, 12);
+            $model->verification_code = substr(md5(uniqid(mt_rand(), true)), 0, 12); // Kode umum (opsional)
+            $model->verification_code_kaprodi = null; // Akan diisi saat persetujuan Kaprodi
+            $model->verification_code_pimpinan = null; // Akan diisi saat persetujuan Pimpinan
+        });
+
+        static::updating(function ($model) {
+            if ($model->isDirty('penandatangan_kaprodi_id') && !$model->verification_code_kaprodi) {
+                $model->verification_code_kaprodi = substr(md5(uniqid(mt_rand(), true) . $model->penandatanganKaprodi->id), 0, 12);
+            }
+            if ($model->isDirty('penandatangan_id') && !$model->verification_code_pimpinan) {
+                $model->verification_code_pimpinan = substr(md5(uniqid(mt_rand(), true) . $model->penandatangan->id), 0, 12);
+            }
         });
     }
 }

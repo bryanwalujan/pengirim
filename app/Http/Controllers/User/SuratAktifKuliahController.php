@@ -22,11 +22,32 @@ class SuratAktifKuliahController extends Controller
 {
     use AuthorizesRequests;
 
-    public function index()
+    public function index(Request $request)
     {
         $service = Service::where('slug', 'surat-aktif-kuliah')->firstOrFail();
+
         $surats = SuratAktifKuliah::with(['status', 'trackings', 'mahasiswa'])
             ->where('mahasiswa_id', Auth::id())
+            ->when($request->search, function ($query) use ($request) {
+                $query->where(function ($q) use ($request) {
+                    $q->where('nomor_surat', 'like', '%' . $request->search . '%')
+                        ->orWhere('tujuan_pengajuan', 'like', '%' . $request->search . '%')
+                        ->orWhere('keterangan_tambahan', 'like', '%' . $request->search . '%')
+                        ->orWhere('tahun_ajaran', 'like', '%' . $request->search . '%')
+                        ->orWhere('semester', 'like', '%' . $request->search . '%');
+                });
+            })
+            ->when($request->status, function ($query) use ($request) {
+                $query->whereHas('status', function ($q) use ($request) {
+                    $q->where('status', $request->status);
+                });
+            })
+            ->when($request->tahun, function ($query) use ($request) {
+                $query->where('tahun_ajaran', 'like', '%' . $request->tahun . '%');
+            })
+            ->when($request->semester, function ($query) use ($request) {
+                $query->where('semester', $request->semester);
+            })
             ->latest()
             ->paginate(10);
 
@@ -178,7 +199,19 @@ class SuratAktifKuliahController extends Controller
                 return redirect()->back()->with('error', 'File surat tidak ditemukan.');
             }
 
-            return response()->download($filePath, 'surat-aktif-kuliah-' . $surat->id . '.pdf');
+            // Get the confirmation date from tracking
+            $tracking = TrackingSurat::where('surat_type', SuratAktifKuliah::class)
+                ->where('surat_id', $surat->id)
+                ->where('aksi', 'sudah_diambil')
+                ->first();
+
+            $downloadDate = $tracking && $tracking->confirmed_at
+                ? $tracking->confirmed_at->format('Ymd')
+                : now()->format('Ymd');
+
+            $filename = 'Surat_Aktif_Kuliah_' . $surat->mahasiswa->nim . '_' . $downloadDate . '.pdf';
+
+            return response()->download($filePath, $filename);
         } catch (\Exception $e) {
             Log::error('Error saat download PDF untuk surat ID: ' . $surat->id . ' - ' . $e->getMessage());
             return redirect()->back()->with('error', 'Terjadi kesalahan saat mengunduh surat.');
