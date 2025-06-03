@@ -46,6 +46,12 @@ class PermissionSeeder extends Seeder
             ['name' => 'edit surat cuti akademik', 'group' => 'surat-cuti-akademik'],
             ['name' => 'delete surat cuti akademik', 'group' => 'surat-cuti-akademik'],
 
+            // Surat Pindah
+            ['name' => 'manage surat pindah', 'group' => 'surat-pindah'],
+            ['name' => 'create surat pindah', 'group' => 'surat-pindah'],
+            ['name' => 'edit surat pindah', 'group' => 'surat-pindah'],
+            ['name' => 'delete surat pindah', 'group' => 'surat-pindah'],
+
             // Academic Calendar
             ['name' => 'manage academic calendar', 'group' => 'academic'],
 
@@ -87,6 +93,10 @@ class PermissionSeeder extends Seeder
             'create surat cuti akademik',
             'edit surat cuti akademik',
             'delete surat cuti akademik',
+            'manage surat pindah',
+            'create surat pindah',
+            'edit surat pindah',
+            'delete surat pindah',
         ]);
 
         // $staffRole = Role::create(['name' => 'staff']);

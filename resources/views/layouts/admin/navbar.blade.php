@@ -39,7 +39,8 @@
                                     ->where(function ($q) {
                                         $q->where('data->surat_class', 'App\Models\SuratAktifKuliah')
                                             ->orWhere('data->surat_class', 'App\Models\SuratIjinSurvey')
-                                            ->orWhere('data->surat_class', 'App\Models\SuratCutiAkademik');
+                                            ->orWhere('data->surat_class', 'App\Models\SuratCutiAkademik')
+                                            ->orWhere('data->surat_class', 'App\Models\SuratPindah');
                                     });
                             })
                             ->count();
@@ -67,7 +68,8 @@
                                     ->where(function ($q) {
                                         $q->where('data->surat_class', 'App\Models\SuratAktifKuliah')
                                             ->orWhere('data->surat_class', 'App\Models\SuratIjinSurvey')
-                                            ->orWhere('data->surat_class', 'App\Models\SuratCutiAkademik');
+                                            ->orWhere('data->surat_class', 'App\Models\SuratCutiAkademik')
+                                            ->orWhere('data->surat_class', 'App\Models\SuratPindah');
                                     });
                             })
                             ->orderBy('created_at', 'desc')
@@ -86,7 +88,10 @@
                                     <div class="flex-grow-1">
                                         @if (auth()->user()->hasRole('staff'))
                                             <!-- Notifikasi untuk staff -->
-                                            <strong>Surat Sudah Diambil</strong>
+                                            <div class="d-flex align-items-center mb-2">
+                                                <i class="bx {{ $notification->data['icon'] ?? 'bx-file' }} me-2"></i>
+                                                <strong>Surat Sudah Diambil</strong>
+                                            </div>
                                             <p class="mb-1">
                                                 Mahasiswa:
                                                 {{ $notification->data['mahasiswa_name'] ?? 'Data mahasiswa tidak tersedia' }}<br>
@@ -97,12 +102,18 @@
                                             </p>
                                         @elseif(auth()->user()->hasRole('dosen'))
                                             <!-- Notifikasi untuk dosen -->
-                                            <strong>{{ $notification->data['surat_type'] ?? 'Surat' }} Perlu
-                                                Persetujuan</strong>
+                                            <div class="d-flex align-items-center mb-2">
+                                                <i class="bx {{ $notification->data['icon'] ?? 'bx-file' }} me-2"></i>
+                                                <strong>{{ $notification->data['surat_type'] ?? 'Surat' }} Perlu
+                                                    Persetujuan</strong>
+                                            </div>
                                             <p class="mb-1">
                                                 Mahasiswa:
                                                 {{ $notification->data['mahasiswa_name'] ?? 'Data mahasiswa tidak tersedia' }}<br>
-                                                NIM: {{ $notification->data['mahasiswa_nim'] ?? 'NIM tidak tersedia' }}
+                                                NIM:
+                                                {{ $notification->data['mahasiswa_nim'] ?? 'NIM tidak tersedia' }}<br>
+                                                Status:
+                                                {{ ucfirst(str_replace('_', ' ', $notification->data['status'] ?? '')) }}
                                             </p>
                                         @endif
                                         <small
