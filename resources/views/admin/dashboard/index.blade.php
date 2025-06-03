@@ -126,6 +126,7 @@
                     </div>
                 </div>
             </div>
+            {{-- Surat Trend --}}
             <div class="col-md-6 mb-4">
                 <div class="card border-0 shadow-sm">
                     <div class="card-header d-flex justify-content-between align-items-center border-bottom">

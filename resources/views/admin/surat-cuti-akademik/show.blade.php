@@ -1,6 +1,6 @@
 @extends('layouts.admin.app')
 
-@section('title', 'Detail Surat Ijin Survey')
+@section('title', 'Detail Surat Cuti Akademik')
 
 @push('styles')
     <style>
@@ -22,7 +22,7 @@
 @section('content')
     <div class="container-xxl flex-grow-1 container-p-y">
         <h4 class="fw-bold py-3 mb-2">
-            <span class="text-muted">Detail Pengajuan Surat Ijin Survey</span>
+            <span class="text-muted">Detail Pengajuan Surat Cuti Akademik</span>
         </h4>
 
         <div class="card mb-4">
@@ -141,45 +141,27 @@
                             <input type="text" class="form-control" value="{{ $surat->mahasiswa->nim }}" readonly>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Program Studi</label>
-                            <input type="text" class="form-control" value="{{ $surat->mahasiswa->prodi }}" readonly>
+                            <label class="form-label">Tahun Ajaran</label>
+                            <input type="text" class="form-control" value="{{ $surat->tahun_ajaran }}" readonly>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Angkatan</label>
-                            <input type="text" class="form-control" value="{{ $surat->mahasiswa->angkatan }}" readonly>
+                            <label class="form-label">Semester</label>
+                            <input type="text" class="form-control" value="{{ ucfirst($surat->semester) }}" readonly>
                         </div>
                     </div>
                 </div>
 
-                <!-- Detail Survey -->
+                <!-- Detail Pengajuan -->
                 <div class="mb-4">
-                    <h5 class="fw-bold mb-3">Detail Survey</h5>
+                    <h5 class="fw-bold mb-3">Detail Pengajuan</h5>
                     <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Tujuan Survey</label>
-                            <input type="text" class="form-control" value="{{ $surat->tujuan_survey }}" readonly>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Lokasi Survey</label>
-                            <input type="text" class="form-control" value="{{ $surat->lokasi_survey }}" readonly>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Tanggal Mulai</label>
-                            <input type="text" class="form-control" value="{{ $surat->tanggal_mulai->format('d F Y') }}"
-                                readonly>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Tanggal Selesai</label>
-                            <input type="text" class="form-control"
-                                value="{{ $surat->tanggal_selesai->format('d F Y') }}" readonly>
+                        <div class="col-12 mb-3">
+                            <label class="form-label">Alasan Pengajuan</label>
+                            <textarea class="form-control" rows="3" readonly>{{ $surat->alasan_pengajuan }}</textarea>
                         </div>
                         <div class="col-12 mb-3">
-                            <label class="form-label">Judul/Topik Survey</label>
-                            <textarea class="form-control" rows="2" readonly>{{ $surat->judul_survey }}</textarea>
-                        </div>
-                        <div class="col-12 mb-3">
-                            <label class="form-label">Dosen Pembimbing</label>
-                            <input type="text" class="form-control" value="{{ $surat->dosen_pembimbing }}" readonly>
+                            <label class="form-label">Keterangan Tambahan</label>
+                            <textarea class="form-control" rows="2" readonly>{{ $surat->keterangan_tambahan ?? '-' }}</textarea>
                         </div>
                     </div>
                 </div>
@@ -206,7 +188,7 @@
                                                     class="btn btn-sm btn-info">
                                                     <i class="bx bx-show"></i> Lihat
                                                 </a>
-                                                <a href="{{ route('admin.surat-ijin-survey.download-pendukung', $dokumen->id) }}"
+                                                <a href="{{ route('admin.surat-cuti-akademik.download-pendukung', $dokumen->id) }}"
                                                     class="btn btn-sm btn-success">
                                                     <i class="bx bx-download"></i> Unduh
                                                 </a>
@@ -263,7 +245,7 @@
                                     Lihat Surat Final
                                 @endif
                             </a>
-                            <a href="{{ route('admin.surat-ijin-survey.download', $surat->id) }}"
+                            <a href="{{ route('admin.surat-cuti-akademik.download', $surat->id) }}"
                                 class="btn btn-success">
                                 <i class="bx bx-download me-1"></i> Unduh
                             </a>
@@ -285,7 +267,7 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('admin.surat-ijin-survey.update-status', $surat->id) }}" method="POST">
+                    <form action="{{ route('admin.surat-cuti-akademik.update-status', $surat->id) }}" method="POST">
                         @csrf
                         @method('PUT')
 
@@ -295,7 +277,7 @@
                                     <label for="nomor_surat" class="form-label">Nomor Surat</label>
                                     <input type="text" name="nomor_surat" class="form-control"
                                         value="{{ old('nomor_surat', $surat->nomor_surat) }}"
-                                        placeholder="Contoh: 0001 atau 0001/UN41.2/TI/IS/{{ date('Y') }}">
+                                        placeholder="Contoh: 0001 atau 0001/UN41.2/TI/CA/{{ date('Y') }}">
                                     @error('nomor_surat')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
@@ -305,7 +287,7 @@
                                         <br>Nomor berikutnya yang akan digunakan: <span
                                             class="fw-bold text-primary">{{ $nextNomorSurat }}</span>
                                         <br>Kosongkan input di form proses untuk menggunakan nomor di atas, atau masukkan
-                                        nomor manual (contoh: 0001 atau 0001/UN41.2/TI/IS/{{ date('Y') }})
+                                        nomor manual (contoh: 0001 atau 0001/UN41.2/TI/CA/{{ date('Y') }})
                                     </small>
                                 </div>
                             </div>
@@ -370,7 +352,7 @@
                         </h5>
                     </div>
                     <div class="card-body">
-                        <form action="{{ route('admin.surat-ijin-survey.approve', $surat->id) }}" method="POST">
+                        <form action="{{ route('admin.surat-cuti-akademik.approve', $surat->id) }}" method="POST">
                             @csrf
                             @method('PUT')
 

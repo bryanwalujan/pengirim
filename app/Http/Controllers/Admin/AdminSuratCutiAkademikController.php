@@ -26,7 +26,7 @@ class AdminSuratCutiAkademikController extends DocumentController
     use BaseSuratController;
     protected function getNomorSuratPrefix()
     {
-        return 'UN41.2/TI/CA';
+        return 'UN41.2/TI';
     }
 
     protected function getNextNomorSurat()
@@ -147,7 +147,7 @@ class AdminSuratCutiAkademikController extends DocumentController
                     if (preg_match('#^\d{1,4}$#', $manualNumber)) {
                         $proposedNumber = $this->generateNomorSurat($manualNumber);
                     } elseif (!$this->validateNomorSuratFormat($manualNumber, $this->getNomorSuratPrefix())) {
-                        return back()->with('error', 'Format nomor surat tidak valid. Contoh: 0001/UN41.2/TI/CA/2024');
+                        return back()->with('error', 'Format nomor surat tidak valid. Contoh: 0001/UN41.2/TI/2024');
                     } else {
                         $proposedNumber = $manualNumber;
                     }
@@ -408,7 +408,7 @@ class AdminSuratCutiAkademikController extends DocumentController
 
     protected function generateNomorSurat($customNumber = null)
     {
-        return $this->generateNomorSuratUniversal('UN41.2/TI/CA', $customNumber);
+        return $this->generateNomorSuratUniversal('UN41.2/TI', $customNumber);
     }
 
     protected function generateSuratFile(SuratCutiAkademik $surat, $isFinalApproval = false, $qrType = null)
@@ -426,6 +426,13 @@ class AdminSuratCutiAkademikController extends DocumentController
         if (!$surat->relationLoaded('penandatanganKaprodi') && $surat->penandatangan_kaprodi_id) {
             $surat->load('penandatanganKaprodi');
         }
+
+        // Hitung semester
+        $tahunMasuk = 2000 + (int) substr($surat->mahasiswa->nim, 0, 2);
+        $tahunParts = explode('/', $surat->tahun_ajaran);
+        $tahunMulai = (int) $tahunParts[0];
+        $semesterNumber = ($tahunMulai - $tahunMasuk) * 2 + ($surat->semester === 'ganjil' ? 1 : 2);
+        $semesterNumber = min($semesterNumber, 14);
 
         $jabatanPimpinan = $surat->jabatan_penandatangan ?? 'Pimpinan Jurusan PTIK';
         $jabatanKoordinator = $surat->jabatan_penandatangan_kaprodi ?? 'Koordinator Program Studi';
@@ -457,6 +464,7 @@ class AdminSuratCutiAkademikController extends DocumentController
 
         $pdf = Pdf::loadView('admin.surat-cuti-akademik.pdf', [
             'surat' => $surat,
+            'semester_roman' => $this->getRomanSemester($semesterNumber),
             'show_qr_signature' => $isFinalApproval,
             'pimpinan_qr' => $pimpinanQr,
             'kaprodi_qr' => $kaprodiQr,
@@ -470,6 +478,30 @@ class AdminSuratCutiAkademikController extends DocumentController
         Storage::disk('public')->put($path, $pdf->output());
 
         return $path;
+    }
+
+    protected function getRomanSemester($number)
+    {
+        // Mapping of semester numbers to their Roman numeral and Indonesian translation
+        $map = [
+            1 => 'I (Satu)',
+            2 => 'II (Dua)',
+            3 => 'III (Tiga)',
+            4 => 'IV (Empat)',
+            5 => 'V (Lima)',
+            6 => 'VI (Enam)',
+            7 => 'VII (Tujuh)',
+            8 => 'VIII (Delapan)',
+            9 => 'IX (Sembilan)',
+            10 => 'X (Sepuluh)',
+            11 => 'XI (Sebelas)',
+            12 => 'XII (Dua Belas)',
+            13 => 'XIII (Tiga Belas)',
+            14 => 'XIV (Empat Belas)'
+        ];
+
+        // Return the mapped value or default to 'I (Satu)' if the number is not in the map
+        return $map[$number] ?? 'I (Satu)';
     }
 
     public function download(SuratCutiAkademik $surat)

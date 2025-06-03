@@ -378,7 +378,7 @@
                                                     placeholder="Cari tahun/semester..." value="{{ request('search') }}">
                                             </div>
                                         </div>
-                                        <div class="col-md-3">
+                                        {{-- <div class="col-md-3">
                                             <select class="form-select select2" id="filter-status" name="status">
                                                 <option value="">Semua Status</option>
                                                 <option value="diajukan"
@@ -405,7 +405,7 @@
                                                 class="btn btn-outline-secondary btn-reset">
                                                 <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
                                             </button>
-                                        </div>
+                                        </div> --}}
                                     </div>
                                 </form>
                             </div>

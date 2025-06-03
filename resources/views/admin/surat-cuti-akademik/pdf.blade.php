@@ -154,7 +154,8 @@
         </table>
         <p>
             Mahasiswa tersebut bermaksud untuk cuti akademik dalam semester yang sedang berjalan ini, semester
-            {{ $surat->semester }} tahun ajaran {{ $surat->tahun_ajaran }} dengan alasan, (alasan). <br>
+            {{ $surat->semester }} tahun ajaran {{ $surat->tahun_ajaran }} dengan alasan,
+            {{ $surat->alasan_pengajuan }}. <br>
             Kiranya Dekan
             berkenan menerbitkan surat keterangan cuti akademik untuk mahasiswa tersebut.
         </p>

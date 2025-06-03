@@ -3,6 +3,7 @@
 namespace App\Traits;
 
 use App\Models\SuratAktifKuliah;
+use App\Models\SuratCutiAkademik;
 use App\Models\SuratIjinSurvey;
 // Tambahkan model lain yang menggunakan nomor surat
 // use App\Models\SuratLainnya;
@@ -25,6 +26,7 @@ trait GeneratesNomorSurat
         $suratModels = [
             SuratAktifKuliah::class,
             SuratIjinSurvey::class,
+            SuratCutiAkademik::class,
             // Tambahkan model lain di sini, misalnya:
             // SuratLainnya::class,
         ];
@@ -57,6 +59,7 @@ trait GeneratesNomorSurat
         $suratModels = [
             SuratAktifKuliah::class,
             SuratIjinSurvey::class,
+            SuratCutiAkademik::class,
             // Tambahkan model lain di sini, misalnya:
             // SuratLainnya::class,
         ];
@@ -85,6 +88,7 @@ trait GeneratesNomorSurat
         $suratModels = [
             SuratAktifKuliah::class,
             SuratIjinSurvey::class,
+            SuratCutiAkademik::class,
             // Tambahkan model lain di sini, misalnya:
             // SuratLainnya::class,
         ];

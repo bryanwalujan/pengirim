@@ -4,10 +4,11 @@ namespace App\Http\Controllers\Admin;
 
 use App\Models\User;
 use App\Models\StatusSurat;
-use App\Models\TrackingSurat;
-use App\Models\SuratAktifKuliah;
-use App\Models\SuratIjinSurvey;
 use Illuminate\Http\Request;
+use App\Models\TrackingSurat;
+use App\Models\SuratIjinSurvey;
+use App\Models\SuratAktifKuliah;
+use App\Models\SuratCutiAkademik;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -64,7 +65,9 @@ class DashboardController extends Controller
             $ijinSurveyCounts[] = SuratIjinSurvey::whereYear('created_at', $month->year)
                 ->whereMonth('created_at', $month->month)
                 ->count();
-            $cutiAkademikCounts[] = 0; // Replace with actual query when model is available
+            $cutiAkademikCounts[] = SuratCutiAkademik::whereYear('created_at', $month->year)
+                ->whereMonth('created_at', $month->month)
+                ->count();
             $pindahCounts[] = 0; // Replace with actual query when model is available
         }
 

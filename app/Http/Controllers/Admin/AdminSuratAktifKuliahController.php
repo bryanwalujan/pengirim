@@ -523,44 +523,10 @@ class AdminSuratAktifKuliahController extends DocumentController
         return $path;
     }
 
-    // protected function generateQrCodeBase64(SuratAktifKuliah $surat): ?string
-    // {
-    //     if (!$surat->penandatangan) {
-    //         return null;
-    //     }
-
-    //     try {
-    //         $qrData = [
-    //             'document_type' => 'Surat Aktif Kuliah',
-    //             'document_number' => $surat->nomor_surat,
-    //             'student' => [
-    //                 'name' => $surat->mahasiswa->name,
-    //                 'nim' => $surat->mahasiswa->nim,
-    //             ],
-    //             'signer' => [
-    //                 'name' => $surat->penandatangan->name,
-    //                 'position' => $surat->jabatan_penandatangan,
-    //                 'nip' => $surat->penandatangan->nip ?? null,
-    //             ],
-    //             'date' => $surat->tanggal_surat->format('Y-m-d'),
-    //             'verification_code' => $surat->verification_code,
-    //         ];
-
-    //         $qrImage = QrCode::format('png')
-    //             ->size(300)
-    //             ->margin(2)
-    //             ->backgroundColor(255, 255, 255)
-    //             ->generate(json_encode($qrData));
-
-    //         return 'data:image/png;base64,' . base64_encode($qrImage);
-    //     } catch (\Exception $e) {
-    //         Log::error('Gagal generate QR Code: ' . $e->getMessage());
-    //         return null;
-    //     }
-    // }
 
     protected function getRomanSemester($number)
     {
+        // Mapping of semester numbers to their Roman numeral and Indonesian translation
         $map = [
             1 => 'I (Satu)',
             2 => 'II (Dua)',
@@ -577,8 +543,11 @@ class AdminSuratAktifKuliahController extends DocumentController
             13 => 'XIII (Tiga Belas)',
             14 => 'XIV (Empat Belas)'
         ];
+
+        // Return the mapped value or default to 'I (Satu)' if the number is not in the map
         return $map[$number] ?? 'I (Satu)';
     }
+    /*******  fd36cc89-0674-4920-b84d-3d755248178b  *******/
 
 
     public function download(SuratAktifKuliah $surat)

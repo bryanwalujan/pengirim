@@ -1,6 +1,6 @@
 @extends('layouts.admin.app')
 
-@section('title', 'Daftar Surat Ijin Survey')
+@section('title', 'Daftar Surat Cuti Akademik')
 
 @section('content')
     <div class="container-xxl flex-grow-1 container-p-y">
@@ -12,7 +12,7 @@
                     <span class="text-muted">Daftar Surat Menunggu Persetujuan Pimpinan</span>
                 @endif
             @else
-                <span class="text-muted">Daftar Pengajuan Surat Ijin Survey</span>
+                <span class="text-muted">Daftar Pengajuan Surat Cuti Akademik</span>
             @endif
         </h4>
 
@@ -23,30 +23,32 @@
                     @if (!auth()->user()->hasRole('dosen'))
                         <div class="col-4 col-md-3 col-lg-2">
                             <select class="form-select" onchange="window.location.href=this.value">
-                                <option value="{{ route('admin.surat-ijin-survey.index', ['status' => 'diajukan']) }}"
+                                <option value="{{ route('admin.surat-cuti-akademik.index', ['status' => 'diajukan']) }}"
                                     {{ $status === 'diajukan' ? 'selected' : '' }}>Diajukan</option>
-                                <option value="{{ route('admin.surat-ijin-survey.index', ['status' => 'diproses']) }}"
+                                <option value="{{ route('admin.surat-cuti-akademik.index', ['status' => 'diproses']) }}"
                                     {{ $status === 'diproses' ? 'selected' : '' }}>Diproses</option>
                                 <option
-                                    value="{{ route('admin.surat-ijin-survey.index', ['status' => 'disetujui_kaprodi']) }}"
+                                    value="{{ route('admin.surat-cuti-akademik.index', ['status' => 'disetujui_kaprodi']) }}"
                                     {{ $status === 'disetujui_kaprodi' ? 'selected' : '' }}>Disetujui Kaprodi</option>
                                 <option
-                                    value="{{ route('admin.surat-ijin-survey.index', ['status' => 'disetujui_pimpinan']) }}"
+                                    value="{{ route('admin.surat-cuti-akademik.index', ['status' => 'disetujui_pimpinan']) }}"
                                     {{ $status === 'disetujui_pimpinan' ? 'selected' : '' }}>Disetujui Pimpinan</option>
-                                <option value="{{ route('admin.surat-ijin-survey.index', ['status' => 'disetujui']) }}"
+                                <option value="{{ route('admin.surat-cuti-akademik.index', ['status' => 'disetujui']) }}"
                                     {{ $status === 'disetujui' ? 'selected' : '' }}>Disetujui</option>
-                                <option value="{{ route('admin.surat-ijin-survey.index', ['status' => 'ditolak']) }}"
+                                <option value="{{ route('admin.surat-cuti-akademik.index', ['status' => 'ditolak']) }}"
                                     {{ $status === 'ditolak' ? 'selected' : '' }}>Ditolak</option>
-                                <option value="{{ route('admin.surat-ijin-survey.index', ['status' => 'siap_diambil']) }}"
+                                <option
+                                    value="{{ route('admin.surat-cuti-akademik.index', ['status' => 'siap_diambil']) }}"
                                     {{ $status === 'siap_diambil' ? 'selected' : '' }}>Siap Diambil</option>
-                                <option value="{{ route('admin.surat-ijin-survey.index', ['status' => 'sudah_diambil']) }}"
+                                <option
+                                    value="{{ route('admin.surat-cuti-akademik.index', ['status' => 'sudah_diambil']) }}"
                                     {{ $status === 'sudah_diambil' ? 'selected' : '' }}>Sudah Diambil</option>
                             </select>
                         </div>
                     @endif
                     <!-- Search -->
                     <div class="col-4 col-md-4 col-lg-3">
-                        <form action="{{ route('admin.surat-ijin-survey.index') }}" method="GET">
+                        <form action="{{ route('admin.surat-cuti-akademik.index') }}" method="GET">
                             <div class="input-group input-group-merge">
                                 <span class="input-group-text" id="basic-addon-search31">
                                     <i class="bx bx-search"></i>
@@ -70,7 +72,7 @@
                             <th>No</th>
                             <th>Mahasiswa</th>
                             <th>No. Surat</th>
-                            <th>Tujuan Survey</th>
+                            <th>Tahun/Semester</th>
                             <th>Status</th>
                             <th>Aksi</th>
                         </tr>
@@ -90,8 +92,8 @@
                                     </small>
                                 </td>
                                 <td>
-                                    {{ $surat->tujuan_survey }} <br>
-                                    <small class="text-muted">{{ $surat->lokasi_survey }}</small>
+                                    {{ $surat->tahun_ajaran }} <br>
+                                    <small class="text-muted">{{ ucfirst($surat->semester) }}</small>
                                 </td>
                                 <td>
                                     @php
@@ -119,12 +121,12 @@
                                         </button>
                                         <div class="dropdown-menu">
                                             <a class="dropdown-item text-info"
-                                                href="{{ route('admin.surat-ijin-survey.show', $surat->id) }}">
+                                                href="{{ route('admin.surat-cuti-akademik.show', $surat->id) }}">
                                                 <i class="bx bx-show me-1"></i> Detail
                                             </a>
                                             @if (in_array($surat->status, ['siap_diambil', 'sudah_diambil']))
                                                 <a class="dropdown-item text-success"
-                                                    href="{{ route('admin.surat-ijin-survey.download', $surat->id) }}">
+                                                    href="{{ route('admin.surat-cuti-akademik.download', $surat->id) }}">
                                                     <i class="bx bx-download me-1"></i> Unduh
                                                 </a>
                                             @endif
@@ -138,7 +140,7 @@
                                     @if (auth()->user()->hasRole('dosen'))
                                         Tidak ada surat yang menunggu persetujuan Anda
                                     @else
-                                        Tidak ada pengajuan surat ijin survey
+                                        Tidak ada pengajuan surat cuti akademik
                                     @endif
                                 </td>
                             </tr>
