@@ -241,6 +241,210 @@
                 </ul>
             </li>
         @endcan
+        @can('manage surat cuti akademik')
+            <li class="menu-item {{ request()->routeIs('admin.surat-cuti-akademik.*') ? 'active open' : '' }}">
+                <a href="javascript:void(0);" class="menu-link menu-toggle">
+                    <i class="menu-icon tf-icons bx bx-calendar-x"></i>
+                    <div>Surat Cuti Akademik</div>
+                </a>
+                <ul class="menu-sub">
+                    @if (auth()->user()->hasRole('dosen'))
+                        @php
+                            $unreadCount = auth()
+                                ->user()
+                                ->unreadNotifications()
+                                ->where('type', 'App\Notifications\SuratNeedApprovalNotification')
+                                ->whereJsonContains('data->surat_class', 'App\Models\SuratCutiAkademik')
+                                ->count();
+                        @endphp
+                        <li
+                            class="menu-item {{ request()->routeIs('admin.surat-cuti-akademik.index') &&
+                            (request()->input('status') === 'diproses' ||
+                                (auth()->user()->hasRole('dosen') && str_contains(auth()->user()->jabatan, 'Koordinator Program Studi')))
+                                ? 'active'
+                                : '' }}">
+                            <a href="{{ route('admin.surat-cuti-akademik.index', ['status' => 'diproses']) }}"
+                                class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-time"></i>
+                                <div>Menunggu Persetujuan</div>
+                                @if ($unreadCount > 0)
+                                    <span class="badge bg-danger rounded-pill ms-auto">{{ $unreadCount }}</span>
+                                @endif
+                            </a>
+                        </li>
+                    @else
+                        <li
+                            class="menu-item {{ (request()->routeIs('admin.surat-cuti-akademik.index') &&
+                                request()->input('status', 'diajukan') === 'diajukan') ||
+                            (isset($surat) && $surat instanceof App\Models\SuratCutiAkademik && $surat->status === 'diajukan')
+                                ? 'active'
+                                : '' }}">
+                            <a href="{{ route('admin.surat-cuti-akademik.index', ['status' => 'diajukan']) }}"
+                                class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-time"></i>
+                                <div>Diajukan</div>
+                            </a>
+                        </li>
+                        <li
+                            class="menu-item {{ (request()->routeIs('admin.surat-cuti-akademik.index') && request()->input('status') === 'diproses') ||
+                            (isset($surat) && $surat instanceof App\Models\SuratCutiAkademik && $surat->status === 'diproses')
+                                ? 'active'
+                                : '' }}">
+                            <a href="{{ route('admin.surat-cuti-akademik.index', ['status' => 'diproses']) }}"
+                                class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-loader"></i>
+                                <div>Diproses</div>
+                            </a>
+                        </li>
+                        <li
+                            class="menu-item {{ (request()->routeIs('admin.surat-cuti-akademik.index') && request()->input('status') === 'disetujui') ||
+                            (isset($surat) && $surat instanceof App\Models\SuratCutiAkademik && $surat->status === 'disetujui')
+                                ? 'active'
+                                : '' }}">
+                            <a href="{{ route('admin.surat-cuti-akademik.index', ['status' => 'disetujui']) }}"
+                                class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-check"></i>
+                                <div>Disetujui</div>
+                            </a>
+                        </li>
+                        <li
+                            class="menu-item {{ (request()->routeIs('admin.surat-cuti-akademik.index') && request()->input('status') === 'ditolak') ||
+                            (isset($surat) && $surat instanceof App\Models\SuratCutiAkademik && $surat->status === 'ditolak')
+                                ? 'active'
+                                : '' }}">
+                            <a href="{{ route('admin.surat-cuti-akademik.index', ['status' => 'ditolak']) }}"
+                                class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-x"></i>
+                                <div>Ditolak</div>
+                            </a>
+                        </li>
+                        <li
+                            class="menu-item {{ (request()->routeIs('admin.surat-cuti-akademik.index') && request()->input('status') === 'siap_diambil') ||
+                            (isset($surat) && $surat instanceof App\Models\SuratCutiAkademik && $surat->status === 'siap_diambil')
+                                ? 'active'
+                                : '' }}">
+                            <a href="{{ route('admin.surat-cuti-akademik.index', ['status' => 'siap_diambil']) }}"
+                                class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-package"></i>
+                                <div>Siap Diambil</div>
+                            </a>
+                        </li>
+                        <li
+                            class="menu-item {{ (request()->routeIs('admin.surat-cuti-akademik.index') && request()->input('status') === 'sudah_diambil') ||
+                            (isset($surat) && $surat instanceof App\Models\SuratCutiAkademik && $surat->status === 'sudah_diambil')
+                                ? 'active'
+                                : '' }}">
+                            <a href="{{ route('admin.surat-cuti-akademik.index', ['status' => 'sudah_diambil']) }}"
+                                class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-check-circle"></i>
+                                <div>Sudah Diambil</div>
+                            </a>
+                        </li>
+                    @endif
+                </ul>
+            </li>
+        @endcan
+        @can('manage surat pindah')
+            <li class="menu-item {{ request()->routeIs('admin.surat-pindah.*') ? 'active open' : '' }}">
+                <a href="javascript:void(0);" class="menu-link menu-toggle">
+                    <i class="menu-icon tf-icons bx bx-transfer"></i>
+                    <div>Surat Pindah</div>
+                </a>
+                <ul class="menu-sub">
+                    @if (auth()->user()->hasRole('dosen'))
+                        @php
+                            $unreadCount = auth()
+                                ->user()
+                                ->unreadNotifications()
+                                ->where('type', 'App\Notifications\SuratNeedApprovalNotification')
+                                ->whereJsonContains('data->surat_class', 'App\Models\SuratPindah')
+                                ->count();
+                        @endphp
+                        <li
+                            class="menu-item {{ request()->routeIs('admin.surat-pindah.index') &&
+                            (request()->input('status') === 'diproses' ||
+                                (auth()->user()->hasRole('dosen') && str_contains(auth()->user()->jabatan, 'Koordinator Program Studi')))
+                                ? 'active'
+                                : '' }}">
+                            <a href="{{ route('admin.surat-pindah.index', ['status' => 'diproses']) }}"
+                                class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-time"></i>
+                                <div>Menunggu Persetujuan</div>
+                                @if ($unreadCount > 0)
+                                    <span class="badge bg-danger rounded-pill ms-auto">{{ $unreadCount }}</span>
+                                @endif
+                            </a>
+                        </li>
+                    @else
+                        <li
+                            class="menu-item {{ (request()->routeIs('admin.surat-pindah.index') && request()->input('status', 'diajukan') === 'diajukan') ||
+                            (isset($surat) && $surat instanceof App\Models\SuratPindah && $surat->status === 'diajukan')
+                                ? 'active'
+                                : '' }}">
+                            <a href="{{ route('admin.surat-pindah.index', ['status' => 'diajukan']) }}"
+                                class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-time"></i>
+                                <div>Diajukan</div>
+                            </a>
+                        </li>
+                        <li
+                            class="menu-item {{ (request()->routeIs('admin.surat-pindah.index') && request()->input('status') === 'diproses') ||
+                            (isset($surat) && $surat instanceof App\Models\SuratPindah && $surat->status === 'diproses')
+                                ? 'active'
+                                : '' }}">
+                            <a href="{{ route('admin.surat-pindah.index', ['status' => 'diproses']) }}"
+                                class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-loader"></i>
+                                <div>Diproses</div>
+                            </a>
+                        </li>
+                        <li
+                            class="menu-item {{ (request()->routeIs('admin.surat-pindah.index') && request()->input('status') === 'disetujui') ||
+                            (isset($surat) && $surat instanceof App\Models\SuratPindah && $surat->status === 'disetujui')
+                                ? 'active'
+                                : '' }}">
+                            <a href="{{ route('admin.surat-pindah.index', ['status' => 'disetujui']) }}"
+                                class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-check"></i>
+                                <div>Disetujui</div>
+                            </a>
+                        </li>
+                        <li
+                            class="menu-item {{ (request()->routeIs('admin.surat-pindah.index') && request()->input('status') === 'ditolak') ||
+                            (isset($surat) && $surat instanceof App\Models\SuratPindah && $surat->status === 'ditolak')
+                                ? 'active'
+                                : '' }}">
+                            <a href="{{ route('admin.surat-pindah.index', ['status' => 'ditolak']) }}" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-x"></i>
+                                <div>Ditolak</div>
+                            </a>
+                        </li>
+                        <li
+                            class="menu-item {{ (request()->routeIs('admin.surat-pindah.index') && request()->input('status') === 'siap_diambil') ||
+                            (isset($surat) && $surat instanceof App\Models\SuratPindah && $surat->status === 'siap_diambil')
+                                ? 'active'
+                                : '' }}">
+                            <a href="{{ route('admin.surat-pindah.index', ['status' => 'siap_diambil']) }}"
+                                class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-package"></i>
+                                <div>Siap Diambil</div>
+                            </a>
+                        </li>
+                        <li
+                            class="menu-item {{ (request()->routeIs('admin.surat-pindah.index') && request()->input('status') === 'sudah_diambil') ||
+                            (isset($surat) && $surat instanceof App\Models\SuratPindah && $surat->status === 'sudah_diambil')
+                                ? 'active'
+                                : '' }}">
+                            <a href="{{ route('admin.surat-pindah.index', ['status' => 'sudah_diambil']) }}"
+                                class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-check-circle"></i>
+                                <div>Sudah Diambil</div>
+                            </a>
+                        </li>
+                    @endif
+                </ul>
+            </li>
+        @endcan
 
         {{-- Manajemen Layanan --}}
         @if (auth()->user()->can('manage services') || auth()->user()->can('manage academic calendar'))

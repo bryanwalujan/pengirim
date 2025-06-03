@@ -113,7 +113,7 @@
             <tr>
                 <td>Perihal</td>
                 <td>:</td>
-                <td><strong>Permohonan Aktif Kuliah</strong></td>
+                <td>Permohonan Aktif Kuliah</td>
                 <td></td>
             </tr>
         </table>
@@ -149,7 +149,7 @@
             <tr>
                 <td>Jurusan/Prodi</td>
                 <td>:</td>
-                <td>S1 Teknik Informatika</td>
+                <td>Teknik Informatika</td>
             </tr>
         </table>
         <p style="text-indent: 2.5rem">

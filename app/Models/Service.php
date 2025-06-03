@@ -26,6 +26,8 @@ class Service extends Model
         $customIndexRoutes = [
             'surat-aktif-kuliah' => 'user.surat-aktif-kuliah.index',
             'surat-ijin-survey' => 'user.surat-ijin-survey.index',
+            'surat-cuti-akademik' => 'user.surat-cuti-akademik.index',
+            'surat-pindah' => 'user.surat-pindah.index',
             // Tambahkan layanan khusus lainnya di sini
         ];
 

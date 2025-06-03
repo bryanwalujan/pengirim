@@ -37,10 +37,10 @@
                                 return $query
                                     ->where('type', 'App\Notifications\SuratNeedApprovalNotification')
                                     ->where(function ($q) {
-                                        $q->where('data->surat_class', 'App\Models\SuratAktifKuliah')->orWhere(
-                                            'data->surat_class',
-                                            'App\Models\SuratIjinSurvey',
-                                        );
+                                        $q->where('data->surat_class', 'App\Models\SuratAktifKuliah')
+                                            ->orWhere('data->surat_class', 'App\Models\SuratIjinSurvey')
+                                            ->orWhere('data->surat_class', 'App\Models\SuratCutiAkademik')
+                                            ->orWhere('data->surat_class', 'App\Models\SuratPindah');
                                     });
                             })
                             ->count();
@@ -66,10 +66,10 @@
                                 return $query
                                     ->where('type', 'App\Notifications\SuratNeedApprovalNotification')
                                     ->where(function ($q) {
-                                        $q->where('data->surat_class', 'App\Models\SuratAktifKuliah')->orWhere(
-                                            'data->surat_class',
-                                            'App\Models\SuratIjinSurvey',
-                                        );
+                                        $q->where('data->surat_class', 'App\Models\SuratAktifKuliah')
+                                            ->orWhere('data->surat_class', 'App\Models\SuratIjinSurvey')
+                                            ->orWhere('data->surat_class', 'App\Models\SuratCutiAkademik')
+                                            ->orWhere('data->surat_class', 'App\Models\SuratPindah');
                                     });
                             })
                             ->orderBy('created_at', 'desc')
@@ -88,7 +88,10 @@
                                     <div class="flex-grow-1">
                                         @if (auth()->user()->hasRole('staff'))
                                             <!-- Notifikasi untuk staff -->
-                                            <strong>Surat Sudah Diambil</strong>
+                                            <div class="d-flex align-items-center mb-2">
+                                                <i class="bx {{ $notification->data['icon'] ?? 'bx-file' }} me-2"></i>
+                                                <strong>Surat Sudah Diambil</strong>
+                                            </div>
                                             <p class="mb-1">
                                                 Mahasiswa:
                                                 {{ $notification->data['mahasiswa_name'] ?? 'Data mahasiswa tidak tersedia' }}<br>
@@ -99,12 +102,18 @@
                                             </p>
                                         @elseif(auth()->user()->hasRole('dosen'))
                                             <!-- Notifikasi untuk dosen -->
-                                            <strong>{{ $notification->data['surat_type'] ?? 'Surat' }} Perlu
-                                                Persetujuan</strong>
+                                            <div class="d-flex align-items-center mb-2">
+                                                <i class="bx {{ $notification->data['icon'] ?? 'bx-file' }} me-2"></i>
+                                                <strong>{{ $notification->data['surat_type'] ?? 'Surat' }} Perlu
+                                                    Persetujuan</strong>
+                                            </div>
                                             <p class="mb-1">
                                                 Mahasiswa:
                                                 {{ $notification->data['mahasiswa_name'] ?? 'Data mahasiswa tidak tersedia' }}<br>
-                                                NIM: {{ $notification->data['mahasiswa_nim'] ?? 'NIM tidak tersedia' }}
+                                                NIM:
+                                                {{ $notification->data['mahasiswa_nim'] ?? 'NIM tidak tersedia' }}<br>
+                                                Status:
+                                                {{ ucfirst(str_replace('_', ' ', $notification->data['status'] ?? '')) }}
                                             </p>
                                         @endif
                                         <small
@@ -203,11 +212,12 @@
     document.addEventListener('DOMContentLoaded', function() {
         const notificationDropdown = document.querySelector('.nav-item.dropdown .dropdown-menu');
 
-        // Atur max-height berdasarkan jumlah notifikasi
-        const notificationItems = notificationDropdown.querySelectorAll('.dropdown-item:not(.text-center)');
-        if (notificationItems.length > 3) {
-            notificationDropdown.style.maxHeight = '400px';
-            notificationDropdown.style.overflowY = 'auto';
+        if (notificationDropdown) {
+            const notificationItems = notificationDropdown.querySelectorAll('.dropdown-item:not(.text-center)');
+            if (notificationItems.length > 3) {
+                notificationDropdown.style.maxHeight = '400px';
+                notificationDropdown.style.overflowY = 'auto';
+            }
         }
     });
 
@@ -263,84 +273,18 @@
         }
     }
 
-
     function checkEmptyNotifications() {
         const dropdownMenu = document.querySelector(".dropdown-menu");
-        const remainingItems = dropdownMenu.querySelectorAll(".dropdown-item:not(.text-center)").length;
+        if (dropdownMenu) {
+            const remainingItems = dropdownMenu.querySelectorAll(".dropdown-item:not(.text-center)").length;
 
-        if (remainingItems === 0) {
-            dropdownMenu.innerHTML = `
-            <li class="dropdown-item text-center">
-                <span>Tidak ada notifikasi baru</span>
-            </li>
-        `;
-        }
-    }
-
-    function markNotificationAsRead(notificationId, linkElement) {
-        // Kirim request untuk menandai notifikasi sebagai sudah dibaca
-        fetch(
-                '{{ route('admin.notifications.mark-as-read', ':notification') }}'.replace(
-                    ":notification",
-                    notificationId
-                ), {
-                    method: "POST",
-                    headers: {
-                        "X-CSRF-TOKEN": "{{ csrf_token() }}",
-                        "Content-Type": "application/json",
-                    },
-                }
-            )
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error("Network response was not ok: " + response.status);
-                }
-                return response.json();
-            })
-            .then((data) => {
-                if (data.success) {
-                    // Hapus notifikasi dari dropdown
-                    const notificationItem = linkElement.closest(".dropdown-item");
-                    const divider = notificationItem.nextElementSibling?.classList.contains("dropdown-divider") ?
-                        notificationItem.nextElementSibling :
-                        notificationItem.previousElementSibling?.classList.contains("dropdown-divider") ?
-                        notificationItem.previousElementSibling :
-                        null;
-
-                    notificationItem.remove();
-                    if (divider) divider.remove();
-
-                    // Update badge count
-                    const badge = document.querySelector(".nav-link .badge");
-                    const dropdownMenu = document.querySelector(".dropdown-menu");
-                    const remainingItems = dropdownMenu.querySelectorAll(".dropdown-item").length;
-
-                    if (remainingItems === 0) {
-                        dropdownMenu.innerHTML = `
+            if (remainingItems === 0) {
+                dropdownMenu.innerHTML = `
                     <li class="dropdown-item text-center">
                         <span>Tidak ada notifikasi baru</span>
                     </li>
                 `;
-                        if (badge) badge.remove();
-                    } else if (badge) {
-                        badge.textContent = remainingItems;
-                    }
-
-                    // Lanjutkan navigasi ke halaman detail
-                    window.location.href = linkElement.href;
-                } else {
-                    console.error("Failed to mark notification as read:", data);
-                    // Tetap lanjutkan navigasi meskipun gagal menandai notifikasi
-                    window.location.href = linkElement.href;
-                }
-            })
-            .catch((error) => {
-                console.error("Error marking notification as read:", error);
-                // Tetap lanjutkan navigasi meskipun terjadi error
-                window.location.href = linkElement.href;
-            });
-
-        // Mencegah navigasi default sampai proses selesai
-        return false;
+            }
+        }
     }
 </script>

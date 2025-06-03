@@ -2,15 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\SuratPindah;
 use Illuminate\Http\Request;
-use App\Models\SuratAktifKuliah;
 use App\Models\SuratIjinSurvey;
+use App\Models\SuratAktifKuliah;
+use App\Models\SuratCutiAkademik;
 
 class DocumentVerificationController extends Controller
 {
     public function verify($code)
     {
-        // Cari dokumen berdasarkan kode verifikasi di kedua model
+        // Cari dokumen berdasarkan kode verifikasi di semua model
         $document = $this->findDocumentByVerificationCode($code);
 
         if (!$document) {
@@ -33,9 +35,13 @@ class DocumentVerificationController extends Controller
         }
 
         // Tentukan view berdasarkan jenis dokumen
-        $view = $document instanceof SuratAktifKuliah
-            ? 'qrcode.surat-aktif-kuliah.show'
-            : 'qrcode.surat-ijin-survey.show';
+        $view = match (true) {
+            $document instanceof SuratAktifKuliah => 'qrcode.surat-aktif-kuliah.show',
+            $document instanceof SuratIjinSurvey => 'qrcode.surat-ijin-survey.show',
+            $document instanceof SuratCutiAkademik => 'qrcode.surat-cuti-akademik.show',
+            $document instanceof SuratPindah => 'qrcode.surat-pindah.show',
+            default => 'verification.invalid'
+        };
 
         return view($view, [
             'document' => $document,
@@ -60,13 +66,41 @@ class DocumentVerificationController extends Controller
         }
 
         // Cari di SuratIjinSurvey
-        return SuratIjinSurvey::with(['mahasiswa', 'penandatangan', 'penandatanganKaprodi', 'status'])
+        $document = SuratIjinSurvey::with(['mahasiswa', 'penandatangan', 'penandatanganKaprodi', 'status'])
             ->where(function ($query) use ($code) {
                 $query->where('verification_code', $code)
                     ->orWhere('verification_code_kaprodi', $code)
                     ->orWhere('verification_code_pimpinan', $code);
             })
             ->first();
+
+        if ($document) {
+            return $document;
+        }
+
+        // Cari di SuratCutiAkademik
+        $document = SuratCutiAkademik::with(['mahasiswa', 'penandatangan', 'penandatanganKaprodi', 'status'])
+            ->where(function ($query) use ($code) {
+                $query->where('verification_code', $code)
+                    ->orWhere('verification_code_kaprodi', $code)
+                    ->orWhere('verification_code_pimpinan', $code);
+            })
+            ->first();
+
+        if ($document) {
+            return $document;
+        }
+
+        // Cari di SuratPindah
+        $document = SuratPindah::with(['mahasiswa', 'penandatangan', 'penandatanganKaprodi', 'status'])
+            ->where(function ($query) use ($code) {
+                $query->where('verification_code', $code)
+                    ->orWhere('verification_code_kaprodi', $code)
+                    ->orWhere('verification_code_pimpinan', $code);
+            })
+            ->first();
+
+        return $document;
     }
 
     protected function prepareVerificationData($document, $status, $verificationCodeUsed)
@@ -76,14 +110,14 @@ class DocumentVerificationController extends Controller
                 'name' => $document->penandatanganKaprodi->name ?? '-',
                 'position' => $document->jabatan_penandatangan_kaprodi ?? 'Koordinator Program Studi',
                 'nip' => $document->penandatanganKaprodi->nip ?? '-',
-                'signature_date' => optional($document->approved_at)->format('d F Y H:i') ?? '-',
+                'signature_date' => optional($document->approved_at)->format('d F Y') ?? '-',
                 'verification_code' => $document->verification_code_kaprodi,
             ] : null,
             'pimpinan' => $document->penandatangan ? [
                 'name' => $document->penandatangan->name ?? '-',
                 'position' => $document->jabatan_penandatangan ?? 'Pimpinan Jurusan PTIK',
                 'nip' => $document->penandatangan->nip ?? '-',
-                'signature_date' => optional($document->approved_at)->format('d F Y H:i') ?? '-',
+                'signature_date' => optional($document->approved_at)->format('d F Y') ?? '-',
                 'verification_code' => $document->verification_code_pimpinan,
             ] : null,
         ];
@@ -119,6 +153,52 @@ class DocumentVerificationController extends Controller
                     'title' => $document->judul ?? '-',
                     'survey_location' => $document->tempat_survey ?? '-',
                     'purpose' => $document->tujuan_pengajuan ?? '-',
+                ],
+                'student' => [
+                    'name' => $document->mahasiswa->name ?? '-',
+                    'nim' => $document->mahasiswa->nim ?? '-',
+                    'study_program' => 'S1 Teknik Informatika',
+                ],
+                'signers' => $signers,
+                'verification' => [
+                    'status' => $status,
+                    'verified_at' => now()->format('d F Y H:i'),
+                    'verification_code' => $verificationCodeUsed,
+                ],
+            ];
+        } elseif ($document instanceof SuratCutiAkademik) {
+            return [
+                'document' => [
+                    'type' => 'Surat Cuti Akademik',
+                    'number' => $document->nomor_surat ?? '-',
+                    'date' => optional($document->tanggal_surat)->format('d F Y') ?? '-',
+                    'academic_year' => $document->tahun_ajaran ?? '-',
+                    'semester' => ucfirst($document->semester ?? '-') ?? '-',
+                    'reason' => $document->alasan_pengajuan ?? '-',
+                    'additional_info' => $document->keterangan_tambahan ?? '-',
+                ],
+                'student' => [
+                    'name' => $document->mahasiswa->name ?? '-',
+                    'nim' => $document->mahasiswa->nim ?? '-',
+                    'study_program' => 'S1 Teknik Informatika',
+                ],
+                'signers' => $signers,
+                'verification' => [
+                    'status' => $status,
+                    'verified_at' => now()->format('d F Y H:i'),
+                    'verification_code' => $verificationCodeUsed,
+                ],
+            ];
+        } elseif ($document instanceof SuratPindah) {
+            return [
+                'document' => [
+                    'type' => 'Surat Pindah',
+                    'number' => $document->nomor_surat ?? '-',
+                    'date' => optional($document->tanggal_surat)->format('d F Y') ?? '-',
+                    'semester' => ucfirst($document->semester ?? '-') ?? '-',
+                    'universtias_tujuan' => $document->universitas_tujuan ?? '-',
+                    'reason' => $document->alasan_pengajuan ?? '-',
+                    'keterangan_tambahan' => $document->keterangan_tambahan ?? '-',
                 ],
                 'student' => [
                     'name' => $document->mahasiswa->name ?? '-',

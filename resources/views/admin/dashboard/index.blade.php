@@ -18,14 +18,14 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <span class="badge bg-label-primary rounded-pill p-2 mb-2">
-                                    <i class='bx bx-file bx-sm'></i>
+                                    <i class='icon-base bx bx-file'></i>
                                 </span>
-                                <h5 class="mb-0">{{ array_sum($statusCounts) }}</h5>
+                                <h4 class="mb-0">{{ array_sum($statusCounts) }}</h4>
                                 <small class="text-muted">Total Pengajuan</small>
                             </div>
                             <div class="avatar">
                                 <div class="avatar-initial bg-label-primary rounded">
-                                    <i class='bx bx-trending-up bx-sm'></i>
+                                    <i class='bx bx-trending-up' style="font-size: 1.5rem"></i>
                                 </div>
                             </div>
                         </div>
@@ -40,14 +40,14 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <span class="badge bg-label-warning rounded-pill p-2 mb-2">
-                                    <i class='bx bx-time bx-sm'></i>
+                                    <i class='icon-base bx bx-time'></i>
                                 </span>
-                                <h5 class="mb-0">{{ $statusCounts['diajukan'] + $statusCounts['diproses'] }}</h5>
+                                <h4 class="mb-0">{{ $statusCounts['diajukan'] + $statusCounts['diproses'] }}</h4>
                                 <small class="text-muted">Pending</small>
                             </div>
                             <div class="avatar">
                                 <div class="avatar-initial bg-label-warning rounded">
-                                    <i class='bx bx-loader-circle bx-sm'></i>
+                                    <i class='bx bx-loader-circle' style="font-size: 1.5rem"></i>
                                 </div>
                             </div>
                         </div>
@@ -62,15 +62,15 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <span class="badge bg-label-success rounded-pill p-2 mb-2">
-                                    <i class='bx bx-check-circle bx-sm'></i>
+                                    <i class='icon-base bx bx-check-circle'></i>
                                 </span>
-                                <h5 class="mb-0">{{ $statusCounts['disetujui_kaprodi'] + $statusCounts['disetujui'] }}
-                                </h5>
+                                <h4 class="mb-0">{{ $statusCounts['disetujui_kaprodi'] + $statusCounts['disetujui'] }}
+                                </h4>
                                 <small class="text-muted">Disetujui</small>
                             </div>
                             <div class="avatar">
                                 <div class="avatar-initial bg-label-success rounded">
-                                    <i class='bx bx-check-shield bx-sm'></i>
+                                    <i class='bx bx-check-shield' style="font-size: 1.5rem"></i>
                                 </div>
                             </div>
                         </div>
@@ -85,14 +85,14 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <span class="badge bg-label-danger rounded-pill p-2 mb-2">
-                                    <i class='bx bx-x-circle bx-sm'></i>
+                                    <i class='icon-base bx bx-x-circle' style="font-size: 1.5rem"></i>
                                 </span>
-                                <h5 class="mb-0">{{ $statusCounts['ditolak'] }}</h5>
+                                <h4 class="mb-0">{{ $statusCounts['ditolak'] }}</h4>
                                 <small class="text-muted">Ditolak</small>
                             </div>
                             <div class="avatar">
                                 <div class="avatar-initial bg-label-danger rounded">
-                                    <i class='bx bx-error bx-sm'></i>
+                                    <i class='bx bx-error' style="font-size: 1.5rem"></i>
                                 </div>
                             </div>
                         </div>
@@ -126,6 +126,7 @@
                     </div>
                 </div>
             </div>
+            {{-- Surat Trend --}}
             <div class="col-md-6 mb-4">
                 <div class="card border-0 shadow-sm">
                     <div class="card-header d-flex justify-content-between align-items-center border-bottom">
@@ -174,7 +175,8 @@
                                                         </span>
                                                     </div>
                                                     <div>
-                                                        <span class="fw-medium">{{ $activity->mahasiswa->name }}</span><br>
+                                                        <span
+                                                            class="fw-medium">{{ $activity->mahasiswa->name }}</span><br>
                                                         <small class="text-muted">{{ $activity->mahasiswa->nim }}</small>
                                                     </div>
                                                 </div>
