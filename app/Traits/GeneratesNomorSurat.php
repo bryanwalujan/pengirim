@@ -2,9 +2,10 @@
 
 namespace App\Traits;
 
+use App\Models\SuratPindah;
+use App\Models\SuratIjinSurvey;
 use App\Models\SuratAktifKuliah;
 use App\Models\SuratCutiAkademik;
-use App\Models\SuratIjinSurvey;
 // Tambahkan model lain yang menggunakan nomor surat
 // use App\Models\SuratLainnya;
 
@@ -27,6 +28,7 @@ trait GeneratesNomorSurat
             SuratAktifKuliah::class,
             SuratIjinSurvey::class,
             SuratCutiAkademik::class,
+            SuratPindah::class,
             // Tambahkan model lain di sini, misalnya:
             // SuratLainnya::class,
         ];
@@ -60,6 +62,7 @@ trait GeneratesNomorSurat
             SuratAktifKuliah::class,
             SuratIjinSurvey::class,
             SuratCutiAkademik::class,
+            SuratPindah::class,
             // Tambahkan model lain di sini, misalnya:
             // SuratLainnya::class,
         ];
@@ -89,6 +92,7 @@ trait GeneratesNomorSurat
             SuratAktifKuliah::class,
             SuratIjinSurvey::class,
             SuratCutiAkademik::class,
+            SuratPindah::class,
             // Tambahkan model lain di sini, misalnya:
             // SuratLainnya::class,
         ];

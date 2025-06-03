@@ -65,7 +65,6 @@
                                 </strong>
                             </h6>
                             @if ($surat->status()->first()?->catatan_admin)
-                                )
                                 <hr class="my-2">
                                 <p class="mb-0">
                                     <strong>Catatan Admin:</strong>
@@ -103,7 +102,6 @@
                                 value="{{ $surat->tanggal_surat ? $surat->tanggal_surat->format('d F Y') : '-' }}" readonly>
                         </div>
                         @if ($surat->penandatangan)
-                            )
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Penandatangan (Pimpinan)</label>
                                 <input type="text" class="form-control" value="{{ $surat->penandatangan->name }}"
@@ -116,7 +114,6 @@
                             </div>
                         @endif
                         @if ($surat->penandatanganKaprodi)
-                            )
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Penandatangan (Kaprodi)</label>
                                 <input type="text" class="form-control" value="{{ $surat->penandatanganKaprodi->name }}"
@@ -143,14 +140,6 @@
                             <label class="form-label">NIM</label>
                             <input type="text" class="form-control" value="{{ $surat->mahasiswa->nim }}" readonly>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Program Studi Asal</label>
-                            <input type="text" class="form-control" value="{{ $surat->program_studi_asal }}" readonly>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Program Studi Tujuan</label>
-                            <input type="text" class="form-control" value="{{ $surat->program_studi_tujuan }}" readonly>
-                        </div>
                     </div>
                 </div>
 
@@ -160,7 +149,7 @@
                     <div class="row">
                         <div class="col-12 mb-3">
                             <label class="form-label">Alasan Pindah</label>
-                            <textarea class="form-control" rows="3" readonly>{{ $surat->alasan_pindah }}</textarea>
+                            <textarea class="form-control" rows="3" readonly>{{ $surat->alasan_pengajuan }}</textarea>
                         </div>
                         <div class="col-12 mb-3">
                             <label class="form-label">Keterangan Tambahan</label>
@@ -453,7 +442,6 @@
                                     {{ $tracking->created_at->format('d F Y H:i') }}
                                 </p>
                                 @if ($tracking->keterangan)
-                                    )
                                     <p class="mb-0">{{ $tracking->keterangan }}</p>
                                 @endif
                             </div>

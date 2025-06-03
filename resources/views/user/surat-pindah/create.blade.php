@@ -324,25 +324,9 @@
                     <div class="row g-4">
                         <div class="col-md-6">
                             <div class="form-floating">
-                                <input type="text" class="form-control" id="tahun_ajaran" name="tahun_ajaran"
-                                    value="{{ $tahunAjaranAktif->tahun ?? '' }}" readonly>
-                                <label for="tahun_ajaran">Tahun Ajaran</label>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="form-floating">
-                                <select class="form-select @error('semester') is-invalid @enderror" id="semester"
-                                    name="semester" required>
-                                    <option value="" selected disabled>Pilih Semester</option>
-                                    <option value="ganjil" {{ old('semester') == 'ganjil' ? 'selected' : '' }}>Ganjil
-                                    </option>
-                                    <option value="genap" {{ old('semester') == 'genap' ? 'selected' : '' }}>Genap</option>
-                                </select>
+                                <input type="text" class="form-control" id="semester" name="semester"
+                                    value="{{ $tahunAjaranAktif->semester ?? '' }}" readonly>
                                 <label for="semester">Semester</label>
-                                @error('semester')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
                             </div>
                         </div>
                     </div>

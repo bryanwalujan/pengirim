@@ -197,7 +197,7 @@
                                     <table class="table table-bordered">
                                         <tr>
                                             <th colspan="2" class="bg-light">
-                                                {{ $active_signer['position'] === 'Koordinator Program Studi' ? 'Penandatangan Kaprodi' : 'Penandatangan Pimpinan' }}
+                                                {{ $active_signer['position'] === 'Koordinator Program Studi' ? 'Penandatangan Koordinator Program Studi' : 'Penandatangan Pimpinan Jurusan PTIK' }}
                                             </th>
                                         </tr>
                                         @foreach ($active_signer as $key => $value)

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Models\User;
 use App\Models\StatusSurat;
+use App\Models\SuratPindah;
 use Illuminate\Http\Request;
 use App\Models\TrackingSurat;
 use App\Models\SuratIjinSurvey;
@@ -68,7 +69,9 @@ class DashboardController extends Controller
             $cutiAkademikCounts[] = SuratCutiAkademik::whereYear('created_at', $month->year)
                 ->whereMonth('created_at', $month->month)
                 ->count();
-            $pindahCounts[] = 0; // Replace with actual query when model is available
+            $pindahCounts[] = SuratPindah::whereYear('created_at', $month->year)
+                ->whereMonth('created_at', $month->month)
+                ->count();
         }
 
         return view('admin.dashboard.index', compact(

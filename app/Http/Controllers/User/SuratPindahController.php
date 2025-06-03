@@ -73,13 +73,10 @@ class SuratPindahController extends Controller
                 'alasan_pengajuan' => $validated['alasan_pengajuan'],
                 'keterangan_tambahan' => $validated['keterangan_tambahan'],
                 'semester' => $validated['semester'],
-                'tahun_ajaran' => TahunAjaran::where('status_aktif', true)->first()->tahun,
             ]);
 
             if ($request->hasFile('file_pendukung_path')) {
-                $file = $request->file('file_pendukung_path');
-                $path = $file->store('surat-pindah/pendukung', 'public');
-                $surat->update(['file_pendukung_path' => $path]);
+                $surat->attachDokumenPendukung($request->file('file_pendukung_path'));
             }
 
             StatusSurat::create([

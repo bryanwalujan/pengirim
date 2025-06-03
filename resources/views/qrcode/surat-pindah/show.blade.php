@@ -1,6 +1,6 @@
 @extends('layouts.qrcode.app')
 
-@section('title', 'Verifikasi QR Code Surat Ijin Survey')
+@section('title', 'Verifikasi QR Code Surat Pindah')
 
 @push('styles')
     <style>
@@ -19,12 +19,15 @@
         .card-header {
             border-radius: 15px 15px 0 0;
             padding: 1.5rem;
+            background-color: #6c757d;
+            /* Different color for Surat Pindah */
         }
 
         .section-title {
             font-size: 1.25rem;
-            color: #007bff;
-            border-bottom: 2px solid #007bff;
+            color: #6c757d;
+            /* Matching header color */
+            border-bottom: 2px solid #6c757d;
             padding-bottom: 0.5rem;
             margin-bottom: 1.5rem;
             font-weight: 600;
@@ -62,7 +65,8 @@
         }
 
         .copy-btn:hover {
-            background-color: #0056b3;
+            background-color: #5a6268;
+            /* Darker shade of header color */
         }
 
         .accordion-button {
@@ -77,7 +81,8 @@
 
         .accordion-button:not(.collapsed) {
             background-color: #e9ecef;
-            color: #007bff;
+            color: #6c757d;
+            /* Matching header color */
         }
 
         .accordion-button:focus {
@@ -101,8 +106,8 @@
 @section('content')
     <div class="container py-5">
         <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h4 class="mb-0">Verifikasi QR Code - Surat Ijin Survey</h4>
+            <div class="card-header text-white">
+                <h4 class="mb-0">Verifikasi QR Code - Surat Pindah</h4>
             </div>
             <div class="card-body">
                 <!-- Accordion untuk informasi -->
@@ -123,9 +128,10 @@
                                         'type' => 'Jenis Dokumen',
                                         'number' => 'Nomor Surat',
                                         'date' => 'Tanggal Surat',
-                                        'title' => 'Judul',
-                                        'survey_location' => 'Tempat Survey',
-                                        'purpose' => 'Tujuan Pengajuan',
+                                        'academic_year' => 'Tahun Ajaran',
+                                        'semester' => 'Semester',
+                                        'university' => 'Universitas Tujuan',
+                                        'reason' => 'Alasan Pindah',
                                     ];
                                 @endphp
                                 <table class="table table-bordered">
@@ -157,6 +163,7 @@
                                         'name' => 'Nama Lengkap',
                                         'nim' => 'NIM',
                                         'study_program' => 'Program Studi',
+                                        'current_university' => 'Universitas Asal',
                                     ];
                                 @endphp
                                 <table class="table table-bordered">
@@ -207,7 +214,7 @@
                                                     @if ($key === 'verification_code')
                                                         <div class="d-flex align-items-center gap-2">
                                                             <span>{{ $value ?? '-' }}</span>
-                                                            <button class="btn btn-sm btn-primary copy-btn"
+                                                            <button class="btn btn-sm btn-secondary copy-btn"
                                                                 onclick="copyToClipboard('{{ $value }}')">Salin</button>
                                                         </div>
                                                     @else
@@ -244,7 +251,6 @@
                                         'diajukan' => 'secondary',
                                         'diproses' => 'warning',
                                         'disetujui_kaprodi' => 'info',
-                                        'disetujui_pimpinan' => 'info',
                                         'disetujui' => 'success',
                                         'ditolak' => 'danger',
                                         'siap_diambil' => 'primary',
@@ -253,7 +259,7 @@
                                     $verificationLabels = [
                                         'status' => 'Status',
                                         'verified_at' => 'Waktu Verifikasi',
-                                        'confirmation_code' => 'Kode Verifikasi',
+                                        'verification_code' => 'Kode Verifikasi',
                                     ];
                                     $statusKey = $verification_data['verification']['status'] ?? 'diproses';
                                     $statusClassValue = $statusClass[$statusKey] ?? 'secondary';
@@ -264,10 +270,10 @@
                                             <th width="40%">
                                                 {{ $verificationLabels[$key] ?? ucfirst(str_replace('_', ' ', $key)) }}</th>
                                             <td>
-                                                @if ($key === 'confirmation_code')
+                                                @if ($key === 'verification_code')
                                                     <div class="d-flex align-items-center gap-2">
                                                         <span>{{ $value ?? '-' }}</span>
-                                                        <button class="btn btn-sm btn-primary copy-btn"
+                                                        <button class="btn btn-sm btn-secondary copy-btn"
                                                             onclick="copyToClipboard('{{ $value }}')">Salin</button>
                                                     </div>
                                                 @else

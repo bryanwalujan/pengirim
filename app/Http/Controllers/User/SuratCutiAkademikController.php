@@ -70,9 +70,9 @@ class SuratCutiAkademikController extends Controller
                 'semester' => $validated['semester'],
             ]);
 
+            // Simpan multiple files
             if ($request->hasFile('file_pendukung_path')) {
-                $path = $request->file('file_pendukung_path')->store('surat-cuti-akademik/pendukung', 'public');
-                $surat->update(['file_pendukung_path' => $path]);
+                $surat->attachDokumenPendukung($request->file('file_pendukung_path'));
             }
 
             StatusSurat::create([

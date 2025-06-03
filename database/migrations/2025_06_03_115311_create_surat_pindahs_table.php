@@ -11,6 +11,7 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('surat_pindahs', function (Blueprint $table) {
+            $table->id();
             $table->foreignId('mahasiswa_id')->constrained('users')->onDelete('cascade');
 
             // Informasi Pengajuan

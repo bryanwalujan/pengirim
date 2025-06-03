@@ -68,8 +68,8 @@
                             <th>No</th>
                             <th>Mahasiswa</th>
                             <th>No. Surat</th>
-                            <th>Program Studi Asal</th>
-                            <th>Program Studi Tujuan</th>
+                            <th>Universitas Tujuan</th>
+                            <th>Alasan Pindah</th>
                             <th>Status</th>
                             <th>Aksi</th>
                         </tr>
@@ -88,8 +88,8 @@
                                         {{ $surat->tanggal_surat ? $surat->tanggal_surat->format('d/m/Y') : '-' }}
                                     </small>
                                 </td>
-                                <td>{{ $surat->program_studi_asal }}</td>
-                                <td>{{ $surat->program_studi_tujuan }}</td>
+                                <td>{{ $surat->universitas_tujuan ?? '-' }}</td>
+                                <td>{{ $surat->alasan_pengajuan ?? '-' }}</td>
                                 <td>
                                     @php
                                         $statusClass = match ($surat->status ?? 'diajukan') {
