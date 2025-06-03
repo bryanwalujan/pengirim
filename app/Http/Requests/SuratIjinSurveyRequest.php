@@ -25,7 +25,7 @@ class SuratIjinSurveyRequest extends FormRequest
             'judul' => 'required|string|max:500',
             'tempat_survey' => 'required|string|max:500',
             'keterangan_tambahan' => 'nullable|string|max:500',
-            'file_pendukung_path' => 'nullable|file|mimes:pdf,jpg,png|max:2048',
+            'file_pendukung' => 'nullable|file|mimes:pdf,jpg,png|max:2048',
             'semester' => 'required|in:ganjil,genap',
         ];
     }
