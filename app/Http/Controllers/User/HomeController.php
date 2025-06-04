@@ -4,10 +4,12 @@ namespace App\Http\Controllers\User;
 
 use App\Models\Service;
 use App\Models\StatusSurat;
+use App\Models\SuratPindah;
 use Illuminate\Http\Request;
 use App\Models\SuratIjinSurvey;
 use App\Models\AcademicCalendar;
 use App\Models\SuratAktifKuliah;
+use App\Models\SuratCutiAkademik;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
 
@@ -31,8 +33,8 @@ class HomeController extends Controller
         $letterCounts = [
             'aktif_kuliah' => $this->getLetterCount(SuratAktifKuliah::class),
             'ijin_survey' => $this->getLetterCount(SuratIjinSurvey::class),
-            // 'cuti_akademik' => $this->getLetterCount(SuratCutiAkademik::class),
-            // 'pindah' => $this->getLetterCount(SuratPindah::class),
+            'cuti_akademik' => $this->getLetterCount(SuratCutiAkademik::class),
+            'pindah' => $this->getLetterCount(SuratPindah::class),
         ];
 
         return view('user.home.index', [

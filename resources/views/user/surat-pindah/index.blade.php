@@ -260,7 +260,6 @@
 
         .table-responsive {
             border-radius: 10px;
-            overflow: hidden;
         }
 
         .table {
