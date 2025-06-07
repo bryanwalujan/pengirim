@@ -134,6 +134,22 @@
                 padding: 0.75rem;
             }
         }
+
+        .performance-card {
+            background: linear-gradient(145deg, #e6f3fa, #d9e8f3);
+        }
+
+        @media (max-width: 640px) {
+            .grid-cols-1 md\:grid-cols-2 {
+                grid-template-columns: 1fr;
+            }
+
+            th,
+            td {
+                font-size: 0.75rem;
+                padding: 0.75rem;
+            }
+        }
     </style>
 @endpush
 
@@ -152,15 +168,14 @@
         </div>
     </div>
 
-    <section id="tracking-detail" class="section-space py-12">
+    <section id="tracking" class="section-space py-12">
         <div class="container mx-auto px-4">
             <div class="max-w-4xl mx-auto">
-                @if ($surat->status && $surat->status === 'unknown')
+                @if ($surat->statusSurat->status === 'unknown')
                     <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4 rounded" role="alert">
                         <p>Status surat belum tersedia. Silakan hubungi admin.</p>
                     </div>
                 @endif
-
 
                 <div class="card p-6" data-aos="fade-up">
                     <h2 class="text-2xl font-semibold mb-4">Informasi Surat</h2>
@@ -185,12 +200,24 @@
                         <p>
                             <strong>Status:</strong>
                             <span
-                                class="status-badge status-{{ str_replace('_', '-', $surat->status->status ?? 'unknown') }}">
-                                {{ str_replace('_', ' ', $surat->status->status ?? 'Unknown') }}
+                                class="status-badge status-{{ str_replace('_', '-', $surat->statusSurat->status ?? 'unknown') }}">
+                                {{ str_replace('_', ' ', $surat->statusSurat->status ?? 'unknown') }}
                             </span>
                         </p>
-                        <p><strong>Catatan Admin:</strong> {{ $surat->status->catatan_admin ?? '-' }}</p>
-                        <p><strong>Diperbarui Oleh:</strong> {{ $surat->status->updatedBy->name ?? '-' }}
+                        <p><strong>Catatan:</strong> {{ $surat->statusSurat->catatan_admin ?? '-' }}</p>
+                        <p><strong>Diperbarui Oleh:</strong> {{ optional($surat->statusSurat->updatedBy)->name ?? '-' }}
+                        </p>
+                    </div>
+                </div>
+
+                {{-- Perhitungan performa pencarian --}}
+                <div class="card performance-card p-6 mt-6" data-aos="fade-up" data-aos-delay="100">
+                    <h2 class="text-2xl font-semibold mb-4">Performa Pencarian Kode Tracking</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <p><strong>Jumlah Iterasi:</strong> {{ $iterationCount ?? '-' }}</p>
+                        <p><strong>Waktu Eksekusi:</strong> {{ number_format($executionTime ?? 0, 2) }} ms</p>
+                        <p><strong>Efisiensi Algoritma:</strong> Binary Search (O(log n)) jauh lebih cepat dibandingkan
+                            Linear Search (O(n)), terutama untuk jumlah kode tracking yang besar.</p>
                     </div>
                 </div>
 

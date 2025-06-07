@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Service;
 use App\Models\StatusSurat;
 use App\Models\TahunAjaran;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Models\TrackingSurat;
 use App\Models\SuratCutiAkademik;
@@ -74,6 +75,9 @@ class SuratCutiAkademikController extends Controller
             if ($request->hasFile('file_pendukung_path')) {
                 $surat->attachDokumenPendukung($request->file('file_pendukung_path'));
             }
+
+            $surat->tracking_code = Str::random(12);
+            $surat->save();
 
             StatusSurat::create([
                 'surat_type' => SuratCutiAkademik::class,

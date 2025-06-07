@@ -70,10 +70,16 @@ class SuratAktifKuliah extends Model
         return $this->morphMany(TrackingSurat::class, 'surat', 'surat_type', 'surat_id');
     }
 
-    // Get the current status of the document
-    public function getCurrentStatusAttribute()
+    // Tambahkan method ini untuk memastikan relasi status selalu mengembalikan objek
+    public function getStatusSuratAttribute()
     {
-        return $this->status()->first()->status ?? null;
+        return $this->status()->firstOr(function () {
+            return new StatusSurat([
+                'status' => 'unknown',
+                'catatan_admin' => null,
+                'updated_by' => null
+            ]);
+        });
     }
 
 

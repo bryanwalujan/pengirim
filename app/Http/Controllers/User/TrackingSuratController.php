@@ -28,6 +28,13 @@ class TrackingSuratController extends Controller
             $trackingCodes = $this->collectTrackingCodes();
             sort($trackingCodes);
 
+            // Hitung waktu dan iterasi untuk binary search
+            $startTime = microtime(true);
+            $searchResult = $this->binarySearch($trackingCodes, $code);
+            $endTime = microtime(true);
+            $executionTime = ($endTime - $startTime) * 1000; // Konversi ke milidetik
+            $iterationCount = is_array($searchResult) ? $searchResult['iterations'] : null;
+
             // Binary search
             if ($this->binarySearch($trackingCodes, $code) === false) {
                 Log::warning('Kode tracking tidak ditemukan', [
@@ -41,61 +48,32 @@ class TrackingSuratController extends Controller
             $surat = $this->findSuratByTrackingCode($code);
 
             if (!$surat || $surat->mahasiswa_id !== Auth::id()) {
-                Log::warning('Surat tidak ditemukan atau akses ditolak', [
-                    'code' => $code,
-                    'user_id' => Auth::id(),
-                    'surat_id' => $surat ? $surat->id : null,
-                ]);
                 return back()->with('error', 'Surat tidak ditemukan atau Anda tidak memiliki akses.');
             }
 
             // Load relasi dengan eager loading yang benar
             $surat->load([
                 'mahasiswa',
-                'status' => function ($query) {
-                    $query->with(['updatedBy']); // Pastikan updatedBy dimuat
-                },
-                'trackings' => function ($query) {
-                    $query->latest()->with('mahasiswa');
-                },
+                'status.updatedBy', // Pastikan updatedBy dimuat
+                'trackings.mahasiswa',
                 'penandatangan',
                 'penandatanganKaprodi',
             ]);
 
-            // Pastikan entri StatusSurat ada
-            $currentStatus = $surat->status ? $surat->status : null;
-            if (!$currentStatus || $currentStatus === 'unknown') {
-                Log::error('Status tidak valid untuk surat', [
-                    'surat_id' => $surat->id,
+            // Pastikan status ada
+            if (!$surat->status()->exists()) {
+                StatusSurat::create([
                     'surat_type' => get_class($surat),
-                    'user_id' => Auth::id(),
-                    'current_status' => $currentStatus,
+                    'surat_id' => $surat->id,
+                    'status' => 'diajukan',
+                    'catatan_admin' => 'Status default dibuat sistem',
+                    'updated_by' => Auth::id(),
                 ]);
-                try {
-                    DB::transaction(function () use ($surat) {
-                        StatusSurat::updateOrCreate(
-                            [
-                                'surat_type' => get_class($surat),
-                                'surat_id' => $surat->id,
-                            ],
-                            [
-                                'status' => 'diajukan',
-                                'catatan_admin' => 'Status default dibuat sistem', // Tambahkan catatan default
-                                'updated_by' => Auth::id(),
-                            ]
-                        );
-                    });
-                    $surat->refresh(); // Reload relasi
-                    $surat->load('status.updatedBy');
-                } catch (\Exception $e) {
-                    Log::error('Gagal membuat Status default', [
-                        'surat_id' => $surat->id,
-                        'error' => $e->getMessage(),
-                    ]);
-                }
+                $surat->load('status.updatedBy'); // Reload relasi status dan updatedBy
             }
 
-            return view('user.tracking-surat.show', compact('surat'));
+
+            return view('user.tracking-surat.show', compact('surat', 'executionTime', 'iterationCount'));
         }
 
         return view('user.tracking-surat.index');
@@ -106,7 +84,7 @@ class TrackingSuratController extends Controller
         $codes = [];
         $models = [
             SuratAktifKuliah::class,
-            // SuratCutiAkademik::class,
+            SuratCutiAkademik::class,
             // SuratPindah::class,
             // SuratIjinSurvey::class,
         ];
@@ -122,12 +100,14 @@ class TrackingSuratController extends Controller
     {
         $left = 0;
         $right = count($array) - 1;
+        $iterations = 0;
 
         while ($left <= $right) {
+            $iterations++;
             $mid = floor(($left + $right) / 2);
 
             if ($array[$mid] === $target) {
-                return $mid;
+                return ['index' => $mid, 'iterations' => $iterations];
             }
 
             if ($array[$mid] < $target) {
@@ -137,14 +117,14 @@ class TrackingSuratController extends Controller
             }
         }
 
-        return false;
+        return ['index' => false, 'iterations' => $iterations];
     }
 
     protected function findSuratByTrackingCode($code)
     {
         $models = [
             SuratAktifKuliah::class,
-            // SuratCutiAkademik::class,
+            SuratCutiAkademik::class,
             // SuratPindah::class,
             // SuratIjinSurvey::class,
         ];

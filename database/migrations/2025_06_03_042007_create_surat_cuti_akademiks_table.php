@@ -12,6 +12,7 @@ return new class extends Migration {
     {
         Schema::create('surat_cuti_akademiks', function (Blueprint $table) {
             $table->id();
+            $table->string('tracking_code', 12)->unique(); // Kode tracking unik
             // Informasi Mahasiswa
             $table->foreignId('mahasiswa_id')->constrained('users')->onDelete('cascade');
             // Informasi Pengajuan

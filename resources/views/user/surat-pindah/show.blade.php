@@ -89,21 +89,6 @@
             transform: translateY(-3px);
         }
 
-        .progress {
-            height: 30px;
-            border-radius: 15px;
-            background: #e9ecef;
-            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-
-        .progress-bar {
-            border-radius: 15px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: width 0.5s ease;
-        }
 
         .file-link {
             display: flex;
@@ -146,116 +131,136 @@
                             <h4 class="mb-0 fw-bold text-center text-white">Detail Pengajuan Surat Pindah</h4>
                         </div>
                         <div class="card-body">
-                            <!-- Informasi Mahasiswa -->
-                            <div class="mb-5" data-aos="fade-up" data-aos-delay="100">
-                                <h5 class="section-title">Informasi Mahasiswa</h5>
-                                <div class="row g-4">
-                                    <div class="col-md-6">
-                                        <label class="form-label">Nama Lengkap</label>
-                                        <input type="text" class="form-control" value="{{ $surat->mahasiswa->name }}"
-                                            readonly>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">NIM</label>
+                            <h5 class="section-title">Informasi Surat</h5>
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <label class="form-label">Kode Tracking</label>
+                                    <div class="input-group">
                                         <input type="text" class="form-control"
-                                            value="{{ $surat->mahasiswa->nim ?? '-' }}" readonly>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">Program Studi</label>
-                                        <input type="text" class="form-control"
-                                            value="{{ $surat->mahasiswa->prodi ?? 'S1 Teknik Informatika' }}" readonly>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">Semester</label>
-                                        <input type="text" class="form-control" value="{{ $surat->semester ?? '-' }}"
-                                            readonly>
+                                            value="{{ $surat->tracking_code ?? '-' }}" readonly>
+                                        <button class="btn btn-outline-primary"
+                                            onclick="copyTrackingCode('{{ $surat->tracking_code }}')">
+                                            <i class="bi bi-clipboard"></i>
+                                        </button>
                                     </div>
                                 </div>
-                            </div>
-
-                            <!-- Detail Pengajuan -->
-                            <div class="mb-5" data-aos="fade-up" data-aos-delay="200">
-                                <h5 class="section-title">Detail Pengajuan</h5>
-                                <div class="row g-4">
-                                    <div class="col-md-6">
-                                        <label class="form-label">Tahun Ajaran</label>
-                                        <input type="text" class="form-control" value="{{ $surat->tahun_ajaran ?? '-' }}"
-                                            readonly>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">Semester</label>
-                                        <input type="text" class="form-control"
-                                            value="{{ ucfirst($surat->semester ?? '-') }}" readonly>
-                                    </div>
-                                    <div class="col-md-12">
-                                        <label class="form-label">Universitas Tujuan</label>
-                                        <input type="text" class="form-control"
-                                            value="{{ $surat->universitas_tujuan ?? '-' }}" readonly>
-                                    </div>
-                                    <div class="col-12">
-                                        <label class="form-label">Alasan Pengajuan</label>
-                                        <textarea class="form-control" rows="4" readonly>{{ $surat->alasan_pengajuan ?? '-' }}</textarea>
-                                    </div>
-                                    <div class="col-12">
-                                        <label class="form-label">Keterangan Tambahan</label>
-                                        <textarea class="form-control" rows="3" readonly>{{ $surat->keterangan_tambahan ?? '-' }}</textarea>
-                                    </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Nomor Surat</label>
+                                    <input type="text" class="form-control"
+                                        value="{{ $surat->nomor_surat ?? 'Belum ditentukan' }}" readonly>
                                 </div>
                             </div>
-
-                            <!-- Dokumen Pendukung -->
-                            @if ($surat->file_pendukung_path)
-                                <div class="mb-5" data-aos="fade-up" data-aos-delay="300">
-                                    <h5 class="section-title">Dokumen Pendukung</h5>
-                                    <a href="{{ Storage::url($surat->file_pendukung_path) }}" target="_blank"
-                                        class="file-link text-decoration-none">
-                                        <i class="bi bi-file-earmark-text fs-4 text-primary"></i>
-                                        Lihat Dokumen Pendukung
-                                    </a>
+                        </div>
+                        <!-- Informasi Mahasiswa -->
+                        <div class="mb-5" data-aos="fade-up" data-aos-delay="100">
+                            <h5 class="section-title">Informasi Mahasiswa</h5>
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <label class="form-label">Nama Lengkap</label>
+                                    <input type="text" class="form-control" value="{{ $surat->mahasiswa->name }}"
+                                        readonly>
                                 </div>
-                            @endif
-
-                            <!-- File Surat -->
-                            <div class="mb-5" data-aos="fade-up" data-aos-delay="400">
-                                <h5 class="section-title">File Surat</h5>
-                                @if ($surat->file_surat_path)
-                                    @if ($surat->status === 'sudah_diambil')
-                                        <a href="{{ route('user.surat-pindah.download', $surat->id) }}"
-                                            class="file-link text-decoration-none">
-                                            <i class="bi bi-file-earmark-pdf fs-4 text-success"></i>
-                                            Unduh Surat Pindah
-                                        </a>
-                                    @elseif ($surat->status === 'siap_diambil')
-                                        <div class="alert alert-warning">
-                                            <p>Silakan konfirmasi penerimaan surat terlebih dahulu untuk mengunduh.</p>
-                                            <form action="{{ route('user.surat-pindah.confirm-taken', $surat->id) }}"
-                                                method="POST" class="d-inline">
-                                                @csrf
-                                                <button type="submit" class="btn btn-primary">
-                                                    <i class="bi bi-check-circle me-2"></i> Konfirmasi Sudah Diambil
-                                                </button>
-                                            </form>
-                                        </div>
-                                    @else
-                                        <p class="text-muted">File surat belum tersedia. Silakan tunggu hingga status
-                                            berubah menjadi "Siap Diambil".</p>
-                                    @endif
-                                @else
-                                    <p class="text-muted">File surat belum tersedia. Silakan tunggu hingga status berubah
-                                        menjadi "Siap Diambil".</p>
-                                @endif
+                                <div class="col-md-6">
+                                    <label class="form-label">NIM</label>
+                                    <input type="text" class="form-control" value="{{ $surat->mahasiswa->nim ?? '-' }}"
+                                        readonly>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Program Studi</label>
+                                    <input type="text" class="form-control"
+                                        value="{{ $surat->mahasiswa->prodi ?? 'S1 Teknik Informatika' }}" readonly>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Semester</label>
+                                    <input type="text" class="form-control" value="{{ $surat->semester ?? '-' }}"
+                                        readonly>
+                                </div>
                             </div>
+                        </div>
 
-                            <!-- Actions -->
-                            <div class="d-flex justify-content-between mt-5" data-aos="fade-up" data-aos-delay="500">
-                                <a href="{{ route('user.surat-pindah.index') }}" class="btn btn-secondary">
-                                    <i class="bi bi-arrow-left me-2"></i> Kembali ke Daftar
+                        <!-- Detail Pengajuan -->
+                        <div class="mb-5" data-aos="fade-up" data-aos-delay="200">
+                            <h5 class="section-title">Detail Pengajuan</h5>
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <label class="form-label">Tahun Ajaran</label>
+                                    <input type="text" class="form-control" value="{{ $surat->tahun_ajaran ?? '-' }}"
+                                        readonly>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Semester</label>
+                                    <input type="text" class="form-control"
+                                        value="{{ ucfirst($surat->semester ?? '-') }}" readonly>
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="form-label">Universitas Tujuan</label>
+                                    <input type="text" class="form-control"
+                                        value="{{ $surat->universitas_tujuan ?? '-' }}" readonly>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label">Alasan Pengajuan</label>
+                                    <textarea class="form-control" rows="4" readonly>{{ $surat->alasan_pengajuan ?? '-' }}</textarea>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label">Keterangan Tambahan</label>
+                                    <textarea class="form-control" rows="3" readonly>{{ $surat->keterangan_tambahan ?? '-' }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dokumen Pendukung -->
+                        @if ($surat->file_pendukung_path)
+                            <div class="mb-5" data-aos="fade-up" data-aos-delay="300">
+                                <h5 class="section-title">Dokumen Pendukung</h5>
+                                <a href="{{ Storage::url($surat->file_pendukung_path) }}" target="_blank"
+                                    class="file-link text-decoration-none">
+                                    <i class="bi bi-file-earmark-text fs-4 text-primary"></i>
+                                    Lihat Dokumen Pendukung
                                 </a>
                             </div>
+                        @endif
+
+                        <!-- File Surat -->
+                        <div class="mb-5" data-aos="fade-up" data-aos-delay="400">
+                            <h5 class="section-title">File Surat</h5>
+                            @if ($surat->file_surat_path)
+                                @if ($surat->status === 'sudah_diambil')
+                                    <a href="{{ route('user.surat-pindah.download', $surat->id) }}"
+                                        class="file-link text-decoration-none">
+                                        <i class="bi bi-file-earmark-pdf fs-4 text-success"></i>
+                                        Unduh Surat Pindah
+                                    </a>
+                                @elseif ($surat->status === 'siap_diambil')
+                                    <div class="alert alert-warning">
+                                        <p>Silakan konfirmasi penerimaan surat terlebih dahulu untuk mengunduh.</p>
+                                        <form action="{{ route('user.surat-pindah.confirm-taken', $surat->id) }}"
+                                            method="POST" class="d-inline">
+                                            @csrf
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="bi bi-check-circle me-2"></i> Konfirmasi Sudah Diambil
+                                            </button>
+                                        </form>
+                                    </div>
+                                @else
+                                    <p class="text-muted">File surat belum tersedia. Silakan tunggu hingga status
+                                        berubah menjadi "Siap Diambil".</p>
+                                @endif
+                            @else
+                                <p class="text-muted">File surat belum tersedia. Silakan tunggu hingga status berubah
+                                    menjadi "Siap Diambil".</p>
+                            @endif
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="d-flex justify-content-between mt-5" data-aos="fade-up" data-aos-delay="500">
+                            <a href="{{ route('user.surat-pindah.index') }}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left me-2"></i> Kembali ke Daftar
+                            </a>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
         </div>
     </section>
 @endsection

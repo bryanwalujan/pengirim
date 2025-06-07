@@ -89,21 +89,6 @@
             transform: translateY(-3px);
         }
 
-        .progress {
-            height: 30px;
-            border-radius: 15px;
-            background: #e9ecef;
-            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-
-        .progress-bar {
-            border-radius: 15px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: width 0.5s ease;
-        }
 
         .file-link {
             display: flex;
@@ -146,6 +131,28 @@
                             <h4 class="mb-0 fw-bold text-center text-white">Detail Pengajuan Surat Ijin Survey</h4>
                         </div>
                         <div class="card-body">
+                            {{-- Informasi Surat --}}
+                            <div class="mb-5" data-aos="fade-up" data-aos-delay="100">
+                                <h5 class="section-title">Informasi Surat</h5>
+                                <div class="row g-4">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Kode Tracking</label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control"
+                                                value="{{ $surat->tracking_code ?? '-' }}" readonly>
+                                            <button class="btn btn-outline-primary"
+                                                onclick="copyTrackingCode('{{ $surat->tracking_code }}')">
+                                                <i class="bi bi-clipboard"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Nomor Surat</label>
+                                        <input type="text" class="form-control"
+                                            value="{{ $surat->nomor_surat ?? 'Belum ditentukan' }}" readonly>
+                                    </div>
+                                </div>
+                            </div>
                             <!-- Informasi Mahasiswa -->
                             <div class="mb-5" data-aos="fade-up" data-aos-delay="100">
                                 <h5 class="section-title">Informasi Mahasiswa</h5>

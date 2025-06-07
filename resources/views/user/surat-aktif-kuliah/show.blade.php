@@ -99,22 +99,6 @@
             transform: translateY(-3px);
         }
 
-        .progress {
-            height: 30px;
-            border-radius: 15px;
-            background: #e9ecef;
-            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-
-        .progress-bar {
-            border-radius: 15px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: width 0.5s ease;
-        }
-
         .file-link {
             display: flex;
             align-items: center;
@@ -129,24 +113,6 @@
             background: #e9ecef;
             transform: translateY(-2px);
             box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
-        }
-
-        .tracking-table th,
-        .tracking-table td {
-            border: 1px solid #e2e8f0;
-            padding: 1rem;
-        }
-
-        .tracking-table th {
-            background: #f8fafc;
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            color: #5a6a85;
-        }
-
-        .tracking-table tbody tr:nth-child(even) {
-            background: #f9fafb;
         }
     </style>
 @endpush

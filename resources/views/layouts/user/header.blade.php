@@ -21,7 +21,7 @@
                         onclick="scrollToSection('services')">Layanan</a>
                 </li>
                 <li><a href="{{ route('user.tracking-surat.index') }}"
-                        class="{{ request()->is('tracking-surat') && request()->has('scroll' == 'tracking-surat' ? 'active' : '') }}"
+                        class="{{ request()->is('tracking-surat/*') && request()->has('scroll' == 'tracking-surat' ? 'active' : '') }}"
                         onclick="scrollToSection('tracking')">Tracking
                         Surat</a>
                 </li>
