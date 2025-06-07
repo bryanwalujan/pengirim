@@ -14,16 +14,6 @@
             color: #6c757d;
         }
 
-        .breadcrumbs a {
-            color: #0d6efd;
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
-
-        .breadcrumbs a:hover {
-            text-decoration: underline;
-        }
-
         .card {
             border-radius: 1.5rem;
             border: none;
@@ -140,6 +130,24 @@
             transform: translateY(-2px);
             box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
         }
+
+        .tracking-table th,
+        .tracking-table td {
+            border: 1px solid #e2e8f0;
+            padding: 1rem;
+        }
+
+        .tracking-table th {
+            background: #f8fafc;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            color: #5a6a85;
+        }
+
+        .tracking-table tbody tr:nth-child(even) {
+            background: #f9fafb;
+        }
     </style>
 @endpush
 
@@ -166,45 +174,28 @@
                             <h4 class="mb-0 fw-bold text-center text-white">Detail Pengajuan Surat Aktif Kuliah</h4>
                         </div>
                         <div class="card-body">
-                            {{-- @php
-                                $statusClass = match ($surat->status ?? 'diajukan') {
-                                    'disetujui', 'siap_diambil', 'sudah_diambil' => 'success',
-                                    'ditolak' => 'danger',
-                                    default => 'warning',
-                                };
-                                $statusProgress = match ($surat->status ?? 'diajukan') {
-                                    'diajukan' => 20,
-                                    'diproses' => 40,
-                                    'disetujui' => 60,
-                                    'siap_diambil' => 80,
-                                    'sudah_diambil' => 100,
-                                    'ditolak' => 0,
-                                    default => 20,
-                                };
-                                $progressColor = match ($surat->status ?? 'diajukan') {
-                                    'disetujui', 'siap_diambil', 'sudah_diambil' => 'bg-success',
-                                    'ditolak' => 'bg-danger',
-                                    default => 'bg-warning',
-                                };
-                            @endphp --}}
-
-                            <!-- Status Progress -->
-                            {{-- <div class="mb-5">
-                                <h5 class="section-title">Status Pengajuan</h5>
-                                <div class="progress" role="progressbar" aria-label="Status Progress"
-                                    aria-valuenow="{{ $statusProgress }}" aria-valuemin="0" aria-valuemax="100">
-                                    <div class="progress-bar {{ $progressColor }}" style="width: {{ $statusProgress }}%">
-                                        {{ $surat->status ?? 'diajukan' }}
+                            <!-- Informasi Surat -->
+                            <div class="mb-5" data-aos="fade-up" data-aos-delay="100">
+                                <h5 class="section-title">Informasi Surat</h5>
+                                <div class="row g-4">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Kode Tracking</label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control"
+                                                value="{{ $surat->tracking_code ?? '-' }}" readonly>
+                                            <button class="btn btn-outline-primary"
+                                                onclick="copyTrackingCode('{{ $surat->tracking_code }}')">
+                                                <i class="bi bi-clipboard"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Nomor Surat</label>
+                                        <input type="text" class="form-control"
+                                            value="{{ $surat->nomor_surat ?? 'Belum ditentukan' }}" readonly>
                                     </div>
                                 </div>
-                                @if ($surat->status()->first()?->catatan_admin)
-                                    <div class="alert alert-{{ $statusClass }} mt-4">
-                                        <h5 class="alert-heading">Catatan Admin:</h5>
-                                        <p class="mb-0">{{ $surat->status()->first()->catatan_admin }}</p>
-                                    </div>
-                                @endif
-                            </div> --}}
-
+                            </div>
                             <!-- Informasi Mahasiswa -->
                             <div class="mb-5" data-aos="fade-up" data-aos-delay="100">
                                 <h5 class="section-title">Informasi Mahasiswa</h5>
@@ -282,7 +273,8 @@
                                     @elseif ($surat->status === 'siap_diambil')
                                         <div class="alert alert-warning">
                                             <p>Silakan konfirmasi penerimaan surat terlebih dahulu untuk mengunduh.</p>
-                                            <form action="{{ route('user.surat-aktif-kuliah.confirm-taken', $surat->id) }}"
+                                            <form
+                                                action="{{ route('user.surat-aktif-kuliah.confirm-taken', $surat->id) }}"
                                                 method="POST" class="d-inline">
                                                 @csrf
                                                 <button type="submit" class="btn btn-primary">
@@ -320,5 +312,16 @@
             duration: 400,
             once: true
         });
+
+        function copyTrackingCode(code) {
+            navigator.clipboard.writeText(code);
+            Swal.fire({
+                icon: 'success',
+                title: 'Disalin!',
+                text: 'Kode tracking telah disalin ke clipboard.',
+                showConfirmButton: false,
+                timer: 1500
+            });
+        }
     </script>
 @endpush

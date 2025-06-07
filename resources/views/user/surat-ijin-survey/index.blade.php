@@ -8,31 +8,6 @@
 
     <style>
         /* Same styles as surat-aktif-kuliah index.blade.php */
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: #f5f7fb;
-        }
-
-        .breadcrumbs ol {
-            margin-bottom: 0;
-            padding-left: 0;
-            list-style: none;
-            display: flex;
-            gap: 0.5rem;
-            font-size: 0.9rem;
-            color: #6c757d;
-        }
-
-        .breadcrumbs a {
-            color: #4361ee;
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
-
-        .breadcrumbs a:hover {
-            text-decoration: underline;
-            color: #3a0ca3;
-        }
 
         .card {
             border-radius: 1rem;

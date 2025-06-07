@@ -32,6 +32,7 @@ class SuratAktifKuliah extends Model
         'verification_code',
         'verification_code_kaprodi', // Kode verifikasi untuk Kaprodi
         'verification_code_pimpinan', // Kode verifikasi untuk Pimpinan
+        'tracking_code',
     ];
 
     protected $casts = [
@@ -58,7 +59,9 @@ class SuratAktifKuliah extends Model
     {
         return $this->morphOne(StatusSurat::class, 'surat', 'surat_type', 'surat_id')
             ->withDefault([
-                'status' => 'unknown'
+                'status' => 'unknown',
+                'catatan_admin' => null,
+                'updated_by' => null
             ]);
     }
 
@@ -66,6 +69,13 @@ class SuratAktifKuliah extends Model
     {
         return $this->morphMany(TrackingSurat::class, 'surat', 'surat_type', 'surat_id');
     }
+
+    // Get the current status of the document
+    public function getCurrentStatusAttribute()
+    {
+        return $this->status()->first()->status ?? null;
+    }
+
 
     // Get the status of the document
     public function getStatusAttribute()

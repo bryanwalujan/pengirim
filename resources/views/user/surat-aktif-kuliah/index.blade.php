@@ -29,17 +29,6 @@
             color: #6c757d;
         }
 
-        .breadcrumbs a {
-            color: #4361ee;
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
-
-        .breadcrumbs a:hover {
-            text-decoration: underline;
-            color: #3a0ca3;
-        }
-
         .card {
             border-radius: 1rem;
             border: none;
@@ -85,50 +74,50 @@
             color: white;
         }
 
-        .status-badge {
-            font-size: 0.75rem;
-            font-weight: 600;
-            padding: 0.4rem 0.8rem;
-            border-radius: 50rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
+        /* .status-badge {
+                                                                                        font-size: 0.75rem;
+                                                                                        font-weight: 600;
+                                                                                        padding: 0.4rem 0.8rem;
+                                                                                        border-radius: 50rem;
+                                                                                        text-transform: uppercase;
+                                                                                        letter-spacing: 0.5px;
+                                                                                    }
 
-        .badge-diajukan {
-            background: rgba(255, 193, 7, 0.15);
-            color: #ffc107;
-        }
+                                                                                    .badge-diajukan {
+                                                                                        background: rgba(255, 193, 7, 0.15);
+                                                                                        color: #ffc107;
+                                                                                    }
 
-        .badge-diproses {
-            background: rgba(13, 110, 253, 0.15);
-            color: #0d6efd;
-        }
+                                                                                    .badge-diproses {
+                                                                                        background: rgba(13, 110, 253, 0.15);
+                                                                                        color: #0d6efd;
+                                                                                    }
 
-        .badge-disetujui {
-            background: rgba(25, 135, 84, 0.15);
-            color: #198754;
-        }
+                                                                                    .badge-disetujui {
+                                                                                        background: rgba(25, 135, 84, 0.15);
+                                                                                        color: #198754;
+                                                                                    }
 
-        .badge-disetujui_kaprodi {
-            background: rgba(13, 202, 240, 0.15);
-            color: #0dcaf0;
-        }
+                                                                                    .badge-disetujui_kaprodi {
+                                                                                        background: rgba(13, 202, 240, 0.15);
+                                                                                        color: #0dcaf0;
+                                                                                    }
 
-        .badge-ditolak {
-            background: rgba(220, 53, 69, 0.15);
-            color: #dc3545;
-        }
+                                                                                    .badge-ditolak {
+                                                                                        background: rgba(220, 53, 69, 0.15);
+                                                                                        color: #dc3545;
+                                                                                    }
 
-        .badge-selesai,
-        .badge-sudah_diambil {
-            background: rgba(108, 117, 125, 0.15);
-            color: #6c757d;
-        }
+                                                                                    .badge-selesai,
+                                                                                    .badge-sudah_diambil {
+                                                                                        background: rgba(108, 117, 125, 0.15);
+                                                                                        color: #6c757d;
+                                                                                    }
 
-        .badge-siap_diambil {
-            background: rgba(111, 66, 193, 0.15);
-            color: #6f42c1;
-        }
+                                                                                    .badge-siap_diambil {
+                                                                                        background: rgba(111, 66, 193, 0.15);
+                                                                                        color: #6f42c1;
+                                                                                    } */
 
         .action-btn {
             width: 32px;
@@ -338,6 +327,36 @@
                 width: 100%;
             }
         }
+
+        /* Gaya asli tetap dipertahankan */
+        .btn-copy-code {
+            width: 28px;
+            height: 28px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            margin-left: 8px;
+            background: rgba(67, 97, 238, 0.1);
+            border: 1px solid rgba(67, 97, 238, 0.2);
+            color: #4361ee;
+            transition: all 0.3s ease;
+        }
+
+        .btn-copy-code:hover {
+            background: rgba(67, 97, 238, 0.2);
+            transform: scale(1.05);
+        }
+
+        .btn-copy-code i {
+            font-size: 0.875rem;
+        }
+
+        .tracking-code-container {
+            display: flex;
+            align-items: center;
+        }
     </style>
 @endpush
 
@@ -393,10 +412,10 @@
                                     <thead>
                                         <tr>
                                             <th width="15%">No. Surat</th>
+                                            <th width="15%">Kode Tracking</th>
                                             <th width="15%">Tahun/Semester</th>
                                             <th width="20%">Tujuan Pengajuan</th>
                                             <th width="15%">Tanggal Pengajuan</th>
-                                            <th width="15%">Status</th>
                                             <th width="20%">Aksi</th>
                                         </tr>
                                     </thead>
@@ -411,6 +430,18 @@
                                                     @else
                                                         <span class="text-muted">Belum ada nomor</span>
                                                     @endif
+                                                </td>
+                                                <td>
+                                                    <div class="tracking-code-container">
+                                                        <span class="tracking-code"
+                                                            title="Klik tombol disamping untuk menyalin">
+                                                            {{ $surat->tracking_code }}
+                                                        </span>
+                                                        <button class="btn-copy-code"
+                                                            onclick="copyTrackingCode('{{ $surat->tracking_code }}', this)">
+                                                            <i class="bi bi-clipboard"></i>
+                                                        </button>
+                                                    </div>
                                                 </td>
                                                 <td>
                                                     <span class="d-block">{{ $surat->tahun_ajaran }}</span>
@@ -430,29 +461,6 @@
                                                     <span class="d-block">{{ $surat->created_at->format('d F Y') }}</span>
                                                     <small
                                                         class="text-muted">{{ $surat->created_at->format('H:i') }}</small>
-                                                </td>
-                                                <td>
-                                                    @php
-                                                        $statusClass = match ($surat->status) {
-                                                            'diajukan' => 'badge-diajukan',
-                                                            'diproses' => 'badge-diproses',
-                                                            'disetujui_kaprodi' => 'badge-disetujui_kaprodi',
-                                                            'disetujui' => 'badge-disetujui',
-                                                            'siap_diambil' => 'badge-siap_diambil',
-                                                            'sudah_diambil' => 'badge-sudah_diambil',
-                                                            'ditolak' => 'badge-ditolak',
-                                                            default => 'badge-diajukan',
-                                                        };
-                                                    @endphp
-                                                    <span class="status-badge {{ $statusClass }}">
-                                                        {{ str_replace('_', ' ', $surat->status) }}
-                                                    </span>
-                                                    @if ($surat->status === 'ditolak' && $surat->statusSurat?->catatan_admin)
-                                                        <small class="text-muted d-block mt-1"
-                                                            title="{{ $surat->statusSurat->catatan_admin }}">
-                                                            {{ Str::limit($surat->statusSurat->catatan_admin, 30) }}
-                                                        </small>
-                                                    @endif
                                                 </td>
                                                 <td>
                                                     <div class="action-buttons">
@@ -508,6 +516,64 @@
     <script src="{{ asset('library/sweetalert2/dist/sweetalert2.min.js') }}"></script>
 
     <script>
+        function copyTrackingCode(code, button) {
+            // Buat elemen input sementara
+            const tempInput = document.createElement('input');
+            tempInput.value = code;
+            document.body.appendChild(tempInput);
+
+            // Pilih teks
+            tempInput.select();
+            tempInput.setSelectionRange(0, 99999); // Untuk mobile
+
+            try {
+                // Jalankan perintah salin
+                const successful = document.execCommand('copy');
+
+                if (successful) {
+                    // Ubah ikon sementara
+                    const icon = button.querySelector('i');
+                    icon.classList.remove('bi-clipboard');
+                    icon.classList.add('bi-check');
+
+                    // Tampilkan tooltip/alert
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Disalin!',
+                        text: 'Kode tracking telah disalin ke clipboard.',
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+
+                    // Kembalikan ikon setelah 2 detik
+                    setTimeout(() => {
+                        icon.classList.remove('bi-check');
+                        icon.classList.add('bi-clipboard');
+                    }, 2000);
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: 'Gagal menyalin kode tracking',
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                }
+            } catch (err) {
+                console.error('Error saat menyalin teks:', err);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Terjadi kesalahan saat menyalin',
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+            }
+
+            // Hapus elemen input sementara
+            document.body.removeChild(tempInput);
+        }
+
         $(document).ready(function() {
             // Initialize select2
             $('.select2').select2({
@@ -555,6 +621,7 @@
                     }
                 });
             });
+
 
             // AOS init
             AOS.init({

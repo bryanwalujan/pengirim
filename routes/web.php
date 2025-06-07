@@ -20,17 +20,18 @@ use App\Http\Controllers\User\SuratPindahController;
 use App\Http\Controllers\User\UserServiceController;
 use App\Http\Controllers\Admin\TahunAjaranController;
 use App\Http\Controllers\Admin\NotificationController;
+use App\Http\Controllers\User\TrackingSuratController;
 use App\Http\Controllers\Admin\PembayaranUktController;
 use App\Http\Controllers\DocumentVerificationController;
 use App\Http\Controllers\User\SuratIjinSurveyController;
 use App\Http\Controllers\User\SuratAktifKuliahController;
 use App\Http\Controllers\Admin\AcademicCalendarController;
+use App\Http\Controllers\Admin\AdminSuratPindahController;
 use App\Http\Controllers\User\SuratCutiAkademikController;
 use App\Http\Controllers\Admin\AdminSuratIjinSurveyController;
 use App\Http\Controllers\Admin\AdminSuratAktifKuliahController;
 use App\Http\Controllers\Admin\DosenSuratAktifKuliahController;
 use App\Http\Controllers\Admin\AdminSuratCutiAkademikController;
-use App\Http\Controllers\Admin\AdminSuratPindahController;
 
 // Untuk User (Mahasiswa)
 Route::get('/', [HomeController::class, 'index'])->name('user.home.index');
@@ -98,6 +99,11 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa', 'check.ukt'])->group(fu
     Route::prefix('layanan')->name('user.services.')->group(function () {
         Route::get('/', [UserServiceController::class, 'index'])->name('index');
         Route::get('/{service}/ajukan', [UserServiceController::class, 'create'])->name('create');
+    });
+
+    Route::prefix('tracking-surat')->name('user.tracking-surat.')->group(function () {
+        Route::get('/', [TrackingSuratController::class, 'index'])->name('index');
+        // Route::get('/{surat}', [TrackingSuratController::class, 'show'])->name('show');
     });
 
     // Layanan Surat Aktif Kuliah 

@@ -4,26 +4,6 @@
 
 @push('styles')
     <style>
-        .breadcrumbs ol {
-            margin-bottom: 0;
-            padding-left: 0;
-            list-style: none;
-            display: flex;
-            gap: 0.5rem;
-            font-size: 0.9rem;
-            color: #6c757d;
-        }
-
-        .breadcrumbs a {
-            color: #0d6efd;
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
-
-        .breadcrumbs a:hover {
-            text-decoration: underline;
-        }
-
         .card {
             border-radius: 1.5rem;
             border: none;
