@@ -72,21 +72,107 @@ class TrackingSuratController extends Controller
                 $surat->load('status.updatedBy'); // Reload relasi status dan updatedBy
             }
 
+            $progressPercentage = $this->calculateProgressPercentage($surat->statusSurat->status);
+            $statusSteps = $this->getStatusSteps($surat->statusSurat->status);
+            $statusIcons = [
+                'diajukan' => 'bi-send',
+                'diproses' => 'bi-gear',
+                'disetujui_kaprodi' => 'bi-person-check',
+                'disetujui' => 'bi-check-circle',
+                'siap_diambil' => 'bi-envelope-open',
+                'sudah_diambil' => 'bi-check2-all',
+                'ditolak' => 'bi-x-circle',
+                'unknown' => 'bi-question-circle'
+            ];
 
-            return view('user.tracking-surat.show', compact('surat', 'executionTime', 'iterationCount'));
+
+            return view('user.tracking-surat.show', compact('surat', 'executionTime', 'iterationCount', 'progressPercentage', 'statusSteps', 'statusIcons'));
         }
 
         return view('user.tracking-surat.index');
     }
 
+    protected function calculateProgressPercentage($status)
+    {
+        $statusOrder = [
+            'diajukan' => 0,
+            'diproses' => 1,
+            'disetujui_kaprodi' => 2,
+            'disetujui' => 3,
+            'siap_diambil' => 4,
+            'sudah_diambil' => 5,
+            'ditolak' => 0 // Jika ditolak, kembali ke awal
+        ];
+
+        $currentStep = $statusOrder[$status] ?? 0;
+        $totalSteps = count($statusOrder) - 1; // -1 karena dimulai dari 0
+
+        return ($currentStep / $totalSteps) * 100;
+    }
+
+    // Tambahkan method untuk status steps
+    protected function getStatusSteps($currentStatus)
+    {
+        $allSteps = [
+            [
+                'label' => 'Diajukan',
+                'status' => 'diajukan',
+                'status_class' => '',
+                'icon' => 'bi-send'
+            ],
+            [
+                'label' => 'Diproses',
+                'status' => 'diproses',
+                'status_class' => '',
+                'icon' => 'bi-gear'
+            ],
+            [
+                'label' => 'Disetujui Kaprodi',
+                'status' => 'disetujui_kaprodi',
+                'status_class' => '',
+                'icon' => 'bi-person-check'
+            ],
+            [
+                'label' => 'Disetujui',
+                'status' => 'disetujui',
+                'status_class' => '',
+                'icon' => 'bi-check-circle'
+            ],
+            [
+                'label' => 'Siap Diambil',
+                'status' => 'siap_diambil',
+                'status_class' => '',
+                'icon' => 'bi-envelope-open'
+            ],
+            [
+                'label' => 'Sudah Diambil',
+                'status' => 'sudah_diambil',
+                'status_class' => '',
+                'icon' => 'bi-check2-all'
+            ]
+        ];
+
+        foreach ($allSteps as &$step) {
+            if ($step['status'] === $currentStatus) {
+                $step['status_class'] = 'active';
+            } elseif (
+                array_search($step['status'], array_column($allSteps, 'status')) <
+                array_search($currentStatus, array_column($allSteps, 'status'))
+            ) {
+                $step['status_class'] = 'completed';
+            }
+        }
+
+        return $allSteps;
+    }
     protected function collectTrackingCodes()
     {
         $codes = [];
         $models = [
             SuratAktifKuliah::class,
             SuratCutiAkademik::class,
-            // SuratPindah::class,
-            // SuratIjinSurvey::class,
+            SuratPindah::class,
+            SuratIjinSurvey::class,
         ];
 
         foreach ($models as $model) {
@@ -125,8 +211,8 @@ class TrackingSuratController extends Controller
         $models = [
             SuratAktifKuliah::class,
             SuratCutiAkademik::class,
-            // SuratPindah::class,
-            // SuratIjinSurvey::class,
+            SuratPindah::class,
+            SuratIjinSurvey::class,
         ];
 
         foreach ($models as $model) {

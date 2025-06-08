@@ -20,10 +20,10 @@
                         class="{{ request()->is('layanan') || request()->is('layanan/*') || request()->is('surat-aktif-kuliah') || request()->is('surat-aktif-kuliah/*') ? 'active' : '' }}"
                         onclick="scrollToSection('services')">Layanan</a>
                 </li>
-                <li><a href="{{ route('user.tracking-surat.index') }}"
-                        class="{{ request()->is('tracking-surat/*') && request()->has('scroll' == 'tracking-surat' ? 'active' : '') }}"
-                        onclick="scrollToSection('tracking')">Tracking
-                        Surat</a>
+                <li>
+                    <a href="{{ route('user.tracking-surat.index') }}"
+                        class="{{ request()->is('tracking-surat') || request()->is('tracking-surat/*') ? 'active' : '' }}"
+                        onclick="scrollToSection('tracking')">Tracking Surat</a>
                 </li>
                 {{-- <li class="dropdown">
                     <a href="{{ Auth::check() ? '#' : route('login') }}"

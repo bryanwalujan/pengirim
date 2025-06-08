@@ -240,6 +240,34 @@
                 width: 100%;
             }
         }
+        .btn-copy-code {
+            width: 28px;
+            height: 28px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            margin-left: 8px;
+            background: rgba(67, 97, 238, 0.1);
+            border: 1px solid rgba(67, 97, 238, 0.2);
+            color: #4361ee;
+            transition: all 0.3s ease;
+        }
+
+        .btn-copy-code:hover {
+            background: rgba(67, 97, 238, 0.2);
+            transform: scale(1.05);
+        }
+
+        .btn-copy-code i {
+            font-size: 0.875rem;
+        }
+
+        .tracking-code-container {
+            display: flex;
+            align-items: center;
+        }
     </style>
 @endpush
 
