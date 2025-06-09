@@ -478,6 +478,15 @@
             </li>
         @endcan
 
+        @can('manage peminjaman laboratorium')
+            <li class="menu-item {{ request()->routeIs('admin.peminjaman-laboratorium.*') ? 'active' : '' }}">
+                <a href="{{ route('admin.peminjaman-laboratorium.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-door-open"></i>
+                    <div>Peminjaman Lab</div>
+                </a>
+            </li>
+        @endcan
+
         @if (auth()->user()->can('manage kopsurat'))
             <li class="menu-header small text-uppercase">
                 <span class="menu-header-text">Template Surat</span>

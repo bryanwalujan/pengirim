@@ -30,7 +30,8 @@ class Service extends Model
             'surat-cuti-akademik' => 'user.surat-cuti-akademik.index',
             'surat-pindah' => 'user.surat-pindah.index',
             // Tambahkan laynan lainnya di sini
-            'peminjaman-proyektor' => 'user.peminjaman-proyektor.index'
+            'peminjaman-proyektor' => 'user.peminjaman-proyektor.index',
+            'peminjaman-laboratorium' => 'user.peminjaman-laboratorium.index',
         ];
 
         // Jika ada custom route index, gunakan route khusus

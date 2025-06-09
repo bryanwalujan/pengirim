@@ -61,6 +61,9 @@ class PermissionSeeder extends Seeder
             // Peminjaman Proyektor
             ['name' => 'manage peminjaman proyektor', 'group' => 'peminjaman-proyektor'],
 
+            // Peminjaman Laboratorium
+            ['name' => 'manage peminjaman laboratorium', 'group' => 'peminjaman-laboratorium'],
+
             // User Management
             ['name' => 'manage students', 'group' => 'users'],
             ['name' => 'manage lecturers', 'group' => 'users'],

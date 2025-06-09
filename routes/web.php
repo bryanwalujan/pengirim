@@ -32,8 +32,10 @@ use App\Http\Controllers\User\PeminjamanProyektorController;
 use App\Http\Controllers\Admin\AdminSuratIjinSurveyController;
 use App\Http\Controllers\Admin\AdminSuratAktifKuliahController;
 use App\Http\Controllers\Admin\DosenSuratAktifKuliahController;
+use App\Http\Controllers\User\PeminjamanLaboratoriumController;
 use App\Http\Controllers\Admin\AdminSuratCutiAkademikController;
 use App\Http\Controllers\Admin\AdminPeminjamanProyektorController;
+use App\Http\Controllers\Admin\AdminPeminjamanLaboratoriumController;
 
 // Untuk User (Mahasiswa)
 Route::get('/', [HomeController::class, 'index'])->name('user.home.index');
@@ -157,6 +159,11 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa', 'check.ukt'])->group(fu
         Route::get('/', [PeminjamanProyektorController::class, 'index'])->name('index');
         Route::post('/', [PeminjamanProyektorController::class, 'store'])->name('store');
         Route::put('/{peminjamanProyektor}/kembalikan', [PeminjamanProyektorController::class, 'kembalikan'])->name('kembalikan');
+    });
+
+    Route::prefix('peminjaman-laboratorium')->name('user.peminjaman-laboratorium.')->group(function () {
+        Route::get('/', [PeminjamanLaboratoriumController::class, 'index'])->name('index');
+        Route::post('/', [PeminjamanLaboratoriumController::class, 'store'])->name('store');
     });
 });
 
@@ -415,8 +422,16 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::get('/download-template', [PembayaranUktController::class, 'downloadTemplate'])->name('download-template');
     });
 
+    // Peminjaman Proyektor
     Route::prefix('peminjaman-proyektor')->name('peminjaman-proyektor.')->group(function () {
         Route::get('/', [AdminPeminjamanProyektorController::class, 'index'])->name('index');
+    });
+
+    // Peminjaman Laboratorium
+    Route::prefix('peminjaman-laboratorium')->name('peminjaman-laboratorium.')->group(function () {
+        Route::get('/', [AdminPeminjamanLaboratoriumController::class, 'index'])->name('index');
+        Route::put('/', [AdminPeminjamanLaboratoriumController::class, 'store'])->name('store');
+        Route::put('/{peminjamanLaboratorium}', [AdminPeminjamanLaboratoriumController::class, 'update'])->name('update');
     });
 
 });

@@ -82,7 +82,7 @@ class ServiceSeeder extends Seeder
                 'icon' => 'bx bx-desktop', // Changed from bi bi-pc-display
                 'description' => 'Pengajuan peminjaman laboratorium komputer untuk keperluan penelitian atau kegiatan akademik.',
                 'order' => 10,
-                'is_active' => false,
+                'is_active' => true,
             ],
             [
                 'name' => 'Peminjaman Proyektor',
