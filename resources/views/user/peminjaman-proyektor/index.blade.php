@@ -19,10 +19,6 @@
 
     <section id="services" class="peminjaman-proyektor">
         <div class="container" data-aos="fade-up">
-            <div class="section-header text-center mb-5">
-                <h2 class="fw-bold">Layanan Peminjaman Proyektor</h2>
-                <p class="lead text-muted">Pinjam dan kembalikan proyektor dengan mudah melalui sistem digital kami</p>
-            </div>
 
             {{-- Notification Alerts --}}
             @if (session('success'))
@@ -57,7 +53,7 @@
                                 <div class="p-4 p-lg-5">
                                     <h4 class="fw-bold mb-3">Anda sedang meminjam proyektor</h4>
                                     <p class="text-muted mb-4">Anda telah meminjam proyektor dan belum mengembalikannya.
-                                        Harap kembalikan proyektor yang sedang Anda pinjam sebelum dapat melakukan
+                                        Harap menjaga proyektor yang sedang Anda pinjam sebelum dapat melakukan
                                         peminjaman baru.</p>
 
                                     <div class="alert alert-warning d-flex align-items-center">
@@ -88,7 +84,7 @@
                                         waktu.</p>
 
                                     <form action="{{ route('user.peminjaman-proyektor.store') }}" method="POST"
-                                        onsubmit="return confirm('Apakah Anda yakin ingin meminjam proyektor sekarang?');">
+                                        id="borrow-form">
                                         @csrf
                                         <button type="submit" class="btn btn-primary btn-lg px-4 py-3">
                                             <i class="bi bi-hand-index-thumb-fill me-2"></i>
@@ -153,7 +149,7 @@
                                                 </span>
                                             @else
                                                 <span
-                                                    class="badge rounded-pill bg-success bg-opacity-15 text-success py-2 px-3">
+                                                    class="badge rounded-pill bg-success bg-opacity-15 text-white py-2 px-3">
                                                     <i class="bi bi-check-circle me-1"></i> Dikembalikan
                                                 </span>
                                             @endif
@@ -162,8 +158,7 @@
                                             @if ($item->status == 'dipinjam')
                                                 <form
                                                     action="{{ route('user.peminjaman-proyektor.kembalikan', $item->id) }}"
-                                                    method="POST"
-                                                    onsubmit="return confirm('Penting: Pastikan Anda sudah mengembalikan proyektor secara fisik ke ruang administrasi sebelum melakukan konfirmasi ini. Lanjutkan?');">
+                                                    method="POST" id="return-form-{{ $item->id }}">
                                                     @csrf
                                                     @method('PUT')
                                                     <button type="submit" class="btn btn-sm btn-outline-primary">
@@ -291,4 +286,51 @@
             }
         }
     </style>
+@endpush
+
+@push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // Borrowing Confirmation
+        document.getElementById('borrow-form')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            Swal.fire({
+                title: 'Konfirmasi Peminjaman',
+                text: 'Apakah Anda yakin ingin meminjam proyektor sekarang?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#0d6efd',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Ya, Pinjam Sekarang',
+                cancelButtonText: 'Batal',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    this.submit();
+                }
+            });
+        });
+
+        // Returning Confirmation
+        document.querySelectorAll('[id^="return-form-"]').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                Swal.fire({
+                    title: 'Konfirmasi Pengembalian',
+                    text: 'Penting: Pastikan Anda sudah mengembalikan proyektor secara fisik ke ruang administrasi sebelum melakukan konfirmasi ini. Lanjutkan?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#0d6efd',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Ya, Konfirmasi',
+                    cancelButtonText: 'Batal',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        this.submit();
+                    }
+                });
+            });
+        });
+    </script>
 @endpush
