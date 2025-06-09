@@ -96,7 +96,7 @@
         }
 
         .loading-spinner {
-            display: none;
+            /* display: none; */
             border: 2px solid #f3f3f3;
             border-top: 2px solid #3b82f6;
             border-radius: 50%;
@@ -148,8 +148,8 @@
                                 placeholder="Masukkan Kode Tracking (12 karakter)" required
                                 value="{{ old('tracking_code') }}">
                             <button id="searchBtn" class="btn btn-primary flex items-center justify-center" type="submit">
+                                <span class="loading-spinner hidden"></span>
                                 <span class="btn-text">Cari</span>
-                                <span class="loading-spinner"></span>
                             </button>
                         </div>
                     </form>
@@ -173,31 +173,39 @@
 
 @push('scripts')
     <script>
-        document.querySelector('form').addEventListener('submit', function(e) {
-            const code = document.querySelector('input[name="tracking_code"]').value;
-            if (code.length !== 12) {
-                e.preventDefault();
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Kode tracking harus 12 karakter!',
-                    showConfirmButton: false,
-                    timer: 1500
-                });
-                return;
-            }
-            const btn = document.querySelector('#searchBtn');
-            btn.querySelector('.btn-text').classList.add('hidden');
-            btn.querySelector('.loading-spinner').classList.remove('hidden');
-            btn.disabled = true;
-        });
-
         document.addEventListener('DOMContentLoaded', () => {
             AOS.init({
                 duration: 600,
                 easing: 'ease-out',
                 once: true
             });
+
+            const trackingForm = document.querySelector('#trackingForm');
+            if (trackingForm) {
+                trackingForm.addEventListener('submit', function(e) {
+                    const codeInput = this.querySelector('input[name="tracking_code"]');
+                    const btn = this.querySelector('#searchBtn');
+                    const btnText = btn.querySelector('.btn-text');
+                    const spinner = btn.querySelector('.loading-spinner');
+
+                    if (codeInput.value.length !== 12) {
+                        e.preventDefault(); // Stop form submission
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'Kode tracking harus terdiri dari 12 karakter!',
+                            showConfirmButton: false,
+                            timer: 2000
+                        });
+                        return;
+                    }
+
+                    // Show spinner and disable button
+                    btnText.classList.add('hidden');
+                    spinner.classList.remove('hidden');
+                    btn.disabled = true;
+                });
+            }
         });
     </script>
 @endpush

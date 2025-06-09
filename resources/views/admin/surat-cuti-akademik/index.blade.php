@@ -7,7 +7,7 @@
         <h4 class="fw-bold py-3 mb-2">
             @if (auth()->user()->hasRole('dosen'))
                 @if (str_contains(auth()->user()->jabatan, 'Koordinator Program Studi'))
-                    <span class="text-muted">Daftar Surat Menunggu Persetujuan Kaprodi</span>
+                    <span class="text-muted">Daftar Surat Menunggu Persetujuan Korprodi</span>
                 @else
                     <span class="text-muted">Daftar Surat Menunggu Persetujuan Pimpinan</span>
                 @endif
@@ -29,7 +29,7 @@
                                     {{ $status === 'diproses' ? 'selected' : '' }}>Diproses</option>
                                 <option
                                     value="{{ route('admin.surat-cuti-akademik.index', ['status' => 'disetujui_kaprodi']) }}"
-                                    {{ $status === 'disetujui_kaprodi' ? 'selected' : '' }}>Disetujui Kaprodi</option>
+                                    {{ $status === 'disetujui_kaprodi' ? 'selected' : '' }}>Disetujui Korprodi</option>
                                 <option
                                     value="{{ route('admin.surat-cuti-akademik.index', ['status' => 'disetujui_pimpinan']) }}"
                                     {{ $status === 'disetujui_pimpinan' ? 'selected' : '' }}>Disetujui Pimpinan</option>

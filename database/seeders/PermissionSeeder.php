@@ -58,6 +58,9 @@ class PermissionSeeder extends Seeder
             // Letterhead Management
             ['name' => 'manage kopsurat', 'group' => 'kop-surat'],
 
+            // Peminjaman Proyektor
+            ['name' => 'manage peminjaman proyektor', 'group' => 'peminjaman-proyektor'],
+
             // User Management
             ['name' => 'manage students', 'group' => 'users'],
             ['name' => 'manage lecturers', 'group' => 'users'],

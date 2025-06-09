@@ -53,7 +53,9 @@
             background: var(--primary);
             z-index: 2;
             border-radius: 2px;
-            transition: width 1s ease;
+            transition: width 1.5s ease-out;
+            width: {{ $progressPercentage }}%;
+            /* Menggunakan data dari controller */
         }
 
         .status-steps {
@@ -67,6 +69,8 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            width: calc(100% / 6);
+            /* 6 steps */
             position: relative;
         }
 
@@ -141,7 +145,7 @@
             color: #1e40af;
         }
 
-        .status-disetujui_kaprodi {
+        .status-disetujui-kaprodi {
             background: #c7d2fe;
             color: #3730a3;
         }
@@ -156,12 +160,12 @@
             color: #991b1b;
         }
 
-        .status-siap_diambil {
+        .status-siap-diambil {
             background: #a7f3d0;
             color: #065f46;
         }
 
-        .status-sudah_diambil {
+        .status-sudah-diambil {
             background: #d1fae5;
             color: #047857;
         }
@@ -314,6 +318,11 @@
             .status-progress {
                 display: none;
             }
+
+            .step-arrow {
+                display: none;
+                /* Sembunyikan panah di mobile */
+            }
         }
     </style>
 @endpush
@@ -361,10 +370,12 @@
                         <div class="status-steps">
                             @foreach ($statusSteps as $step)
                                 <div class="status-step">
-                                    <div class="step-icon {{ $step['status_class'] }}">
-                                        <i class="{{ $step['icon'] }}"></i>
+                                    <div
+                                        class="step-icon {{ $step['status_class'] === 'active' ? 'active' : ($step['status_class'] === 'completed' ? 'completed' : '') }}">
+                                        <i class="{{ $statusIcons[$step['status']] }}"></i>
                                     </div>
-                                    <span class="step-label {{ $step['status_class'] }}">{{ $step['label'] }}</span>
+                                    <span
+                                        class="step-label {{ $step['status_class'] === 'active' ? 'active' : ($step['status_class'] === 'completed' ? 'completed' : '') }}">{{ $step['label'] }}</span>
                                 </div>
                             @endforeach
                         </div>
@@ -379,7 +390,6 @@
                             <i class="bi bi-file-earmark-text mr-2 text-blue-600"></i>
                             Informasi Surat
                         </h2>
-
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="info-item">
                                 <p class="text-sm text-gray-500">Jenis Surat</p>
@@ -427,7 +437,7 @@
                             </div>
 
                             <div class="info-item md:col-span-2">
-                                <p class="text-sm text-gray-500">Catatan Admin</p>
+                                <p class="text-sm text-gray-500">Catatan</p>
                                 <p class="font-medium">{{ $surat->statusSurat->catatan_admin ?? 'Tidak ada catatan' }}</p>
                             </div>
 
@@ -485,7 +495,7 @@
                 </div>
 
                 <!-- Performance Info (for tech-savvy users) -->
-                <details class="card p-4 mb-6 overflow-hidden" data-aos="fade-up">
+                <details class="card p-4 mb-6 overflow-hidden" data-aos="fade-up" data-aos-delay="300">
                     <summary class="cursor-pointer font-semibold text-gray-700 flex items-center">
                         <i class="bi bi-speedometer2 mr-2 text-blue-600"></i>
                         Informasi Teknis Pencarian

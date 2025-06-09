@@ -28,10 +28,12 @@ use App\Http\Controllers\User\SuratAktifKuliahController;
 use App\Http\Controllers\Admin\AcademicCalendarController;
 use App\Http\Controllers\Admin\AdminSuratPindahController;
 use App\Http\Controllers\User\SuratCutiAkademikController;
+use App\Http\Controllers\User\PeminjamanProyektorController;
 use App\Http\Controllers\Admin\AdminSuratIjinSurveyController;
 use App\Http\Controllers\Admin\AdminSuratAktifKuliahController;
 use App\Http\Controllers\Admin\DosenSuratAktifKuliahController;
 use App\Http\Controllers\Admin\AdminSuratCutiAkademikController;
+use App\Http\Controllers\Admin\AdminPeminjamanProyektorController;
 
 // Untuk User (Mahasiswa)
 Route::get('/', [HomeController::class, 'index'])->name('user.home.index');
@@ -148,6 +150,13 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa', 'check.ukt'])->group(fu
         Route::get('/{surat}/download', [SuratPindahController::class, 'download'])->name('download');
         Route::post('/{id}/confirm-taken', [SuratPindahController::class, 'confirmTaken'])
             ->name('confirm-taken');
+    });
+
+    // Layanan Peminjaman Proyektor
+    Route::prefix('peminjaman-proyektor')->name('user.peminjaman-proyektor.')->group(function () {
+        Route::get('/', [PeminjamanProyektorController::class, 'index'])->name('index');
+        Route::post('/', [PeminjamanProyektorController::class, 'store'])->name('store');
+        Route::put('/{peminjamanProyektor}/kembalikan', [PeminjamanProyektorController::class, 'kembalikan'])->name('kembalikan');
     });
 });
 
@@ -378,6 +387,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::post('/{surat}/approve', [DosenSuratAktifKuliahController::class, 'approve'])->name('approve');
     });
 
+    // Tahun Ajaran
     Route::prefix('tahun-ajaran')->name('tahun-ajaran.')->group(function () {
         Route::get('/', [TahunAjaranController::class, 'index'])->name('index');
         Route::get('/create', [TahunAjaranController::class, 'create'])->name('create');
@@ -388,6 +398,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::delete('/{tahunAjaran}', [TahunAjaranController::class, 'destroy'])->name('destroy');
     });
 
+    // Pembayaran UKT
     Route::prefix('pembayaran-ukt')->name('pembayaran-ukt.')->group(function () {
         Route::get('/', [PembayaranUktController::class, 'index'])->name('index');
         Route::get('/create', [PembayaranUktController::class, 'create'])->name('create');
@@ -402,6 +413,10 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::put('/{pembayaranUkt}/status', [PembayaranUktController::class, 'updateStatus'])->name('update-status');
         Route::delete('/{pembayaranUkt}', [PembayaranUktController::class, 'destroy'])->name('destroy');
         Route::get('/download-template', [PembayaranUktController::class, 'downloadTemplate'])->name('download-template');
+    });
+
+    Route::prefix('peminjaman-proyektor')->name('peminjaman-proyektor.')->group(function () {
+        Route::get('/', [AdminPeminjamanProyektorController::class, 'index'])->name('index');
     });
 
 });

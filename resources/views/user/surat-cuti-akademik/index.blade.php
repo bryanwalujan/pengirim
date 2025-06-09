@@ -386,11 +386,16 @@
                                                             <i class="bi bi-eye"></i>
                                                         </a>
                                                         @if ($surat->status === 'siap_diambil')
-                                                            <a href="{{ route('user.surat-cuti-akademik.confirm-taken', $surat->id) }}"
-                                                                class="action-btn btn btn-sm btn-success"
-                                                                title="Konfirmasi">
-                                                                <i class="bi bi-check-circle"></i>
-                                                            </a>
+                                                            <form
+                                                                action="{{ route('user.surat-cuti-akademik.confirm-taken', $surat->id) }}"
+                                                                method="POST" class="d-inline">
+                                                                @csrf
+                                                                <button type="submit"
+                                                                    class="action-btn btn btn-sm btn-success"
+                                                                    title="Konfirmasi">
+                                                                    <i class="bi bi-check-circle"></i>
+                                                                </button>
+                                                            </form>
                                                         @endif
                                                         @if (in_array($surat->status, ['siap_diambil', 'sudah_diambil', 'disetujui']) && $surat->file_surat_path)
                                                             <a href="{{ route('user.surat-cuti-akademik.download', $surat->id) }}"

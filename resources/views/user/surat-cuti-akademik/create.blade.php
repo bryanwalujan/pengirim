@@ -229,6 +229,22 @@
             border: 1px solid #dee2e6;
             border-radius: 5px;
         }
+
+        .alert-info {
+            background-color: #e7f5ff;
+            border-color: #d0ebff;
+            color: #1864ab;
+            border-radius: 10px;
+            padding: 1rem 1.5rem;
+        }
+
+        .alert-info ol {
+            padding-left: 1.5rem;
+        }
+
+        .alert-info li {
+            margin-bottom: 0.5rem;
+        }
     </style>
 @endpush
 
@@ -328,7 +344,8 @@
                         </div>
                         <div class="card-body p-0">
                             <div class="surat-preview p-4"
-                                style="font-family: 'Times New Roman', serif; font-size: 14px; line-height: 1.5;">
+                                style="font-family: 'Times New Roman', serif; font-size: 12pt; line-height: 1.5;">
+                                <!-- Kop Surat -->
                                 <div class="text-center mb-4">
                                     <h5 style="font-weight: bold; margin-bottom: 5px;">KEMENTERIAN PENDIDIKAN TINGGI, SAINS,
                                         DAN TEKNOLOGI</h5>
@@ -336,80 +353,116 @@
                                     <h6 style="font-weight: bold; margin-bottom: 5px;">FAKULTAS TEKNIK</h6>
                                     <h6 style="font-weight: bold; margin-bottom: 5px;">PROGRAM STUDI S1 TEKNIK INFORMATIKA
                                     </h6>
-                                    <p style="margin-bottom: 0; font-size: 12px;">
-                                        Alamat : Kampus UNIMA Tondano 95618, Telp.(0431)7233580<br>
-                                        Website : tt.unima.ac.id, Email : teknikinformatika@unima.ac.id
+                                    <p style="margin-bottom: 0; font-size: 11pt;">
+                                        Alamat : Kampus UNIMA Tondano 95618, Telp.(0431)7235580<br>
+                                        Website : tl.unima.ac.id, Email : teknikinformatika@unima.ac.id
                                     </p>
                                 </div>
 
                                 <hr style="border-top: 2px solid #000; margin: 10px 0;">
 
-                                <div class="d-flex justify-content-between mb-4">
-                                    <div style="width: 30%;">
-                                        <p style="margin-bottom: 5px;">No &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:
-                                            3108/UN41.2/TI/2024</p>
-                                        <p style="margin-bottom: 5px;">Lampiran : 1 Berkas</p>
-                                        <p style="margin-bottom: 0;">Perihal &nbsp;: Permohonan Cuti Akademik</p>
-                                    </div>
-                                    <div style="width: 30%; text-align: right;">
-                                        <p style="margin-bottom: 0;">Tondano, 10 Desember 2024</p>
-                                    </div>
-                                </div>
-
+                                <!-- Informasi Surat -->
                                 <div class="mb-4">
-                                    <p style="margin-bottom: 5px;">Kepada Yth;</p>
-                                    <p style="margin-bottom: 5px;">Dekan Fakultas Teknik</p>
-                                    <p style="margin-bottom: 0;">Universitas Negeri Manado</p>
-                                </div>
-
-                                <div class="mb-4">
-                                    <p style="text-align: justify; text-indent: 50px; margin-bottom: 15px;">
-                                        Pimpinan Program Studi S1 Teknik Informatika menerangkan bahwa:
-                                    </p>
-
-                                    <table style="margin-left: 50px; margin-bottom: 15px;">
+                                    <table style="width: 100%; font-size: 12pt; border-collapse: collapse;">
                                         <tr>
-                                            <td style="width: 120px; vertical-align: top;">Nama</td>
-                                            <td style="vertical-align: top;">: {{ Auth::user()->name }}</td>
+                                            <td width="80">Nomor</td>
+                                            <td width="10">:</td>
+                                            <td>0449/UN41.2/TI/2025</td>
+                                            <td width="200" style="text-align: right;">Tondano, 27 Februari 2025</td>
                                         </tr>
                                         <tr>
-                                            <td style="vertical-align: top;">NIM</td>
-                                            <td style="vertical-align: top;">: {{ Auth::user()->nim }}</td>
+                                            <td>Lampiran</td>
+                                            <td>:</td>
+                                            <td>3 berkas</td>
+                                            <td></td>
                                         </tr>
                                         <tr>
-                                            <td style="vertical-align: top;">Semester</td>
-                                            <td style="vertical-align: top;">: V (Lima)</td>
-                                        </tr>
-                                        <tr>
-                                            <td style="vertical-align: top;">Jurusan/Prodi</td>
-                                            <td style="vertical-align: top;">: Teknik Informatika</td>
+                                            <td>Perihal</td>
+                                            <td>:</td>
+                                            <td>Permohonan Cuti Akademik</td>
+                                            <td></td>
                                         </tr>
                                     </table>
+                                </div>
 
-                                    <p style="text-align: justify; text-indent: 50px; margin-bottom: 15px;">
-                                        Bermaksud mengajukan cuti akademik pada tahun ajaran
-                                        {{ $tahunAjaranAktif->tahun ?? '' }} semester
-                                        {{ $tahunAjaranAktif->semester ?? '' }} dengan alasan:
+                                <!-- Tujuan Surat -->
+                                <p style="margin-bottom: 15px;">
+                                    Kepada Yth.<br>
+                                    Dekan Fakultas Teknik Universitas Negeri Manado di Tondano
+                                </p>
+
+                                <!-- Isi Surat -->
+                                <div style="text-align: justify; margin-bottom: 20px;">
+                                    <p style="margin-bottom: 2px">
+                                        Pimpinan Program Studi S1 Teknik Informatika menerangkan bahwa:
+                                    </p>
+                                    <table style="margin-left: 40px; margin-bottom: 10px;">
+                                        <tr>
+                                            <td width="110">Nama</td>
+                                            <td width="10">:</td>
+                                            <td>{{ Auth::user()->name }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>NIM</td>
+                                            <td>:</td>
+                                            <td>{{ Auth::user()->nim }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Semester</td>
+                                            <td>:</td>
+                                            <td>Delapan (VIII)</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Prodi</td>
+                                            <td>:</td>
+                                            <td>Teknik Informatika</td>
+                                        </tr>
+                                    </table>
+                                    <p>
+                                        Mahasiswa tersebut bermaksud untuk cuti akademik dalam semester yang sedang berjalan
+                                        ini, semester
+                                        VIII tahun ajaran {{ $tahunAjaranAktif->tahun ?? '' }} dengan alasan
+                                        <span id="preview-alasan"
+                                            class="highlight-text">{{ old('alasan_pengajuan') ? old('alasan_pengajuan') : '[Masukkan alasan pengajuan cuti akademik]' }}</span>.
+                                        <br>
+                                        Kiranya Dekan berkenan menerbitkan surat keterangan cuti akademik untuk mahasiswa
+                                        tersebut.
                                     </p>
 
-                                    <p style="text-align: justify; text-indent: 50px; margin-bottom: 15px;"
-                                        id="preview-alasan">
-                                        <span
-                                            class="highlight-text">{{ old('alasan_pengajuan') ? old('alasan_pengajuan') : 'Masukkan alasan pengajuan cuti akademik di form di atas' }}</span>
-                                    </p>
-
-                                    <p style="text-align: justify; text-indent: 50px; margin-bottom: 0;">
-                                        Demikian permohonan ini, atas perhatian dan kebijaksanaannya diucapkan terima kasih.
+                                    <p style="margin-top: 10px;">
+                                        Demikian permohonan ini, atasnya disampaikan terima kasih.
                                     </p>
                                 </div>
 
-                                <div class="d-flex justify-content-end mt-5">
-                                    <div style="text-align: center; width: 250px;">
-                                        <p style="margin-bottom: 50px;">Koordinator Program Studi</p>
-                                        <p style="margin-bottom: 5px; font-weight: bold;">Dr. John Doe, M.Kom.</p>
-                                        <p style="margin-bottom: 0;">NIP. 197001011995121001</p>
-                                    </div>
-                                </div>
+                                <!-- Tanda Tangan -->
+                                <table style="vertical-align: top; width: 100%; line-height: 0.8; margin-top: 30px;">
+                                    <tr>
+                                        <td style="width: 50%;">
+                                            <p>Mengetahui,</p>
+                                            <p>Pimpinan Jurusan PTIK,</p>
+                                            <div
+                                                style="height: 100px; display: flex; align-items: center; justify-content: center;">
+                                                <!-- Space for signature -->
+                                            </div>
+                                            <p style="text-decoration: underline;">
+                                                <strong>Arje C. Djamen, ST, MT</strong>
+                                            </p>
+                                            <p>NIP. 19870712 201012 1 006</p>
+                                        </td>
+                                        <td style="width: 50%; padding-left: 5rem;">
+                                            <p>Koordinator Program Studi</p>
+                                            <p>Teknik Informatika,</p>
+                                            <div
+                                                style="height: 100px; display: flex; align-items: center; justify-content: center;">
+                                                <!-- Space for signature -->
+                                            </div>
+                                            <p style="text-decoration: underline;">
+                                                <strong>Kristofel Santa, S,ST, M.MT</strong>
+                                            </p>
+                                            <p>NIP. 19870531 201504 1 003</p>
+                                        </td>
+                                    </tr>
+                                </table>
                             </div>
                         </div>
                     </div>
@@ -441,6 +494,25 @@
                         Dokumen Pendukung
                     </h5>
 
+                    <div class="alert alert-info mb-4">
+                        <h6 class="fw-bold mb-2">Dokumen yang diperlukan:</h6>
+                        <ol class="mb-0">
+                            <li>
+                                <strong>Surat Permohonan</strong> (sudah ditandatangani oleh Orang Tua dan Dosen Pembimbing
+                                Akademik)
+                                <small class="text-muted d-block">Format: PDF, maks. 2MB</small>
+                            </li>
+                            <li class="mt-2">
+                                <strong>KHS/Transkrip Nilai</strong> (sudah ditandatangani oleh Koordinator Program Studi)
+                                <small class="text-muted d-block">Format: PDF atau gambar, maks. 2MB</small>
+                            </li>
+                            <li class="mt-2">
+                                <strong>Slip Uang Kuliah Tunggal (UKT)</strong> semester sebelumnya
+                                <small class="text-muted d-block">Format: PDF atau gambar, maks. 2MB</small>
+                            </li>
+                        </ol>
+                    </div>
+
                     <div class="file-upload-wrapper">
                         <label class="file-upload-label" for="file_pendukung_path">
                             <i class="bi bi-cloud-arrow-up" style="font-size: 2.5rem; color: var(--accent-color);"></i>
@@ -448,7 +520,7 @@
                             <div class="file-info">Format: PDF, JPG, PNG (maks. 2MB per file)</div>
                         </label>
                         <input type="file" class="file-upload-input @error('file_pendukung_path') is-invalid @enderror"
-                            id="file_pendukung_path" name="file_pendukung_path">
+                            id="file_pendukung_path" name="file_pendukung_path[]" multiple>
                         @error('file_pendukung_path')
                             <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror

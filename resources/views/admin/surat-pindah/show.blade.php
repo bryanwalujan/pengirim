@@ -115,7 +115,7 @@
                         @endif
                         @if ($surat->penandatanganKaprodi)
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Penandatangan (Kaprodi)</label>
+                                <label class="form-label">Penandatangan (Korprodi)</label>
                                 <input type="text" class="form-control" value="{{ $surat->penandatanganKaprodi->name }}"
                                     readonly>
                             </div>

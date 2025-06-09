@@ -105,8 +105,11 @@ class TrackingSuratController extends Controller
         ];
 
         $currentStep = $statusOrder[$status] ?? 0;
-        $totalSteps = count($statusOrder) - 1; // -1 karena dimulai dari 0
-
+        $totalSteps = 5; // Total langkah maksimum (0 hingga 5)
+        // Pastikan progress mencapai 100% untuk status akhir
+        if ($currentStep === $totalSteps || $status === 'ditolak') {
+            return 100;
+        }
         return ($currentStep / $totalSteps) * 100;
     }
 

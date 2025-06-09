@@ -469,6 +469,14 @@
                 </a>
             </li>
         @endcan
+        @can('manage peminjaman proyektor')
+            <li class="menu-item {{ request()->routeIs('admin.peminjaman-proyektor.*') ? 'active' : '' }}">
+                <a href="{{ route('admin.peminjaman-proyektor.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-tv"></i>
+                    <div>Peminjaman Proyektor</div>
+                </a>
+            </li>
+        @endcan
 
         @if (auth()->user()->can('manage kopsurat'))
             <li class="menu-header small text-uppercase">
