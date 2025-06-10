@@ -11,9 +11,13 @@ class PeminjamanLaboratoriumController extends Controller
 {
     public function index()
     {
-        // Menampilkan form dan riwayat peminjaman user
-        $peminjaman = PeminjamanLaboratorium::where('user_id', Auth::id())->latest()->get();
-        return view('user.peminjaman-laboratorium.index', compact('peminjaman'));
+        // Mengambil riwayat peminjaman milik user yang login
+        $peminjaman = PeminjamanLaboratorium::where('user_id', Auth::id())->latest()->paginate(10)->withQueryString();
+
+        // Mengambil data peminjaman yang sedang aktif (milik siapa saja)
+        $peminjamanAktif = PeminjamanLaboratorium::with('user')->where('status', 'diajukan')->first();
+
+        return view('user.peminjaman-laboratorium.index', compact('peminjaman', 'peminjamanAktif'));
     }
 
     public function store(Request $request)
@@ -45,5 +49,23 @@ class PeminjamanLaboratoriumController extends Controller
         ]);
 
         return redirect()->route('user.peminjaman-laboratorium.index')->with('success', 'Peminjaman laboratorium berhasil diajukan.');
+    }
+
+    /**
+     * Mahasiswa mengonfirmasi bahwa peminjaman telah selesai.
+     */
+    public function update($id)
+    {
+        $peminjaman = PeminjamanLaboratorium::findOrFail($id);
+
+        // Pastikan hanya pemilik peminjaman yang bisa mengonfirmasi
+        if ($peminjaman->user_id !== Auth::id()) {
+            return back()->with('error', 'Anda tidak memiliki akses untuk aksi ini.');
+        }
+
+        $peminjaman->status = 'selesai';
+        $peminjaman->save();
+
+        return back()->with('success', 'Peminjaman laboratorium telah berhasil diselesaikan.');
     }
 }

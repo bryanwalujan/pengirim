@@ -74,7 +74,6 @@
                                 <th>Tanggal Pinjam</th>
                                 <th>Jam</th>
                                 <th>Status</th>
-                                <th>Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="table-border-bottom-0">
@@ -96,24 +95,10 @@
                                             <span class="badge bg-label-success me-1">Selesai</span>
                                         @endif
                                     </td>
-                                    <td>
-                                        @if ($item->status == 'diajukan')
-                                            <form action="{{ route('admin.peminjaman-laboratorium.update', $item->id) }}"
-                                                method="POST"
-                                                onsubmit="return confirm('Anda yakin ingin menandai peminjaman ini sebagai selesai?');">
-                                                @csrf
-                                                @method('PUT')
-                                                <button type="submit" class="btn btn-sm btn-success">Tandai
-                                                    Selesai</button>
-                                            </form>
-                                        @else
-                                            -
-                                        @endif
-                                    </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8" class="text-center">Tidak ada data untuk ditampilkan.</td>
+                                    <td colspan="7" class="text-center">Tidak ada data untuk ditampilkan.</td>
                                 </tr>
                             @endforelse
                         </tbody>

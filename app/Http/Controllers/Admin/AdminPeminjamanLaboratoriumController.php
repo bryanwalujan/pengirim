@@ -23,7 +23,7 @@ class AdminPeminjamanLaboratoriumController extends Controller
             $search = $request->input('search');
             $query->whereHas('user', function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('nim_nip', 'like', "%{$search}%");
+                    ->orWhere('nim', 'like', "%{$search}%");
             });
         }
 
@@ -33,26 +33,9 @@ class AdminPeminjamanLaboratoriumController extends Controller
         }
 
         // Ambil data dengan paginasi (misal: 10 data per halaman)
-        $peminjaman = $query->paginate(10)->withQueryString();
+        $peminjaman = $query->paginate(15)->withQueryString();
 
         return view('admin.peminjaman-laboratorium.index', compact('peminjaman'));
     }
 
-    /**
-     * Memperbarui status peminjaman menjadi 'selesai'.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  string  $id
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function update(Request $request, $id)
-    {
-        $peminjaman = PeminjamanLaboratorium::findOrFail($id);
-
-        $peminjaman->status = 'selesai';
-        $peminjaman->save();
-
-        return redirect()->route('admin.peminjaman-laboratorium.index')
-            ->with('success', 'Peminjaman laboratorium telah ditandai sebagai selesai.');
-    }
 }
