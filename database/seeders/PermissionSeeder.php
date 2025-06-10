@@ -64,6 +64,9 @@ class PermissionSeeder extends Seeder
             // Peminjaman Laboratorium
             ['name' => 'manage peminjaman laboratorium', 'group' => 'peminjaman-laboratorium'],
 
+            // Pendaftaran Sempro
+            ['name' => 'manage pendaftaran sempro', 'group' => 'pendaftaran-sempro'],
+
             // User Management
             ['name' => 'manage students', 'group' => 'users'],
             ['name' => 'manage lecturers', 'group' => 'users'],

@@ -35,7 +35,9 @@ use App\Http\Controllers\Admin\DosenSuratAktifKuliahController;
 use App\Http\Controllers\User\PeminjamanLaboratoriumController;
 use App\Http\Controllers\Admin\AdminSuratCutiAkademikController;
 use App\Http\Controllers\Admin\AdminPeminjamanProyektorController;
+use App\Http\Controllers\User\PendaftaranSeminarProposalController;
 use App\Http\Controllers\Admin\AdminPeminjamanLaboratoriumController;
+use App\Http\Controllers\Admin\AdminPendaftaranSeminarProposalController;
 
 // Untuk User (Mahasiswa)
 Route::get('/', [HomeController::class, 'index'])->name('user.home.index');
@@ -161,10 +163,18 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa', 'check.ukt'])->group(fu
         Route::put('/{peminjamanProyektor}/kembalikan', [PeminjamanProyektorController::class, 'kembalikan'])->name('kembalikan');
     });
 
+    // Layanan Peminjaman Laboratorium
     Route::prefix('peminjaman-laboratorium')->name('user.peminjaman-laboratorium.')->group(function () {
         Route::get('/', [PeminjamanLaboratoriumController::class, 'index'])->name('index');
         Route::post('/', [PeminjamanLaboratoriumController::class, 'store'])->name('store');
         Route::put('/{peminjamanLaboratorium}', [PeminjamanLaboratoriumController::class, 'update'])->name('update');
+    });
+
+    // Layanan Pendaftaran Seminar Proposal
+    Route::prefix('pendaftaran-seminar-proposal')->name('user.pendaftaran-seminar-proposal.')->group(function () {
+        Route::get('/', [PendaftaranSeminarProposalController::class, 'index'])->name('index');
+        Route::get('/create', [PendaftaranSeminarProposalController::class, 'create'])->name('create');
+        Route::post('/', [PendaftaranSeminarProposalController::class, 'store'])->name('store');
     });
 });
 
@@ -174,28 +184,6 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa'])->get('/payment-alert',
     return view('user.payment.alert', compact('tahunAktif'));
 })->name('user.payment.alert');
 
-// Untuk Mahasiswa
-// Route::middleware(['auth', 'verified', 'role:mahasiswa'])->prefix('surat-aktif-kuliah')->name('user.surat-aktif-kuliah.')->group(function () {
-//     Route::get('/', [SuratAktifKuliahController::class, 'index'])->name('index');
-//     Route::get('/ajukan', [SuratAktifKuliahController::class, 'create'])->name('create');
-//     Route::post('/', [SuratAktifKuliahController::class, 'store'])->name('store');
-//     Route::get('/{surat}', [SuratAktifKuliahController::class, 'show'])->name('show');
-//     Route::get('/{surat}/download', [SuratAktifKuliahController::class, 'download'])->name('download');
-// });
-
-// Layanan khusus
-
-// Surat Keterangan
-// Route::prefix('surat-keterangan')->name('user.surat-keterangan.')->group(function () {
-//     Route::get('/ajukan', [SuratKeteranganController::class, 'create'])->name('create');
-//     Route::post('/', [SuratKeteranganController::class, 'store'])->name('store');
-// });
-
-// Transkrip Nilai
-// Route::prefix('transkrip')->name('user.transkrip.')->group(function () {
-//     Route::get('/ajukan', [TranskripController::class, 'create'])->name('create');
-//     Route::post('/', [TranskripController::class, 'store'])->name('store');
-// });
 
 
 
@@ -205,7 +193,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 
     // Route untuk menampilkan notifikasi
     Route::post('/notifications/{notification}/mark-as-read', function ($notificationId) {
-        $notification = \Illuminate\Support\Facades\Auth::user()->unreadNotifications->where('id', $notificationId)->first();
+        $notification = Auth::user()->unreadNotifications->where('id', $notificationId)->first();
         if ($notification) {
             $notification->markAsRead();
             return response()->json(['success' => true]);
@@ -431,6 +419,12 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     // Peminjaman Laboratorium
     Route::prefix('peminjaman-laboratorium')->name('peminjaman-laboratorium.')->group(function () {
         Route::get('/', [AdminPeminjamanLaboratoriumController::class, 'index'])->name('index');
+    });
+
+    // Pendaftaran Seminar Proposal
+    Route::prefix('pendaftaran-seminar-proposal')->name('pendaftaran-seminar-proposal.')->group(function () {
+        Route::get('/', [AdminPendaftaranSeminarProposalController::class, 'index'])->name('index');
+        Route::get('/{pendaftaranSeminarProposal}', [AdminPendaftaranSeminarProposalController::class, 'show'])->name('show');
     });
 
 });

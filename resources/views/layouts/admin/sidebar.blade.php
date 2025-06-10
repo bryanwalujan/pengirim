@@ -487,6 +487,15 @@
             </li>
         @endcan
 
+        @can('manage pendaftaran sempro')
+            <li class="menu-item {{ request()->routeIs('admin.pendaftaran-seminar-proposal.*') ? 'active' : '' }}">
+                <a href="{{ route('admin.pendaftaran-seminar-proposal.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-group"></i>
+                    <div>Seminar Proposal</div>
+                </a>
+            </li>
+        @endcan
+
         @if (auth()->user()->can('manage kopsurat'))
             <li class="menu-header small text-uppercase">
                 <span class="menu-header-text">Template Surat</span>
