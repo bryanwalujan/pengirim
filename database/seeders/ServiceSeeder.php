@@ -71,9 +71,9 @@ class ServiceSeeder extends Seeder
                 'is_active' => true,
             ],
             [
-                'name' => 'Pendaftaran Ujian Skripsi',
+                'name' => 'Pendaftaran Ujian Hasil',
                 'icon' => 'bx bx-book-open', // Changed from bi bi-journal-text
-                'description' => 'Pendaftaran ujian skripsi setelah menyelesaikan semua persyaratan penelitian dan penulisan skripsi.',
+                'description' => 'Pendaftaran ujian hasil setelah menyelesaikan semua persyaratan penelitian dan penulisan skripsi.',
                 'order' => 9,
                 'is_active' => true,
             ],

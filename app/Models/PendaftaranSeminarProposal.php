@@ -8,9 +8,7 @@ class PendaftaranSeminarProposal extends Model
 {
     protected $fillable = [
         'user_id',
-        'tahun_ajaran_id',
-        'status_id',
-        'nomor_surat',
+        'angkatan',
         'judul_skripsi',
         'ipk',
         'file_transkrip_nilai',
@@ -36,10 +34,4 @@ class PendaftaranSeminarProposal extends Model
         return $this->belongsTo(User::class, 'dosen_pembimbing_id');
     }
 
-    public function getAngkatanAttribute(): string
-    {
-        // Mengambil 2 digit pertama dari NIM dan menambahkannya ke "20"
-        // Contoh: NIM "22..." akan menjadi "2022"
-        return '20' . substr($this->nim, 0, 2);
-    }
 }

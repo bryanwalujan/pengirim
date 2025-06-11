@@ -9,8 +9,8 @@
     <meta name="keywords" content="">
 
     <!-- Favicons -->
-    {{-- <link href="{{ asset('user/assets/img/favicon.png') }}" rel="icon"> --}}
     <link href="{{ asset('img/logo-unima.png') }}" rel="icon">
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <!-- Fonts -->

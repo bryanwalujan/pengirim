@@ -6,8 +6,8 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use App\Models\PendaftaranSeminarProposal;
-use App\Models\User; // Pastikan model User di-import
-use Illuminate\Support\Facades\Storage; // Untuk mengelola file
+use App\Models\User;
+use Illuminate\Support\Facades\Storage;
 
 class PendaftaranSeminarProposalController extends Controller
 {
@@ -29,21 +29,21 @@ class PendaftaranSeminarProposalController extends Controller
             'file_surat_permohonan' => 'required|file|mimes:pdf|max:2048',
         ]);
 
-        // 1. Dapatkan NIM dari user yang sedang login
-        $nim = Auth::user()->nim;
+        // Dapatkan user yang login
+        $user = Auth::user();
 
-        // 2. Tentukan angkatan berdasarkan NIM
-        $angkatan = '20' . substr($nim, 0, 2);
+        // Tentukan angkatan berdasarkan 2 digit pertama NIM
+        $angkatan = '20' . substr($user->nim, 0, 2);
 
-        // 3. Proses upload file
-        $pathTranskrip = $request->file('file_transkrip_nilai')->store('public/sempro/transkrip');
-        $pathProposal = $request->file('file_proposal_penelitian')->store('public/sempro/proposal');
-        $pathPermohonan = $request->file('file_surat_permohonan')->store('public/sempro/permohonan');
+        // Proses upload file ke public storage
+        $pathTranskrip = $request->file('file_transkrip_nilai')->store('sempro/transkrip', 'public');
+        $pathProposal = $request->file('file_proposal_penelitian')->store('sempro/proposal', 'public');
+        $pathPermohonan = $request->file('file_surat_permohonan')->store('sempro/permohonan', 'public');
 
-        // 4. Simpan semua data ke database
+        // Simpan semua data ke database
         PendaftaranSeminarProposal::create([
-            'user_id' => Auth::id(),
-            'angkatan' => $angkatan, // Simpan angkatan yang sudah ditentukan
+            'user_id' => $user->id,
+            'angkatan' => $angkatan,
             'judul_skripsi' => $request->judul_skripsi,
             'ipk' => $request->ipk,
             'dosen_pembimbing_id' => $request->dosen_pembimbing_id,
@@ -52,7 +52,7 @@ class PendaftaranSeminarProposalController extends Controller
             'file_surat_permohonan' => $pathPermohonan,
         ]);
 
-        return redirect()->route('pendaftaran-seminar-proposal.index')->with('success', 'Pendaftaran seminar proposal berhasil diajukan.');
+        return redirect()->route('user.pendaftaran-seminar-proposal.index')->with('success', 'Pendaftaran seminar proposal berhasil diajukan.');
     }
 
     public function index()
