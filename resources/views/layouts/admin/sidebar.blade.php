@@ -490,11 +490,21 @@
         @can('manage pendaftaran sempro')
             <li class="menu-item {{ request()->routeIs('admin.pendaftaran-seminar-proposal.*') ? 'active' : '' }}">
                 <a href="{{ route('admin.pendaftaran-seminar-proposal.index') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-group"></i>
+                    <i class="menu-icon tf-icons bx bx-book-open"></i>
                     <div>Seminar Proposal</div>
                 </a>
             </li>
         @endcan
+
+        @can('manage pendaftaran hasil')
+            <li class="menu-item {{ request()->routeIs('admin.pendaftaran-ujian-hasil.*') ? 'active' : '' }}">
+                <a href="{{ route('admin.pendaftaran-ujian-hasil.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-book-bookmark"></i>
+                    <div>Ujian Hasil</div>
+                </a>
+            </li>
+        @endcan
+
 
         @if (auth()->user()->can('manage kopsurat'))
             <li class="menu-header small text-uppercase">

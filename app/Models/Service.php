@@ -33,6 +33,7 @@ class Service extends Model
             'peminjaman-proyektor' => 'user.peminjaman-proyektor.index',
             'peminjaman-laboratorium' => 'user.peminjaman-laboratorium.index',
             'pendaftaran-seminar-proposal' => 'user.pendaftaran-seminar-proposal.index',
+            'pendaftaran-ujian-hasil' => 'user.pendaftaran-ujian-hasil.index',
         ];
 
         // Jika ada custom route index, gunakan route khusus

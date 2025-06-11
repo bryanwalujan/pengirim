@@ -57,38 +57,24 @@ class ServiceSeeder extends Seeder
                 'is_active' => true,
             ],
             [
-                'name' => 'Permohonan Transkrip',
-                'icon' => 'bx bx-spreadsheet', // Changed from bi bi-file-text
-                'description' => 'Pengajuan transkrip nilai resmi yang telah dilegalisir oleh pihak akademik.',
+                'name' => 'Pendaftaran Seminar Proposal',
+                'icon' => 'bx bx-book-open', // Changed from bi bi-megaphone
+                'description' => 'Pendaftaran untuk seminar proposal skripsi sebagai syarat kelulusan mata kuliah skripsi.',
                 'order' => 7,
                 'is_active' => true,
             ],
             [
-                'name' => 'Pendaftaran Seminar Proposal',
-                'icon' => 'bx bx-bullhorn', // Changed from bi bi-megaphone
-                'description' => 'Pendaftaran untuk seminar proposal skripsi sebagai syarat kelulusan mata kuliah skripsi.',
-                'order' => 8,
-                'is_active' => true,
-            ],
-            [
                 'name' => 'Pendaftaran Ujian Hasil',
-                'icon' => 'bx bx-book-open', // Changed from bi bi-journal-text
+                'icon' => 'bx bx-book-bookmark', // Changed from bi bi-journal-text
                 'description' => 'Pendaftaran ujian hasil setelah menyelesaikan semua persyaratan penelitian dan penulisan skripsi.',
-                'order' => 9,
-                'is_active' => true,
-            ],
-            [
-                'name' => 'Pendaftaran Ujian Komprehensif',
-                'icon' => 'bx bx-book-bookmark', // Changed from bi bi-journal-bookmark
-                'description' => 'Pendaftaran ujian komprehensif untuk program studi tertentu yang memerlukannya.',
-                'order' => 10,
+                'order' => 8,
                 'is_active' => true,
             ],
             [
                 'name' => 'Pengajuan Surat Keterangan Lulus',
                 'icon' => 'bx bx-award', // Changed from bi bi-award
                 'description' => 'Pengajuan surat keterangan lulus untuk keperluan administrasi setelah menyelesaikan studi.',
-                'order' => 11,
+                'order' => 9,
                 'is_active' => false,
             ],
 

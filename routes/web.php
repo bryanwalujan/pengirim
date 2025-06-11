@@ -30,12 +30,14 @@ use App\Http\Controllers\Admin\AdminSuratPindahController;
 use App\Http\Controllers\User\SuratCutiAkademikController;
 use App\Http\Controllers\User\PeminjamanProyektorController;
 use App\Http\Controllers\Admin\AdminSuratIjinSurveyController;
+use App\Http\Controllers\User\PendaftaranUjianHasilController;
 use App\Http\Controllers\Admin\AdminSuratAktifKuliahController;
 use App\Http\Controllers\Admin\DosenSuratAktifKuliahController;
 use App\Http\Controllers\User\PeminjamanLaboratoriumController;
 use App\Http\Controllers\Admin\AdminSuratCutiAkademikController;
 use App\Http\Controllers\Admin\AdminPeminjamanProyektorController;
 use App\Http\Controllers\User\PendaftaranSeminarProposalController;
+use App\Http\Controllers\Admin\AdminPendaftaranUjianHasilController;
 use App\Http\Controllers\Admin\AdminPeminjamanLaboratoriumController;
 use App\Http\Controllers\Admin\AdminPendaftaranSeminarProposalController;
 
@@ -176,6 +178,16 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa', 'check.ukt'])->group(fu
         Route::get('/create', [PendaftaranSeminarProposalController::class, 'create'])->name('create');
         Route::post('/', [PendaftaranSeminarProposalController::class, 'store'])->name('store');
     });
+
+    // Layanan Pendaftaran Ujian Hasil
+    Route::prefix('pendaftaran-ujian-hasil')->name('user.pendaftaran-ujian-hasil.')->group(function () {
+        Route::get('/', [PendaftaranUjianHasilController::class, 'index'])->name('index');
+        Route::get('/create', [PendaftaranUjianHasilController::class, 'create'])->name('create');
+        Route::post('/', [PendaftaranUjianHasilController::class, 'store'])->name('store');
+        Route::get('/{pendaftaran_ujian_hasil}', [PendaftaranUjianHasilController::class, 'show'])->name('show');
+    });
+
+
 });
 
 // Route untuk halaman alert pembayaran
@@ -425,6 +437,12 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::prefix('pendaftaran-seminar-proposal')->name('pendaftaran-seminar-proposal.')->group(function () {
         Route::get('/', [AdminPendaftaranSeminarProposalController::class, 'index'])->name('index');
         Route::get('/{pendaftaranSeminarProposal}', [AdminPendaftaranSeminarProposalController::class, 'show'])->name('show');
+    });
+
+    // Pendaftaran Ujian Hasil
+    Route::prefix('pendaftaran-ujian-hasil')->name('pendaftaran-ujian-hasil.')->group(function () {
+        Route::get('/', [AdminPendaftaranUjianHasilController::class, 'index'])->name('index');
+        Route::get('/{pendaftaranUjianHasil}', [AdminPendaftaranUjianHasilController::class, 'show'])->name('show');
     });
 
 });

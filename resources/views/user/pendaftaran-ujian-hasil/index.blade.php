@@ -1,6 +1,6 @@
 @extends('layouts.user.app')
 
-@section('title', 'Riwayat Pendaftaran Seminar Proposal')
+@section('title', 'Riwayat Pendaftaran Ujian Hasil')
 
 @push('styles')
     <style>
@@ -60,6 +60,22 @@
             box-shadow: 0 8px 20px rgba(67, 97, 238, 0.3);
         }
 
+        .btn-info {
+            background: linear-gradient(135deg, #17a2b8, #138496);
+            border: none;
+            border-radius: 50px;
+            padding: 0.5rem 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(23, 162, 184, 0.2);
+        }
+
+        .btn-info:hover {
+            background: linear-gradient(135deg, #138496, #17a2b8);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(23, 162, 184, 0.3);
+        }
+
         .table th,
         .table td {
             vertical-align: middle;
@@ -104,6 +120,18 @@
             background-color: rgba(67, 97, 238, 0.03);
         }
 
+        .alert-success {
+            background: #e6fffa;
+            border: none;
+            border-radius: 10px;
+            color: #2c3e50;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .alert-success .btn-close {
+            filter: opacity(0.5);
+        }
+
         @media (max-width: 767.98px) {
             .card-header {
                 flex-direction: column;
@@ -118,7 +146,7 @@
     <!-- Page Title -->
     <div class="page-title light-background">
         <div class="container">
-            <h1 data-aos="fade-up">Riwayat Pendaftaran Seminar Proposal</h1>
+            <h1 data-aos="fade-up">Riwayat Pendaftaran Ujian Hasil</h1>
             <nav class="breadcrumbs" data-aos="fade-up" data-aos-delay="100">
                 <ol>
                     <li><a href="{{ route('user.home.index') }}">Beranda</a></li>
@@ -136,32 +164,44 @@
                     <div class="card" data-aos="fade-up">
                         <div class="card-header">
                             <div class="d-flex justify-content-between align-items-center w-100">
-                                <h4 class="mb-0 fw-bold">Riwayat Pendaftaran Seminar Proposal</h4>
-                                <a href="{{ route('user.pendaftaran-seminar-proposal.create') }}"
-                                    class="btn btn-sm btn-primary">
-                                    <i class="bi bi-plus-circle me-2"></i> Buat Pendaftaran Baru
+                                <h4 class="mb-0 fw-bold">Riwayat Pendaftaran Ujian Hasil</h4>
+                                <a href="{{ route('user.pendaftaran-ujian-hasil.create') }}" class="btn btn-sm btn-primary">
+                                    <i class="bi bi-plus-circle me-2"></i> Daftar Ujian Hasil Baru
                                 </a>
                             </div>
                         </div>
-
                         <div class="card-body">
+                            @if (session('success'))
+                                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                    {{ session('success') }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                        aria-label="Close"></button>
+                                </div>
+                            @endif
+
                             <div class="table-responsive">
                                 <table class="table table-hover">
                                     <thead>
                                         <tr>
-                                            <th width="10%">No</th>
-                                            <th width="40%">Judul Proposal</th>
-                                            <th width="30%">Dosen Pembimbing</th>
-                                            <th width="20%">Tanggal Pengajuan</th>
+                                            <th width="10%">#</th>
+                                            <th width="40%">Judul Skripsi</th>
+                                            <th width="30%">Tanggal Pengajuan</th>
+                                            <th width="20%">Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @forelse ($pendaftaran as $item)
+                                        @forelse ($registrations as $registration)
                                             <tr>
-                                                <td>{{ $loop->iteration }}</td>
-                                                <td>{{ $item->judul_skripsi }}</td>
-                                                <td>{{ $item->dosenPembimbing->name ?? 'N/A' }}</td>
-                                                <td>{{ $item->created_at->translatedFormat('d F Y, H:i') }} WITA</td>
+                                                <td>{{ $loop->iteration + $registrations->firstItem() - 1 }}</td>
+                                                <td>{{ Str::limit($registration->judul_skripsi, 60) }}</td>
+                                                <td>{{ $registration->created_at->translatedFormat('d F Y, H:i') }} WITA
+                                                </td>
+                                                <td>
+                                                    <a href="{{ route('user.pendaftaran-ujian-hasil.show', $registration->id) }}"
+                                                        class="btn btn-info btn-sm">
+                                                        <i class="bi-eye"></i> Detail
+                                                    </a>
+                                                </td>
                                             </tr>
                                         @empty
                                             <tr>
@@ -173,6 +213,9 @@
                                         @endforelse
                                     </tbody>
                                 </table>
+                            </div>
+                            <div class="mt-3">
+                                {{ $registrations->links() }}
                             </div>
                         </div>
                     </div>

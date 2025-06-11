@@ -67,6 +67,9 @@ class PermissionSeeder extends Seeder
             // Pendaftaran Sempro
             ['name' => 'manage pendaftaran sempro', 'group' => 'pendaftaran-sempro'],
 
+            // Pendaftaran Ujian Hasil
+            ['name' => 'manage pendaftaran hasil', 'group' => 'pendaftaran-hasil'],
+
             // User Management
             ['name' => 'manage students', 'group' => 'users'],
             ['name' => 'manage lecturers', 'group' => 'users'],

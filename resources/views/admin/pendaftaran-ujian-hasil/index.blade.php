@@ -1,6 +1,6 @@
 @extends('layouts.admin.app')
 
-@section('title', 'Pendaftaran Seminar Proposal')
+@section('title', 'Pendaftaran Ujian Hasil')
 
 @section('content')
     <div class="container-xxl flex-grow-1 container-p-y">
@@ -10,20 +10,20 @@
                     <a href="{{ route('admin.dashboard.index') }}">Dashboard</a>
                     <i class="breadcrumb-icon icon-base bx bx-chevron-right align-middle"></i>
                 </li>
-                <li class="breadcrumb-item breadcrumb-custom-icon active" aria-current="page">Manajemen Pendaftaran Seminar
-                    Proposal
+                <li class="breadcrumb-item breadcrumb-custom-icon active" aria-current="page">Manajemen Pendaftaran Ujian
+                    Hasil
                 </li>
             </ol>
         </nav>
         <h4 class="fw-bold py-3 mb-2" style="margin-top: -1.2rem">
-            <span class="text-muted">Data Pendaftaran Seminar Proposal</span>
+            <span class="text-muted">Data Pendaftaran Ujian Hasil</span>
         </h4>
 
         <div class="card">
             <div class="card-header border-bottom">
                 <div class="row align-items-center justify-content-between g-2">
                     <div class="col-12 col-md-4">
-                        <form action="{{ route('admin.pendaftaran-seminar-proposal.index') }}" method="GET">
+                        <form action="{{ route('admin.pendaftaran-ujian-hasil.index') }}" method="GET">
                             <div class="input-group">
                                 <input type="text" class="form-control" name="search"
                                     placeholder="Cari nama atau NIM..." value="{{ request('search') }}">
@@ -34,7 +34,7 @@
                         </form>
                     </div>
                     <div class="col-12 col-md-4">
-                        <form action="{{ route('admin.pendaftaran-seminar-proposal.index') }}" method="GET">
+                        <form action="{{ route('admin.pendaftaran-ujian-hasil.index') }}" method="GET">
                             <div class="input-group">
                                 <select name="angkatan" id="angkatan" class="form-select" onchange="this.form.submit()">
                                     <option value="">Semua Angkatan</option>
@@ -71,17 +71,17 @@
                                 <th>Nama Mahasiswa</th>
                                 <th>NIM</th>
                                 <th>Angkatan</th>
-                                <th>Judul Proposal</th>
+                                <th>Judul Skripsi</th>
                                 <th>Tanggal Pengajuan</th>
                                 <th>Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="table-border-bottom-0">
-                            @forelse ($pendaftaran as $item)
+                            @forelse ($pendaftaranUjianHasils as $item)
                                 <tr>
-                                    <td>{{ $loop->iteration + $pendaftaran->firstItem() - 1 }}</td>
-                                    <td>{{ $item->user->name }}</td>
-                                    <td><span class="btn btn-sm btn-outline-primary">{{ $item->user->nim }}</span></td>
+                                    <td>{{ $loop->iteration + $pendaftaranUjianHasils->firstItem() - 1 }}</td>
+                                    <td>{{ $item->nama }}</td>
+                                    <td><span class="btn btn-sm btn-outline-primary">{{ $item->nim }}</span></td>
                                     <td><span class="badge bg-label-danger me-1">{{ $item->angkatan }}</span></td>
                                     <td>{{ Str::limit($item->judul_skripsi, 40, '...') }}</td>
                                     <td>{{ $item->created_at->format('d M Y, H:i') }}</td>
@@ -102,22 +102,24 @@
                 </div>
             </div>
 
-            @if ($pendaftaran->hasPages())
+            @if ($pendaftaranUjianHasils->hasPages())
                 <div class="card-footer d-flex justify-content-end">
                     <nav aria-label="Page navigation">
                         <ul class="pagination mb-0">
-                            <li class="page-item {{ $pendaftaran->onFirstPage() ? 'disabled' : '' }}">
-                                <a class="page-link" href="{{ $pendaftaran->previousPageUrl() }}" aria-label="Previous">
+                            <li class="page-item {{ $pendaftaranUjianHasils->onFirstPage() ? 'disabled' : '' }}">
+                                <a class="page-link" href="{{ $pendaftaranUjianHasils->previousPageUrl() }}"
+                                    aria-label="Previous">
                                     <i class="bx bx-chevrons-left icon-sm"></i>
                                 </a>
                             </li>
-                            @foreach ($pendaftaran->getUrlRange(1, $pendaftaran->lastPage()) as $page => $url)
-                                <li class="page-item {{ $page == $pendaftaran->currentPage() ? 'active' : '' }}">
+                            @foreach ($pendaftaranUjianHasils->getUrlRange(1, $pendaftaranUjianHasils->lastPage()) as $page => $url)
+                                <li
+                                    class="page-item {{ $page == $pendaftaranUjianHasils->currentPage() ? 'active' : '' }}">
                                     <a class="page-link" href="{{ $url }}">{{ $page }}</a>
                                 </li>
                             @endforeach
-                            <li class="page-item {{ $pendaftaran->hasMorePages() ? '' : 'disabled' }}">
-                                <a class="page-link" href="{{ $pendaftaran->nextPageUrl() }}" aria-label="Next">
+                            <li class="page-item {{ $pendaftaranUjianHasils->hasMorePages() ? '' : 'disabled' }}">
+                                <a class="page-link" href="{{ $pendaftaranUjianHasils->nextPageUrl() }}" aria-label="Next">
                                     <i class="bx bx-chevrons-right icon-sm"></i>
                                 </a>
                             </li>
@@ -161,7 +163,7 @@
             var id = button.data('id');
             var modal = $(this);
 
-            $.get('/admin/pendaftaran-seminar-proposal/' + id, function(data) {
+            $.get('/admin/pendaftaran-ujian-hasil/' + id, function(data) {
                 modal.find('#modalBody').html(data);
             });
         });
