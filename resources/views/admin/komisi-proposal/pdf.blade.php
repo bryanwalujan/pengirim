@@ -120,7 +120,7 @@
             <tr>
                 <td class="details-label">Judul</td>
                 <td class="details-colon">:</td>
-                <td>{{ $komisi->judul_skripsi ?? 'Judul Skripsi' }}</td>
+                <td>{!! $komisi->judul_skripsi ?? 'Judul Skripsi' !!}</td>
                 </td>
             </tr>
         </table>

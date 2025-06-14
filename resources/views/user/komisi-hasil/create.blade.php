@@ -1,6 +1,6 @@
 @extends('layouts.user.form')
 
-@section('title', 'Form Pengajuan Persetujuan Komisi Proposal')
+@section('title', 'Form Pengajuan Persetujuan Hasil')
 
 @push('styles')
     <style>
@@ -238,7 +238,7 @@
                 <p>Silakan isi judul skripsi dan pilih dosen pembimbing Anda dari daftar yang tersedia</p>
             </div>
 
-            <form action="{{ route('user.komisi-proposal.store') }}" method="POST" id="proposal-form">
+            <form action="{{ route('user.komisi-hasil.store') }}" method="POST" id="hasil-form">
                 @csrf
 
                 <!-- Informasi Mahasiswa Section -->
@@ -310,18 +310,34 @@
                     </div>
 
                     <div class="mb-4">
-                        <label for="dosen_pembimbing_id" class="form-label">Dosen Pembimbing <span
+                        <label for="dosen_pembimbing1_id" class="form-label">Dosen Pembimbing I <span
                                 class="text-danger">*</span></label>
-                        <select class="form-select @error('dosen_pembimbing_id') is-invalid @enderror select2"
-                            id="dosen_pembimbing_id" name="dosen_pembimbing_id" required>
+                        <select class="form-select @error('dosen_pembimbing1_id') is-invalid @enderror select2"
+                            id="dosen_pembimbing1_id" name="dosen_pembimbing1_id" required>
                             <option selected disabled value="">Pilih Dosen Pembimbing ...</option>
                             @foreach ($dosens as $dosen)
                                 <option value="{{ $dosen->id }}"
-                                    {{ old('dosen_pembimbing_id') == $dosen->id ? 'selected' : '' }}>{{ $dosen->name }}
+                                    {{ old('dosen_pembimbing1_id') == $dosen->id ? 'selected' : '' }}>{{ $dosen->name }}
                                 </option>
                             @endforeach
                         </select>
-                        @error('dosen_pembimbing_id')
+                        @error('dosen_pembimbing1_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    <div class="mb-4">
+                        <label for="dosen_pembimbing2_id" class="form-label">Dosen Pembimbing II <span
+                                class="text-danger">*</span></label>
+                        <select class="form-select @error('dosen_pembimbing2_id') is-invalid @enderror select2"
+                            id="dosen_pembimbing2_id" name="dosen_pembimbing2_id" required>
+                            <option selected disabled value="">Pilih Dosen Pembimbing ...</option>
+                            @foreach ($dosens as $dosen)
+                                <option value="{{ $dosen->id }}"
+                                    {{ old('dosen_pembimbing2_id') == $dosen->id ? 'selected' : '' }}>{{ $dosen->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('dosen_pembimbing2_id')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
@@ -348,7 +364,7 @@
                 <!-- Form Actions -->
                 <div class="form-section pt-0" data-aos="fade-up" data-aos-delay="500">
                     <div class="d-flex justify-content-between gap-3">
-                        <a href="{{ route('user.komisi-proposal.index') }}" class="btn btn-back">
+                        <a href="{{ route('user.komisi-hasil.index') }}" class="btn btn-back">
                             <i class="bi bi-arrow-left me-2"></i> Kembali
                         </a>
                         <button type="submit" class="btn btn-submit text-white" id="submit-btn">
@@ -378,9 +394,9 @@
             });
 
             // Prevent selecting same dosen for both pembimbing
-            $('#dosen_pembimbing_1_id, #dosen_pembimbing_2_id').on('change', function() {
-                const pembimbing1 = $('#dosen_pembimbing_1_id').val();
-                const pembimbing2 = $('#dosen_pembimbing_2_id').val();
+            $('#dosen_pembimbing1_id, #dosen_pembimbing2_id').on('change', function() {
+                const pembimbing1 = $('#dosen_pembimbing1_id').val();
+                const pembimbing2 = $('#dosen_pembimbing2_id').val();
 
                 if (pembimbing1 && pembimbing2 && pembimbing1 === pembimbing2) {
                     Swal.fire({

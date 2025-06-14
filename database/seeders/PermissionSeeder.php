@@ -73,6 +73,9 @@ class PermissionSeeder extends Seeder
             // Komisi Proposal
             ['name' => 'manage komisi proposal', 'group' => 'komisi-proposal'],
 
+            // Komisi Hasil
+            ['name' => 'manage komisi hasil', 'group' => 'komisi-hasil'],
+
             // User Management
             ['name' => 'manage students', 'group' => 'users'],
             ['name' => 'manage lecturers', 'group' => 'users'],

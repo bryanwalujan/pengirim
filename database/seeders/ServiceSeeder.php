@@ -72,7 +72,7 @@ class ServiceSeeder extends Seeder
             ],
             [
                 'name' => 'Komisi Proposal',
-                'icon' => 'bx bx-paper',
+                'icon' => 'bx bx-detail',
                 'description' => 'Pengajuan komisi proposal untuk mendapatkan persetujuan dari dosen pembimbing sebelum melanjutkan ke tahap seminar proposal.',
                 'order' => 9,
                 'is_active' => true,
