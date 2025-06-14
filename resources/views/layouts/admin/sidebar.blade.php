@@ -505,6 +505,31 @@
             </li>
         @endcan
 
+        @can('manage komisi hasil')
+            <li class="menu-item {{ request()->routeIs('admin.komisi-hasil.*') ? 'active' : '' }}">
+                <a href="{{ route('admin.komisi-hasil.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-book-content"></i>
+                    <div>Komisi Hasil</div>
+                </a>
+            </li>
+        @endcan
+        @can('manage komisi proposal')
+            <li class="menu-item {{ request()->routeIs('admin.komisi-proposal.*') ? 'active' : '' }}">
+                <a href="{{ route('admin.komisi-proposal.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-detail"></i>
+                    <div>Komisi Proposal</div>
+                </a>
+            </li>
+        @endcan
+        @can('manage komisi hasil')
+            <li class="menu-item {{ request()->routeIs('admin.komisi-hasil.*') ? 'active' : '' }}">
+                <a href="{{ route('admin.komisi-hasil.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-book-content"></i>
+                    <div>Komisi Hasil</div>
+                </a>
+            </li>
+        @endcan
+
 
         @if (auth()->user()->can('manage kopsurat'))
             <li class="menu-header small text-uppercase">

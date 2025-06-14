@@ -22,6 +22,7 @@ use App\Http\Controllers\Admin\TahunAjaranController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\User\TrackingSuratController;
 use App\Http\Controllers\Admin\PembayaranUktController;
+use App\Http\Controllers\User\KomisiProposalController;
 use App\Http\Controllers\DocumentVerificationController;
 use App\Http\Controllers\User\SuratIjinSurveyController;
 use App\Http\Controllers\User\SuratAktifKuliahController;
@@ -29,6 +30,7 @@ use App\Http\Controllers\Admin\AcademicCalendarController;
 use App\Http\Controllers\Admin\AdminSuratPindahController;
 use App\Http\Controllers\User\SuratCutiAkademikController;
 use App\Http\Controllers\User\PeminjamanProyektorController;
+use App\Http\Controllers\Admin\AdminKomisiProposalController;
 use App\Http\Controllers\Admin\AdminSuratIjinSurveyController;
 use App\Http\Controllers\User\PendaftaranUjianHasilController;
 use App\Http\Controllers\Admin\AdminSuratAktifKuliahController;
@@ -62,45 +64,9 @@ Route::get('/storage/academic-calendars/{filename}', function ($filename) {
 Route::get('/verify/{code}', [DocumentVerificationController::class, 'verify'])
     ->name('document.verify');
 
-Route::get('/preview-dummy-pdf', function () {
-    $pdf = Pdf::loadView('admin.surat-aktif-kuliah.pdf', [
-        'surat' => new SuratAktifKuliah([
-            'nomor_surat' => 'PREVIEW/2023',
-            'tanggal_surat' => now(),
-            'tujuan_pengajuan' => 'Lorem ipsum dolor sit amet consectetur adipisicing elit.',
-            'tahun_ajaran' => '2023/2024',
-            'semester' => 'ganjil',
-            'jabatan_penandatangan' => 'Pimpinan Jurusan PTIK',
-            'jabatan_penandatangan_kaprodi' => 'Koordinator Program Studi',
-            'verification_code' => 'PREVIEW123'
-        ]),
-        'semester_roman' => 'IV (Empat)',
-        'mahasiswa' => new User([
-            'name' => 'Nama Mahasiswa Contoh',
-            'nim' => '20230001'
-        ]),
-        'penandatangan' => new User([
-            'name' => 'Dr. Contoh Penandatangan, M.Kom',
-            'nip' => '197001012000121001'
-        ]),
-        'penandatanganKaprodi' => new User([
-            'name' => 'Dr. Contoh Kaprodi, M.Kom',
-            'nip' => '197001012000121002'
-        ]),
-        'show_qr_signature' => true,
-        'pimpinan_qr' => 'data:image/png;base64,' . base64_encode(
-            QrCode::format('png')->size(120)->margin(1)->errorCorrection('H')->generate('PREVIEW123')
-        ),
-        'kaprodi_qr' => 'data:image/png;base64,' . base64_encode(
-            QrCode::format('png')->size(120)->margin(1)->errorCorrection('H')->generate('PREVIEW123')
-        ),
-        'jabatanPimpinan' => 'Pimpinan Jurusan PTIK',
-        'jabatanKoordinator' => 'Koordinator Program Studi',
-        'qr_type' => 'pimpinan',
-    ])->setPaper('a4');
-
-    return $pdf->stream('preview-surat-aktif-kuliah.pdf');
-})->name('preview.dummy');
+Route::get('/preview-komisi-pdf', [AdminKomisiProposalController::class, 'previewPdf'])
+    ->name('preview.komisi.pdf')
+    ->middleware('auth');
 
 // Student service routes
 Route::middleware(['auth', 'verified', 'role:mahasiswa', 'check.ukt'])->group(function () {
@@ -177,6 +143,13 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa', 'check.ukt'])->group(fu
         Route::get('/', [PendaftaranSeminarProposalController::class, 'index'])->name('index');
         Route::get('/create', [PendaftaranSeminarProposalController::class, 'create'])->name('create');
         Route::post('/', [PendaftaranSeminarProposalController::class, 'store'])->name('store');
+    });
+
+    // Layanan Pendaftaran Seminar Proposal
+    Route::prefix('komisi-proposal')->name('user.komisi-proposal.')->group(function () {
+        Route::get('/', [KomisiProposalController::class, 'index'])->name('index');
+        Route::get('/create', [KomisiProposalController::class, 'create'])->name('create');
+        Route::post('/', [KomisiProposalController::class, 'store'])->name('store');
     });
 
     // Layanan Pendaftaran Ujian Hasil
@@ -443,6 +416,15 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::prefix('pendaftaran-ujian-hasil')->name('pendaftaran-ujian-hasil.')->group(function () {
         Route::get('/', [AdminPendaftaranUjianHasilController::class, 'index'])->name('index');
         Route::get('/{pendaftaranUjianHasil}', [AdminPendaftaranUjianHasilController::class, 'show'])->name('show');
+    });
+
+    // Pendaftaran Ujian Hasil
+    Route::prefix('komisi-proposal')->name('komisi-proposal.')->group(function () {
+        Route::get('/', [AdminKomisiProposalController::class, 'index'])->name('index');
+        Route::get('/{komisiProposal}', [AdminKomisiProposalController::class, 'show'])->name('show');
+        Route::post('/{komisiProposal}/update-status', [AdminKomisiProposalController::class, 'updateStatus'])->name('update-status');
+        Route::get('/{komisiProposal}/generate-pdf', [AdminKomisiProposalController::class, 'generatePdf'])->name('pdf');
+        Route::get('/{komisiProposal}/download', [AdminKomisiProposalController::class, 'downloadPdf'])->name('download');
     });
 
 });

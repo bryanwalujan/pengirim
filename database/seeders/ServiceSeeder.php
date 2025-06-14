@@ -71,11 +71,18 @@ class ServiceSeeder extends Seeder
                 'is_active' => true,
             ],
             [
-                'name' => 'Pengajuan Surat Keterangan Lulus',
-                'icon' => 'bx bx-award', // Changed from bi bi-award
-                'description' => 'Pengajuan surat keterangan lulus untuk keperluan administrasi setelah menyelesaikan studi.',
+                'name' => 'Komisi Proposal',
+                'icon' => 'bx bx-paper',
+                'description' => 'Pengajuan komisi proposal untuk mendapatkan persetujuan dari dosen pembimbing sebelum melanjutkan ke tahap seminar proposal.',
                 'order' => 9,
-                'is_active' => false,
+                'is_active' => true,
+            ],
+            [
+                'name' => 'Komisi Hasil',
+                'icon' => 'bx bx-book-content',
+                'description' => 'Pengajuan komisi hasil/skripsi untuk mendapatkan persetujuan dari dosen pembimbing I dan pembimbing II sebelum melanjutkan ke tahap ujian hasil/skripsi.',
+                'order' => 10,
+                'is_active' => true,
             ],
 
         ];

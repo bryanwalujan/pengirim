@@ -70,6 +70,9 @@ class PermissionSeeder extends Seeder
             // Pendaftaran Ujian Hasil
             ['name' => 'manage pendaftaran hasil', 'group' => 'pendaftaran-hasil'],
 
+            // Komisi Proposal
+            ['name' => 'manage komisi proposal', 'group' => 'komisi-proposal'],
+
             // User Management
             ['name' => 'manage students', 'group' => 'users'],
             ['name' => 'manage lecturers', 'group' => 'users'],

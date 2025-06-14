@@ -100,15 +100,17 @@
                     <p class="about-description"><strong>E-Services</strong> adalah sistem layanan elektronik yang dirancang
                         untuk
                         mempermudah administrasi akademik di Program Studi Teknik Informatika Universitas Negeri Manado.
-                        Aplikasi ini menyediakan berbagai layanan, seperti pengajuan surat akademik (aktif kuliah, cuti
-                        akademik, pindah, izin survey), pengelolaan arsip akademik (SK proposal, hasil skripsi,
-                        komprehensif), serta layanan lainnya seperti permohonan transkrip, kelayakan skripsi, dan peminjaman
+                        Aplikasi ini menyediakan berbagai layanan, seperti layanan utama yaitu pengajuan permohonan surat
+                        akademik (aktif
+                        kuliah, cuti
+                        akademik, pindah, izin survey), pembuatan persetujuan komisi pembimbing proposal skripsi dan hasil,
+                        serta layanan lainnya seperti peminjaman
                         fasilitas (laboratorium dan proyektor). </p>
                     <p class="about-description">Dengan <strong>E-Services</strong>, mahasiswa dan staf akademik
                         dapat mengakses layanan
                         dengan lebih cepat, efisien,
                         dan tanpa harus datang langsung ke kampus. Sistem ini juga mendukung proses pendaftaran seminar
-                        proposal, ujian skripsi, dan ujian komprehensif secara online.</p>
+                        proposal dan ujian skripsi</p>
                 </div>
 
                 <div class="col-xl-6" data-aos="fade-up" data-aos-delay="300">
@@ -120,8 +122,8 @@
                                 class="img-fluid small-image rounded-4">
                         </div>
                         <div class="experience-badge floating">
-                            <h3>15+ <span>Years</span></h3>
-                            <p>Of experience in business service</p>
+                            <h3 class="text-small" style="font-size: 1.2rem">Teknik Informatika</h3>
+                            <p>Universitas Negeri Manado</p>
                         </div>
                     </div>
                 </div>

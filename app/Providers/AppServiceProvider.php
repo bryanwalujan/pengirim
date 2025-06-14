@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Carbon;
 use Illuminate\Support\HtmlString;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\ServiceProvider;
@@ -41,6 +42,9 @@ class AppServiceProvider extends ServiceProvider
                 ->line('Jika Anda tidak meminta reset password, abaikan email ini.')
                 ->salutation('Salam hormat, E-Service Teknik Informatika UNIMA');
         });
+
+        //  Set locale for Carbon to Indonesian
+        Carbon::setLocale('id');
 
     }
 }

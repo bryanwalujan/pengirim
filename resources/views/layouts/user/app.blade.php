@@ -48,6 +48,7 @@
     {{-- Select2 --}}
     <link rel="stylesheet" href="{{ asset('library/select2/dist/css/select2.min.css') }}">
 
+
     {{-- Font Awesome --}}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
         integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
@@ -94,7 +95,6 @@
 
     {{-- Custom JS file --}}
     <script src="{{ asset('user/assets/js/custom.js') }}"></script>
-
 
     @stack('scripts')
 
