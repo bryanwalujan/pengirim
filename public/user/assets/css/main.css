@@ -520,7 +520,7 @@ h6 {
 --------------------------------------------------------------*/
 .footer {
     color: var(--contrast-color);
-    background-color: rgb(255, 136, 17, 0.7);
+    background-color: rgb(255, 136, 17, 0.8);
     font-size: 14px;
     position: relative;
 }
@@ -535,6 +535,7 @@ h6 {
     background-image: url("../../../img/logo-ti.png");
     background-position: center;
     background-size: cover;
+    --webkit-backdrop-filter: blur(15px);
     z-index: -1;
 }
 

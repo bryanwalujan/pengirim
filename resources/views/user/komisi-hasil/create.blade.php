@@ -152,6 +152,7 @@
             font-weight: 600;
             color: var(--dark-gray);
             margin-bottom: 0.5rem;
+            font-size: .9rem;
         }
 
         .dosen-info {
@@ -225,6 +226,104 @@
             .action-buttons {
                 flex-direction: column;
                 gap: 0.75rem;
+            }
+        }
+
+        .dosen-scroll-container {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            position: relative;
+        }
+
+        .dosen-scroll-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .dosen-scroll-wrapper {
+            display: inline-flex;
+            gap: 1.5rem;
+            padding: 0.5rem 1rem;
+            width: auto;
+            white-space: nowrap;
+        }
+
+        .dosen-card {
+            flex: 0 0 auto;
+            width: 280px;
+            background: #fff;
+            border-radius: 10px;
+            border: 1px solid #e0e0e0;
+            padding: 1.5rem;
+            transition: var(--transition);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.03);
+            display: inline-block;
+        }
+
+        .dosen-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-color: var(--accent-color);
+        }
+
+        .btn-select-dosen {
+            background: rgba(67, 97, 238, 0.1);
+            color: var(--primary-color);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            transition: var(--transition);
+            display: none;
+        }
+
+        .dosen-card:hover .btn-select-dosen {
+            display: inline-block;
+        }
+
+        .btn-select-dosen:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .scroll-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            color: #6c757d;
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+        }
+
+        .scroll-arrow {
+            font-size: 1rem;
+            opacity: 0.7;
+        }
+
+        .scroll-arrow:hover {
+            opacity: 1;
+            cursor: pointer;
+            color: var(--primary-color);
+        }
+
+        .left-arrow {
+            margin-right: 0.5rem;
+        }
+
+        .right-arrow {
+            margin-left: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .dosen-card {
+                min-width: 240px;
+                padding: 1.25rem;
+            }
+
+            .scroll-indicator span {
+                display: none;
             }
         }
     </style>
@@ -344,9 +443,9 @@
 
                     <div class="dosen-list">
                         <h6 class="mb-3 fw-semibold">Daftar Dosen Pembimbing Tersedia:</h6>
-                        <div class="row">
-                            @foreach ($dosens as $dosen)
-                                <div class="col-md-6">
+                        <div class="dosen-scroll-container">
+                            <div class="dosen-scroll-wrapper">
+                                @foreach ($dosens as $dosen)
                                     <div class="dosen-card">
                                         <h6 class="dosen-name">{{ $dosen->name }}</h6>
                                         <div class="dosen-info">
@@ -355,8 +454,13 @@
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            @endforeach
+                                @endforeach
+                            </div>
+                        </div>
+                        <div class="scroll-indicator">
+                            <i class="bi bi-arrow-left scroll-arrow left-arrow"></i>
+                            <span>Geser untuk melihat lebih banyak</span>
+                            <i class="bi bi-arrow-right scroll-arrow right-arrow"></i>
                         </div>
                     </div>
                 </div>
@@ -407,6 +511,23 @@
                     });
                     $(this).val('').trigger('change');
                 }
+            });
+
+        });
+
+        // Scroll buttons functionality
+        $(document).ready(function() {
+            // Scroll buttons functionality
+            $('.left-arrow').on('click', function() {
+                $('.dosen-scroll-container').animate({
+                    scrollLeft: '-=300'
+                }, 300);
+            });
+
+            $('.right-arrow').on('click', function() {
+                $('.dosen-scroll-container').animate({
+                    scrollLeft: '+=300'
+                }, 300);
             });
         });
 
