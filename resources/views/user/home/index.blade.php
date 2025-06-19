@@ -64,7 +64,7 @@
                         <i class="bi bi-calendar-x"></i>
                     </div>
                     <div class="stat-content">
-                        <h4>Surat Cuti Akademik</h4>
+                        <h4>{{ number_format($letterCounts['cuti_akademik']) }} Surat Cuti Akademik</h4>
                     </div>
                 </div>
                 <div class="stat-item">
@@ -72,7 +72,7 @@
                         <i class="bi bi-arrow-right-circle"></i>
                     </div>
                     <div class="stat-content">
-                        <h4>Surat Pindah</h4>
+                        <h4>{{ number_format($letterCounts['pindah']) }} Surat Pindah</h4>
                     </div>
                 </div>
                 <div class="stat-item">

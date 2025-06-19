@@ -310,6 +310,8 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::prefix('surat-ijin-survey')->name('surat-ijin-survey.')->group(function () {
         Route::get('/', [AdminSuratIjinSurveyController::class, 'index'])->name('index');
         Route::get('/{surat}', [AdminSuratIjinSurveyController::class, 'show'])->name('show');
+        Route::delete('/{surat}', [AdminSuratIjinSurveyController::class, 'destroy'])->name('destroy');
+
 
         // Hanya staff
         Route::middleware('role:staff')->group(function () {
@@ -333,6 +335,8 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::prefix('surat-cuti-akademik')->name('surat-cuti-akademik.')->group(function () {
         Route::get('/', [AdminSuratCutiAkademikController::class, 'index'])->name('index');
         Route::get('/{surat}', [AdminSuratCutiAkademikController::class, 'show'])->name('show');
+        Route::delete('/{surat}', [AdminSuratCutiAkademikController::class, 'destroy'])->name('destroy');
+
 
         // Hanya staff
         Route::middleware('role:staff')->group(function () {
@@ -354,6 +358,8 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::prefix('surat-pindah')->name('surat-pindah.')->group(function () {
         Route::get('/', [AdminSuratPindahController::class, 'index'])->name('index');
         Route::get('/{surat}', [AdminSuratPindahController::class, 'show'])->name('show');
+        Route::delete('/{surat}', [AdminSuratPindahController::class, 'destroy'])->name('destroy');
+
 
         // Hanya staff
         Route::middleware('role:staff')->group(function () {

@@ -156,5 +156,10 @@ class SuratPindah extends Model
                 $model->verification_code_pimpinan = substr(md5(uniqid(mt_rand(), true) . $model->penandatangan->id), 0, 12);
             }
         });
+
+        // Add this for soft delete event
+        static::deleted(function ($model) {
+            // You can add additional cleanup here if needed
+        });
     }
 }

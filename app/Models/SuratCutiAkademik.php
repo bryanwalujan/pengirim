@@ -149,5 +149,9 @@ class SuratCutiAkademik extends Model
                 $model->verification_code_pimpinan = substr(md5(uniqid(mt_rand(), true) . $model->penandatangan->id), 0, 12);
             }
         });
+
+        static::deleted(function ($model) {
+            // You can add additional cleanup here if needed
+        });
     }
 }

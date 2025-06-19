@@ -533,4 +533,44 @@ class AdminSuratCutiAkademikController extends DocumentController
         $filePath = Storage::disk('public')->path($dokumen->path);
         return response()->download($filePath, $dokumen->nama_asli);
     }
+
+    public function destroy(SuratCutiAkademik $surat)
+    {
+        DB::beginTransaction();
+        try {
+            // Delete related files
+            if ($surat->file_surat_path) {
+                Storage::disk('public')->delete($surat->file_surat_path);
+            }
+
+            if ($surat->file_pendukung_path) {
+                Storage::disk('public')->delete($surat->file_pendukung_path);
+            }
+
+            if ($surat->signature_path) {
+                Storage::disk('public')->delete($surat->signature_path);
+            }
+
+            // Delete dokumen pendukung
+            foreach ($surat->dokumenPendukung as $dokumen) {
+                Storage::disk('public')->delete($dokumen->path);
+                $dokumen->delete();
+            }
+
+            // Delete related records
+            $surat->status()->delete();
+            $surat->trackings()->delete();
+
+            // Finally delete the surat
+            $surat->delete();
+
+            DB::commit();
+
+            return redirect()->route('admin.surat-cuti-akademik.index')
+                ->with('success', 'Surat cuti akademik berhasil dihapus');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Gagal menghapus surat: ' . $e->getMessage());
+        }
+    }
 }

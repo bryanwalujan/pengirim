@@ -122,6 +122,19 @@
                                                 href="{{ route('admin.surat-ijin-survey.show', $surat->id) }}">
                                                 <i class="bx bx-show me-1"></i> Detail
                                             </a>
+                                            @if (auth()->user()->hasRole('staff') && in_array($surat->status, ['diajukan', 'ditolak']))
+                                                <form id="delete-form-{{ $surat->id }}"
+                                                    action="{{ route('admin.surat-ijin-survey.destroy', $surat->id) }}"
+                                                    method="POST" class="dropdown-item text-danger">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit"
+                                                        class="btn btn-link p-0 border-0 bg-transparent text-danger delete-btn"
+                                                        data-form-id="delete-form-{{ $surat->id }}">
+                                                        <i class="bx bx-trash me-1"></i> Hapus
+                                                    </button>
+                                                </form>
+                                            @endif
                                             @if (in_array($surat->status, ['siap_diambil', 'sudah_diambil']))
                                                 <a class="dropdown-item text-success"
                                                     href="{{ route('admin.surat-ijin-survey.download', $surat->id) }}">
@@ -155,3 +168,33 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // SweetAlert for Delete Confirmation
+            document.querySelectorAll('.delete-btn').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const formId = this.getAttribute('data-form-id');
+                    const form = document.getElementById(formId);
+
+                    Swal.fire({
+                        title: 'Konfirmasi Hapus',
+                        text: 'Apakah Anda yakin ingin menghapus pengajuan ini? Tindakan ini tidak dapat dibatalkan.',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#dc3545',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Ya, Hapus',
+                        cancelButtonText: 'Batal'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            form.submit();
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+@endpush
