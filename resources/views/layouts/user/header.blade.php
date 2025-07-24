@@ -20,7 +20,11 @@
                         class="{{ request()->is('layanan') || request()->is('layanan/*') || request()->is('surat-aktif-kuliah') || request()->is('surat-aktif-kuliah/*') ? 'active' : '' }}"
                         onclick="scrollToSection('services')">Layanan</a>
                 </li>
-
+                <li>
+                    <a href="{{ route('user.tracking-surat.index') }}"
+                        class="{{ request()->is('tracking-surat') || request()->is('tracking-surat/*') ? 'active' : '' }}"
+                        onclick="scrollToSection('tracking')">Tracking Surat</a>
+                </li>
                 {{-- <li class="dropdown">
                     <a href="{{ Auth::check() ? '#' : route('login') }}"
                         class="{{ request()->is('layanan/*') ? 'active' : '' }}">
@@ -60,10 +64,12 @@
                     style="min-width: 280px; border: none; border-radius: 12px;">
                     <!-- User Profile Header -->
                     <li class="dropdown-header px-4 py-3 text-center" style="border-radius: 12px 12px 0 0;">
-                        <h6 class="mb-1" style="font-weight: 600; color: #212529;">{{ Auth::user()->name }}</h6>
+                        <h6 class="mb-1" style="font-weight: 600; color: #212529;">{{ Auth::user()->name }}
+                        </h6>
                         <p class="text-muted mb-1 small">{{ Auth::user()->nim }}</p>
                         <p class="text-muted mb-1 small">{{ Auth::user()->email }}</p>
-                        <span class="badge mt-2" style="background-color: var(--accent-color)">S1 Teknik Informatika</span>
+                        <span class="badge mt-2" style="background-color: var(--accent-color)">S1 Teknik
+                            Informatika</span>
                     </li>
 
                     <!-- Logout Button -->
@@ -85,7 +91,8 @@
                     href="{{ route('admin.dashboard.index') }}">Dashboard</a>
             @endif
         @else
-            <a class="btn btn-sm btn-outline-primary px-3 order-2 me-2" href="{{ route('login') }}">Log in</a>
+            <a class="btn btn-sm btn-outline-primary px-3 order-2 me-2" href="{{ route('login') }}">Log
+                in</a>
         @endauth
     </div>
 </header>

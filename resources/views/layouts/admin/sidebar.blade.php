@@ -469,6 +469,59 @@
                 </a>
             </li>
         @endcan
+        @can('manage peminjaman proyektor')
+            <li class="menu-item {{ request()->routeIs('admin.peminjaman-proyektor.*') ? 'active' : '' }}">
+                <a href="{{ route('admin.peminjaman-proyektor.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-tv"></i>
+                    <div>Peminjaman Proyektor</div>
+                </a>
+            </li>
+        @endcan
+
+        @can('manage peminjaman laboratorium')
+            <li class="menu-item {{ request()->routeIs('admin.peminjaman-laboratorium.*') ? 'active' : '' }}">
+                <a href="{{ route('admin.peminjaman-laboratorium.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-door-open"></i>
+                    <div>Peminjaman Lab</div>
+                </a>
+            </li>
+        @endcan
+
+        @can('manage pendaftaran sempro')
+            <li class="menu-item {{ request()->routeIs('admin.pendaftaran-seminar-proposal.*') ? 'active' : '' }}">
+                <a href="{{ route('admin.pendaftaran-seminar-proposal.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-book-open"></i>
+                    <div>Seminar Proposal</div>
+                </a>
+            </li>
+        @endcan
+
+        @can('manage pendaftaran hasil')
+            <li class="menu-item {{ request()->routeIs('admin.pendaftaran-ujian-hasil.*') ? 'active' : '' }}">
+                <a href="{{ route('admin.pendaftaran-ujian-hasil.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-book-bookmark"></i>
+                    <div>Ujian Hasil</div>
+                </a>
+            </li>
+        @endcan
+
+        @can('manage komisi proposal')
+            <li class="menu-item {{ request()->routeIs('admin.komisi-proposal.*') ? 'active' : '' }}">
+                <a href="{{ route('admin.komisi-proposal.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-detail"></i>
+                    <div>Komisi Proposal</div>
+                </a>
+            </li>
+        @endcan
+        @can('manage komisi hasil')
+            <li class="menu-item {{ request()->routeIs('admin.komisi-hasil.*') ? 'active' : '' }}">
+                <a href="{{ route('admin.komisi-hasil.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-book-content"></i>
+                    <div>Komisi Hasil</div>
+                </a>
+            </li>
+        @endcan
+
 
         @if (auth()->user()->can('manage kopsurat'))
             <li class="menu-header small text-uppercase">

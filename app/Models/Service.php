@@ -24,11 +24,18 @@ class Service extends Model
     {
         // Daftar route index untuk layanan khusus
         $customIndexRoutes = [
+            // Layanan Utama
             'surat-aktif-kuliah' => 'user.surat-aktif-kuliah.index',
             'surat-ijin-survey' => 'user.surat-ijin-survey.index',
             'surat-cuti-akademik' => 'user.surat-cuti-akademik.index',
             'surat-pindah' => 'user.surat-pindah.index',
-            // Tambahkan layanan khusus lainnya di sini
+            // Tambahkan laynan lainnya di sini
+            'peminjaman-proyektor' => 'user.peminjaman-proyektor.index',
+            'peminjaman-laboratorium' => 'user.peminjaman-laboratorium.index',
+            'pendaftaran-seminar-proposal' => 'user.pendaftaran-seminar-proposal.index',
+            'pendaftaran-ujian-hasil' => 'user.pendaftaran-ujian-hasil.index',
+            'komisi-proposal' => 'user.komisi-proposal.index',
+            'komisi-hasil' => 'user.komisi-hasil.index',
         ];
 
         // Jika ada custom route index, gunakan route khusus

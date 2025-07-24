@@ -32,6 +32,7 @@ class SuratCutiAkademik extends Model
         'verification_code',
         'verification_code_kaprodi', // Kode verifikasi untuk Kaprodi
         'verification_code_pimpinan', // Kode verifikasi untuk Pimpinan
+        'tracking_code', // Kode tracking unik
     ];
 
     protected $casts = [
@@ -58,8 +59,22 @@ class SuratCutiAkademik extends Model
     {
         return $this->morphOne(StatusSurat::class, 'surat', 'surat_type', 'surat_id')
             ->withDefault([
-                'status' => 'unknown'
+                'status' => 'unknown',
+                'catatan_admin' => null,
+                'updated_by' => null
             ]);
+    }
+
+    // Tambahkan method ini untuk memastikan relasi status selalu mengembalikan objek
+    public function getStatusSuratAttribute()
+    {
+        return $this->status()->firstOr(function () {
+            return new StatusSurat([
+                'status' => 'unknown',
+                'catatan_admin' => null,
+                'updated_by' => null
+            ]);
+        });
     }
 
     public function trackings(): MorphMany
@@ -133,6 +148,10 @@ class SuratCutiAkademik extends Model
             if ($model->isDirty('penandatangan_id') && !$model->verification_code_pimpinan) {
                 $model->verification_code_pimpinan = substr(md5(uniqid(mt_rand(), true) . $model->penandatangan->id), 0, 12);
             }
+        });
+
+        static::deleted(function ($model) {
+            // You can add additional cleanup here if needed
         });
     }
 }

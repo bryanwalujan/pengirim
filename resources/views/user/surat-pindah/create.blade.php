@@ -276,6 +276,57 @@
             border-top: 2px solid #000;
             margin: 10px 0;
         }
+
+        /* Required Docs Container */
+        .required-docs-container {
+            background: rgba(255, 255, 255, 0.7);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-radius: 10px;
+            border: 1px solid rgba(67, 97, 238, 0.15);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+        }
+
+        .required-docs-content {
+            padding: 0 0.5rem;
+        }
+
+        .required-docs-list {
+            list-style-type: none;
+            padding-left: 0;
+            margin-bottom: 0;
+        }
+
+        .required-docs-list li {
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: flex-start;
+            font-size: 0.9rem;
+            border-bottom: 1px dashed rgba(0, 0, 0, 0.08);
+        }
+
+        .required-docs-list li:last-child {
+            border-bottom: none;
+        }
+
+        .doc-type {
+            font-weight: 600;
+            color: var(--dark-gray);
+            min-width: 190px;
+            display: inline-block;
+        }
+
+
+        @media (max-width: 576px) {
+            .required-docs-list li {
+                flex-direction: column;
+            }
+
+            .doc-type {
+                min-width: 100%;
+                margin-bottom: 0.25rem;
+            }
+        }
     </style>
 @endpush
 
@@ -514,14 +565,42 @@
                         Dokumen Pendukung
                     </h5>
 
+                    <!-- Dokumen yang dibutuhkan -->
+                    <div class="required-docs-container mb-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="bi bi-info-circle-fill me-2"
+                                style="color: var(--accent-color); font-size: 1.25rem;"></i>
+                            <h6 class="mb-0 fw-semibold" style="color: var(--secondary-color);">Dokumen Wajib</h6>
+                        </div>
+                        <div class="required-docs-content">
+                            <p class="mb-2" style="font-size: 0.9rem; color: #6c757d;">Silakan unggah dokumen berikut
+                                (format PDF/JPG/PNG, maks. 2MB per file):</p>
+                            <ul class="required-docs-list">
+                                <li>
+                                    <span class="doc-type">👉 Surat permohonan (Mengetahui Orang Tua dan Dosen PA)</span>
+                                </li>
+                                <li>
+                                    <span class="doc-type">👉 Surat Keterangan Diterima di Universitas (Diambil di
+                                        Universitas yang Dituju)</span>
+                                </li>
+                                <li>
+                                    <span class="doc-type">👉 Slip Uang Kuliahh Tunggal (UKT) Semester Sebelumnya</span>
+                                </li>
+                                <li>
+                                    <span class="doc-type">👉 Transkrip Nilai</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
                     <div class="file-upload-wrapper">
                         <label class="file-upload-label" for="file_pendukung_path">
                             <i class="bi bi-cloud-arrow-up" style="font-size: 2.5rem; color: var(--accent-color);"></i>
-                            <div class="mt-3 fw-semibold">Klik untuk mengunggah dokumen</div>
+                            <div class="mt-3 fw-semibold">Klik untuk mengunggah dokumen pendukung</div>
                             <div class="file-info">Format: PDF, JPG, PNG (maks. 2MB per file)</div>
                         </label>
                         <input type="file" class="file-upload-input @error('file_pendukung_path') is-invalid @enderror"
-                            id="file_pendukung_path" name="file_pendukung_path">
+                            id="file_pendukung_path" name="file_pendukung_path[]" multiple>
                         @error('file_pendukung_path')
                             <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror

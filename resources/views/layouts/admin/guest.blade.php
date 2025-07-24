@@ -51,7 +51,7 @@
                                 class="col-6 d-lg-flex d-none h-100 my-auto pe-0 position-absolute top-0 end-0 text-center justify-content-center flex-column">
                                 <div class="position-relative bg-gradient-custom h-100 m-3 px-8 py-10 border-radius-lg rounded-xl d-flex flex-column justify-content-center overflow-hidden"
                                     style="background-image: linear-gradient(rgba(107, 72, 255, 0.7), rgba(162, 93, 217, 0.7)), url('{{ asset('/img/logo-unima.png') }}'); background-size: cover; background-position: center; background-repeat: no-repeat;">
-                                    <span class="mask bg-black opacity-30"></span>
+                                    {{-- <span class="mask bg-black opacity-30"></span> --}}
                                     <div class="relative z-10 text-center px-4">
                                         <h4 class="text-3xl font-bold text-white mb-4 drop-shadow-lg">"E-Service Teknik
                                             Informatika UNIMA"</h4>

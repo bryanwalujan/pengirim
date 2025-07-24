@@ -9,8 +9,9 @@
     <meta name="keywords" content="">
 
     <!-- Favicons -->
-    {{-- <link href="{{ asset('user/assets/img/favicon.png') }}" rel="icon"> --}}
     <link href="{{ asset('img/logo-unima.png') }}" rel="icon">
+
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com" rel="preconnect">
@@ -46,6 +47,7 @@
 
     {{-- Select2 --}}
     <link rel="stylesheet" href="{{ asset('library/select2/dist/css/select2.min.css') }}">
+
 
     {{-- Font Awesome --}}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
@@ -93,7 +95,6 @@
 
     {{-- Custom JS file --}}
     <script src="{{ asset('user/assets/js/custom.js') }}"></script>
-
 
     @stack('scripts')
 

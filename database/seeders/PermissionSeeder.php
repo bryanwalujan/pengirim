@@ -16,7 +16,7 @@ class PermissionSeeder extends Seeder
     {
         // Reset cached roles and permissions
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
-
+        
         // Create permissions
         $permissions = [
             // Dashboard
@@ -57,6 +57,24 @@ class PermissionSeeder extends Seeder
 
             // Letterhead Management
             ['name' => 'manage kopsurat', 'group' => 'kop-surat'],
+
+            // Peminjaman Proyektor
+            ['name' => 'manage peminjaman proyektor', 'group' => 'peminjaman-proyektor'],
+
+            // Peminjaman Laboratorium
+            ['name' => 'manage peminjaman laboratorium', 'group' => 'peminjaman-laboratorium'],
+
+            // Pendaftaran Sempro
+            ['name' => 'manage pendaftaran sempro', 'group' => 'pendaftaran-sempro'],
+
+            // Pendaftaran Ujian Hasil
+            ['name' => 'manage pendaftaran hasil', 'group' => 'pendaftaran-hasil'],
+
+            // Komisi Proposal
+            ['name' => 'manage komisi proposal', 'group' => 'komisi-proposal'],
+
+            // Komisi Hasil
+            ['name' => 'manage komisi hasil', 'group' => 'komisi-hasil'],
 
             // User Management
             ['name' => 'manage students', 'group' => 'users'],

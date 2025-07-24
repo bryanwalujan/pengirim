@@ -34,6 +34,7 @@ class SuratPindah extends Model
         'verification_code',
         'verification_code_kaprodi',
         'verification_code_pimpinan',
+        'tracking_code'
     ];
 
     protected $casts = [
@@ -60,13 +61,27 @@ class SuratPindah extends Model
     {
         return $this->morphOne(StatusSurat::class, 'surat', 'surat_type', 'surat_id')
             ->withDefault([
-                'status' => 'unknown'
+                'status' => 'unknown',
+                'catatan_admin' => null,
+                'updated_by' => null
             ]);
     }
 
     public function trackings(): MorphMany
     {
         return $this->morphMany(TrackingSurat::class, 'surat', 'surat_type', 'surat_id');
+    }
+
+    // Tambahkan method ini untuk memastikan relasi status selalu mengembalikan objek
+    public function getStatusSuratAttribute()
+    {
+        return $this->status()->firstOr(function () {
+            return new StatusSurat([
+                'status' => 'unknown',
+                'catatan_admin' => null,
+                'updated_by' => null
+            ]);
+        });
     }
 
     // Get the status of the document
@@ -140,6 +155,11 @@ class SuratPindah extends Model
             if ($model->isDirty('penandatangan_id') && !$model->verification_code_pimpinan) {
                 $model->verification_code_pimpinan = substr(md5(uniqid(mt_rand(), true) . $model->penandatangan->id), 0, 12);
             }
+        });
+
+        // Add this for soft delete event
+        static::deleted(function ($model) {
+            // You can add additional cleanup here if needed
         });
     }
 }

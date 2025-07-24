@@ -239,6 +239,22 @@
         #contohTujuan li {
             margin-bottom: 5px;
         }
+
+        .alert-info {
+            background-color: #e7f5ff;
+            border-color: #d0ebff;
+            color: #1864ab;
+            border-radius: 10px;
+            padding: 1rem 1.5rem;
+        }
+
+        .alert-info ol {
+            padding-left: 1.5rem;
+        }
+
+        .alert-info li {
+            margin-bottom: 0.5rem;
+        }
     </style>
 @endpush
 
@@ -468,6 +484,25 @@
                         <i class="bi bi-paperclip"></i>
                         Dokumen Pendukung
                     </h5>
+
+                    <div class="alert alert-info mb-4">
+                        <h6 class="alert-heading fw-bold"><i class="bi bi-info-circle-fill me-2"></i>Dokumen yang
+                            Diperlukan</h6>
+                        <div class="mb-2">
+                            <strong>Untuk semua jenis pengajuan:</strong>
+                            <ul class="mb-0">
+                                <li>Surat Permohonan</li>
+                                <li>Slip Uang Kuliah Tunggal (UKT) terbaru</li>
+                            </ul>
+                        </div>
+                        <div class="mt-2">
+                            <strong>Khusus pengajuan untuk keperluan beasiswa:</strong>
+                            <ul class="mb-0">
+                                <li>Sertifikat kegiatan yang diikuti di Fakultas/Prodi</li>
+                                <li>Dokumen pendukung beasiswa (jika ada)</li>
+                            </ul>
+                        </div>
+                    </div>
 
                     <div class="file-upload-wrapper">
                         <label class="file-upload-label" for="file_pendukung_path">

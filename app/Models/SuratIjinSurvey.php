@@ -32,6 +32,7 @@ class SuratIjinSurvey extends Model
         'verification_code',
         'verification_code_kaprodi',
         'verification_code_pimpinan',
+        'tracking_code',
     ];
 
     protected $casts = [
@@ -58,13 +59,25 @@ class SuratIjinSurvey extends Model
     {
         return $this->morphOne(StatusSurat::class, 'surat', 'surat_type', 'surat_id')
             ->withDefault([
-                'status' => 'unknown'
+                'status' => 'unknown',
+                'catatan_admin' => null,
+                'updated_by' => null
             ]);
     }
 
     public function trackings(): MorphMany
     {
         return $this->morphMany(TrackingSurat::class, 'surat', 'surat_type', 'surat_id');
+    }
+    public function getStatusSuratAttribute()
+    {
+        return $this->status()->firstOr(function () {
+            return new StatusSurat([
+                'status' => 'unknown',
+                'catatan_admin' => null,
+                'updated_by' => null
+            ]);
+        });
     }
 
     public function getStatusAttribute()
@@ -135,6 +148,11 @@ class SuratIjinSurvey extends Model
             if ($model->isDirty('penandatangan_id') && !$model->verification_code_pimpinan) {
                 $model->verification_code_pimpinan = substr(md5(uniqid(mt_rand(), true) . $model->penandatangan->id), 0, 12);
             }
+        });
+
+        // Add this for soft delete event
+        static::deleted(function ($model) {
+            // You can add additional cleanup here if needed
         });
     }
 }

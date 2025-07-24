@@ -5,17 +5,18 @@ namespace App\Http\Controllers\User;
 use App\Models\User;
 use App\Models\Service;
 use App\Models\StatusSurat;
+use App\Models\SuratPindah;
 use App\Models\TahunAjaran;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Models\TrackingSurat;
-use App\Models\SuratPindah;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use App\Notifications\SuratTakenNotification;
 use App\Http\Requests\SuratPindahRequest;
+use App\Notifications\SuratTakenNotification;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class SuratPindahController extends Controller
@@ -75,9 +76,14 @@ class SuratPindahController extends Controller
                 'semester' => $validated['semester'],
             ]);
 
+            // Handle File Uploads
             if ($request->hasFile('file_pendukung_path')) {
                 $surat->attachDokumenPendukung($request->file('file_pendukung_path'));
             }
+
+            // Generate Tracking Code
+            $surat->tracking_code = Str::random(12);
+            $surat->save();
 
             StatusSurat::create([
                 'surat_type' => SuratPindah::class,

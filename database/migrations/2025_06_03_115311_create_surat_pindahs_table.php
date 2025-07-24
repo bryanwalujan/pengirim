@@ -12,8 +12,8 @@ return new class extends Migration {
     {
         Schema::create('surat_pindahs', function (Blueprint $table) {
             $table->id();
+            $table->string('tracking_code', 12)->unique()->nullable(); // Kode tracking unik
             $table->foreignId('mahasiswa_id')->constrained('users')->onDelete('cascade');
-
             // Informasi Pengajuan
             $table->string('universitas_tujuan'); // Tambahan untuk surat pindah
             $table->text('alasan_pengajuan'); // Tambahan untuk surat pindah (menggantikan tujuan_pengajuan)

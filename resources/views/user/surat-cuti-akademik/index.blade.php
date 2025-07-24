@@ -7,39 +7,6 @@
     <link rel="stylesheet" href="{{ asset('library/datatables/media/css/jquery.dataTables.min.css') }}">
 
     <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: #f5f7fb;
-        }
-
-        .page-title h1 {
-            font-weight: 600;
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-            color: #2c3e50;
-        }
-
-        .breadcrumbs ol {
-            margin-bottom: 0;
-            padding-left: 0;
-            list-style: none;
-            display: flex;
-            gap: 0.5rem;
-            font-size: 0.9rem;
-            color: #6c757d;
-        }
-
-        .breadcrumbs a {
-            color: #4361ee;
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
-
-        .breadcrumbs a:hover {
-            text-decoration: underline;
-            color: #3a0ca3;
-        }
-
         .card {
             border-radius: 1rem;
             border: none;
@@ -85,44 +52,6 @@
             color: white;
         }
 
-        .status-badge {
-            font-size: 0.75rem;
-            font-weight: 600;
-            padding: 0.4rem 0.8rem;
-            border-radius: 50rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .badge-diajukan {
-            background: rgba(255, 193, 7, 0.15);
-            color: #ffc107;
-        }
-
-        .badge-diproses {
-            background: rgba(13, 110, 253, 0.15);
-            color: #0d6efd;
-        }
-
-        .badge-disetujui {
-            background: rgba(25, 135, 84, 0.15);
-            color: #198754;
-        }
-
-        .badge-ditolak {
-            background: rgba(220, 53, 69, 0.15);
-            color: #dc3545;
-        }
-
-        .badge-sudah_diambil {
-            background: rgba(108, 117, 125, 0.15);
-            color: #6c757d;
-        }
-
-        .badge-siap_diambil {
-            background: rgba(111, 66, 193, 0.15);
-            color: #6f42c1;
-        }
 
         .action-btn {
             width: 32px;
@@ -170,23 +99,6 @@
             margin-bottom: 0.5rem;
         }
 
-        .select2-container--default .select2-selection--single {
-            border-radius: 8px;
-            height: 42px;
-            padding: 8px 12px;
-            border-color: #e0e0e0;
-            background: #fff;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-        }
-
-        .select2-container--default .select2-selection--single .select2-selection__rendered {
-            line-height: 26px;
-            color: #2c3e50;
-        }
-
-        .select2-container--default .select2-selection--single .select2-selection__arrow {
-            height: 42px;
-        }
 
         .text-muted {
             font-size: 0.8rem;
@@ -257,7 +169,6 @@
 
         .table-responsive {
             border-radius: 10px;
-            overflow: hidden;
         }
 
         .table {
@@ -332,6 +243,36 @@
                 width: 100%;
             }
         }
+
+        /* Gaya asli tetap dipertahankan */
+        .btn-copy-code {
+            width: 28px;
+            height: 28px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            margin-left: 8px;
+            background: rgba(67, 97, 238, 0.1);
+            border: 1px solid rgba(67, 97, 238, 0.2);
+            color: #4361ee;
+            transition: all 0.3s ease;
+        }
+
+        .btn-copy-code:hover {
+            background: rgba(67, 97, 238, 0.2);
+            transform: scale(1.05);
+        }
+
+        .btn-copy-code i {
+            font-size: 0.875rem;
+        }
+
+        .tracking-code-container {
+            display: flex;
+            align-items: center;
+        }
     </style>
 @endpush
 
@@ -378,34 +319,6 @@
                                                     placeholder="Cari tahun/semester..." value="{{ request('search') }}">
                                             </div>
                                         </div>
-                                        {{-- <div class="col-md-3">
-                                            <select class="form-select select2" id="filter-status" name="status">
-                                                <option value="">Semua Status</option>
-                                                <option value="diajukan"
-                                                    {{ request('status') == 'diajukan' ? 'selected' : '' }}>Diajukan
-                                                </option>
-                                                <option value="diproses"
-                                                    {{ request('status') == 'diproses' ? 'selected' : '' }}>Diproses
-                                                </option>
-                                                <option value="disetujui"
-                                                    {{ request('status') == 'disetujui' ? 'selected' : '' }}>Disetujui
-                                                </option>
-                                                <option value="ditolak"
-                                                    {{ request('status') == 'ditolak' ? 'selected' : '' }}>Ditolak</option>
-                                                <option value="siap_diambil"
-                                                    {{ request('status') == 'siap_diambil' ? 'selected' : '' }}>Siap
-                                                    Diambil</option>
-                                                <option value="sudah_diambil"
-                                                    {{ request('status') == 'sudah_diambil' ? 'selected' : '' }}>Sudah
-                                                    Diambil</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-2">
-                                            <button type="button" id="reset-filter"
-                                                class="btn btn-outline-secondary btn-reset">
-                                                <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
-                                            </button>
-                                        </div> --}}
                                     </div>
                                 </form>
                             </div>
@@ -416,10 +329,10 @@
                                     <thead>
                                         <tr>
                                             <th width="15%">No. Surat</th>
+                                            <th width="15%">Tracking Code</th>
                                             <th width="15%">Tahun/Semester</th>
                                             <th width="25%">Alasan Cuti</th>
                                             <th width="15%">Tanggal Pengajuan</th>
-                                            <th width="15%">Status</th>
                                             <th width="15%">Aksi</th>
                                         </tr>
                                     </thead>
@@ -434,6 +347,18 @@
                                                     @else
                                                         <span class="text-muted">Belum ada nomor</span>
                                                     @endif
+                                                </td>
+                                                <td>
+                                                    <div class="tracking-code-container">
+                                                        <span class="tracking-code"
+                                                            title="Klik tombol disamping untuk menyalin">
+                                                            {{ $surat->tracking_code }}
+                                                        </span>
+                                                        <button class="btn-copy-code"
+                                                            onclick="copyTrackingCode('{{ $surat->tracking_code }}', this)">
+                                                            <i class="bi bi-clipboard"></i>
+                                                        </button>
+                                                    </div>
                                                 </td>
                                                 <td>
                                                     <span class="d-block">{{ $surat->tahun_ajaran }}</span>
@@ -455,39 +380,22 @@
                                                         class="text-muted">{{ $surat->created_at->format('H:i') }}</small>
                                                 </td>
                                                 <td>
-                                                    @php
-                                                        $statusClass = match ($surat->status) {
-                                                            'diajukan' => 'badge-diajukan',
-                                                            'diproses' => 'badge-diproses',
-                                                            'disetujui' => 'badge-disetujui',
-                                                            'siap_diambil' => 'badge-siap_diambil',
-                                                            'sudah_diambil' => 'badge-sudah_diambil',
-                                                            'ditolak' => 'badge-ditolak',
-                                                            default => 'badge-diajukan',
-                                                        };
-                                                    @endphp
-                                                    <span class="status-badge {{ $statusClass }}">
-                                                        {{ str_replace('_', ' ', $surat->status) }}
-                                                    </span>
-                                                    @if ($surat->status === 'ditolak' && $surat->statusSurat?->catatan_admin)
-                                                        <small class="text-muted d-block mt-1"
-                                                            title="{{ $surat->statusSurat->catatan_admin }}">
-                                                            {{ Str::limit($surat->statusSurat->catatan_admin, 30) }}
-                                                        </small>
-                                                    @endif
-                                                </td>
-                                                <td>
                                                     <div class="action-buttons">
                                                         <a href="{{ route('user.surat-cuti-akademik.show', $surat->id) }}"
                                                             class="action-btn btn btn-sm btn-info" title="Detail">
                                                             <i class="bi bi-eye"></i>
                                                         </a>
                                                         @if ($surat->status === 'siap_diambil')
-                                                            <a href="{{ route('user.surat-cuti-akademik.confirm-taken', $surat->id) }}"
-                                                                class="action-btn btn btn-sm btn-success"
-                                                                title="Konfirmasi">
-                                                                <i class="bi bi-check-circle"></i>
-                                                            </a>
+                                                            <form
+                                                                action="{{ route('user.surat-cuti-akademik.confirm-taken', $surat->id) }}"
+                                                                method="POST" class="d-inline">
+                                                                @csrf
+                                                                <button type="submit"
+                                                                    class="action-btn btn btn-sm btn-success"
+                                                                    title="Konfirmasi">
+                                                                    <i class="bi bi-check-circle"></i>
+                                                                </button>
+                                                            </form>
                                                         @endif
                                                         @if (in_array($surat->status, ['siap_diambil', 'sudah_diambil', 'disetujui']) && $surat->file_surat_path)
                                                             <a href="{{ route('user.surat-cuti-akademik.download', $surat->id) }}"
@@ -532,11 +440,64 @@
 
 @push('scripts')
     <!-- JS Libraries -->
-    <script src="{{ asset('library/datatables/media/js/jquery.dataTables.min.js') }}"></script>
-    <script src="{{ asset('library/select2/dist/js/select2.full.min.js') }}"></script>
-    <script src="{{ asset('library/sweetalert2/dist/sweetalert2.min.js') }}"></script>
-
     <script>
+        function copyTrackingCode(code, button) {
+            // Buat elemen input sementara
+            const tempInput = document.createElement('input');
+            tempInput.value = code;
+            document.body.appendChild(tempInput);
+
+            // Pilih teks
+            tempInput.select();
+            tempInput.setSelectionRange(0, 99999); // Untuk mobile
+
+            try {
+                // Jalankan perintah salin
+                const successful = document.execCommand('copy');
+
+                if (successful) {
+                    // Ubah ikon sementara
+                    const icon = button.querySelector('i');
+                    icon.classList.remove('bi-clipboard');
+                    icon.classList.add('bi-check');
+
+                    // Tampilkan tooltip/alert
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Disalin!',
+                        text: 'Kode tracking telah disalin ke clipboard.',
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+
+                    // Kembalikan ikon setelah 2 detik
+                    setTimeout(() => {
+                        icon.classList.remove('bi-check');
+                        icon.classList.add('bi-clipboard');
+                    }, 2000);
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: 'Gagal menyalin kode tracking',
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                }
+            } catch (err) {
+                console.error('Error saat menyalin teks:', err);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Terjadi kesalahan saat menyalin',
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+            }
+
+            // Hapus elemen input sementara
+            document.body.removeChild(tempInput);
+        }
         $(document).ready(function() {
             // Initialize select2
             $('.select2').select2({

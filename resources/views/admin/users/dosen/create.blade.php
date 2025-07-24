@@ -168,13 +168,6 @@
                     valid = false;
                 }
 
-                // Validate NIP format (10 digits)
-                const nip = document.getElementById('nip').value;
-                if (!/^\d{10,20}$/.test(nip)) {
-                    alert('NIP harus terdiri dari 10-20 digit angka');
-                    valid = false;
-                }
-
                 // Validate jabatan
                 const jabatan = document.getElementById('jabatan').value;
                 if (!jabatan) {

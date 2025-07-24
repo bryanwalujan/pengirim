@@ -9,10 +9,15 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 
+    {{-- Favicons --}}
+    <link href="{{ asset('img/logo-unima.png') }}" rel="icon">
 
     {{-- Custom Styles --}}
     <link rel="stylesheet" href="{{ asset('user/assets/css/style.css') }}" />
 
+    {{-- Trix Editor --}}
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/trix@2.0.8/dist/trix.css">
+    <script type="text/javascript" src="https://unpkg.com/trix@2.0.8/dist/trix.umd.min.js"></script>
 
     @stack('styles')
 </head>

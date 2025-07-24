@@ -115,12 +115,12 @@
                         @endif
                         @if ($surat->penandatanganKaprodi)
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Penandatangan (Kaprodi)</label>
+                                <label class="form-label">Penandatangan (Korprodi)</label>
                                 <input type="text" class="form-control" value="{{ $surat->penandatanganKaprodi->name }}"
                                     readonly>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Jabatan Kaprodi</label>
+                                <label class="form-label">Jabatan Korprodi</label>
                                 <input type="text" class="form-control"
                                     value="{{ $surat->jabatan_penandatangan_kaprodi }}" readonly>
                             </div>
@@ -207,7 +207,7 @@
                             @if ($surat->status === 'diproses')
                                 Preview Surat
                             @elseif ($surat->status === 'disetujui_kaprodi')
-                                Surat dengan Persetujuan Kaprodi
+                                Surat dengan Persetujuan Korprodi
                             @elseif (in_array($surat->status, ['disetujui_pimpinan', 'disetujui', 'siap_diambil', 'sudah_diambil']))
                                 Surat Final
                             @else
@@ -225,7 +225,7 @@
                                         Ini adalah preview surat sebelum disetujui. Dokumen belum memiliki tanda tangan dan
                                         QR code verifikasi.
                                     @elseif ($surat->status === 'disetujui_kaprodi')
-                                        Ini adalah surat dengan tanda tangan Kaprodi. Menunggu persetujuan Pimpinan.
+                                        Ini adalah surat dengan tanda tangan Korprodi. Menunggu persetujuan Pimpinan.
                                     @else
                                         Ini adalah surat final yang telah disetujui dan memiliki tanda tangan lengkap.
                                     @endif
@@ -240,7 +240,7 @@
                                 @if ($surat->status === 'diproses')
                                     Lihat Preview
                                 @elseif ($surat->status === 'disetujui_kaprodi')
-                                    Lihat Surat Kaprodi
+                                    Lihat Surat Korprodi
                                 @else
                                     Lihat Surat Final
                                 @endif
@@ -345,7 +345,7 @@
                     <div class="card-header">
                         <h5 class="card-title mb-0">
                             @if ($surat->status === 'diproses')
-                                Persetujuan Kaprodi
+                                Persetujuan Korprodi
                             @else
                                 Persetujuan Pimpinan
                             @endif
@@ -363,7 +363,7 @@
                             @if ($surat->status === 'diproses')
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
-                                        <label class="form-label">Penandatangan (Kaprodi)</label>
+                                        <label class="form-label">Penandatangan (Korprodi)</label>
                                         <select name="penandatangan_kaprodi_id" class="form-select" required>
                                             <option value="{{ auth()->user()->id }}" selected>
                                                 {{ auth()->user()->name }} (Anda)
@@ -371,7 +371,7 @@
                                         </select>
                                     </div>
                                     <div class="col-md-6 mb-3">
-                                        <label class="form-label">Jabatan Kaprodi</label>
+                                        <label class="form-label">Jabatan Korprodi</label>
                                         <input type="text" name="jabatan_penandatangan_kaprodi" class="form-control"
                                             value="{{ auth()->user()->jabatan ?? 'Koordinator Program Studi' }}" required>
                                     </div>
@@ -420,6 +420,23 @@
                     @endif
                 </div>
             @endif
+        @endif
+
+        @if (auth()->user()->hasRole('staff') && in_array($surat->status, ['diajukan', 'ditolak']))
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form id="delete-form-{{ $surat->id }}"
+                        action="{{ route('admin.surat-ijin-survey.destroy', $surat->id) }}" method="POST">
+                        @csrf
+                        @method('DELETE')
+                        <p>Anda akan menghapus pengajuan ini secara permanen. Tindakan ini tidak dapat dibatalkan.</p>
+                        <button type="submit" class="btn btn-danger delete-btn delete-btn-card"
+                            data-form-id="delete-form-{{ $surat->id }}">
+                            <i class="bx bx-trash me-1"></i> Hapus Pengajuan
+                        </button>
+                    </form>
+                </div>
+            </div>
         @endif
 
         <div class="card">
@@ -492,6 +509,30 @@
                 actionSelect.addEventListener('change', toggleDosenFields);
                 toggleDosenFields();
             }
+
+            // SweetAlert for Delete Confirmation
+            document.querySelectorAll('.delete-btn').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const formId = this.getAttribute('data-form-id');
+                    const form = document.getElementById(formId);
+
+                    Swal.fire({
+                        title: 'Konfirmasi Hapus',
+                        text: 'Apakah Anda yakin ingin menghapus pengajuan ini? Tindakan ini tidak dapat dibatalkan.',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#dc3545',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Ya, Hapus',
+                        cancelButtonText: 'Batal'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            form.submit();
+                        }
+                    });
+                });
+            });
         });
     </script>
 @endpush

@@ -4,32 +4,6 @@
 
 @push('styles')
     <style>
-        .page-title h1 {
-            font-weight: 700;
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .breadcrumbs ol {
-            margin-bottom: 0;
-            padding-left: 0;
-            list-style: none;
-            display: flex;
-            gap: 0.5rem;
-            font-size: 0.9rem;
-            color: #6c757d;
-        }
-
-        .breadcrumbs a {
-            color: #0d6efd;
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
-
-        .breadcrumbs a:hover {
-            text-decoration: underline;
-        }
-
         .card {
             border-radius: 1.5rem;
             border: none;
@@ -115,21 +89,6 @@
             transform: translateY(-3px);
         }
 
-        .progress {
-            height: 30px;
-            border-radius: 15px;
-            background: #e9ecef;
-            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-
-        .progress-bar {
-            border-radius: 15px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: width 0.5s ease;
-        }
 
         .file-link {
             display: flex;
@@ -172,6 +131,28 @@
                             <h4 class="mb-0 fw-bold text-center text-white">Detail Pengajuan Surat Ijin Survey</h4>
                         </div>
                         <div class="card-body">
+                            {{-- Informasi Surat --}}
+                            <div class="mb-5" data-aos="fade-up" data-aos-delay="100">
+                                <h5 class="section-title">Informasi Surat</h5>
+                                <div class="row g-4">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Kode Tracking</label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control"
+                                                value="{{ $surat->tracking_code ?? '-' }}" readonly>
+                                            <button class="btn btn-outline-primary"
+                                                onclick="copyTrackingCode('{{ $surat->tracking_code }}')">
+                                                <i class="bi bi-clipboard"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Nomor Surat</label>
+                                        <input type="text" class="form-control"
+                                            value="{{ $surat->nomor_surat ?? 'Belum ditentukan' }}" readonly>
+                                    </div>
+                                </div>
+                            </div>
                             <!-- Informasi Mahasiswa -->
                             <div class="mb-5" data-aos="fade-up" data-aos-delay="100">
                                 <h5 class="section-title">Informasi Mahasiswa</h5>

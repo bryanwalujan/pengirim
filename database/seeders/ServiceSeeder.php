@@ -43,61 +43,48 @@ class ServiceSeeder extends Seeder
                 'is_active' => true,
             ],
             [
-                'name' => 'Permohonan Transkrip',
-                'icon' => 'bx bx-spreadsheet', // Changed from bi bi-file-text
-                'description' => 'Pengajuan transkrip nilai resmi yang telah dilegalisir oleh pihak akademik.',
-                'order' => 5,
-                'is_active' => true,
-            ],
-            [
-                'name' => 'Kelayakan Skripsi',
-                'icon' => 'bx bx-check-circle', // Changed from bi bi-check-circle
-                'description' => 'Proses verifikasi kelayakan proposal skripsi sebelum dapat melanjutkan ke tahap seminar proposal.',
-                'order' => 6,
-                'is_active' => true,
-            ],
-            [
-                'name' => 'Pendaftaran Seminar Proposal',
-                'icon' => 'bx bx-bullhorn', // Changed from bi bi-megaphone
-                'description' => 'Pendaftaran untuk seminar proposal skripsi sebagai syarat kelulusan mata kuliah skripsi.',
-                'order' => 7,
-                'is_active' => true,
-            ],
-            [
-                'name' => 'Pendaftaran Ujian Skripsi',
-                'icon' => 'bx bx-book-open', // Changed from bi bi-journal-text
-                'description' => 'Pendaftaran ujian skripsi setelah menyelesaikan semua persyaratan penelitian dan penulisan skripsi.',
-                'order' => 8,
-                'is_active' => true,
-            ],
-            [
-                'name' => 'Pendaftaran Ujian Komprehensif',
-                'icon' => 'bx bx-book-bookmark', // Changed from bi bi-journal-bookmark
-                'description' => 'Pendaftaran ujian komprehensif untuk program studi tertentu yang memerlukannya.',
-                'order' => 9,
-                'is_active' => true,
-            ],
-            [
-                'name' => 'Pengajuan Surat Keterangan Lulus',
-                'icon' => 'bx bx-award', // Changed from bi bi-award
-                'description' => 'Pengajuan surat keterangan lulus untuk keperluan administrasi setelah menyelesaikan studi.',
-                'order' => 10,
-                'is_active' => true,
-            ],
-            [
                 'name' => 'Peminjaman Laboratorium',
                 'icon' => 'bx bx-desktop', // Changed from bi bi-pc-display
                 'description' => 'Pengajuan peminjaman laboratorium komputer untuk keperluan penelitian atau kegiatan akademik.',
-                'order' => 11,
-                'is_active' => false,
+                'order' => 5,
+                'is_active' => true,
             ],
             [
                 'name' => 'Peminjaman Proyektor',
                 'icon' => 'bx bx-slideshow', // Changed from bi bi-projector
                 'description' => 'Pengajuan peminjaman proyektor untuk keperluan presentasi atau kegiatan akademik lainnya.',
-                'order' => 12,
-                'is_active' => false,
+                'order' => 6,
+                'is_active' => true,
             ],
+            [
+                'name' => 'Pendaftaran Seminar Proposal',
+                'icon' => 'bx bx-book-open', // Changed from bi bi-megaphone
+                'description' => 'Pendaftaran untuk seminar proposal skripsi sebagai syarat kelulusan mata kuliah skripsi.',
+                'order' => 7,
+                'is_active' => true,
+            ],
+            [
+                'name' => 'Pendaftaran Ujian Hasil',
+                'icon' => 'bx bx-book-bookmark', // Changed from bi bi-journal-text
+                'description' => 'Pendaftaran ujian hasil setelah menyelesaikan semua persyaratan penelitian dan penulisan skripsi.',
+                'order' => 8,
+                'is_active' => true,
+            ],
+            [
+                'name' => 'Komisi Proposal',
+                'icon' => 'bx bx-detail',
+                'description' => 'Pengajuan komisi proposal untuk mendapatkan persetujuan dari dosen pembimbing sebelum melanjutkan ke tahap seminar proposal.',
+                'order' => 9,
+                'is_active' => true,
+            ],
+            [
+                'name' => 'Komisi Hasil',
+                'icon' => 'bx bx-book-content',
+                'description' => 'Pengajuan komisi hasil/skripsi untuk mendapatkan persetujuan dari dosen pembimbing I dan pembimbing II sebelum melanjutkan ke tahap ujian hasil/skripsi.',
+                'order' => 10,
+                'is_active' => true,
+            ],
+
         ];
 
         foreach ($services as $service) {
