@@ -59,7 +59,7 @@
     </div>
 
     <div class="container copyright text-center mt-4">
-        <p>© <span>2025</span> <strong class="px-1 sitename">E-Services Teknik Informatika</strong> <span>All Rights
+        <p>© <span>2025</span><strong class="px-1 sitename">E-Services Teknik Informatika</strong> <span>All Rights
                 Reserved</span></p>
         <div class="credits">
             Developed by <a href="https://informatika.ft.unima.ac.id">Program Studi Teknik Informatika, Universitas

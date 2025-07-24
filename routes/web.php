@@ -70,7 +70,7 @@ Route::get('/preview-komisi-pdf', [AdminKomisiHasilController::class, 'previewPd
     ->name('preview.komisi.pdf')
     ->middleware('auth');
 
-// Student service routes
+// Route untuk role mahasiswa
 Route::middleware(['auth', 'verified', 'role:mahasiswa', 'check.ukt'])->group(function () {
     Route::prefix('layanan')->name('user.services.')->group(function () {
         Route::get('/', [UserServiceController::class, 'index'])->name('index');

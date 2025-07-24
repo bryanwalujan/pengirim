@@ -35,13 +35,13 @@
 
 
     <!-- Main CSS File -->
+    <link href="{{ asset('user/assets/css/main.css') }}" rel="stylesheet">
 
     {{-- Custom CSS --}}
     <link href="{{ asset('user/assets/css/style.css') }}" rel="stylesheet">
 
     @stack('styles')
 
-    <link href="{{ asset('user/assets/css/main.css') }}" rel="stylesheet">
     <!-- Boxicons CSS -->
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 
@@ -77,6 +77,10 @@
     <a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i
             class="bi bi-arrow-up-short"></i></a>
 
+    <!-- Preloader -->
+    <div id="preloader" class="d-flex align-items-center justify-content-center">
+    </div>
+
     <!-- Vendor JS Files -->
     <script src="{{ asset('user/assets/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('user/assets/vendor/php-email-form/validate.js') }}"></script>
@@ -86,6 +90,7 @@
     <script src="{{ asset('user/assets/vendor/purecounter/purecounter_vanilla.js') }}"></script>
     {{-- Select2 --}}
     <script src="{{ asset('library/select2/dist/js/select2.full.min.js') }}"></script>
+
 
     <!-- DataTables -->
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
@@ -177,6 +182,7 @@
         }
     </script>
 
+    {{-- Intersection Observer for Active Nav Link --}}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const sections = document.querySelectorAll('section');
