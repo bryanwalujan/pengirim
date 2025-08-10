@@ -1,43 +1,41 @@
-/* Dropdown Menu Styling */
-/* .dropdown-menu {
-    border: none;
-    border-radius: 10px;
-    padding: 0.5rem 0;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    animation: fadeIn 0.2s ease-in-out;
-    border: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.dropdown-item {
-    padding: 0.5rem 1.5rem;
-    font-size: 0.9rem;
-    color: #4a5568;
-    border-radius: 5px;
-    margin: 0 0.5rem;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-}
-
-.dropdown-item:hover {
-    background-color: #f7fafc;
-    color: #1a365d;
-    transform: translateX(3px);
-}
-
-.dropdown-item i {
-    width: 20px;
-    text-align: center;
-}
-
-.dropdown-divider {
-    margin: 0.5rem 0;
-}
-
-.dropdown-header {
-    padding: 1rem 1.5rem;
-    background-color: #f8f9fa;
-    border-radius: 10px 10px 0 0;
+:root {
+    /* Fallback / utama */
+    --footer-gradient: linear-gradient(
+        135deg,
+        #ff8a1b 0%,
+        #ff7a0d 14%,
+        #ff6a00 26%,
+        #ff5400 34%,
+        #d94a00 42%,
+        #0d4d82 71%,
+        #0a355c 85%,
+        #082642 100%
+    );
+    /* Alt: lebih dominan biru */
+    --footer-gradient-alt: linear-gradient(
+        145deg,
+        #ff8a1b 0%,
+        #ff6a00 12%,
+        #ff5a00 22%,
+        #1d5f9e 55%,
+        #0f4778 72%,
+        #082d4b 100%
+    );
+    --footer-overlay-pattern: radial-gradient(
+            circle at 18% 82%,
+            rgba(255, 255, 255, 0.12) 0%,
+            transparent 55%
+        ),
+        radial-gradient(
+            circle at 82% 18%,
+            rgba(255, 255, 255, 0.12) 0%,
+            transparent 55%
+        ),
+        radial-gradient(
+            circle at 70% 85%,
+            rgba(255, 255, 255, 0.08) 0%,
+            transparent 60%
+        );
 }
 
 /* User Dropdown Specific */
@@ -301,145 +299,546 @@
     }
 }
 
-/* Styling Dasar Footer */
+/* Modern Footer Styles */
+/* Container utama footer */
 .footer {
-    padding: 10px 0 30px 0;
-    /* Padding atas-bawah, kiri-kanan 0 */
+    background: var(--footer-gradient);
+    color: var(--contrast-color, #fff);
     font-size: 14px;
-    font-weight: 500;
-    color: var(--contrast-color);
-    /* Warna teks default */
-    border-top: 4px solid var(--accent-color);
-    /* Garis aksen biru di atas (sesuaikan dengan tema Anda) */
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    background-size: cover;
+    backdrop-filter: blur(0);
+    will-change: background-position;
 }
 
-/* Bagian 'About' di Footer */
-.footer .footer-about .logo span.sitename {
-    font-size: 28px;
-    font-weight: 700;
-    /* Warna logo (sesuaikan) */
-    letter-spacing: 1px;
-    /* Contoh font modern */
+/* Varian alternatif (tambah class gradient-alt) */
+.footer.gradient-alt {
+    background: var(--footer-gradient-alt);
 }
 
-.footer .footer-contact p {
-    margin-bottom: 5px;
+/* Varian animasi halus */
+.footer.gradient-animated {
+    background: var(--footer-gradient);
+    background-size: 160% 160%;
+    animation: footerShift 18s ease-in-out infinite alternate;
 }
 
-.footer .footer-contact p a:hover {
-    color: #0d6efd;
-    /* Warna link saat hover */
+@keyframes footerShift {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 60% 50%;
+    }
+    100% {
+        background-position: 100% 50%;
+    }
+}
+
+/* Overlay pola cahaya */
+.footer::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--footer-overlay-pattern);
+    pointer-events: none;
+    z-index: 0;
+    mix-blend-mode: screen;
+    opacity: 0.85;
+}
+
+/* Overlay gradasi gelap bawah untuk kontras */
+.footer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        180deg,
+        rgba(0, 0, 0, 0) 0%,
+        rgba(8, 38, 66, 0.25) 55%,
+        rgba(6, 24, 44, 0.55) 100%
+    );
+    z-index: 0;
+    pointer-events: none;
+}
+
+.footer .container,
+.footer-bottom .container {
+    position: relative;
+    z-index: 1;
+}
+
+/* Wave dekorasi pemisah atas (opsional) */
+.footer-top {
+    position: relative;
+    padding: 70px 0 48px;
+}
+
+.footer-top::before {
+    content: "";
+    position: absolute;
+    top: -55px;
+    left: 0;
+    width: 100%;
+    height: 55px;
+    background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none' viewBox='0 0 1440 90'><path fill='%23ffffff' d='M0,64L80,69.3C160,75,320,85,480,74.7C640,64,800,32,960,26.7C1120,21,1280,43,1360,53.3L1440,64L1440,0L1360,0C1280,0,1120,0,960,0C800,0,640,0,480,0C320,0,160,0,80,0L0,0Z'></path></svg>")
+        center / cover no-repeat;
+    transform: translateY(-1px);
+}
+
+/* Brand */
+.footer-brand .logo {
     text-decoration: none;
-    /* Hilangkan underline jika tidak diinginkan */
+    transition: transform 0.35s ease;
+    display: inline-flex;
+    align-items: center;
 }
 
-.footer .social-links a {
+.footer-brand .logo:hover {
+    transform: translateY(-3px);
+}
+
+.footer-brand .logo-img {
+    height: 52px;
+    width: auto;
+    margin-right: 14px;
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.28));
+}
+
+.footer-brand .sitename {
+    font-family: var(--heading-font, "Poppins", sans-serif);
+    font-size: 30px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    --webkit-background-clip: text;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+.footer-description {
+    font-size: 15px;
+    line-height: 1.6;
+    margin: 18px 0 28px;
+    font-weight: 400;
+    color: var(--footer-text-soft);
+    max-width: 520px;
+    text-wrap: balance;
+}
+
+/* Kontak */
+.footer-contact .contact-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 15px;
+    padding: 8px 0;
+    transition: transform 0.25s ease, filter 0.25s ease;
+    position: relative;
+}
+
+.footer-contact .contact-item:hover {
+    transform: translateX(6px);
+}
+
+.footer-contact .contact-item i {
+    font-size: 18px;
+    margin-top: 2px;
+    color: #ffffff;
+    width: 26px;
+    text-align: center;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.35);
+}
+
+.footer-contact .contact-item strong {
+    font-weight: 600;
+    margin-right: 4px;
+    color: #fff;
+}
+
+.footer-contact .contact-link {
+    color: var(--footer-text-soft);
+    text-decoration: none;
+    position: relative;
+    transition: color 0.3s ease;
+}
+
+.footer-contact .contact-link:hover {
+    color: #fff;
+    text-decoration: underline;
+}
+
+.footer-contact .contact-link:focus-visible {
+    outline: 2px dashed var(--footer-focus);
+    outline-offset: 3px;
+}
+
+/* Sosial */
+.social-links .social-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 10px 0 16px;
+    color: #fff;
+    letter-spacing: 0.5px;
+}
+
+.social-icons {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.social-link {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    background: var(--footer-glass-bg);
+    color: #fff;
+    font-size: 19px;
+    text-decoration: none;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: 1px solid #0d6efd40;
-    /* Border tipis dengan warna aksen transparan */
-    font-size: 16px;
-    color: var(--contrast-color);
-    /* Warna ikon */
-    margin-right: 10px;
-    transition: all 0.3s ease-in-out;
-}
-
-.footer .social-links a:hover {
-    color: var(--contrast-color);
-    background: #0d6efd;
-    /* Warna background saat hover */
-    border-color: #0d6efd;
-}
-
-/* Judul Link di Footer */
-.footer .footer-links h4 {
-    font-size: 16px;
-    font-weight: bold;
-    color: var(--contrast-color);
-    /* Warna judul lebih gelap */
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(14px) saturate(150%);
+    border: 1px solid var(--footer-border);
     position: relative;
-    padding-bottom: 12px;
-    margin-bottom: 15px;
+    overflow: hidden;
 }
 
-/* Garis bawah untuk judul link (opsional) */
-.footer .footer-links h4::after {
+.social-link::after {
     content: "";
     position: absolute;
-    display: block;
-    width: 25px;
-    height: 2px;
-    background: #0d6efd;
-    /* Warna aksen */
-    bottom: 0;
-    left: 0;
+    inset: 0;
+    background: linear-gradient(
+        140deg,
+        rgba(255, 255, 255, 0.18),
+        transparent 55%
+    );
+    opacity: 0;
+    transition: opacity 0.4s;
 }
 
-/* Item Link di Footer */
-.footer .footer-links ul {
+.social-link:hover {
+    transform: translateY(-4px) scale(1.06);
+    box-shadow: 0 8px 22px -6px rgba(0, 0, 0, 0.45);
+}
+
+.social-link:hover::after {
+    opacity: 1;
+}
+
+.social-link.twitter:hover {
+    background: #1da1f2;
+}
+.social-link.facebook:hover {
+    background: #4267b2;
+}
+.social-link.instagram:hover {
+    background: linear-gradient(
+        45deg,
+        #f09433,
+        #e6683c,
+        #dc2743,
+        #cc2366,
+        #bc1888
+    );
+}
+.social-link.linkedin:hover {
+    background: #0077b5;
+}
+
+.social-link:focus-visible {
+    outline: 2px solid var(--footer-focus);
+    outline-offset: 3px;
+}
+
+/* Heading & Link Section */
+.footer-links h4 {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 22px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    position: relative;
+    letter-spacing: 0.5px;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
+.footer-links h4::after {
+    content: "";
+    position: absolute;
+    bottom: -8px;
+    left: 0;
+    width: 36px;
+    height: 3px;
+    background: linear-gradient(90deg, #fff 0%, rgba(255, 255, 255, 0.4) 100%);
+    border-radius: 2px;
+}
+
+.footer-links ul {
     list-style: none;
     padding: 0;
     margin: 0;
 }
 
-.footer .footer-links ul li {
-    padding: 8px 0;
+.footer-links ul li {
+    margin-bottom: 10px;
+}
+
+.footer-links ul a {
+    color: var(--footer-text-soft);
+    text-decoration: none;
     display: flex;
     align-items: center;
+    font-weight: 400;
+    transition: all 0.35s ease;
+    padding: 6px 0;
+    border-radius: 5px;
+    position: relative;
+    overflow: hidden;
 }
 
-.footer .footer-links ul li:first-child {
-    padding-top: 0;
-}
-
-.footer .footer-links ul a {
-    color: var(--contrast-color);
-    /* Warna link */
-    transition: 0.3s;
-    display: inline-block;
-    line-height: 1;
-}
-
-.footer .footer-links ul a:hover {
-    color: #0d6efd;
-    /* Warna link saat hover */
-    text-decoration: none;
-    /* Hilangkan underline jika tidak diinginkan */
-}
-
-/* Bagian Copyright */
-.footer .copyright {
-    text-align: center;
-    padding-top: 30px;
-    border-top: 2px solid #0000001a;
-    /* Garis pemisah tipis */
-    color: var(--contrast-color);
-}
-
-.footer .credits {
-    padding-top: 4px;
-    text-align: center;
+.footer-links ul a i {
     font-size: 13px;
-    color: var(--contrast-color);
+    margin-right: 8px;
+    transition: transform 0.3s ease;
 }
 
-.footer .credits a {
-    color: var(--contrast-color);
-    transition: 0.3s;
+.footer-links ul a::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 2px;
+    width: 0;
+    background: #fff;
+    transition: width 0.35s ease;
+    border-radius: 2px;
 }
 
-.footer .credits a:hover {
-    color: #0a58ca;
-    /* Warna link credits saat hover */
+.footer-links ul a:hover {
+    color: #fff;
+    transform: translateX(6px);
 }
 
-/* Penyesuaian jika sitename di copyright berbeda */
-.footer .copyright .sitename {
+.footer-links ul a:hover i {
+    transform: translateX(4px);
+}
+.footer-links ul a:hover::after {
+    width: 100%;
+}
+
+.footer-links ul a:focus-visible {
+    outline: 2px dashed var(--footer-focus);
+    outline-offset: 3px;
+}
+
+/* Bottom bar */
+.footer-bottom {
+    background: rgba(0, 0, 0, 0.25);
+    padding: 26px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(14px);
+    position: relative;
+    z-index: 1;
+}
+
+.footer-bottom::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.08),
+        rgba(255, 255, 255, 0) 40%,
+        rgba(255, 255, 255, 0) 60%,
+        rgba(255, 255, 255, 0.08)
+    );
+    opacity: 0.35;
+    pointer-events: none;
+}
+
+copyright-text,
+.footer-bottom p {
+    margin: 0;
+}
+
+copyright-text,
+.footer-bottom p,
+.footer-credits {
+    font-size: 13.5px;
+    color: var(--footer-text-soft);
+}
+
+.sitename {
     font-weight: 600;
-    color: var(--contrast-color);
+    color: #fff;
+}
+
+.footer-credits {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.footer-credits i {
+    font-size: 15px;
+}
+
+/* Developer / institution link */
+.developer-link,
+.institution-link {
+    color: #fff;
+    text-decoration: none;
+    position: relative;
+    font-weight: 500;
+    transition: color 0.3s;
+}
+
+.developer-link:hover,
+.institution-link:hover {
+    color: #ffe3c2;
+}
+
+.developer-link:focus-visible,
+.institution-link:focus-visible {
+    outline: 2px dashed var(--footer-focus);
+    outline-offset: 3px;
+}
+
+/* Back to top */
+.back-to-top {
+    position: fixed;
+    right: 22px;
+    bottom: 26px;
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(145deg, #ff7a00, #0d4d82);
+    color: #fff;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: all 0.42s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1090;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.5);
+}
+
+.back-to-top.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.back-to-top:hover {
+    filter: brightness(1.09);
+    transform: translateY(-4px);
+}
+
+.back-to-top:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 4px;
+}
+
+/* Fokus aksesibilitas umum */
+.footer-links ul a:focus-visible,
+.social-link:focus-visible,
+.footer-contact .contact-link:focus-visible,
+.newsletter-form .btn-subscribe:focus-visible {
+    outline: 2px dashed var(--footer-focus);
+    outline-offset: 3px;
+}
+
+/* Preferensi reduce motion */
+@media (prefers-reduced-motion: reduce) {
+    .footer.gradient-animated {
+        animation: none;
+        background-size: cover;
+    }
+    .social-link,
+    .footer-links ul a,
+    .stat-item,
+    .contact-item {
+        transition: none;
+    }
+}
+
+/* Responsif */
+@media (max-width: 1200px) {
+    .footer-brand .sitename {
+        font-size: 28px;
+    }
+}
+
+@media (max-width: 992px) {
+    .footer-top {
+        padding: 62px 0 46px;
+    }
+    .footer-top::before {
+        height: 50px;
+        top: -50px;
+    }
+    .footer-credits {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .footer-top {
+        padding: 52px 0 38px;
+    }
+    .footer-brand .sitename {
+        font-size: 26px;
+    }
+    .social-icons {
+        justify-content: flex-start;
+    }
+    .footer-credits {
+        text-align: center;
+    }
+}
+
+@media (max-width: 576px) {
+    .footer-top {
+        padding: 48px 0 34px;
+    }
+    .footer-top::before {
+        height: 42px;
+        top: -42px;
+    }
+    .footer-brand .sitename {
+        font-size: 24px;
+    }
+    .footer-description {
+        font-size: 14px;
+    }
+    .newsletter-form .input-group {
+        flex-direction: column;
+    }
+    .newsletter-form .btn-subscribe {
+        width: 100%;
+        padding: 11px 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.25);
+    }
+    .footer-credits {
+        flex-direction: column;
+        gap: 4px;
+    }
+}
+
+/* Dark-mode preferensi (opsional) */
+@media (prefers-color-scheme: dark) {
+    .footer.gradient-alt {
+        background: var(--footer-gradient-alt);
+    }
 }

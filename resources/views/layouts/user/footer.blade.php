@@ -1,69 +1,138 @@
+<!-- filepath: /c:/laragon/www/eservice-app/resources/views/layouts/user/footer.blade.php -->
 <footer id="footer" class="footer">
     <div class="container footer-top">
-        <div class="row gy-3">
+        <div class="row gy-4">
             <!-- Bagian Tentang E-Services -->
             <div class="col-lg-4 col-md-6 footer-about">
-                <a href="{{ route('user.home.index') }}" class="logo d-flex align-items-center">
-                    <span class="sitename me-2">E-Services</span>
-                    <img src="{{ asset('/img/logo-unima.png') }}" alt="E-Services Logo"
-                        style="height: 45px; width: auto;">
-                </a>
-                <div class="footer-contact">
-                    <p><strong>Alamat:</strong> <a href="https://maps.app.goo.gl/zAKXtUMxn6YBs8qq9" target="_blank">Jl.
-                            Unima, Tataaran
-                            Satu, Kec. Tondano Sel.,
-                            Kabupaten Minahasa, Sulawesi Utara</a></p>
-                    <p><strong>Phone:</strong> <span>+62 431 123456</span></p>
-                    <p><strong>Email:</strong> <span>informatika@unima.ac.id</span></p>
+                <div class="footer-brand">
+                    <a href="{{ route('user.home.index') }}" class="logo d-flex align-items-center mb-3">
+                        <img src="{{ asset('/img/logo-unima.png') }}" alt="E-Services Logo" class="logo-img">
+                        <span class="sitename">E-Services</span>
+                    </a>
+                    <p class="footer-description">
+                        Platform digital terpadu untuk layanan akademik Teknik Informatika Universitas Negeri Manado.
+                        Memberikan kemudahan akses layanan administrasi akademik secara online.
+                    </p>
                 </div>
-                <div class="social-links d-flex mt-4">
-                    <a href="https://twitter.com/unima_official"><i class="bi bi-twitter-x"></i></a>
-                    <a href="https://facebook.com/unima.official"><i class="bi bi-facebook"></i></a>
-                    <a href="https://instagram.com/unima_official"><i class="bi bi-instagram"></i></a>
-                    <a href="https://linkedin.com/company/universitas-negeri-manado"><i class="bi bi-linkedin"></i></a>
+
+                <div class="footer-contact mb-4">
+                    <div class="contact-item">
+                        <i class="bi bi-geo-alt-fill"></i>
+                        <div>
+                            <strong>Alamat:</strong>
+                            <a href="https://maps.app.goo.gl/zAKXtUMxn6YBs8qq9" target="_blank" class="contact-link">
+                                Jl. Unima, Tataaran Satu, Kec. Tondano Sel., Kabupaten Minahasa, Sulawesi Utara
+                            </a>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <i class="bi bi-telephone-fill"></i>
+                        <div>
+                            <strong>Phone:</strong>
+                            <span>+62 431 123456</span>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <i class="bi bi-envelope-fill"></i>
+                        <div>
+                            <strong>Email:</strong>
+                            <span>informatika@unima.ac.id</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="social-links">
+                    <h5 class="social-title">Ikuti Kami</h5>
+                    <div class="social-icons">
+                        <a href="https://twitter.com/unima_official" class="social-link twitter" title="Twitter">
+                            <i class="bi bi-twitter-x"></i>
+                        </a>
+                        <a href="https://facebook.com/unima.official" class="social-link facebook" title="Facebook">
+                            <i class="bi bi-facebook"></i>
+                        </a>
+                        <a href="https://instagram.com/unima_official" class="social-link instagram" title="Instagram">
+                            <i class="bi bi-instagram"></i>
+                        </a>
+                        <a href="https://linkedin.com/company/universitas-negeri-manado" class="social-link linkedin"
+                            title="LinkedIn">
+                            <i class="bi bi-linkedin"></i>
+                        </a>
+                    </div>
                 </div>
             </div>
 
-            <!-- Bagian Tautan Layanan Utama -->
-            <div class="col-lg-2 col-md-3 footer-links">
-                <h4>Layanan Mahasiswa</h4>
+            <!-- Bagian Layanan Mahasiswa -->
+            <div class="col-lg-3 col-md-4 col-6 footer-links">
+                <h4><i class="bi bi-mortarboard me-2"></i>Layanan Mahasiswa</h4>
                 <ul>
-                    <li><a href="{{ route('user.surat-aktif-kuliah.index') }}">Surat Aktif Kuliah</a></li>
-                    <li><a href="{{ route('user.services.index') }}">Layanan Akademik</a></li>
-                    <li><a href="{{ route('academic-calendar.view', ['filename' => 'latest.pdf']) }}">Kalender
+                    <li><a href="{{ route('user.surat-aktif-kuliah.index') }}"><i class="bi bi-chevron-right"></i>Surat
+                            Aktif Kuliah</a></li>
+                    <li><a href="{{ route('user.surat-ijin-survey.index') }}"><i class="bi bi-chevron-right"></i>Surat
+                            Ijin Survey</a></li>
+                    <li><a href="{{ route('user.surat-cuti-akademik.index') }}"><i class="bi bi-chevron-right"></i>Surat
+                            Cuti Akademik</a></li>
+                    <li><a href="{{ route('user.surat-pindah.index') }}"><i class="bi bi-chevron-right"></i>Surat
+                            Pindah</a></li>
+                    <li><a href="{{ route('user.services.index') }}"><i class="bi bi-chevron-right"></i>Layanan
                             Akademik</a></li>
+                    <li><a href="{{ route('academic-calendar.view', ['filename' => 'latest.pdf']) }}"><i
+                                class="bi bi-chevron-right"></i>Kalender Akademik</a></li>
                 </ul>
             </div>
 
-            <!-- Bagian Tautan Informasi -->
-            <div class="col-lg-2 col-md-3 footer-links">
-                <h4>Informasi</h4>
+            <!-- Bagian Informasi -->
+            <div class="col-lg-2 col-md-4 col-6 footer-links">
+                <h4><i class="bi bi-info-circle me-2"></i>Informasi</h4>
                 <ul>
-                    <li><a href="#">Tentang E-Services</a></li>
-                    <li><a href="#">FAQ</a></li>
-                    <li><a href="#">Kontak Kami</a></li>
+                    <li><a href="#"><i class="bi bi-chevron-right"></i>Tentang E-Services</a></li>
+                    <li><a href="#"><i class="bi bi-chevron-right"></i>FAQ</a></li>
+                    <li><a href="#"><i class="bi bi-chevron-right"></i>Panduan Penggunaan</a></li>
+                    <li><a href="#"><i class="bi bi-chevron-right"></i>Syarat & Ketentuan</a></li>
+                    <li><a href="#"><i class="bi bi-chevron-right"></i>Kebijakan Privasi</a></li>
+                    <li><a href="#"><i class="bi bi-chevron-right"></i>Kontak Kami</a></li>
                 </ul>
             </div>
 
             <!-- Bagian Tautan Eksternal -->
-            <div class="col-lg-3 col-md-3 footer-links">
-                <h4>Tautan Eksternal</h4>
+            <div class="col-lg-3 col-md-4 col-6 footer-links">
+                <h4><i class="bi bi-link-45deg me-2"></i>Tautan Eksternal</h4>
                 <ul>
-                    <li><a href="https://unima.ac.id" target="_blank">Universitas Negeri Manado</a></li>
-                    <li><a href="https://ft.unima.ac.id" target="_blank">Fakultas Teknik</a></li>
-                    <li><a href="https://ti.unima.ac.id" target="_blank">Prodi Teknik Informatika Unima</a>
-                    </li>
+                    <li><a href="https://unima.ac.id" target="_blank"><i class="bi bi-chevron-right"></i>Universitas
+                            Negeri Manado</a></li>
+                    <li><a href="https://ft.unima.ac.id" target="_blank"><i class="bi bi-chevron-right"></i>Fakultas
+                            Teknik</a></li>
+                    <li><a href="https://ti.unima.ac.id" target="_blank"><i class="bi bi-chevron-right"></i>Prodi Teknik
+                            Informatika</a></li>
+                    <li><a href="https://si.unima.ac.id/gtakademik_portal/" target="_blank"><i
+                                class="bi bi-chevron-right"></i>Portal Akademik</a></li>
                 </ul>
             </div>
         </div>
     </div>
 
-    <div class="container copyright text-center mt-4">
-        <p>© <span>2025</span><strong class="px-1 sitename">E-Services Teknik Informatika</strong> <span>All Rights
-                Reserved</span></p>
-        <div class="credits">
-          Developed by <a href="https://github.com/patrickrompas20">Trick20</a> <a href="https://ti.unima.ac.id">Program Studi Teknik Informatika, Universitas
-                Negeri Manado</a>
+    <!-- Footer Bottom -->
+    <div class="footer-bottom">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6 text-center text-md-start">
+                    <p class="copyright-text">
+                        © <span id="currentYear">2025</span>
+                        <strong class="sitename">E-Services Teknik Informatika</strong>
+                        <span>All Rights Reserved</span>
+                    </p>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <div class="footer-credits">
+                        <span>Developed by</span>
+                        <a href="https://github.com/patrickrompas20" target="_blank" class="developer-link">Trick20</a>
+                        <span>|</span>
+                        <a href="https://ti.unima.ac.id" target="_blank" class="institution-link">
+                            Program Studi Teknik Informatika, Universitas Negeri Manado
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+
 </footer>
