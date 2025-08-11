@@ -24,9 +24,9 @@ class HomeController extends Controller
 
         $activeCalendar = AcademicCalendar::where('is_active', true)->first();
 
-        // Tambahkan full URL untuk file PDF
-        if ($activeCalendar) {
-            $activeCalendar->pdf_url = asset('storage/' . $activeCalendar->file_path);
+        // Validasi file PDF exists
+        if ($activeCalendar && !$activeCalendar->file_exists) {
+            $activeCalendar = null;
         }
 
         // Get dynamic counts for each letter type

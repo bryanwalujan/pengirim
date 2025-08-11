@@ -45,8 +45,6 @@
     <!-- Boxicons CSS -->
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 
-    {{-- Select2 --}}
-    <link rel="stylesheet" href="{{ asset('library/select2/dist/css/select2.min.css') }}">
 
 
     {{-- Font Awesome --}}
@@ -88,12 +86,10 @@
     <script src="{{ asset('user/assets/vendor/glightbox/js/glightbox.min.js') }}"></script>
     <script src="{{ asset('user/assets/vendor/swiper/swiper-bundle.min.js') }}"></script>
     <script src="{{ asset('user/assets/vendor/purecounter/purecounter_vanilla.js') }}"></script>
-    {{-- Select2 --}}
-    <script src="{{ asset('library/select2/dist/js/select2.full.min.js') }}"></script>
 
-
-    <!-- DataTables -->
-    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    {{-- Pdf js --}}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
 
     <!-- Main JS File -->
     <script src="{{ asset('user/assets/js/main.js') }}"></script>

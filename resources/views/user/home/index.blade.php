@@ -183,7 +183,7 @@
             </div>
 
             <div class="row justify-content-center" data-aos="fade-up" data-aos-delay="100">
-                <div class="col-lg-10">
+                <div class="col-lg-9">
                     @if ($activeCalendar)
                         @include('components.pdf-preview', [
                             'title' => $activeCalendar->title,
@@ -192,7 +192,7 @@
                         ])
                     @else
                         <div class="alert alert-warning text-center">
-                            <i class="bx bx-info-circle"></i> Kalender akademik belum tersedia
+                            <i class="bi bi-info-circle"></i> Kalender akademik belum tersedia
                         </div>
                     @endif
                 </div>
