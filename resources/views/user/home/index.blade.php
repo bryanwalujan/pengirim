@@ -1,6 +1,6 @@
 @extends('layouts.user.app')
 
-@section('title', 'Home')
+@section('title', 'Beranda')
 
 @push('style')
     <!-- CSS Libraries -->
@@ -92,45 +92,47 @@
 
     <!-- Tentang Section -->
     <section id="about" class="about section">
+        <div class="floating-shapes"></div>
         <div class="container" data-aos="fade-up" data-aos-delay="100">
             <div class="row gy-4 align-items-center justify-content-between">
                 <div class="col-xl-5" data-aos="fade-up" data-aos-delay="200">
-                    <span class="about-meta">Tentang</span>
+                    <span class="about-meta">
+                        <span>Tentang</span>
+                    </span>
                     <h2 class="about-title">Tentang <span class="text-primary">E-Services</span></h2>
-                    <p class="about-description"><strong>E-Services</strong> adalah sistem layanan elektronik yang dirancang
-                        untuk
-                        mempermudah administrasi akademik di Program Studi Teknik Informatika Universitas Negeri Manado.
+                    <p class="about-description">
+                        <strong>E-Services</strong> adalah sistem layanan elektronik yang dirancang
+                        untuk mempermudah administrasi akademik di Program Studi Teknik Informatika Universitas Negeri
+                        Manado.
                         Aplikasi ini menyediakan berbagai layanan, seperti layanan utama yaitu pengajuan permohonan surat
-                        akademik (aktif
-                        kuliah, cuti
-                        akademik, pindah, izin survey), pembuatan persetujuan komisi pembimbing proposal skripsi dan hasil,
-                        serta layanan lainnya seperti peminjaman
-                        fasilitas (laboratorium dan proyektor). </p>
-                    <p class="about-description">Dengan <strong>E-Services</strong>, mahasiswa dan staf akademik
-                        dapat mengakses layanan
-                        dengan lebih cepat, efisien,
+                        akademik (aktif kuliah, cuti akademik, pindah, izin survey), pembuatan persetujuan komisi pembimbing
+                        proposal skripsi dan hasil,
+                        serta layanan lainnya seperti peminjaman fasilitas (laboratorium dan proyektor).
+                    </p>
+                    <p class="about-description">
+                        Dengan <strong>E-Services</strong>, mahasiswa dan staf akademik
+                        dapat mengakses layanan dengan lebih cepat, efisien,
                         dan tanpa harus datang langsung ke kampus. Sistem ini juga mendukung proses pendaftaran seminar
-                        proposal dan ujian skripsi</p>
+                        proposal dan ujian skripsi.
+                    </p>
                 </div>
 
                 <div class="col-xl-6" data-aos="fade-up" data-aos-delay="300">
                     <div class="image-wrapper">
                         <div class="images position-relative" data-aos="zoom-out" data-aos-delay="400">
                             <img src="{{ asset('user/assets/img/about-img.jpg') }}" style="width: 100%; height:400px;"
-                                alt="About E-Services" class="img-fluid main-image rounded-4 object-fit-cover">
+                                alt="About E-Services" class="img-fluid main-image object-fit-cover">
                             <img src="{{ asset('user/assets/img/about-img2.jpg') }}" alt="Secondary About E-Services"
-                                class="img-fluid small-image rounded-4">
+                                class="img-fluid small-image">
                         </div>
                         <div class="experience-badge floating">
-                            <h3 class="text-small" style="font-size: 1.2rem">Teknik Informatika</h3>
+                            <h3>Teknik Informatika</h3>
                             <p>Universitas Negeri Manado</p>
                         </div>
                     </div>
                 </div>
             </div>
-
         </div>
-
     </section>
     <!-- End Tentang Section -->
 

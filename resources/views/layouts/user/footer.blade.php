@@ -87,9 +87,6 @@
                     <li><a href="#"><i class="bi bi-chevron-right"></i>Tentang E-Services</a></li>
                     <li><a href="#"><i class="bi bi-chevron-right"></i>FAQ</a></li>
                     <li><a href="#"><i class="bi bi-chevron-right"></i>Panduan Penggunaan</a></li>
-                    <li><a href="#"><i class="bi bi-chevron-right"></i>Syarat & Ketentuan</a></li>
-                    <li><a href="#"><i class="bi bi-chevron-right"></i>Kebijakan Privasi</a></li>
-                    <li><a href="#"><i class="bi bi-chevron-right"></i>Kontak Kami</a></li>
                 </ul>
             </div>
 

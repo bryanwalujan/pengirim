@@ -160,7 +160,7 @@
 
         <p style="text-indent: 2.5rem">
             Adapun surat keterangan aktif kuliah ini akan digunakan untuk melengkapi berkas
-            <strong>{{ $surat->tujuan_pengajuan }}</strong>.
+            {{ $surat->tujuan_pengajuan }}.
         </p>
 
         <p style="margin-top: -10px;">
