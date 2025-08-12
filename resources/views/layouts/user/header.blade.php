@@ -53,46 +53,105 @@
 
         @auth
             @if (Auth::user()->hasRole('mahasiswa'))
-                <a href="#" class="btn-getstarted align-items-center text-decoration-none" style="border-radius: 50%"
-                    id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                    <!-- Icon user -->
-                    <i class="bi bi-person-circle" style="font-size: 1rem"></i>
-                    {{-- <span>{{ Auth::user()->name }}</span> --}}
-                </a>
-                <!-- Dropdown untuk mahasiswa -->
-                <ul class="dropdown-menu dropdown-menu-end shadow-lg py-2" aria-labelledby="userDropdown"
-                    style="min-width: 280px; border: none; border-radius: 12px;">
-                    <!-- User Profile Header -->
-                    <li class="dropdown-header px-4 py-3 text-center" style="border-radius: 12px 12px 0 0;">
-                        <h6 class="mb-1" style="font-weight: 600; color: #212529;">{{ Auth::user()->name }}
-                        </h6>
-                        <p class="text-muted mb-1 small">{{ Auth::user()->nim }}</p>
-                        <p class="text-muted mb-1 small">{{ Auth::user()->email }}</p>
-                        <span class="badge mt-2" style="background-color: var(--accent-color)">S1 Teknik
-                            Informatika</span>
-                    </li>
+                <!-- Enhanced User Dropdown Button -->
+                <div class="user-dropdown-wrapper">
+                    <a href="#" class="user-dropdown-btn d-flex align-items-center text-decoration-none"
+                        id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <div class="user-avatar">
+                            <div class="avatar-circle">
+                                <span class="avatar-text">{{ substr(Auth::user()->name, 0, 2) }}</span>
+                            </div>
+                            <div class="status-indicator"></div>
+                        </div>
+                        <div class="user-info d-none d-lg-block ms-2">
+                            <span class="user-name" title="{{ Auth::user()->name }}">
+                                {{ strlen(Auth::user()->name) > 15 ? substr(Auth::user()->name, 0, 25) . '...' : Auth::user()->name }}
+                            </span>
+                        </div>
+                        <i class="bi bi-chevron-down ms-2 dropdown-arrow"></i>
+                    </a>
 
-                    <!-- Logout Button -->
-                    <li class="px-3 py-2">
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <button type="submit"
-                                class="btn btn-outline-danger w-100 d-flex align-items-center justify-content-center"
-                                style="transition: all 0.2s;">
-                                <i class="bi bi-box-arrow-right me-2"></i>
-                                <span>Keluar</span>
-                            </button>
-                        </form>
-                    </li>
-                </ul>
+                    <!-- Enhanced Dropdown Menu -->
+                    <ul class="dropdown-menu user-dropdown-menu dropdown-menu-end shadow-lg" aria-labelledby="userDropdown">
+                        <!-- Profile Header with Gradient Background -->
+                        <li class="dropdown-header user-profile-header">
+                            <div class="profile-header-bg"></div>
+                            <div class="profile-content">
+                                <div class="profile-avatar">
+                                    <div class="avatar-large">
+                                        <span class="avatar-text-large">{{ substr(Auth::user()->name, 0, 2) }}</span>
+                                    </div>
+                                </div>
+                                <div class="profile-info">
+                                    <!-- Full name di dropdown - bisa lebih panjang -->
+                                    <h6 class="profile-name" title="{{ Auth::user()->name }}">
+                                        {{ Auth::user()->name }}
+                                    </h6>
+                                    <p class="profile-nim">{{ Auth::user()->nim }}</p>
+                                    <p class="profile-email" title="{{ Auth::user()->email }}">
+                                        {{ strlen(Auth::user()->email) > 25 ? substr(Auth::user()->email, 0, 25) . '...' : Auth::user()->email }}
+                                    </p>
+                                    <span class="profile-badge">S1 Teknik Informatika</span>
+                                </div>
+                            </div>
+                        </li>
+
+                        <!-- Divider -->
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+
+                        <!-- Quick Actions -->
+                        <li class="dropdown-section">
+                            <h6 class="dropdown-section-title">
+                                <i class="bi bi-lightning-fill"></i>
+                                Aksi Cepat
+                            </h6>
+                            <div class="quick-actions">
+                                <a href="{{ route('user.tracking-surat.index') }}" class="quick-action-btn">
+                                    <div class="action-icon tracking">
+                                        <i class="bi bi-search"></i>
+                                    </div>
+                                    <span>Tracking Surat</span>
+                                </a>
+                                <a href="{{ route('user.services.index') }}" class="quick-action-btn">
+                                    <div class="action-icon services">
+                                        <i class="bi bi-file-earmark-text"></i>
+                                    </div>
+                                    <span>Layanan Surat</span>
+                                </a>
+                            </div>
+                        </li>
+
+                        <!-- Divider -->
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+
+                        <!-- Logout Section -->
+                        <li class="dropdown-footer">
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" class="logout-btn">
+                                    <div class="logout-icon">
+                                        <i class="bi bi-box-arrow-right"></i>
+                                    </div>
+                                    <span>Keluar dari Akun</span>
+                                    <div class="logout-arrow">
+                                        <i class="bi bi-arrow-right"></i>
+                                    </div>
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
             @else
                 <!-- Jika bukan mahasiswa (staff/dosen), redirect ke dashboard -->
                 <a class="btn btn-sm btn-outline-primary px-3 order-2 me-2"
                     href="{{ route('admin.dashboard.index') }}">Dashboard</a>
             @endif
         @else
-            <a class="btn btn-sm btn-outline-primary px-3 order-2 me-2" href="{{ route('login') }}">Log
-                in</a>
+            <a class="btn btn-sm btn-outline-primary px-3 order-2 me-2" href="{{ route('login') }}">Log in</a>
         @endauth
     </div>
 </header>
