@@ -216,6 +216,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     // Route untuk menandai notifikasi sebagai dibaca
     Route::post('/notifications/{notification}/read', [NotificationController::class, 'read'])->name('notifications.read');
+    Route::delete('/notifications/{notification}', [NotificationController::class, 'delete'])->name('notifications.delete');
 
     Route::get('/activities', [ActivityController::class, 'index'])->name('activities');
 
