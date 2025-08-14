@@ -24,6 +24,29 @@
     <!-- CSS Files -->
     <link href="{{ asset('assets/css/argon-dashboard.css') }}" rel="stylesheet" />
 
+    <style>
+        .bg-gradient-orange {
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #ff8c42 100%);
+        }
+
+        .text-orange {
+            color: #ff6b35 !important;
+        }
+
+        .btn-orange {
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            border: none;
+            color: white;
+        }
+
+        .btn-orange:hover {
+            background: linear-gradient(135deg, #e55a2b, #e07e1a);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
+        }
+    </style>
+
     @stack('styles')
 </head>
 
@@ -50,7 +73,7 @@
                             <div
                                 class="col-6 d-lg-flex d-none h-100 my-auto pe-0 position-absolute top-0 end-0 text-center justify-content-center flex-column">
                                 <div class="position-relative bg-gradient-custom h-100 m-3 px-8 py-10 border-radius-lg rounded-xl d-flex flex-column justify-content-center overflow-hidden"
-                                    style="background-image: linear-gradient(rgba(107, 72, 255, 0.7), rgba(162, 93, 217, 0.7)), url('{{ asset('/img/logo-unima.png') }}'); background-size: cover; background-position: center; background-repeat: no-repeat;">
+                                    style="background-image: linear-gradient(rgba(255, 107, 53, 0.85), rgba(247, 147, 30, 0.85)), url('{{ asset('/img/logo-unima.png') }}'); background-size: cover; background-position: center; background-repeat: no-repeat;">
                                     {{-- <span class="mask bg-black opacity-30"></span> --}}
                                     <div class="relative z-10 text-center px-4">
                                         <h4 class="text-3xl font-bold text-white mb-4 drop-shadow-lg">"E-Service Teknik

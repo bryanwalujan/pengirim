@@ -154,17 +154,54 @@
             <li class="nav-item navbar-dropdown dropdown-user dropdown">
                 <a class="nav-link dropdown-toggle hide-arrow p-0" href="javascript:void(0);" data-bs-toggle="dropdown">
                     <div class="avatar">
-                        <img src="{{ asset('assets/img/avatars/1.png') }}" alt class="w-px-40 h-auto rounded-circle" />
+                        @php
+                            $userName = Auth::user()->name;
+                            $nameParts = explode(' ', trim($userName));
+                            $initials = '';
+
+                            if (count($nameParts) >= 2) {
+                                // Ambil inisial nama depan dan belakang
+                                $initials = strtoupper(substr($nameParts[0], 0, 1) . substr(end($nameParts), 0, 1));
+                            } else {
+                                // Jika hanya satu kata, ambil 2 huruf pertama
+                                $initials = strtoupper(substr($userName, 0, 2));
+                            }
+
+                            // Warna background berdasarkan inisial (untuk variasi)
+                            $colors = [
+                                '#FF6B6B',
+                                '#4ECDC4',
+                                '#45B7D1',
+                                '#96CEB4',
+                                '#FFEAA7',
+                                '#DDA0DD',
+                                '#98D8C8',
+                                '#F7DC6F',
+                                '#FAD7A0',
+                                '#F1948A',
+                                '#F5B041',
+                                '#F8C471',
+                                '#A569BD',
+                            ];
+                            $colorIndex = array_sum(str_split(ord($initials[0]))) % count($colors);
+                            $bgColor = $colors[$colorIndex];
+                        @endphp
+                        <div class="avatar-initials w-px-40 h-px-40 rounded-circle d-flex align-items-center justify-content-center text-white fw-bold"
+                            style="background-color: {{ $bgColor }}; font-size: 14px;">
+                            {{ $initials }}
+                        </div>
                     </div>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end">
                     <li>
-                        <a class="dropdown-item" href="#">
+                        <a class="dropdown-item" href="javascript:void(0);">
                             <div class="d-flex">
                                 <div class="flex-shrink-0 me-3">
                                     <div class="avatar">
-                                        <img src="{{ asset('assets/img/avatars/1.png') }}" alt
-                                            class="w-px-40 h-auto rounded-circle" />
+                                        <div class="avatar-initials w-px-40 h-px-40 rounded-circle d-flex align-items-center justify-content-center text-white fw-bold"
+                                            style="background-color: {{ $bgColor }}; font-size: 14px;">
+                                            {{ $initials }}
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="flex-grow-1">
@@ -173,14 +210,6 @@
                                         class="badge rounded-pill bg-label-warning">{{ Auth::user()->roles()->first()->name }}</small>
                                 </div>
                             </div>
-                        </a>
-                    </li>
-                    <li>
-                        <div class="dropdown-divider my-1"></div>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" href="#">
-                            <i class="icon-base bx bx-user icon-md me-3"></i><span>My Profile</span>
                         </a>
                     </li>
                     <li>

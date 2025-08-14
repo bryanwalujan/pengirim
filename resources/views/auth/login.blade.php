@@ -13,7 +13,8 @@
                 <input type="text" id="email" name="email" :value="old('email', '')"
                     class="form-control form-control-lg border-gray-400 text-sm rounded-start"
                     placeholder="Email unima anda" aria-label="Email" required autofocus autocomplete="username">
-                <span class="input-group-text bg-light text-dark border-gray-400 rounded-end"
+                <span
+                    class="input-group-text bg-light bg-gradient-orange text-white text-bold border-gray-400 rounded-end"
                     id="domain">@unima.ac.id</span>
             </div>
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
@@ -38,13 +39,13 @@
         <!-- Forgot Password -->
         @if (Route::has('password.request'))
             <div class="text-end">
-                <a href="{{ route('password.request') }}" class="text-sm text-primary">
+                <a href="{{ route('password.request') }}" class="text-sm text-orange">
                     {{ __('Lupa password?') }}
                 </a>
             </div>
         @endif
         <div class="text-center">
-            <button type="submit" class="btn btn-lg btn-primary btn-lg w-100 mt-2 mb-0">Login</button>
+            <button type="submit" class="btn btn-lg btn-orange btn-lg w-100 mt-2 mb-0">Login</button>
         </div>
     </form>
 </x-guest-layout>
