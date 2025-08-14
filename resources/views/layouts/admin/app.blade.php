@@ -48,8 +48,6 @@
     {{-- Trix editor --}}
     <link rel="stylesheet" type="text/css" href="https://unpkg.com/trix@2.0.8/dist/trix.css">
 
-    {{-- Dark Mode CSS --}}
-    <link rel="stylesheet" href="{{ asset('assets/css/dark-mode.css') }}" />
 
     @stack('styles')
 
