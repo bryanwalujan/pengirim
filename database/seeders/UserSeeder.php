@@ -14,96 +14,28 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create roles
+        // Create roles first
+        $this->createRoles();
+
+        // Run specific seeders
+        $this->call([
+            StaffSeeder::class,
+            DosenSeeder::class,
+            MahasiswaSeeder::class,
+        ]);
+
+        $this->command->info('User seeding completed!');
+        $this->command->info('Test Accounts:');
+        $this->command->info('Staff: staff@unima.ac.id / password');
+        $this->command->info('Dosen: dosen@unima.ac.id / password');
+        $this->command->info('Mahasiswa: 20210047@unima.ac.id / password');
+    }
+
+    protected function createRoles(): void
+    {
         $roles = ['staff', 'dosen', 'mahasiswa'];
         foreach ($roles as $role) {
             Role::firstOrCreate(['name' => $role]);
         }
-
-        // Create specific test users
-        $this->createSpecificUsers();
-
-        // Generate bulk users
-        $this->generateBulkUsers();
-    }
-
-    protected function createSpecificUsers(): void
-    {
-        // Staff
-        User::factory()->create([
-            'name' => 'Staff',
-            'email' => 'staff@unima.ac.id',
-            'password' => 'password', // Will be hashed automatically
-        ])->assignRole('staff');
-
-        // Dosen
-        User::factory()->create([
-            'name' => 'Kristofel Santa, S,ST, M.MT',
-            'nip' => '19870531 201504 1 003',
-            'jabatan' => 'Koordinator Program Studi',
-            'email' => 'dosen@unima.ac.id',
-            'password' => 'password',
-        ])->assignRole('dosen');
-        User::factory()->create([
-            'name' => 'Arje C. Djamen. ST, MT',
-            'nip' => '19870712 201012 1 006',
-            'jabatan' => 'Pimpinan Jurusan PTIK',
-            'email' => 'dosen2@unima.ac.id',
-            'password' => 'password',
-        ])->assignRole('dosen');
-        User::factory()->create([
-            'name' => 'DR. AUDY A. KENAP, S.T, M.Eng',
-            'nip' => '1987035712 201012 1 006',
-            'jabatan' => 'umum',
-            'email' => 'dosen3@unima.ac.id',
-            'password' => 'password',
-        ])->assignRole('dosen');
-        User::factory()->create([
-            'name' => 'SONDY C. KUMAJAS, S.T, M.T',
-            'nip' => '1987075312 201012 1 006',
-            'jabatan' => 'umum',
-            'email' => 'dosen4@unima.ac.id',
-            'password' => 'password',
-        ])->assignRole('dosen');
-        User::factory()->create([
-            'name' => 'DR. IRENE TANGKAWAROW, S.T, MISD',
-            'nip' => '19873530712 201012 1 006',
-            'jabatan' => 'umum',
-            'email' => 'dosen5@unima.ac.id',
-            'password' => 'password',
-        ])->assignRole('dosen');
-        User::factory()->create([
-            'name' => 'VIVI P RANTUNG, S.T, MISD',
-            'nip' => '1987071432 201012 1 006',
-            'jabatan' => 'umum',
-            'email' => 'dosen6@unima.ac.id',
-            'password' => 'password',
-        ])->assignRole('dosen');
-
-        // Mahasiswa
-        User::factory()->create([
-            'name' => 'Patrick Rompas',
-            'nim' => '20210047',
-            'email' => '20210047@unima.ac.id',
-            'password' => 'password',
-        ])->assignRole('mahasiswa');
-
-    }
-
-    protected function generateBulkUsers(): void
-    {
-        // Generate 5 staff users
-        // User::factory()->count(5)->staff()->create();
-
-        // // Generate 10 dosen users
-        // User::factory()->count(10)->dosen()->create();
-
-        // // Generate 50 mahasiswa users
-        // User::factory()->count(10)->mahasiswa()->create();
-
-        $this->command->info('User seeding completed!');
-        $this->command->info('Staff test account: staff@unima.ac.id / password');
-        $this->command->info('Dosen test account: dosen@unima.ac.id / password');
-        $this->command->info('Mahasiswa test account: mahasiswa@unima.ac.id / password');
     }
 }
