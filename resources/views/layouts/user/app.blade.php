@@ -52,18 +52,36 @@
         integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-    <!-- =======================================================
-  * Template Name: iLanding
-  * Template URL: https://bootstrapmade.com/ilanding-bootstrap-landing-page-template/
-  * Updated: Nov 12 2024 with Bootstrap v5.3.3
-  * Author: BootstrapMade.com
-  * License: https://bootstrapmade.com/license/
-  ======================================================== -->
+    <style>
+        /* Custom styles untuk SweetAlert2 */
+        .swal2-container {
+            z-index: 10000 !important;
+        }
+
+        .swal2-toast {
+            font-size: 14px !important;
+            line-height: 1.4 !important;
+        }
+
+        .swal2-toast .swal2-title {
+            font-size: 16px !important;
+            margin-bottom: 8px !important;
+        }
+
+        .swal2-toast .swal2-content {
+            word-wrap: break-word !important;
+            white-space: pre-wrap !important;
+        }
+    </style>
+
 </head>
 
 <body class="index-page">
+
     <!-- ======= Header ======= -->
     @include('layouts.user.header')
+
+
 
     <!-- ======= Main ======= -->
     @yield('main')
@@ -131,9 +149,9 @@
             toast: true,
             position: "top-end",
             showConfirmButton: false,
-            timer: 3000,
+            timer: 4000, // Diperpanjang untuk pesan panjang
             timerProgressBar: true,
-            width: '380px',
+            width: '450px', // Diperlebar untuk pesan panjang
             padding: '1em',
             color: '#ffffff',
             background: 'linear-gradient(135deg, rgba(41,47,63,0.95) 0%, rgba(30,35,48,0.95) 100%)',
@@ -159,12 +177,17 @@
         @if (session()->has('success'))
             Toast.fire({
                 icon: 'success',
-                text: "{{ session('success') }}",
+                text: {!! json_encode(session('success')) !!},
             });
         @elseif (session()->has('error'))
             Toast.fire({
                 icon: 'error',
-                text: "{{ session('error') }}",
+                text: {!! json_encode(session('error')) !!},
+            });
+        @elseif (session()->has('warning'))
+            Toast.fire({
+                icon: 'warning',
+                text: {!! json_encode(session('warning')) !!},
             });
         @endif
     </script>

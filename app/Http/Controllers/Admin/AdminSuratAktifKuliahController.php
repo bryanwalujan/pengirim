@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use App\Services\SuratSubmissionService;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use App\Notifications\SuratTakenNotification;
 use App\Http\Controllers\Admin\DocumentController;
@@ -269,6 +270,9 @@ class AdminSuratAktifKuliahController extends DocumentController
 
             DB::commit();
 
+            // Clear cache after status update
+            app(SuratSubmissionService::class)->clearCache($surat->mahasiswa_id);
+
             return redirect()->route('admin.surat-aktif-kuliah.show', $surat->id)
                 ->with('success', 'Status surat berhasil diperbarui');
 
@@ -403,6 +407,9 @@ class AdminSuratAktifKuliahController extends DocumentController
                 }
 
                 DB::commit();
+
+                // Clear cache after approval
+                app(SuratSubmissionService::class)->clearCache($surat->mahasiswa_id);
 
                 return redirect()->route('admin.surat-aktif-kuliah.index')
                     ->with('success', 'Surat berhasil disetujui dan file telah dibuat');

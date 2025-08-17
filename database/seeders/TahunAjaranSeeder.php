@@ -13,7 +13,7 @@ class TahunAjaranSeeder extends Seeder
     public function run(): void
     {
         TahunAjaran::create([
-            'tahun' => '2024/2025',
+            'tahun' => '2025/2026',
             'semester' => 'ganjil',
             'status_aktif' => true,
         ]);

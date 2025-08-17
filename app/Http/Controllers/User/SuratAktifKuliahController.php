@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Models\TrackingSurat;
 use App\Models\SuratAktifKuliah;
+use App\Traits\ChecksPendingSurat;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
@@ -21,7 +22,12 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class SuratAktifKuliahController extends Controller
 {
-    use AuthorizesRequests;
+    use AuthorizesRequests, ChecksPendingSurat;
+
+    public function __construct()
+    {
+        $this->initializeChecksPendingSurat();
+    }
 
     public function index(Request $request)
     {
@@ -60,6 +66,10 @@ class SuratAktifKuliahController extends Controller
 
     public function create()
     {
+        // Check if user can submit new surat
+        if ($redirect = $this->checkSubmissionPermission('user.surat-aktif-kuliah.index')) {
+            return $redirect;
+        }
         $this->authorize('create', SuratAktifKuliah::class);
         $service = Service::where('slug', 'surat-aktif-kuliah')->firstOrFail();
         // Ambil tahun ajaran aktif
@@ -69,6 +79,10 @@ class SuratAktifKuliahController extends Controller
 
     public function store(SuratAktifKuliahRequest $request)
     {
+        // Double-check before storing
+        if ($redirect = $this->checkSubmissionPermission('user.surat-aktif-kuliah.index')) {
+            return $redirect;
+        }
         $this->authorize('create', SuratAktifKuliah::class);
         $validated = $request->validated();
 
@@ -104,6 +118,9 @@ class SuratAktifKuliahController extends Controller
                 'keterangan' => 'Pengajuan surat aktif kuliah baru',
                 'mahasiswa_id' => Auth::id(),
             ]);
+
+            // Clear cache after successful submission
+            $this->clearSubmissionCache();
 
             DB::commit();
 
@@ -220,5 +237,10 @@ class SuratAktifKuliahController extends Controller
             Log::error('Error saat download PDF untuk surat ID: ' . $surat->id . ' - ' . $e->getMessage());
             return redirect()->back()->with('error', 'Terjadi kesalahan saat mengunduh surat.');
         }
+    }
+
+    protected function getDefaultRedirectRoute(): string
+    {
+        return 'user.surat-aktif-kuliah.index';
     }
 }

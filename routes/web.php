@@ -172,6 +172,30 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa', 'check.ukt'])->group(fu
 
 });
 
+// Routes submission dengan middleware no-multi-surat
+Route::middleware(['auth', 'verified', 'role:mahasiswa', 'check.ukt', 'no-multi-surat'])->group(function () {
+    // Hanya routes create dan store yang perlu dibatasi
+    Route::prefix('surat-aktif-kuliah')->name('user.surat-aktif-kuliah.')->group(function () {
+        Route::get('/ajukan', [SuratAktifKuliahController::class, 'create'])->name('create');
+        Route::post('/', [SuratAktifKuliahController::class, 'store'])->name('store');
+    });
+
+    Route::prefix('surat-ijin-survey')->name('user.surat-ijin-survey.')->group(function () {
+        Route::get('/ajukan', [SuratIjinSurveyController::class, 'create'])->name('create');
+        Route::post('/', [SuratIjinSurveyController::class, 'store'])->name('store');
+    });
+
+    Route::prefix('surat-cuti-akademik')->name('user.surat-cuti-akademik.')->group(function () {
+        Route::get('/ajukan', [SuratCutiAkademikController::class, 'create'])->name('create');
+        Route::post('/', [SuratCutiAkademikController::class, 'store'])->name('store');
+    });
+
+    Route::prefix('surat-pindah')->name('user.surat-pindah.')->group(function () {
+        Route::get('/ajukan', [SuratPindahController::class, 'create'])->name('create');
+        Route::post('/', [SuratPindahController::class, 'store'])->name('store');
+    });
+});
+
 // Route untuk halaman alert pembayaran
 Route::middleware(['auth', 'verified', 'role:mahasiswa'])->get('/payment-alert', function () {
     $tahunAktif = TahunAjaran::where('status_aktif', true)->first();
