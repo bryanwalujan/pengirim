@@ -591,6 +591,9 @@ class AdminSuratAktifKuliahController extends DocumentController
     // Add this method to AdminSuratAktifKuliahController
     public function destroy(SuratAktifKuliah $surat)
     {
+        // Simpan mahasiswa_id sebelum record dihapus
+        $mahasiswaId = $surat->mahasiswa_id;
+
         DB::beginTransaction();
         try {
             // Delete related files
@@ -620,6 +623,9 @@ class AdminSuratAktifKuliahController extends DocumentController
             $surat->delete();
 
             DB::commit();
+
+            // Clear cache SETELAH commit berhasil
+            app(SuratSubmissionService::class)->clearCacheOnDelete($mahasiswaId);
 
             return redirect()->route('admin.surat-aktif-kuliah.index')
                 ->with('success', 'Surat aktif kuliah berhasil dihapus');

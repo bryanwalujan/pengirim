@@ -15,11 +15,12 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use App\Services\SuratSubmissionService;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use App\Notifications\SuratTakenNotification;
 use App\Http\Controllers\Admin\DocumentController;
-use App\Http\Requests\UpdateSuratCutiAkademikRequest;
 use App\Notifications\SuratNeedApprovalNotification;
+use App\Http\Requests\UpdateSuratCutiAkademikRequest;
 
 class AdminSuratCutiAkademikController extends DocumentController
 {
@@ -245,6 +246,9 @@ class AdminSuratCutiAkademikController extends DocumentController
 
             DB::commit();
 
+            // Clear cache after status update
+            app(SuratSubmissionService::class)->clearCache($surat->mahasiswa_id);
+
             return redirect()->route('admin.surat-cuti-akademik.show', $surat->id)
                 ->with('success', 'Status surat berhasil diperbarui');
 
@@ -394,6 +398,9 @@ class AdminSuratCutiAkademikController extends DocumentController
 
                 DB::commit();
 
+                // Clear cache after approval
+                app(SuratSubmissionService::class)->clearCache($surat->mahasiswa_id);
+
                 return redirect()->back()
                     ->with('success', 'Surat telah ditolak');
             }
@@ -536,6 +543,8 @@ class AdminSuratCutiAkademikController extends DocumentController
 
     public function destroy(SuratCutiAkademik $surat)
     {
+        // Simpan mahasiswa_id sebelum record dihapus
+        $mahasiswaId = $surat->mahasiswa_id;
         DB::beginTransaction();
         try {
             // Delete related files
@@ -565,6 +574,9 @@ class AdminSuratCutiAkademikController extends DocumentController
             $surat->delete();
 
             DB::commit();
+
+            // Clear cache SETELAH commit berhasil
+            app(SuratSubmissionService::class)->clearCacheOnDelete($mahasiswaId);
 
             return redirect()->route('admin.surat-cuti-akademik.index')
                 ->with('success', 'Surat cuti akademik berhasil dihapus');

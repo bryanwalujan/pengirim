@@ -17,9 +17,14 @@ trait ChecksPendingSurat
     /**
      * Check if user can submit new surat and redirect if not
      */
-    protected function checkSubmissionPermission(string $redirectRouteName = null): ?RedirectResponse
+    /**
+     * Check if user can submit new surat and redirect if not
+     */
+    protected function checkSubmissionPermission(string $redirectRouteName = null, bool $forceRefresh = false): ?RedirectResponse
     {
-        $check = $this->suratSubmissionService->canSubmitNewSurat();
+        $check = $forceRefresh
+            ? $this->suratSubmissionService->forceRefreshCheck()
+            : $this->suratSubmissionService->canSubmitNewSurat();
 
         if (!$check['can_submit']) {
             $route = $redirectRouteName ?: $this->getDefaultRedirectRoute();
@@ -31,6 +36,14 @@ trait ChecksPendingSurat
         }
 
         return null;
+    }
+
+    /**
+     * Check dengan force refresh (tidak pakai cache)
+     */
+    protected function checkSubmissionPermissionFresh(string $redirectRouteName = null): ?RedirectResponse
+    {
+        return $this->checkSubmissionPermission($redirectRouteName, true);
     }
 
     /**

@@ -4,6 +4,8 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
+use App\Models\StatusSurat;
 
 class SuratSubmissionService
 {
@@ -41,35 +43,57 @@ class SuratSubmissionService
         $labels = config('surat.model_labels', []);
 
         foreach ($models as $model) {
-            $record = $model::with('status')
-                ->where('mahasiswa_id', $userId)
-                ->whereHas('status', function ($query) use ($finalStatuses) {
-                    $query->whereNotIn('status', $finalStatuses);
-                })
-                ->latest()
-                ->first();
+            try {
+                // Ambil record terbaru dari mahasiswa
+                $record = $model::where('mahasiswa_id', $userId)
+                    ->latest()
+                    ->first();
 
-            if ($record) {
-                $status = $record->status->status ?? 'unknown';
-                $needsFile = false;
+                if (!$record) {
+                    continue; // Tidak ada record untuk model ini
+                }
 
-                // Check if needs file for final statuses
-                if (in_array($status, $finalStatuses) && $requireFile) {
-                    $needsFile = empty($record->file_surat_path);
-                    if (!$needsFile) {
-                        continue; // This record is truly complete, check next model
+                // Ambil status dari tabel status_surats menggunakan polymorphic relation
+                $statusSurat = StatusSurat::where('surat_type', $model)
+                    ->where('surat_id', $record->id)
+                    ->latest()
+                    ->first();
+
+                if (!$statusSurat) {
+                    // Tidak ada status, anggap sebagai pending
+                    Log::warning("No status found for {$model} ID: {$record->id}");
+                    continue;
+                }
+
+                $status = $statusSurat->status;
+
+                // Jika status sudah final, cek apakah butuh file
+                if (in_array($status, $finalStatuses)) {
+                    if ($requireFile) {
+                        $needsFile = empty($record->file_surat_path);
+                        if (!$needsFile) {
+                            continue; // File sudah ada, record selesai total
+                        }
+                        // File belum ada, tetap pending
+                    } else {
+                        continue; // Status final dan tidak butuh file, selesai
                     }
                 }
 
+                // Jika sampai sini, berarti ada pengajuan yang belum selesai
                 return [
                     'model' => $model,
                     'label' => $labels[$model] ?? class_basename($model),
                     'status' => $status,
-                    'needs_file' => $needsFile,
+                    'needs_file' => isset($needsFile) ? $needsFile : false,
                     'id' => $record->id,
                     'nomor_surat' => $record->nomor_surat ?? 'Belum ada nomor',
                     'created_at' => $record->created_at,
                 ];
+            } catch (\Exception $e) {
+                // Log error tapi lanjutkan ke model berikutnya
+                Log::warning("Error checking pending surat for model {$model}: " . $e->getMessage());
+                continue;
             }
         }
 
@@ -83,20 +107,64 @@ class SuratSubmissionService
         if ($userId) {
             Cache::forget("surat_submission_check_{$userId}");
             Cache::forget("pending_surat_check_{$userId}");
+
+            // Log untuk debugging
+            Log::info("Cleared surat submission cache for user: {$userId}");
         }
+    }
+
+    /**
+     * Clear cache untuk user tertentu ketika record dihapus
+     */
+    public function clearCacheOnDelete(int $userId): void
+    {
+        $this->clearCache($userId);
+        Log::info("Cache cleared due to record deletion for user: {$userId}");
+    }
+
+    /**
+     * Paksa refresh cache (tidak menggunakan cache)
+     */
+    public function forceRefreshCheck(?int $userId = null): array
+    {
+        $userId = $userId ?? Auth::id();
+
+        if (!$userId) {
+            return ['can_submit' => false, 'reason' => 'User not authenticated'];
+        }
+
+        // Clear cache dulu
+        $this->clearCache($userId);
+
+        // Get fresh data
+        $pendingSurat = $this->getPendingSurat($userId);
+
+        if ($pendingSurat) {
+            return [
+                'can_submit' => false,
+                'reason' => $this->buildReasonMessage($pendingSurat),
+                'pending_surat' => $pendingSurat
+            ];
+        }
+
+        return ['can_submit' => true, 'reason' => null];
     }
 
     private function buildReasonMessage(array $pendingSurat): string
     {
-        $message = "Anda masih memiliki pengajuan {$pendingSurat['label']} dengan status '{$pendingSurat['status']}'";
+        // Pastikan semua data bersih
+        $label = strip_tags($pendingSurat['label'] ?? 'surat');
+        $status = strip_tags($pendingSurat['status'] ?? 'unknown');
 
-        if ($pendingSurat['needs_file']) {
+        $message = "Anda masih memiliki pengajuan {$label} dengan status {$status}";
+
+        if ($pendingSurat['needs_file'] ?? false) {
             $message .= " yang belum di-generate atau diambil";
         }
 
         $message .= ". Selesaikan terlebih dahulu sebelum membuat pengajuan baru.";
 
-        // Pastikan tidak ada HTML entities
-        return html_entity_decode($message, ENT_QUOTES, 'UTF-8');
+        // Bersihkan karakter khusus
+        return htmlspecialchars_decode($message, ENT_QUOTES);
     }
 }

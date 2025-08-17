@@ -10,6 +10,7 @@ use App\Models\TahunAjaran;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Models\TrackingSurat;
+use App\Traits\ChecksPendingSurat;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
@@ -21,7 +22,12 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class SuratPindahController extends Controller
 {
-    use AuthorizesRequests;
+    use AuthorizesRequests, ChecksPendingSurat;
+
+    public function __construct()
+    {
+        $this->initializeChecksPendingSurat();
+    }
 
     public function index(Request $request)
     {
@@ -54,6 +60,11 @@ class SuratPindahController extends Controller
 
     public function create()
     {
+        // Check if user can submit new surat
+        if ($redirect = $this->checkSubmissionPermission('user.surat-pindah.index')) {
+            return $redirect;
+        }
+
         $this->authorize('create', SuratPindah::class);
         $service = Service::where('slug', 'surat-pindah')->firstOrFail();
         $tahunAjaranAktif = TahunAjaran::where('status_aktif', true)->first();
@@ -63,6 +74,11 @@ class SuratPindahController extends Controller
 
     public function store(SuratPindahRequest $request)
     {
+        // Double-check before storing
+        if ($redirect = $this->checkSubmissionPermission('user.surat-pindah.index')) {
+            return $redirect;
+        }
+
         $this->authorize('create', SuratPindah::class);
         $validated = $request->validated();
 
@@ -99,6 +115,9 @@ class SuratPindahController extends Controller
                 'keterangan' => 'Pengajuan surat pindah baru',
                 'mahasiswa_id' => Auth::id(),
             ]);
+
+            // Clear cache after successful submission
+            $this->clearSubmissionCache();
 
             DB::commit();
 
@@ -159,6 +178,9 @@ class SuratPindahController extends Controller
                 $staff->notify(new SuratTakenNotification($surat));
             }
 
+            // Clear cache after status change
+            $this->clearSubmissionCache();
+
             DB::commit();
 
             return redirect()->route('user.surat-pindah.show', $surat->id)
@@ -207,5 +229,10 @@ class SuratPindahController extends Controller
             Log::error('Error saat download PDF untuk surat ID: ' . $surat->id . ' - ' . $e->getMessage());
             return redirect()->back()->with('error', 'Terjadi kesalahan saat mengunduh surat.');
         }
+    }
+
+    protected function getDefaultRedirectRoute(): string
+    {
+        return 'user.surat-pindah.index';
     }
 }

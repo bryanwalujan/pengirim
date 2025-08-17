@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Models\TrackingSurat;
 use App\Models\SuratCutiAkademik;
+use App\Traits\ChecksPendingSurat;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
@@ -21,7 +22,12 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class SuratCutiAkademikController extends Controller
 {
-    use AuthorizesRequests;
+    use AuthorizesRequests, ChecksPendingSurat;
+
+    public function __construct()
+    {
+        $this->initializeChecksPendingSurat();
+    }
 
     public function index(Request $request)
     {
@@ -49,6 +55,11 @@ class SuratCutiAkademikController extends Controller
 
     public function create()
     {
+        // Check if user can submit new surat
+        if ($redirect = $this->checkSubmissionPermission('user.surat-cuti-akademik.index')) {
+            return $redirect;
+        }
+
         $this->authorize('create', SuratCutiAkademik::class);
         $service = Service::where('slug', 'surat-cuti-akademik')->firstOrFail();
         $tahunAjaranAktif = TahunAjaran::where('status_aktif', true)->first();
@@ -58,6 +69,11 @@ class SuratCutiAkademikController extends Controller
 
     public function store(SuratCutiAkademikRequest $request)
     {
+        // Double-check before storing
+        if ($redirect = $this->checkSubmissionPermission('user.surat-cuti-akademik.index')) {
+            return $redirect;
+        }
+
         $this->authorize('create', SuratCutiAkademik::class);
         $validated = $request->validated();
 
@@ -93,6 +109,9 @@ class SuratCutiAkademikController extends Controller
                 'keterangan' => 'Pengajuan surat cuti akademik baru',
                 'mahasiswa_id' => Auth::id(),
             ]);
+
+            // Clear cache after successful submission
+            $this->clearSubmissionCache();
 
             DB::commit();
 
@@ -147,6 +166,10 @@ class SuratCutiAkademikController extends Controller
                 $staff->notify(new SuratTakenNotification($surat));
             }
 
+            // Clear cache after status change
+            $this->clearSubmissionCache();
+
+
             DB::commit();
 
             return redirect()->route('user.surat-cuti-akademik.show', $surat->id)
@@ -192,5 +215,9 @@ class SuratCutiAkademikController extends Controller
             Log::error('Error saat download surat cuti akademik: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Terjadi kesalahan saat mengunduh surat.');
         }
+    }
+    protected function getDefaultRedirectRoute(): string
+    {
+        return 'user.surat-cuti-akademik.index';
     }
 }

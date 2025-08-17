@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use App\Services\SuratSubmissionService;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use App\Notifications\SuratTakenNotification;
 use App\Http\Controllers\Admin\DocumentController;
@@ -308,6 +309,9 @@ class AdminSuratIjinSurveyController extends DocumentController
 
             DB::commit();
 
+            // Clear cache after status update
+            app(SuratSubmissionService::class)->clearCache($surat->mahasiswa_id);
+
             return redirect()->route('admin.surat-ijin-survey.show', $surat->id)
                 ->with('success', 'Status surat berhasil diperbarui');
 
@@ -447,6 +451,9 @@ class AdminSuratIjinSurveyController extends DocumentController
                 }
 
                 DB::commit();
+
+                // Clear cache after approval
+                app(SuratSubmissionService::class)->clearCache($surat->mahasiswa_id);
 
                 return redirect()->route('admin.surat-ijin-survey.index')
                     ->with('success', 'Surat berhasil disetujui dan file telah dibuat');
@@ -620,19 +627,21 @@ class AdminSuratIjinSurveyController extends DocumentController
     public function download(SuratIjinSurvey $surat)
     {
         if (!$surat->file_surat_path) {
-            return response()->json(['error' => 'File surat belum tersedia.'], 404);
+            return response('File surat belum tersedia.', 404);
         }
 
         if (!Storage::disk('public')->exists($surat->file_surat_path)) {
             Log::error('File not found: ' . $surat->file_surat_path);
-            return response()->json(['error' => 'File surat tidak ditemukan.'], 404);
+            return response('File surat tidak ditemukan.', 404);
         }
 
         $filePath = Storage::disk('public')->path($surat->file_surat_path);
 
-        return response()->download(
-            $filePath,
-            'Surat_Ijin_Survey_' . $surat->mahasiswa->nim . '.pdf'
+        return response()->make(
+            response()->download(
+                $filePath,
+                'Surat_Ijin_Survey_' . $surat->mahasiswa->nim . '.pdf'
+            )
         );
     }
 
@@ -649,19 +658,21 @@ class AdminSuratIjinSurveyController extends DocumentController
 
             if (!Storage::disk('public')->exists($dokumen->path)) {
                 Log::error('Supporting document not found: ' . $dokumen->path);
-                return response()->json(['error' => 'Dokumen pendukung tidak ditemukan.'], 404);
+                return response('Dokumen pendukung tidak ditemukan.', 404);
             }
 
             $filePath = Storage::disk('public')->path($dokumen->path);
-            return response()->download($filePath, $dokumen->nama_asli);
+            return response()->make(response()->download($filePath, $dokumen->nama_asli));
         } catch (\Exception $e) {
             Log::error('Failed to download supporting document: ' . $e->getMessage());
-            return response()->json(['error' => 'Gagal mengunduh dokumen: ' . $e->getMessage()], 500);
+            return response('Gagal mengunduh dokumen: ' . $e->getMessage(), 500);
         }
     }
 
     public function destroy(SuratIjinSurvey $surat)
     {
+        // Simpan mahasiswa_id sebelum record dihapus
+        $mahasiswaId = $surat->mahasiswa_id;
         DB::beginTransaction();
         try {
             // Delete related files
@@ -691,6 +702,9 @@ class AdminSuratIjinSurveyController extends DocumentController
             $surat->delete();
 
             DB::commit();
+
+            // Clear cache SETELAH commit berhasil
+            app(SuratSubmissionService::class)->clearCacheOnDelete($mahasiswaId);
 
             return redirect()->route('admin.surat-ijin-survey.index')
                 ->with('success', 'Surat ijin survey berhasil dihapus');

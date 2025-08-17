@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Models\TrackingSurat;
 use App\Models\SuratIjinSurvey;
+use App\Traits\ChecksPendingSurat;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
@@ -21,7 +22,12 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class SuratIjinSurveyController extends Controller
 {
-    use AuthorizesRequests;
+    use AuthorizesRequests, ChecksPendingSurat;
+
+    public function __construct()
+    {
+        $this->initializeChecksPendingSurat();
+    }
 
     public function index(Request $request)
     {
@@ -57,6 +63,11 @@ class SuratIjinSurveyController extends Controller
 
     public function create()
     {
+        // Check if user can submit new surat
+        if ($redirect = $this->checkSubmissionPermission('user.surat-ijin-survey.index')) {
+            return $redirect;
+        }
+
         $this->authorize('create', SuratIjinSurvey::class);
         $service = Service::where('slug', 'surat-ijin-survey')->firstOrFail();
         $tahunAjaranAktif = TahunAjaran::where('status_aktif', true)->first();
@@ -65,6 +76,11 @@ class SuratIjinSurveyController extends Controller
 
     public function store(SuratIjinSurveyRequest $request)
     {
+        // Double-check before storing
+        if ($redirect = $this->checkSubmissionPermission('user.surat-ijin-survey.index')) {
+            return $redirect;
+        }
+
         $this->authorize('create', SuratIjinSurvey::class);
         $validated = $request->validated();
 
@@ -101,6 +117,10 @@ class SuratIjinSurveyController extends Controller
                 'keterangan' => 'Pengajuan surat ijin survey baru',
                 'mahasiswa_id' => Auth::id(),
             ]);
+
+
+            // Clear cache after successful submission
+            $this->clearSubmissionCache();
 
             DB::commit();
 
@@ -161,6 +181,9 @@ class SuratIjinSurveyController extends Controller
                 $staff->notify(new SuratTakenNotification($surat));
             }
 
+            // Clear cache after status change
+            $this->clearSubmissionCache();
+
             DB::commit();
 
             return redirect()->route('user.surat-ijin-survey.show', $surat->id)
@@ -209,5 +232,10 @@ class SuratIjinSurveyController extends Controller
             Log::error('Error saat download PDF untuk surat ID: ' . $surat->id . ' - ' . $e->getMessage());
             return redirect()->back()->with('error', 'Terjadi kesalahan saat mengunduh surat.');
         }
+    }
+
+    protected function getDefaultRedirectRoute(): string
+    {
+        return 'user.surat-ijin-survey.index';
     }
 }
