@@ -1,4 +1,3 @@
-<!-- filepath: /c:/laragon/www/eservice-app/resources/views/layouts/user/footer.blade.php -->
 <footer id="footer" class="footer">
     <div class="container footer-top">
         <div class="row gy-4">

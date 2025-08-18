@@ -1047,6 +1047,8 @@ copyright-text,
 @media (max-width: 576px) {
     .footer-top {
         padding: 48px 0 34px;
+        margin-right: 1rem;
+        margin-left: 1rem;
     }
     .footer-top::before {
         height: 42px;
@@ -1142,9 +1144,15 @@ copyright-text,
 }
 
 @keyframes pulse-green {
-    0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
-    70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    0% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    }
 }
 
 .user-info {
@@ -1193,8 +1201,7 @@ copyright-text,
     border-radius: 16px;
     padding: 0;
     background: white;
-    box-shadow: 
-        0 20px 40px rgba(0, 0, 0, 0.1),
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1),
         0 8px 25px rgba(255, 140, 0, 0.1);
     animation: dropdownFadeIn 0.3s ease-out;
     overflow: hidden;
@@ -1345,7 +1352,7 @@ copyright-text,
     .user-dropdown-wrapper {
         max-width: 200px;
     }
-    
+
     .user-name {
         max-width: 100px;
         font-size: 13px;
@@ -1356,22 +1363,22 @@ copyright-text,
     .user-dropdown-wrapper {
         max-width: 180px;
     }
-    
+
     .user-name {
         max-width: 80px;
         font-size: 12px;
     }
-    
+
     .user-dropdown-menu {
         min-width: 280px;
         max-width: 300px;
     }
-    
+
     .profile-content {
         padding: 20px 15px;
         gap: 12px;
     }
-    
+
     .profile-name {
         font-size: 15px;
     }
@@ -1381,20 +1388,20 @@ copyright-text,
     .user-dropdown-wrapper {
         max-width: 160px;
     }
-    
+
     .user-dropdown-menu {
         min-width: 260px;
         margin-top: 5px;
     }
-    
+
     .profile-content {
         padding: 18px 12px;
     }
-    
+
     .profile-name {
         font-size: 14px;
     }
-    
+
     .profile-email {
         font-size: 10px;
     }
@@ -1626,20 +1633,20 @@ copyright-text,
         min-width: 280px;
         max-width: 300px;
     }
-    
+
     .profile-content {
         padding: 20px 15px;
         gap: 12px;
     }
-    
+
     .dropdown-section {
         padding: 12px 15px;
     }
-    
+
     .dropdown-item-custom {
         padding: 10px 15px;
     }
-    
+
     .dropdown-footer {
         padding: 12px 15px;
     }
@@ -1650,19 +1657,19 @@ copyright-text,
         min-width: 260px;
         margin-top: 5px;
     }
-    
+
     .quick-actions {
         flex-direction: column;
         gap: 8px;
     }
-    
+
     .quick-action-btn {
         flex-direction: row;
         justify-content: flex-start;
         gap: 12px;
         padding: 10px 12px;
     }
-    
+
     .action-icon {
         margin-bottom: 0;
     }
@@ -1683,4 +1690,3 @@ copyright-text,
         transform: translateY(0) scale(1);
     }
 }
-
