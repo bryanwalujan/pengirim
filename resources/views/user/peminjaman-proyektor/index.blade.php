@@ -10,7 +10,7 @@
             <nav class="breadcrumbs" data-aos="fade-up" data-aos-delay="100">
                 <ol>
                     <li><a href="{{ route('user.home.index') }}">Beranda</a></li>
-                    <li><a href="{{ route('user.peminjaman-proyektor.index') }}">Layanan</a></li>
+                    <li><a href="{{ route('user.services.index') }}">Layanan</a></li>
                     <li class="current">Peminjaman Proyektor</li>
                 </ol>
             </nav>
