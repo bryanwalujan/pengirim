@@ -52,13 +52,15 @@ class NotificationController extends Controller
         return redirect()->route('admin.notifications.index')
             ->with('error', 'Notifikasi tidak ditemukan.');
     }
-
-    public function markAllAsRead()
+    public function markAllRead()
     {
-        Auth::user()->unreadNotifications->markAsRead();
+        try {
+            Auth::user()->unreadNotifications->markAsRead();
 
-        return redirect()->route('admin.notifications.index')
-            ->with('success', 'Semua notifikasi telah ditandai sebagai dibaca.');
+            return redirect()->back()->with('success', 'Semua notifikasi telah ditandai sebagai dibaca.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal menandai notifikasi sebagai dibaca.');
+        }
     }
 
     public function delete($notificationId)

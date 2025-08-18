@@ -412,45 +412,5 @@
                 timer: 1500
             });
         }
-
-        // Confirm taken action
-        $(document).on('submit', 'form[action*="confirm-taken"]', function(e) {
-            e.preventDefault();
-            var form = this;
-
-            Swal.fire({
-                title: 'Konfirmasi Pengambilan Surat',
-                html: `
-                    <p>Dengan mengkonfirmasi, Anda menyatakan bahwa:</p>
-                    <ul style="text-align: left; display: inline-block;">
-                        <li>Anda telah menerima surat aktif kuliah</li>
-                        <li>Surat dalam kondisi baik dan benar</li>
-                        <li>Anda dapat mengunduh surat setelah konfirmasi</li>
-                    </ul>
-                    <p><strong>Apakah Anda yakin ingin melanjutkan?</strong></p>
-                `,
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#10b981',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: '<i class="bi bi-check-circle me-2"></i>Ya, Konfirmasi',
-                cancelButtonText: 'Batal',
-                width: '500px'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // Show loading
-                    Swal.fire({
-                        title: 'Memproses...',
-                        text: 'Sedang mengkonfirmasi pengambilan surat',
-                        allowOutsideClick: false,
-                        showConfirmButton: false,
-                        willOpen: () => {
-                            Swal.showLoading();
-                        }
-                    });
-                    form.submit();
-                }
-            });
-        });
     </script>
 @endpush

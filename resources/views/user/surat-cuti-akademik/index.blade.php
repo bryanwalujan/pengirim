@@ -3,9 +3,6 @@
 @section('title', 'Daftar Surat Cuti Akademik')
 
 @push('styles')
-    <!-- CSS Libraries -->
-    <link rel="stylesheet" href="{{ asset('library/datatables/media/css/jquery.dataTables.min.css') }}">
-
     <style>
         .card {
             border-radius: 1rem;
@@ -498,59 +495,10 @@
             // Hapus elemen input sementara
             document.body.removeChild(tempInput);
         }
-        $(document).ready(function() {
-            // Initialize select2
-            $('.select2').select2({
-                placeholder: 'Pilih Status',
-                allowClear: true,
-                width: '100%'
-            });
-
-            // Submit form when filters change
-            $('#filter-status').change(function() {
-                $('#filter-form').submit();
-            });
-
-            // Submit form when pressing enter in search box
-            $('#search-input').keypress(function(e) {
-                if (e.which == 13) {
-                    $('#filter-form').submit();
-                }
-            });
-
-            // Reset filter
-            $('#reset-filter').click(function() {
-                $('#filter-status').val('').trigger('change');
-                $('#search-input').val('');
-                $('#filter-form').submit();
-            });
-
-            // Confirm taken action
-            $(document).on('click', 'a[href*="confirm-taken"]', function(e) {
-                e.preventDefault();
-                var url = $(this).attr('href');
-
-                Swal.fire({
-                    title: 'Konfirmasi Pengambilan',
-                    text: 'Apakah Anda yakin telah mengambil surat ini?',
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonColor: '#4361ee',
-                    cancelButtonColor: '#6c757d',
-                    confirmButtonText: 'Ya, Konfirmasi',
-                    cancelButtonText: 'Batal'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        window.location.href = url;
-                    }
-                });
-            });
-
-            // AOS init
-            AOS.init({
-                duration: 400,
-                once: true
-            });
+        // AOS init
+        AOS.init({
+            duration: 400,
+            once: true
         });
     </script>
 @endpush

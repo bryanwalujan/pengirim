@@ -226,6 +226,8 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         return redirect($notification->data['url']);
     })->name('notifications.read');
 
+    Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllRead'])->name('notifications.mark-all-read');
+
     Route::post('/notifications/{notification}/read-and-redirect', function ($notificationId) {
         $notification = User::find(Auth::id())->notifications()->findOrFail($notificationId);
 

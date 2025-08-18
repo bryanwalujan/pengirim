@@ -104,10 +104,11 @@ class SuratCutiAkademik extends Model
             'diproses' => 'badge bg-info text-white',
             'disetujui_kaprodi' => 'badge bg-primary text-white',
             'disetujui' => 'badge bg-success text-white',
-            'siap_diambil' => 'badge bg-gradient-success text-white',
+            'siap_diambil' => 'badge bg-secondary text-white',
             'sudah_diambil' => 'badge bg-secondary text-white',
             'ditolak' => 'badge bg-danger text-white',
             'unknown' => 'badge bg-light text-dark'
+
         ];
 
         return $badgeClasses[$status] ?? 'badge bg-light text-dark';

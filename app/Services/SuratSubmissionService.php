@@ -67,16 +67,23 @@ class SuratSubmissionService
 
                 $status = $statusSurat->status;
 
-                // Jika status sudah final, cek apakah butuh file
+                // PERBAIKAN: Jika status adalah 'ditolak', langsung izinkan pengajuan baru
+                if ($status === 'ditolak') {
+                    continue; // Skip record ini, user boleh ajukan surat baru
+                }
+
+                // Jika status sudah final (selain ditolak), cek apakah butuh file
                 if (in_array($status, $finalStatuses)) {
-                    if ($requireFile) {
+                    if ($requireFile && $status === 'sudah_diambil') {
+                        // Khusus untuk sudah_diambil, pastikan file sudah ada
                         $needsFile = empty($record->file_surat_path);
                         if (!$needsFile) {
                             continue; // File sudah ada, record selesai total
                         }
                         // File belum ada, tetap pending
                     } else {
-                        continue; // Status final dan tidak butuh file, selesai
+                        // Status final lainnya (selesai), langsung boleh ajukan baru
+                        continue;
                     }
                 }
 
@@ -156,12 +163,13 @@ class SuratSubmissionService
         $label = strip_tags($pendingSurat['label'] ?? 'surat');
         $status = strip_tags($pendingSurat['status'] ?? 'unknown');
 
-        $message = "Anda masih memiliki pengajuan {$label} dengan status {$status}";
-
-        if ($pendingSurat['needs_file'] ?? false) {
-            $message .= " yang belum di-generate atau diambil";
+        // Jika status sudah_diambil tapi belum ada file
+        if ($status === 'sudah_diambil' && ($pendingSurat['needs_file'] ?? false)) {
+            return "Anda masih memiliki pengajuan {$label} yang sudah dikonfirmasi diambil tetapi file belum di-generate. Hubungi admin untuk menyelesaikan proses ini.";
         }
 
+        // Status masih dalam proses
+        $message = "Anda masih memiliki pengajuan {$label} dengan status {$status}";
         $message .= ". Selesaikan terlebih dahulu sebelum membuat pengajuan baru.";
 
         // Bersihkan karakter khusus

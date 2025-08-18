@@ -3,12 +3,7 @@
 @section('title', 'Daftar Surat Ijin Survey')
 
 @push('styles')
-    <!-- CSS Libraries -->
-    <link rel="stylesheet" href="{{ asset('library/datatables/media/css/jquery.dataTables.min.css') }}">
-
     <style>
-        /* Same styles as surat-aktif-kuliah index.blade.php */
-
         .card {
             border-radius: 1rem;
             border: none;
@@ -479,53 +474,10 @@
             // Hapus elemen input sementara
             document.body.removeChild(tempInput);
         }
-        $(document).ready(function() {
-            $('.select2').select2({
-                placeholder: 'Pilih filter',
-                allowClear: true,
-                width: '100%'
-            });
 
-            $('#filter-status, #filter-semester').change(function() {
-                $('#filter-form').submit();
-            });
-
-            $('#search-input').keypress(function(e) {
-                if (e.which == 13) {
-                    $('#filter-form').submit();
-                }
-            });
-
-            $('#reset-filter').click(function() {
-                $('#filter-status, #filter-semester').val('').trigger('change');
-                $('#search-input').val('');
-                $('#filter-form').submit();
-            });
-
-            $(document).on('submit', 'form[action*="confirm-taken"]', function(e) {
-                e.preventDefault();
-                var form = this;
-
-                Swal.fire({
-                    title: 'Konfirmasi Pengambilan',
-                    text: 'Apakah Anda yakin telah mengambil surat ini?',
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonColor: '#4361ee',
-                    cancelButtonColor: '#6c757d',
-                    confirmButtonText: 'Ya, Konfirmasi',
-                    cancelButtonText: 'Batal'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        form.submit();
-                    }
-                });
-            });
-
-            AOS.init({
-                duration: 400,
-                once: true
-            });
+        AOS.init({
+            duration: 400,
+            once: true
         });
     </script>
 @endpush
