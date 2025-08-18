@@ -32,8 +32,7 @@ class SuratAktifKuliahController extends Controller
     public function index(Request $request)
     {
         $service = Service::where('slug', 'surat-aktif-kuliah')->firstOrFail();
-
-        $surats = SuratAktifKuliah::with(['status', 'trackings', 'mahasiswa'])
+        $surats = SuratAktifKuliah::with(['status', 'mahasiswa']) // Hapus relasi yang tidak perlu
             ->where('mahasiswa_id', Auth::id())
             ->when($request->search, function ($query) use ($request) {
                 $query->where(function ($q) use ($request) {
@@ -63,7 +62,6 @@ class SuratAktifKuliahController extends Controller
             'surats' => $surats,
         ]);
     }
-
     public function create()
     {
         // Check if user can submit new surat
@@ -134,14 +132,13 @@ class SuratAktifKuliahController extends Controller
 
     public function show($id)
     {
-        $surat = SuratAktifKuliah::with(['status', 'trackings', 'mahasiswa'])
+        $surat = SuratAktifKuliah::with(['status.updatedBy', 'trackings', 'mahasiswa'])
             ->findOrFail($id);
 
         $this->authorize('view', $surat);
 
         return view('user.surat-aktif-kuliah.show', compact('surat'));
     }
-
     public function confirmTaken($id)
     {
         $surat = SuratAktifKuliah::with(['status'])
@@ -199,42 +196,56 @@ class SuratAktifKuliahController extends Controller
     public function download(SuratAktifKuliah $surat)
     {
         try {
-            // Pastikan hanya pemilik surat yang bisa mengunduh
+            // 1. Security Check: Verify ownership
             if (Auth::id() !== $surat->mahasiswa_id) {
-                return redirect()->back()->with('error', 'Anda tidak berhak mengunduh surat ini.');
+                Log::warning('Unauthorized download attempt', [
+                    'user_id' => Auth::id(),
+                    'surat_id' => $surat->id,
+                    'ip' => request()->ip()
+                ]);
+                abort(403, 'Akses ditolak.');
             }
 
-            // Pastikan status sudah dikonfirmasi (sudah_diambil)
+            // 2. Security Check: Verify status
             if ($surat->status !== 'sudah_diambil') {
-                return redirect()->back()->with('error', 'Anda harus mengkonfirmasi penerimaan surat terlebih dahulu sebelum mengunduh.');
+                return redirect()->back()->with('error', 'Anda harus mengkonfirmasi penerimaan surat terlebih dahulu.');
             }
 
-            // Pastikan file ada
-            if (!$surat->file_surat_path) {
-                return redirect()->back()->with('error', 'File surat belum dihasilkan.');
-            }
-
-            $filePath = storage_path('app/public/' . $surat->file_surat_path);
-            if (!file_exists($filePath)) {
-                Log::error('File PDF tidak ditemukan untuk surat ID: ' . $surat->id . ' di path: ' . $filePath);
+            // 3. Security Check: Verify file exists
+            if (!$surat->file_surat_path || !Storage::disk('public')->exists($surat->file_surat_path)) {
                 return redirect()->back()->with('error', 'File surat tidak ditemukan.');
             }
 
-            // Get the confirmation date from tracking
-            $tracking = TrackingSurat::where('surat_type', SuratAktifKuliah::class)
-                ->where('surat_id', $surat->id)
-                ->where('aksi', 'sudah_diambil')
-                ->first();
+            // 4. Generate secure filename with random number
+            $nim = preg_replace('/[^a-zA-Z0-9]/', '', $surat->mahasiswa->nim ?? 'unknown');
+            $randomNumber = str_pad(random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
+            $timestamp = now()->format('Ymd_His');
+            $secureFilename = "Surat_Aktif_Kuliah_{$nim}_{$timestamp}_{$randomNumber}.pdf";
 
-            $downloadDate = $tracking && $tracking->confirmed_at
-                ? $tracking->confirmed_at->format('Ymd')
-                : now()->format('Ymd');
+            // 5. Get file path and download
+            $filePath = Storage::disk('public')->path($surat->file_surat_path);
 
-            $filename = 'Surat_Aktif_Kuliah_' . $surat->mahasiswa->nim . '_' . $downloadDate . '.pdf';
+            // 6. Log download activity
+            Log::info('Surat aktif kuliah downloaded', [
+                'user_id' => Auth::id(),
+                'surat_id' => $surat->id,
+                'filename' => $secureFilename,
+                'ip' => request()->ip()
+            ]);
 
-            return response()->download($filePath, $filename);
+            // 7. Return secure download with headers
+            return response()->download(
+                $filePath,
+                $secureFilename,
+                [
+                    'Content-Type' => 'application/pdf',
+                    'Cache-Control' => 'no-cache, no-store, must-revalidate',
+                    'Pragma' => 'no-cache'
+                ]
+            );
+
         } catch (\Exception $e) {
-            Log::error('Error saat download PDF untuk surat ID: ' . $surat->id . ' - ' . $e->getMessage());
+            Log::error('Error downloading surat aktif kuliah: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Terjadi kesalahan saat mengunduh surat.');
         }
     }

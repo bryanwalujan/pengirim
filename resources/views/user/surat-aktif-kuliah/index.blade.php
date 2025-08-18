@@ -74,50 +74,6 @@
             color: white;
         }
 
-        /* .status-badge {
-                                                                                                font-size: 0.75rem;
-                                                                                                font-weight: 600;
-                                                                                                padding: 0.4rem 0.8rem;
-                                                                                                border-radius: 50rem;
-                                                                                                text-transform: uppercase;
-                                                                                                letter-spacing: 0.5px;
-                                                                                            }
-
-                                                                                            .badge-diajukan {
-                                                                                                background: rgba(255, 193, 7, 0.15);
-                                                                                                color: #ffc107;
-                                                                                            }
-
-                                                                                            .badge-diproses {
-                                                                                                background: rgba(13, 110, 253, 0.15);
-                                                                                                color: #0d6efd;
-                                                                                            }
-
-                                                                                            .badge-disetujui {
-                                                                                                background: rgba(25, 135, 84, 0.15);
-                                                                                                color: #198754;
-                                                                                            }
-
-                                                                                            .badge-disetujui_kaprodi {
-                                                                                                background: rgba(13, 202, 240, 0.15);
-                                                                                                color: #0dcaf0;
-                                                                                            }
-
-                                                                                            .badge-ditolak {
-                                                                                                background: rgba(220, 53, 69, 0.15);
-                                                                                                color: #dc3545;
-                                                                                            }
-
-                                                                                            .badge-selesai,
-                                                                                            .badge-sudah_diambil {
-                                                                                                background: rgba(108, 117, 125, 0.15);
-                                                                                                color: #6c757d;
-                                                                                            }
-
-                                                                                            .badge-siap_diambil {
-                                                                                                background: rgba(111, 66, 193, 0.15);
-                                                                                                color: #6f42c1;
-                                                                                            } */
 
         .action-btn {
             width: 32px;

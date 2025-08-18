@@ -125,6 +125,76 @@
         <div class="container">
             <div class="row justify-content-center">
                 <div class="col-lg-10">
+                    <!-- Status Alert - Hanya untuk siap_diambil dan ditolak -->
+                    @if ($surat->status === 'siap_diambil')
+                        <div class="status-alert alert-success d-flex align-items-center" data-aos="fade-up"
+                            style="border-radius: 1rem; padding: 1.5rem; margin-bottom: 2rem; border: none; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); background: linear-gradient(135deg, #d1fae5, #a7f3d0); color: #065f46; border-left: 5px solid #10b981;">
+                            <i class="bi bi-check-circle-fill" style="font-size: 2rem; margin-right: 1rem;"></i>
+                            <div class="status-content">
+                                <h4 style="margin-bottom: 0.5rem; font-weight: 700;">🎉 Surat Sudah Siap Diambil!</h4>
+                                <p class="mb-0">Selamat! Surat cuti akademik Anda telah selesai diproses dan siap untuk
+                                    diambil. Silakan konfirmasi pengambilan untuk dapat mengunduh surat.</p>
+                                <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                                    <form action="{{ route('user.surat-cuti-akademik.confirm-taken', $surat->id) }}"
+                                        method="POST" class="d-inline">
+                                        @csrf
+                                        <button type="submit" class="btn btn-enhanced"
+                                            style="padding: 0.75rem 1.5rem; border-radius: 0.75rem; font-weight: 600; background: linear-gradient(135deg, #10b981, #059669); border: none; color: white; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: all 0.3s ease;"
+                                            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(0, 0, 0, 0.15)'"
+                                            onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px rgba(0, 0, 0, 0.1)'">
+                                            <i class="bi bi-check-circle me-2"></i> Konfirmasi Sudah Diambil
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    @elseif($surat->status === 'sudah_diambil')
+                        <div class="status-alert alert-success d-flex align-items-center" data-aos="fade-up"
+                            style="border-radius: 1rem; padding: 1.5rem; margin-bottom: 2rem; border: none; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); background: linear-gradient(135deg, #d1fae5, #a7f3d0); color: #065f46; border-left: 5px solid #10b981;">
+                            <i class="bi bi-download" style="font-size: 2rem; margin-right: 1rem;"></i>
+                            <div class="status-content">
+                                <h4 style="margin-bottom: 0.5rem; font-weight: 700;">✅ Surat Telah Dikonfirmasi</h4>
+                                <p class="mb-0">Anda telah mengonfirmasi pengambilan surat. Sekarang Anda dapat mengunduh
+                                    surat kapan saja.</p>
+                                @if ($surat->file_surat_path)
+                                    <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                                        <a href="{{ route('user.surat-cuti-akademik.download', $surat->id) }}"
+                                            class="btn btn-enhanced"
+                                            style="padding: 0.75rem 1.5rem; border-radius: 0.75rem; font-weight: 600; background: linear-gradient(135deg, #3b82f6, #2563eb); border: none; color: white; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: all 0.3s ease; text-decoration: none;"
+                                            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(0, 0, 0, 0.15)'"
+                                            onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px rgba(0, 0, 0, 0.1)'">
+                                            <i class="bi bi-download me-2"></i> Unduh Surat
+                                        </a>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    @elseif($surat->status === 'ditolak')
+                        <div class="status-alert alert-danger d-flex align-items-center" data-aos="fade-up"
+                            style="border-radius: 1rem; padding: 1.5rem; margin-bottom: 2rem; border: none; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); background: linear-gradient(135deg, #fee2e2, #fecaca); color: #991b1b; border-left: 5px solid #ef4444;">
+                            <i class="bi bi-x-circle-fill" style="font-size: 2rem; margin-right: 1rem;"></i>
+                            <div class="status-content">
+                                <h4 style="margin-bottom: 0.5rem; font-weight: 700;">❌ Pengajuan Ditolak</h4>
+                                <p class="mb-0">Maaf, pengajuan surat cuti akademik Anda ditolak. Silakan periksa alasan
+                                    penolakan di bawah ini dan lakukan perbaikan jika diperlukan.</p>
+                                @if ($surat->statusSurat && $surat->statusSurat->catatan_admin)
+                                    <div
+                                        style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 0.5rem; padding: 1rem; margin-top: 1rem;">
+                                        <strong>Alasan Penolakan:</strong><br>
+                                        {{ $surat->statusSurat->catatan_admin }}
+                                    </div>
+                                @endif
+                                <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                                    <a href="{{ route('user.surat-cuti-akademik.create') }}" class="btn btn-enhanced"
+                                        style="padding: 0.75rem 1.5rem; border-radius: 0.75rem; font-weight: 600; background: linear-gradient(135deg, #4361ee, #3f37c9); border: none; color: white; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: all 0.3s ease; text-decoration: none;"
+                                        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(0, 0, 0, 0.15)'"
+                                        onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px rgba(0, 0, 0, 0.1)'">
+                                        <i class="bi bi-plus-circle me-2"></i> Ajukan Ulang
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
                     <div class="card" data-aos="fade-up">
                         <div class="card-header text-white">
                             <h4 class="mb-0 fw-bold text-center text-white">Detail Pengajuan Surat Cuti Akademik</h4>
@@ -149,6 +219,14 @@
                                         <label class="form-label">Nomor Surat</label>
                                         <input type="text" class="form-control"
                                             value="{{ $surat->nomor_surat ?? 'Belum ditentukan' }}" readonly>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Status Surat</label>
+                                        <div class="d-flex align-items-center">
+                                            <span class="{{ $surat->status_badge_class }}">
+                                                {{ $surat->status_display }}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -185,8 +263,8 @@
                                 <div class="row g-4">
                                     <div class="col-md-6">
                                         <label class="form-label">Tahun Ajaran</label>
-                                        <input type="text" class="form-control" value="{{ $surat->tahun_ajaran ?? '-' }}"
-                                            readonly>
+                                        <input type="text" class="form-control"
+                                            value="{{ $surat->tahun_ajaran ?? '-' }}" readonly>
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label">Semester</label>
@@ -215,39 +293,6 @@
                                     </a>
                                 </div>
                             @endif
-
-                            <!-- File Surat -->
-                            <div class="mb-5" data-aos="fade-up" data-aos-delay="400">
-                                <h5 class="section-title">File Surat</h5>
-                                @if ($surat->file_surat_path)
-                                    @if ($surat->status === 'sudah_diambil')
-                                        <a href="{{ route('user.surat-cuti-akademik.download', $surat->id) }}"
-                                            class="file-link text-decoration-none">
-                                            <i class="bi bi-file-earmark-pdf fs-4 text-success"></i>
-                                            Unduh Surat Cuti Akademik
-                                        </a>
-                                    @elseif ($surat->status === 'siap_diambil')
-                                        <div class="alert alert-warning">
-                                            <p>Silakan konfirmasi penerimaan surat terlebih dahulu untuk mengunduh.</p>
-                                            <form
-                                                action="{{ route('user.surat-cuti-akademik.confirm-taken', $surat->id) }}"
-                                                method="POST" class="d-inline">
-                                                @csrf
-                                                <button type="submit" class="btn btn-primary">
-                                                    <i class="bi bi-check-circle me-2"></i> Konfirmasi Sudah Diambil
-                                                </button>
-                                            </form>
-                                        </div>
-                                    @else
-                                        <p class="text-muted">File surat belum tersedia. Silakan tunggu hingga status
-                                            berubah menjadi "Siap Diambil".</p>
-                                    @endif
-                                @else
-                                    <p class="text-muted">File surat belum tersedia. Silakan tunggu hingga status berubah
-                                        menjadi "Siap Diambil".</p>
-                                @endif
-                            </div>
-
                             <!-- Actions -->
                             <div class="d-flex justify-content-between mt-5" data-aos="fade-up" data-aos-delay="500">
                                 <a href="{{ route('user.surat-cuti-akademik.index') }}" class="btn btn-secondary">
@@ -267,6 +312,57 @@
         AOS.init({
             duration: 400,
             once: true
+        });
+
+        function copyTrackingCode(code) {
+            navigator.clipboard.writeText(code);
+            Swal.fire({
+                icon: 'success',
+                title: 'Disalin!',
+                text: 'Kode tracking telah disalin ke clipboard.',
+                showConfirmButton: false,
+                timer: 1500
+            });
+        }
+
+        // Confirm taken action
+        $(document).on('submit', 'form[action*="confirm-taken"]', function(e) {
+            e.preventDefault();
+            var form = this;
+
+            Swal.fire({
+                title: 'Konfirmasi Pengambilan Surat',
+                html: `
+                <p>Dengan mengkonfirmasi, Anda menyatakan bahwa:</p>
+                <ul style="text-align: left; display: inline-block;">
+                    <li>Anda telah menerima surat cuti akademik</li>
+                    <li>Surat dalam kondisi baik dan benar</li>
+                    <li>Anda dapat mengunduh surat setelah konfirmasi</li>
+                </ul>
+                <p><strong>Apakah Anda yakin ingin melanjutkan?</strong></p>
+            `,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#10b981',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="bi bi-check-circle me-2"></i>Ya, Konfirmasi',
+                cancelButtonText: 'Batal',
+                width: '500px'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Show loading
+                    Swal.fire({
+                        title: 'Memproses...',
+                        text: 'Sedang mengkonfirmasi pengambilan surat',
+                        allowOutsideClick: false,
+                        showConfirmButton: false,
+                        willOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                    form.submit();
+                }
+            });
         });
     </script>
 @endpush

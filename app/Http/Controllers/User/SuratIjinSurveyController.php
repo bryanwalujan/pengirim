@@ -198,38 +198,56 @@ class SuratIjinSurveyController extends Controller
     public function download(SuratIjinSurvey $surat)
     {
         try {
+            // 1. Security Check: Verify ownership
             if (Auth::id() !== $surat->mahasiswa_id) {
-                return redirect()->back()->with('error', 'Anda tidak berhak mengunduh surat ini.');
+                Log::warning('Unauthorized download attempt', [
+                    'user_id' => Auth::id(),
+                    'surat_id' => $surat->id,
+                    'ip' => request()->ip()
+                ]);
+                abort(403, 'Akses ditolak.');
             }
 
+            // 2. Security Check: Verify status
             if ($surat->status !== 'sudah_diambil') {
-                return redirect()->back()->with('error', 'Anda harus mengkonfirmasi penerimaan surat terlebih dahulu sebelum mengunduh.');
+                return redirect()->back()->with('error', 'Anda harus mengkonfirmasi penerimaan surat terlebih dahulu.');
             }
 
-            if (!$surat->file_surat_path) {
-                return redirect()->back()->with('error', 'File surat belum dihasilkan.');
-            }
-
-            $filePath = storage_path('app/public/' . $surat->file_surat_path);
-            if (!file_exists($filePath)) {
-                Log::error('File PDF tidak ditemukan untuk surat ID: ' . $surat->id . ' di path: ' . $filePath);
+            // 3. Security Check: Verify file exists
+            if (!$surat->file_surat_path || !Storage::disk('public')->exists($surat->file_surat_path)) {
                 return redirect()->back()->with('error', 'File surat tidak ditemukan.');
             }
 
-            $tracking = TrackingSurat::where('surat_type', SuratIjinSurvey::class)
-                ->where('surat_id', $surat->id)
-                ->where('aksi', 'sudah_diambil')
-                ->first();
+            // 4. Generate secure filename with random number
+            $nim = preg_replace('/[^a-zA-Z0-9]/', '', $surat->mahasiswa->nim ?? 'unknown');
+            $randomNumber = str_pad(random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
+            $timestamp = now()->format('Ymd_His');
+            $secureFilename = "Surat_Ijin_Survey_{$nim}_{$timestamp}_{$randomNumber}.pdf";
 
-            $downloadDate = $tracking && $tracking->confirmed_at
-                ? $tracking->confirmed_at->format('Ymd')
-                : now()->format('Ymd');
+            // 5. Get file path and download
+            $filePath = Storage::disk('public')->path($surat->file_surat_path);
 
-            $filename = 'Surat_Ijin_Survey_' . $surat->mahasiswa->nim . '_' . $downloadDate . '.pdf';
+            // 6. Log download activity
+            Log::info('Surat ijin survey downloaded', [
+                'user_id' => Auth::id(),
+                'surat_id' => $surat->id,
+                'filename' => $secureFilename,
+                'ip' => request()->ip()
+            ]);
 
-            return response()->download($filePath, $filename);
+            // 7. Return secure download with headers
+            return response()->download(
+                $filePath,
+                $secureFilename,
+                [
+                    'Content-Type' => 'application/pdf',
+                    'Cache-Control' => 'no-cache, no-store, must-revalidate',
+                    'Pragma' => 'no-cache'
+                ]
+            );
+
         } catch (\Exception $e) {
-            Log::error('Error saat download PDF untuk surat ID: ' . $surat->id . ' - ' . $e->getMessage());
+            Log::error('Error downloading surat ijin survey: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Terjadi kesalahan saat mengunduh surat.');
         }
     }

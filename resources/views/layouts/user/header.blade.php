@@ -118,7 +118,7 @@
                                     <div class="action-icon services">
                                         <i class="bi bi-file-earmark-text"></i>
                                     </div>
-                                    <span>Layanan Surat</span>
+                                    <span>Layanan</span>
                                 </a>
                             </div>
                         </li>

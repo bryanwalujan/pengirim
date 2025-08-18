@@ -77,6 +77,60 @@ class SuratCutiAkademik extends Model
         });
     }
 
+    public function getStatusDisplayAttribute()
+    {
+        $status = is_string($this->status) ? $this->status : ($this->status->status ?? 'unknown');
+
+        $statusMap = [
+            'diajukan' => 'Diajukan',
+            'diproses' => 'Sedang Diproses',
+            'disetujui_kaprodi' => 'Disetujui Kaprodi',
+            'disetujui' => 'Disetujui',
+            'siap_diambil' => 'Siap Diambil',
+            'sudah_diambil' => 'Sudah Diambil',
+            'ditolak' => 'Ditolak',
+            'unknown' => 'Status Tidak Diketahui'
+        ];
+
+        return $statusMap[$status] ?? 'Status Tidak Diketahui';
+    }
+
+    public function getStatusBadgeClassAttribute()
+    {
+        $status = is_string($this->status) ? $this->status : ($this->status->status ?? 'unknown');
+
+        $badgeClasses = [
+            'diajukan' => 'badge bg-warning text-dark',
+            'diproses' => 'badge bg-info text-white',
+            'disetujui_kaprodi' => 'badge bg-primary text-white',
+            'disetujui' => 'badge bg-success text-white',
+            'siap_diambil' => 'badge bg-gradient-success text-white',
+            'sudah_diambil' => 'badge bg-secondary text-white',
+            'ditolak' => 'badge bg-danger text-white',
+            'unknown' => 'badge bg-light text-dark'
+        ];
+
+        return $badgeClasses[$status] ?? 'badge bg-light text-dark';
+    }
+
+    public function getCanTakeActionAttribute()
+    {
+        // Hanya tampilkan alert untuk status siap_diambil dan ditolak
+        return in_array($this->status, ['siap_diambil', 'ditolak']);
+    }
+
+    public function getActionMessageAttribute()
+    {
+        switch ($this->status) {
+            case 'siap_diambil':
+                return 'Surat Anda sudah siap diambil! Silakan konfirmasi dan unduh.';
+            case 'ditolak':
+                return 'Pengajuan surat Anda ditolak. Silakan periksa catatan admin.';
+            default:
+                return null; // Tidak ada message untuk status lain
+        }
+    }
+
     public function trackings(): MorphMany
     {
         return $this->morphMany(TrackingSurat::class, 'surat', 'surat_type', 'surat_id');
