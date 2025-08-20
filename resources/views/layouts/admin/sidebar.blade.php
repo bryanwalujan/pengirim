@@ -11,7 +11,7 @@
 
     <!-- Menu Items -->
     <div class="menu-inner-shadow"></div>
-    <ul class="menu-inner py-1">
+    <ul class="menu-inner py-1" style="padding-bottom: 30px !important;">
         <!-- Dashboard -->
         @can('view dashboard')
             <li class="menu-item {{ request()->routeIs('admin.dashboard.index') ? 'active' : '' }}">
@@ -22,22 +22,35 @@
             </li>
         @endcan
 
-        <!-- Manajemen Surat -->
-        <li class="menu-header small text-uppercase">
-            <span class="menu-header-text">Manajemen Surat</span>
-        </li>
+        {{-- ============================================================ --}}
+        {{-- KATEGORI 1: MANAJEMEN LAYANAN --}}
+        {{-- ============================================================ --}}
+        @if (auth()->user()->can('manage surat aktif kuliah') ||
+                auth()->user()->can('manage surat ijin survey') ||
+                auth()->user()->can('manage surat cuti akademik') ||
+                auth()->user()->can('manage surat pindah') ||
+                auth()->user()->can('manage services') ||
+                auth()->user()->can('manage academic calendar') ||
+                auth()->user()->can('manage peminjaman proyektor') ||
+                auth()->user()->can('manage peminjaman laboratorium') ||
+                auth()->user()->can('manage pendaftaran sempro') ||
+                auth()->user()->can('manage pendaftaran hasil') ||
+                auth()->user()->can('manage komisi proposal') ||
+                auth()->user()->can('manage komisi hasil'))
+            <li class="menu-header small text-uppercase">
+                <span class="menu-header-text">Manajemen Layanan</span>
+            </li>
+        @endif
+
+        {{-- Surat Aktif Kuliah --}}
         @can('manage surat aktif kuliah')
-            <li
-                class="menu-item {{ request()->routeIs('admin.surat-aktif-kuliah.*') || request()->routeIs('admin.surat-aktif-kuliah.show')
-                    ? 'active open'
-                    : '' }}">
+            <li class="menu-item {{ request()->routeIs('admin.surat-aktif-kuliah.*') ? 'active open' : '' }}">
                 <a href="javascript:void(0);" class="menu-link menu-toggle">
                     <i class="menu-icon tf-icons bx bx-user-check"></i>
                     <div>Surat Aktif Kuliah</div>
                 </a>
                 <ul class="menu-sub">
                     @if (auth()->user()->hasRole('dosen'))
-                        <!-- Menu khusus dosen (Kaprodi/Pimpinan) -->
                         @php
                             $unreadCount = auth()
                                 ->user()
@@ -45,10 +58,6 @@
                                 ->where('type', 'App\Notifications\SuratNeedApprovalNotification')
                                 ->whereJsonContains('data->surat_class', 'App\Models\SuratAktifKuliah')
                                 ->count();
-
-                            // Tentukan menu berdasarkan jabatan
-                            $isKaprodi = str_contains(auth()->user()->jabatan, 'Koordinator Program Studi');
-                            $isPimpinan = str_contains(auth()->user()->jabatan, 'Pimpinan Jurusan PTIK');
                         @endphp
                         <li
                             class="menu-item {{ request()->routeIs('admin.surat-aktif-kuliah.index') &&
@@ -66,7 +75,6 @@
                             </a>
                         </li>
                     @else
-                        <!-- Tampilkan semua menu untuk staff/admin -->
                         <li
                             class="menu-item {{ (request()->routeIs('admin.surat-aktif-kuliah.index') &&
                                 request()->input('status', 'diajukan') === 'diajukan') ||
@@ -138,6 +146,8 @@
                 </ul>
             </li>
         @endcan
+
+        {{-- Surat Ijin Survey --}}
         @can('manage surat ijin survey')
             <li class="menu-item {{ request()->routeIs('admin.surat-ijin-survey.*') ? 'active open' : '' }}">
                 <a href="javascript:void(0);" class="menu-link menu-toggle">
@@ -241,6 +251,8 @@
                 </ul>
             </li>
         @endcan
+
+        {{-- Surat Cuti Akademik --}}
         @can('manage surat cuti akademik')
             <li class="menu-item {{ request()->routeIs('admin.surat-cuti-akademik.*') ? 'active open' : '' }}">
                 <a href="javascript:void(0);" class="menu-link menu-toggle">
@@ -344,6 +356,8 @@
                 </ul>
             </li>
         @endcan
+
+        {{-- Surat Pindah --}}
         @can('manage surat pindah')
             <li class="menu-item {{ request()->routeIs('admin.surat-pindah.*') ? 'active open' : '' }}">
                 <a href="javascript:void(0);" class="menu-link menu-toggle">
@@ -446,21 +460,7 @@
             </li>
         @endcan
 
-        {{-- Manajemen Layanan --}}
-        @if (auth()->user()->can('manage services') || auth()->user()->can('manage academic calendar'))
-            <li class="menu-header small text-uppercase">
-                <span class="menu-header-text">Manajemen Layanan</span>
-            </li>
-        @endif
-        @can('manage services')
-            <li class="menu-item {{ request()->routeIs('admin.services.*') ? 'active' : '' }}">
-                <a href="{{ route('admin.services.index') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-cog"></i>
-                    <div>Layanan-layanan</div>
-                </a>
-            </li>
-        @endcan
-
+        {{-- Sub Menu: Layanan Akademik --}}
         @can('manage academic calendar')
             <li class="menu-item {{ request()->routeIs('admin.academic-calendar.*') ? 'active' : '' }}">
                 <a href="{{ route('admin.academic-calendar.index') }}" class="menu-link">
@@ -469,6 +469,7 @@
                 </a>
             </li>
         @endcan
+
         @can('manage peminjaman proyektor')
             <li class="menu-item {{ request()->routeIs('admin.peminjaman-proyektor.*') ? 'active' : '' }}">
                 <a href="{{ route('admin.peminjaman-proyektor.index') }}" class="menu-link">
@@ -513,6 +514,7 @@
                 </a>
             </li>
         @endcan
+
         @can('manage komisi hasil')
             <li class="menu-item {{ request()->routeIs('admin.komisi-hasil.*') ? 'active' : '' }}">
                 <a href="{{ route('admin.komisi-hasil.index') }}" class="menu-link">
@@ -522,13 +524,33 @@
             </li>
         @endcan
 
-
-        @if (auth()->user()->can('manage kopsurat'))
+        {{-- ============================================================ --}}
+        {{-- KATEGORI 2: MANAJEMEN SISTEM --}}
+        {{-- ============================================================ --}}
+        @if (auth()->user()->can('manage services') ||
+                auth()->user()->can('manage kopsurat') ||
+                auth()->user()->can('manage students') ||
+                auth()->user()->can('manage lecturers') ||
+                auth()->user()->can('manage staff') ||
+                auth()->user()->can('manage roles') ||
+                auth()->user()->can('manage ukt') ||
+                auth()->user()->can('manage tahun ajaran'))
             <li class="menu-header small text-uppercase">
-                <span class="menu-header-text">Template Surat</span>
+                <span class="menu-header-text">Manajemen Sistem</span>
             </li>
         @endif
-        <!-- Manajemen Kop Surat -->
+
+        {{-- Layanan-layanan --}}
+        @can('manage services')
+            <li class="menu-item {{ request()->routeIs('admin.services.*') ? 'active' : '' }}">
+                <a href="{{ route('admin.services.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-cog"></i>
+                    <div>Layanan-layanan</div>
+                </a>
+            </li>
+        @endcan
+
+        {{-- Template Surat --}}
         @can('manage kopsurat')
             <li class="menu-item {{ request()->routeIs('admin.kop-surat.*') ? 'active' : '' }}">
                 <a href="{{ route('admin.kop-surat.index') }}" class="menu-link">
@@ -537,16 +559,12 @@
                 </a>
             </li>
         @endcan
-        {{-- @endcanany --}}
 
-        <!-- Manajemen Pengguna -->
+        {{-- Manajemen Pengguna --}}
         @if (auth()->user()->can('manage students') ||
                 auth()->user()->can('manage lecturers') ||
                 auth()->user()->can('manage staff') ||
                 auth()->user()->can('manage roles'))
-            <li class="menu-header small text-uppercase">
-                <span class="menu-header-text">Manajemen Pengguna</span>
-            </li>
             <li
                 class="menu-item {{ request()->routeIs('admin.users.*') ||
                 request()->routeIs('admin.users.mahasiswa*') ||
@@ -559,64 +577,63 @@
                     <i class="menu-icon tf-icons bx bx-user"></i>
                     <div>Pengguna & Roles</div>
                 </a>
-        @endif
-        <ul class="menu-sub">
-            @can('manage students')
-                <li class="menu-item {{ request()->routeIs('admin.users.mahasiswa*') ? 'active' : '' }}">
-                    <a href="{{ route('admin.users.mahasiswa') }}" class="menu-link">
-                        <i class="menu-icon tf-icons bx bx-group"></i>
-                        <div>Mahasiswa</div>
-                    </a>
-                </li>
-            @endcan
-            @can('manage lecturers')
-                <li class="menu-item {{ request()->routeIs('admin.users.dosen*') ? 'active' : '' }}">
-                    <a href="{{ route('admin.users.dosen') }}" class="menu-link">
-                        <i class="menu-icon tf-icons bx bx-user-voice"></i>
-                        <div>Dosen</div>
-                    </a>
-                </li>
-            @endcan
-
-            @can('manage staff')
-                <li class="menu-item {{ request()->routeIs('admin.users.staff*') ? 'active' : '' }}">
-                    <a href="{{ route('admin.users.staff') }}" class="menu-link">
-                        <i class="menu-icon tf-icons bx bx-user-pin"></i>
-                        <div>Staff</div>
-                    </a>
-                </li>
-            @endcan
-
-            @can('manage roles')
-                <li class="menu-item {{ request()->routeIs('admin.roles.*') ? 'active' : '' }}">
-                    <a href="{{ route('admin.roles.index') }}" class="menu-link">
-                        <i class="menu-icon tf-icons bx bx-shield"></i>
-                        <div>Roles & Permissions</div>
-                    </a>
-                </li>
-            @endcan
-        </ul>
-        </li>
-        <!-- Tambahkan setelah Manajemen Pengguna -->
-        @if (auth()->user()->can('manage ukt') || auth()->user()->can('manage tahun ajaran'))
-            <li class="menu-header small text-uppercase">
-                <span class="menu-header-text">Manajemen UKT</span>
+                <ul class="menu-sub">
+                    @can('manage students')
+                        <li class="menu-item {{ request()->routeIs('admin.users.mahasiswa*') ? 'active' : '' }}">
+                            <a href="{{ route('admin.users.mahasiswa') }}" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-group"></i>
+                                <div>Mahasiswa</div>
+                            </a>
+                        </li>
+                    @endcan
+                    @can('manage lecturers')
+                        <li class="menu-item {{ request()->routeIs('admin.users.dosen*') ? 'active' : '' }}">
+                            <a href="{{ route('admin.users.dosen') }}" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-user-voice"></i>
+                                <div>Dosen</div>
+                            </a>
+                        </li>
+                    @endcan
+                    @can('manage staff')
+                        <li class="menu-item {{ request()->routeIs('admin.users.staff*') ? 'active' : '' }}">
+                            <a href="{{ route('admin.users.staff') }}" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-user-pin"></i>
+                                <div>Staff</div>
+                            </a>
+                        </li>
+                    @endcan
+                    @can('manage roles')
+                        <li class="menu-item {{ request()->routeIs('admin.roles.*') ? 'active' : '' }}">
+                            <a href="{{ route('admin.roles.index') }}" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-shield"></i>
+                                <div>Roles & Permissions</div>
+                            </a>
+                        </li>
+                    @endcan
+                </ul>
             </li>
-            @can('manage tahun ajaran')
-                <li class="menu-item {{ request()->routeIs('admin.tahun-ajaran.*') ? 'active' : '' }}">
-                    <a href="{{ route('admin.tahun-ajaran.index') }}" class="menu-link">
-                        <i class="menu-icon tf-icons bx bx-calendar-alt"></i>
-                        <div>Tahun Ajaran</div>
-                    </a>
-                </li>
-            @endcan
-            @can('manage ukt')
-                <li class="menu-item {{ request()->routeIs('admin.pembayaran-ukt.*') ? 'active open' : '' }}">
-                    <a href="javascript:void(0);" class="menu-link menu-toggle">
-                        <i class="menu-icon tf-icons bx bx-money"></i>
-                        <div>Pembayaran UKT</div>
-                    </a>
-                    <ul class="menu-sub">
+        @endif
+
+        {{-- Manajemen UKT --}}
+        @if (auth()->user()->can('manage ukt') || auth()->user()->can('manage tahun ajaran'))
+            <li
+                class="menu-item {{ request()->routeIs('admin.tahun-ajaran.*') || request()->routeIs('admin.pembayaran-ukt.*')
+                    ? 'active open'
+                    : '' }}">
+                <a href="javascript:void(0);" class="menu-link menu-toggle">
+                    <i class="menu-icon tf-icons bx bx-money"></i>
+                    <div>Manajemen UKT</div>
+                </a>
+                <ul class="menu-sub">
+                    @can('manage tahun ajaran')
+                        <li class="menu-item {{ request()->routeIs('admin.tahun-ajaran.*') ? 'active' : '' }}">
+                            <a href="{{ route('admin.tahun-ajaran.index') }}" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-calendar-alt"></i>
+                                <div>Tahun Ajaran</div>
+                            </a>
+                        </li>
+                    @endcan
+                    @can('manage ukt')
                         <li class="menu-item {{ request()->routeIs('admin.pembayaran-ukt.index') ? 'active' : '' }}">
                             <a href="{{ route('admin.pembayaran-ukt.index') }}" class="menu-link">
                                 <i class="menu-icon tf-icons bx bx-list-ul"></i>
@@ -635,9 +652,10 @@
                                 <div>Laporan</div>
                             </a>
                         </li>
-                    </ul>
-                </li>
-            @endcan
+                    @endcan
+                </ul>
+            </li>
         @endif
+
     </ul>
 </aside>
