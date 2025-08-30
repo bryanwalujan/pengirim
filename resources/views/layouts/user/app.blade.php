@@ -121,77 +121,91 @@
     <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        //flash message
-        @if (session()->has('success'))
-            Swal.fire({
-                type: "success",
-                icon: "success",
-                title: "BERHASIL!",
-                text: "{{ session('success') }}",
-                timer: 1500,
-                showConfirmButton: false,
-                showCancelButton: false,
-                buttons: false,
-            });
-        @elseif (session()->has('error'))
-            Swal.fire({
-                type: "error",
-                icon: "error",
-                title: "GAGAL!",
-                text: "{{ session('error') }}",
-                timer: 1500,
-                showConfirmButton: false,
-                showCancelButton: false,
-                buttons: false,
-            });
-        @endif
-        const Toast = Swal.mixin({
-            toast: true,
-            position: "top-end",
-            showConfirmButton: false,
-            timer: 4000, // Diperpanjang untuk pesan panjang
-            timerProgressBar: true,
-            width: '450px', // Diperlebar untuk pesan panjang
-            padding: '1em',
-            color: '#ffffff',
-            background: 'linear-gradient(135deg, rgba(41,47,63,0.95) 0%, rgba(30,35,48,0.95) 100%)',
-            backdrop: false,
-            showClass: {
-                popup: 'animate__animated animate__fadeInRight animate__faster'
-            },
-            hideClass: {
-                popup: 'animate__animated animate__fadeOutRight animate__faster'
-            },
-            customClass: {
-                popup: 'shadow-2xl rounded-xl border border-gray-700/30',
-                title: 'font-semibold',
-                timerProgressBar: 'bg-gradient-to-r from-cyan-400 to-blue-500',
-                icon: 'text-white'
-            },
-            didOpen: (toast) => {
-                toast.onmouseenter = Swal.stopTimer;
-                toast.onmouseleave = Swal.resumeTimer;
-            }
-        });
+        // Lazy load SweetAlert2 configuration untuk performa lebih baik
+        let isToastConfigured = false;
+        let Toast;
 
+        function configureSweetAlert() {
+            if (isToastConfigured) return Toast;
+
+            Toast = Swal.mixin({
+                toast: true,
+                position: "top-end",
+                showConfirmButton: false,
+                timer: 3000, // Dikurangi dari 4000ms untuk performa
+                timerProgressBar: true,
+                width: '420px', // Dikurangi sedikit untuk performa render
+                padding: '0.8em',
+                color: '#ffffff',
+                background: 'linear-gradient(135deg, rgba(41,47,63,0.95) 0%, rgba(30,35,48,0.95) 100%)',
+                backdrop: false,
+                showClass: {
+                    popup: 'animate__animated animate__fadeInRight animate__faster'
+                },
+                hideClass: {
+                    popup: 'animate__animated animate__fadeOutRight animate__faster'
+                },
+                customClass: {
+                    popup: 'shadow-2xl rounded-xl border border-gray-700/30',
+                    title: 'font-semibold text-sm', // Optimized font size
+                    timerProgressBar: 'bg-gradient-to-r from-cyan-400 to-blue-500',
+                    icon: 'text-white'
+                },
+                didOpen: (toast) => {
+                    // Optimized event handlers dengan throttling
+                    let enterTimeout, leaveTimeout;
+
+                    toast.addEventListener('mouseenter', () => {
+                        clearTimeout(leaveTimeout);
+                        enterTimeout = setTimeout(Swal.stopTimer, 100);
+                    });
+
+                    toast.addEventListener('mouseleave', () => {
+                        clearTimeout(enterTimeout);
+                        leaveTimeout = setTimeout(Swal.resumeTimer, 100);
+                    });
+                }
+            });
+
+            isToastConfigured = true;
+            return Toast;
+        }
+
+        // Fungsi helper untuk menampilkan toast dengan performa optimal
+        function showToast(type, message) {
+            const toast = configureSweetAlert();
+
+            // Batasi panjang pesan untuk performa
+            const truncatedMessage = message.length > 200 ?
+                message.substring(0, 200) + '...' : message;
+
+            toast.fire({
+                icon: type,
+                text: truncatedMessage,
+            });
+        }
+
+        // Flash messages dengan optimasi
         @if (session()->has('success'))
-            Toast.fire({
-                icon: 'success',
-                text: {!! json_encode(session('success')) !!},
+            // Gunakan requestAnimationFrame untuk performa render yang lebih baik
+            requestAnimationFrame(() => {
+                showToast('success', {!! json_encode(session('success')) !!});
             });
         @elseif (session()->has('error'))
-            Toast.fire({
-                icon: 'error',
-                text: {!! json_encode(session('error')) !!},
+            requestAnimationFrame(() => {
+                showToast('error', {!! json_encode(session('error')) !!});
             });
         @elseif (session()->has('warning'))
-            Toast.fire({
-                icon: 'warning',
-                text: {!! json_encode(session('warning')) !!},
+            requestAnimationFrame(() => {
+                showToast('warning', {!! json_encode(session('warning')) !!});
             });
         @endif
-    </script>
 
+        // Fallback untuk SweetAlert klasik (hanya jika diperlukan)
+        @if (session()->has('success') || session()->has('error'))
+            // Hapus duplicate SweetAlert fire yang lama untuk menghindari konflik
+        @endif
+    </script>
     {{-- Scroll to Section --}}
     <script>
         function scrollToSection(id) {

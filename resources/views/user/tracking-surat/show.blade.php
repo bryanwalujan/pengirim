@@ -3,8 +3,6 @@
 @section('title', 'Detail Tracking Surat - E-Service')
 
 @push('styles')
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
     <style>
         :root {
             --primary: #4361ee;

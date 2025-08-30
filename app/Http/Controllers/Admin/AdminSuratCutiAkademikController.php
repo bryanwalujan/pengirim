@@ -480,8 +480,39 @@ class AdminSuratCutiAkademikController extends DocumentController
             'qr_type' => $qrType,
         ]);
 
-        $filename = 'surat_cuti_akademik_' . $surat->mahasiswa->nim . '_' . now()->format('YmdHis') . '.pdf';
-        $path = 'surat-cuti-akademik/' . $filename;
+        // SECURE FILENAME GENERATION
+        // Sanitize NIM - remove any non-alphanumeric characters
+        $nimSanitized = preg_replace('/[^a-zA-Z0-9]/', '', $surat->mahasiswa->nim ?? 'unknown');
+
+        // Generate random number for security
+        $randomNumber = str_pad(random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
+
+        // Generate timestamp
+        $timestamp = now()->format('Ymd_His');
+
+        // Generate unique hash based on surat ID and current time
+        $hash = substr(md5($surat->id . '_' . now()->timestamp), 0, 8);
+
+        // Create secure filename with multiple security layers
+        $filename = sprintf(
+            'surat_cuti_akademik_%s_%s_%s_%s.pdf',
+            $nimSanitized,
+            $timestamp,
+            $randomNumber,
+            $hash
+        );
+
+        // Create secure directory structure
+        $yearMonth = now()->format('Y/m');
+        $path = "surat-cuti-akademik/{$yearMonth}/{$filename}";
+
+        // Ensure the directory exists
+        $directory = dirname($path);
+        if (!Storage::disk('public')->exists($directory)) {
+            Storage::disk('public')->makeDirectory($directory);
+        }
+
+        // Store the PDF
         Storage::disk('public')->put($path, $pdf->output());
 
         return $path;

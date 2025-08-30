@@ -44,8 +44,28 @@
                 </a>
             </div>
         @endif
+
+        <!-- Login Button -->
         <div class="text-center">
-            <button type="submit" class="btn btn-lg btn-orange btn-lg w-100 mt-2 mb-0">Login</button>
+            <button type="submit" class="btn btn-lg btn-orange btn-lg w-100 mt-2 mb-3">Login</button>
+        </div>
+
+        <!-- Link kembali ke beranda untuk mobile -->
+        <div class="text-center d-md-none">
+            <a href="{{ route('user.home.index') }}" class="btn btn-home w-100">
+                <i class="fas fa-home me-2"></i>
+                Kembali ke Beranda
+            </a>
         </div>
     </form>
+
+    <!-- Informasi tambahan -->
+    <div class="text-center mt-3">
+        <p class="text-muted small">
+            Belum memiliki akses?
+            <a href="{{ route('user.home.index') }}" class="text-orange text-decoration-none">
+                Kunjungi beranda untuk informasi lebih lanjut
+            </a>
+        </p>
+    </div>
 </x-guest-layout>

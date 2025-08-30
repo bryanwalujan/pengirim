@@ -41,7 +41,7 @@ return [
     'model_labels' => [
         \App\Models\SuratAktifKuliah::class => 'Surat Aktif Kuliah',
         \App\Models\SuratCutiAkademik::class => 'Surat Cuti Akademik',
-        \App\Models\SuratIjinSurvey::class => 'Surat Izin Survey',
+        \App\Models\SuratIjinSurvey::class => 'Surat Ijin Survey',
         \App\Models\SuratPindah::class => 'Surat Pindah',
     ],
 ];
