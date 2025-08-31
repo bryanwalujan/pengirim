@@ -73,95 +73,137 @@
 @endpush
 
 @section('main')
-    <!-- Hero Section -->
-    <!-- Optimized Hero Section -->
+
+    {{-- Hero Section --}}
     <section id="hero" class="hero section">
+        {{-- Floating Tech Elements --}}
+        <div class="floating-elements"></div>
+        <div class="tech-pattern"></div>
+
         <div class="container" data-aos="fade-up" data-aos-delay="100">
             <div class="row align-items-center">
                 <div class="col-lg-6">
                     <div class="hero-content" data-aos="fade-up" data-aos-delay="200">
+                        {{-- Enhanced Company Badge --}}
                         <div class="company-badge mb-4">
-                            <i class="bi bi-gear-fill me-2"></i>
-                            Optimalisasi Layanan Akademik
+                            <i class="bi bi-cpu-fill me-2"></i>
+                            Optimalisasi Layanan Akademik Digital
                         </div>
 
+                        {{-- Enhanced Title with Better Typography --}}
                         <h1 class="mb-4">
-                            E-Service <br>
-                            Teknik Informatika <br>
-                            <span class="accent-text">UNIMA</span>
+                            <span class="d-block">E-Service</span>
+                            <span class="d-block">Teknik Informatika</span>
+                            <span class="accent-text d-block">UNIMA</span>
                         </h1>
 
-                        <p class="mb-4 mb-md-5">
-                            Platform ini dirancang untuk mempermudah akses layanan administrasi akademik dan informasi
-                            penting bagi mahasiswa, dosen, dan staf Program Studi Teknik Informatika Universitas Negeri
-                            Manado.
+                        {{-- Enhanced Description --}}
+                        <p class="mb-4 mb-md-5 lead">
+                            Platform <strong>digital terdepan</strong> yang dirancang khusus untuk mempermudah akses
+                            layanan administrasi akademik dan informasi penting bagi mahasiswa, dosen, dan staf
+                            Program Studi Teknik Informatika Universitas Negeri Manado.
                         </p>
 
-                        <div class="hero-buttons">
-                            <a href="{{ route('login') }}" class="btn btn-primary me-0 me-sm-2 mx-1">Mulai Sekarang</a>
-                            <a href="https://www.youtube.com/watch?v=mTcMxE4ZwaQ"
-                                class="btn btn-link mt-2 mt-sm-0 glightbox" rel="noopener noreferrer" data-gallery="video">
-                                <i class="bi bi-play-circle me-1"></i>
-                                Lihat Video
+                        {{-- Enhanced Action Buttons --}}
+                        <div class="hero-buttons d-flex flex-column flex-sm-row gap-3">
+                            <a href="{{ route('login') }}" class="btn btn-primary">
+                                <i class="bi bi-rocket-takeoff me-2"></i>
+                                Mulai Sekarang
+                            </a>
+                            <a href="https://www.youtube.com/watch?v=mTcMxE4ZwaQ" class="btn btn-link glightbox"
+                                rel="noopener noreferrer" data-gallery="video">
+                                <i class="bi bi-play-circle me-2"></i>
+                                Lihat Video Demo
                             </a>
                         </div>
+
                     </div>
                 </div>
 
                 <div class="col-lg-6">
                     <div class="hero-image" data-aos="zoom-out" data-aos-delay="300">
-                        <!-- Optimized hero image with proper sizing -->
-                        <img src="{{ asset('img/logo-unima.png') }}" alt="Logo UNIMA - E-Service Teknik Informatika"
-                            class="img-fluid" width="500" height="500" loading="eager" fetchpriority="high"
-                            decoding="async">
+                        {{-- Enhanced Hero Image with Decorative Elements --}}
+                        <div class="image-container position-relative">
+                            {{-- Main Logo --}}
+                            <img src="{{ asset('img/logo-unima.png') }}" alt="Logo UNIMA - E-Service Teknik Informatika"
+                                class="img-fluid main-logo" width="500" height="500" loading="eager"
+                                fetchpriority="high" decoding="async">
+
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Optimized Statistics -->
-            <div class="stats-container mt-5" data-aos="fade-up" data-aos-delay="500">
-                @php
-                    $stats = [
-                        [
-                            'icon' => 'bi-file-earmark-text',
-                            'label' => 'Surat Aktif Kuliah',
-                            'count' => $letterCounts['aktif_kuliah'] ?? 0,
-                        ],
-                        [
-                            'icon' => 'bi-calendar-x',
-                            'label' => 'Surat Cuti Akademik',
-                            'count' => $letterCounts['cuti_akademik'] ?? 0,
-                        ],
-                        [
-                            'icon' => 'bi-arrow-right-circle',
-                            'label' => 'Surat Pindah',
-                            'count' => $letterCounts['pindah'] ?? 0,
-                        ],
-                        [
-                            'icon' => 'bi-search',
-                            'label' => 'Surat Izin Survey',
-                            'count' => $letterCounts['ijin_survey'] ?? 0,
-                        ],
-                    ];
-                @endphp
+            {{-- Enhanced Statistics Section --}}
+            <div class="stats-row mt-5" data-aos="fade-up" data-aos-delay="500">
+                <div class="row g-0">
+                    @php
+                        $stats = [
+                            [
+                                'icon' => 'bi-file-earmark-text',
+                                'label' => 'Surat Aktif Kuliah',
+                                'count' => $letterCounts['aktif_kuliah'] ?? 0,
+                                'color' => 'primary',
+                            ],
+                            [
+                                'icon' => 'bi-calendar-x',
+                                'label' => 'Surat Cuti Akademik',
+                                'count' => $letterCounts['cuti_akademik'] ?? 0,
+                                'color' => 'warning',
+                            ],
+                            [
+                                'icon' => 'bi-arrow-right-circle',
+                                'label' => 'Surat Pindah',
+                                'count' => $letterCounts['pindah'] ?? 0,
+                                'color' => 'info',
+                            ],
+                            [
+                                'icon' => 'bi-search',
+                                'label' => 'Surat Izin Survey',
+                                'count' => $letterCounts['ijin_survey'] ?? 0,
+                                'color' => 'success',
+                            ],
+                        ];
+                    @endphp
 
-                @foreach ($stats as $stat)
-                    <div class="stat-item" data-aos="fade-up" data-aos-delay="{{ 600 + $loop->index * 100 }}">
-                        <div class="stat-icon">
-                            <i class="bi {{ $stat['icon'] }}"></i>
+                    @foreach ($stats as $stat)
+                        <div class="col-sm-6 col-lg-3">
+                            <div class="stat-item" data-aos="fade-up" data-aos-delay="{{ 600 + $loop->index * 100 }}">
+                                <div class="stat-icon">
+                                    <i class="bi {{ $stat['icon'] }}"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <h4 class="stat-number" data-count="{{ $stat['count'] }}">0</h4>
+                                    <p class="stat-label">{{ $stat['label'] }}</p>
+                                </div>
+                            </div>
                         </div>
-                        <div class="stat-content">
-                            <h4>{{ number_format($stat['count']) }}</h4>
-                            <p>{{ $stat['label'] }}</p>
+                    @endforeach
+                </div>
+            </div>
+
+            {{-- Call to Action Banner --}}
+            <div class="cta-banner mt-5" data-aos="fade-up" data-aos-delay="700">
+                <div class="row align-items-center">
+                    <div class="col-lg-8">
+                        <div class="cta-content">
+                            <h3 class="h5 mb-2">
+                                <i class="bi bi-star-fill text-warning me-2"></i>
+                                Bergabunglah dengan Ribuan Mahasiswa UNIMA
+                            </h3>
+                            <p class="mb-0 text-muted">
+                                Nikmati kemudahan layanan akademik digital yang cepat, aman, dan terpercaya
+                            </p>
                         </div>
                     </div>
-                @endforeach
+                </div>
             </div>
         </div>
     </section>
+    {{-- End Hero Section --}}
 
-    <!-- Optimized About Section -->
-    <section id="about" class="about section">
+    {{-- About Section --}}
+    <section id="about" class="about section ">
         <div class="floating-shapes"></div>
         <div class="container" data-aos="fade-up" data-aos-delay="100">
             <div class="row gy-4 align-items-center justify-content-between">
@@ -204,12 +246,14 @@
             </div>
         </div>
     </section>
+    {{-- End About Section --}}
 
     <!-- Services Section -->
     <section id="services" class="services-section orange-background">
         <div class="container" data-aos="fade-up">
             <div class="section-title pb-4">
                 <h2>Layanan E-Service</h2>
+                <p>Berikut adalah beberapa layanan yang tersedia di E-Services Teknik Informatika UNIMA</p>
             </div>
             <div class="row d-flex justify-content-center" data-aos="fade-up" data-aos-delay="100">
                 @forelse ($services as $service)
@@ -220,7 +264,7 @@
                             </div>
                             <div>
                                 <h3>{{ $service->name }}</h3>
-                                <p class="text-small">{{ Str::limit(strip_tags($service->description), 100) }}</p>
+                                <p class="text-small">{{ Str::limit(strip_tags($service->description), 150) }}</p>
                                 @auth
                                     <a href="{{ $service->getServiceIndexRoute() }}" class="read-more">
                                         Lihat Layanan <i class="bi bi-arrow-right"></i>

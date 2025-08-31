@@ -1,41 +1,51 @@
 :root {
-    /* Fallback / utama */
+    /* Enhanced Orange Theme - Consistent Footer Colors */
     --footer-gradient: linear-gradient(
         135deg,
-        #ff8a1b 0%,
-        #ff7a0d 14%,
-        #ff6a00 26%,
-        #ff5400 34%,
-        #d94a00 42%,
-        #0d4d82 71%,
-        #0a355c 85%,
-        #082642 100%
+        #ff8c42 0%,
+        #ff7a2b 18%,
+        #ff6b35 32%,
+        #ff5a20 48%,
+        #e55a2b 65%,
+        #d94a00 80%,
+        #cc4200 95%,
+        #b8380e 100%
     );
-    /* Alt: lebih dominan biru */
+
+    /* Alternative gradient - More orange dominant */
     --footer-gradient-alt: linear-gradient(
         145deg,
-        #ff8a1b 0%,
-        #ff6a00 12%,
-        #ff5a00 22%,
-        #1d5f9e 55%,
-        #0f4778 72%,
-        #082d4b 100%
+        #ff8c42 0%,
+        #ff7a2b 15%,
+        #ff6b35 30%,
+        #ff5a20 45%,
+        #e55a2b 65%,
+        #d94a00 85%,
+        #b8380e 100%
     );
+
+    /* Consistent orange overlay pattern */
     --footer-overlay-pattern: radial-gradient(
             circle at 18% 82%,
-            rgba(255, 255, 255, 0.12) 0%,
+            rgba(255, 140, 66, 0.15) 0%,
             transparent 55%
         ),
         radial-gradient(
             circle at 82% 18%,
-            rgba(255, 255, 255, 0.12) 0%,
+            rgba(255, 107, 53, 0.12) 0%,
             transparent 55%
         ),
         radial-gradient(
             circle at 70% 85%,
-            rgba(255, 255, 255, 0.08) 0%,
+            rgba(255, 90, 32, 0.08) 0%,
             transparent 60%
+        ),
+        radial-gradient(
+            circle at 40% 40%,
+            rgba(255, 255, 255, 0.06) 0%,
+            transparent 50%
         );
+
     --orange-primary: #ff6b35;
     --orange-secondary: #ff8c42;
     --orange-light: #ffeee8;
@@ -480,7 +490,6 @@
 }
 
 /* Pagination Styles */
-/* Pagination Styles */
 .pagination {
     margin-top: 30px;
     margin-bottom: 15px;
@@ -535,8 +544,7 @@
     }
 }
 
-/* Modern Footer Styles */
-/* Container utama footer */
+/* Footer  */
 .footer {
     background: var(--footer-gradient);
     color: var(--contrast-color, #fff);

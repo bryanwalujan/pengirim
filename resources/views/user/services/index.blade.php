@@ -46,7 +46,7 @@
                             </div>
                             <div>
                                 <h3>{{ $service->name }}</h3>
-                                <p class="text-small">{!! Str::limit(strip_tags($service->description), 100) !!}</p>
+                                <p class="text-small">{!! Str::limit(strip_tags($service->description), 150) !!}</p>
                                 @auth
                                     <a href="{{ $service->getServiceIndexRoute() }}" class="read-more">
                                         Lihat Layanan <i class="bi bi-arrow-right"></i>
