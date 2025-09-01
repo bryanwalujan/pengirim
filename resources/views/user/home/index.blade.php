@@ -283,25 +283,30 @@
 
     <!-- Academic Calendar Section -->
     <section id="academic-calendar" class="academic-calendar-section">
-        <div class="container" data-aos="fade-up">
-            <div class="section-title pb-4">
-                <h2>Kalender Akademik</h2>
-                <p>Informasi jadwal akademik terkini Universitas Negeri Manado</p>
-            </div>
+        <div class="calendar-section-wrapper">
+            <div class="container" data-aos="fade-up">
+                <div class="section-title pb-4 text-center">
+                    <h2 class="mb-3">Kalender Akademik</h2>
+                    <p class="lead mb-0">Informasi jadwal akademik terkini Universitas Negeri Manado</p>
+                </div>
 
-            <div class="row justify-content-center" data-aos="fade-up" data-aos-delay="100">
-                <div class="col-lg-9">
-                    @if ($activeCalendar)
-                        @include('components.pdf-preview', [
-                            'title' => $activeCalendar->title,
-                            'academicYear' => $activeCalendar->academic_year,
-                            'pdfUrl' => $activeCalendar->pdf_url,
-                        ])
-                    @else
-                        <div class="alert alert-warning text-center">
-                            <i class="bi bi-info-circle"></i> Kalender akademik belum tersedia
-                        </div>
-                    @endif
+                <div class="row justify-content-center" data-aos="fade-up" data-aos-delay="100">
+                    <div class="col-12 col-lg-11 col-xl-10">
+                        @if ($activeCalendar)
+                            @include('components.pdf-preview', [
+                                'title' => $activeCalendar->title,
+                                'academicYear' => $activeCalendar->academic_year,
+                                'pdfUrl' => $activeCalendar->pdf_url,
+                            ])
+                        @else
+                            <div class="alert alert-warning text-center mx-auto" style="max-width: 600px;">
+                                <i class="bi bi-info-circle"></i>
+                                <span class="d-block mt-2">Kalender akademik belum tersedia saat ini</span>
+                                <small class="d-block mt-1 opacity-75">Silakan cek kembali nanti atau hubungi
+                                    administrasi</small>
+                            </div>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>

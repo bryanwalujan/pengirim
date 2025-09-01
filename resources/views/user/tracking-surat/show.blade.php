@@ -540,7 +540,6 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('library/sweetalert2/dist/sweetalert2.min.js') }}"></script>
     <script>
         function copyTrackingCode(code) {
             navigator.clipboard.writeText(code).then(() => {
