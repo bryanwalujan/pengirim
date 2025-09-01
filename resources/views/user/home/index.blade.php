@@ -182,22 +182,6 @@
                 </div>
             </div>
 
-            {{-- Call to Action Banner --}}
-            <div class="cta-banner mt-5" data-aos="fade-up" data-aos-delay="700">
-                <div class="row align-items-center">
-                    <div class="col-lg-8">
-                        <div class="cta-content">
-                            <h3 class="h5 mb-2">
-                                <i class="bi bi-star-fill text-warning me-2"></i>
-                                Bergabunglah dengan Ribuan Mahasiswa UNIMA
-                            </h3>
-                            <p class="mb-0 text-muted">
-                                Nikmati kemudahan layanan akademik digital yang cepat, aman, dan terpercaya
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
     </section>
     {{-- End Hero Section --}}
@@ -213,13 +197,19 @@
                     </span>
                     <h2 class="about-title">Tentang <span class="text-primary">E-Services</span></h2>
                     <p class="about-description">
-                        <strong>E-Services</strong> adalah sistem layanan elektronik yang dirancang
-                        untuk mempermudah administrasi akademik di Program Studi Teknik Informatika Universitas Negeri
-                        Manado.
+                        <strong>E-Services Teknik Informatika</strong> adalah platform digital yang dirancang khusus
+                        untuk memudahkan mahasiswa dalam mengakses layanan administrasi akademik secara online di
+                        Program Studi Teknik Informatika Universitas Negeri Manado.
                     </p>
                     <p class="about-description">
-                        Aplikasi ini menyediakan berbagai layanan untuk mahasiswa dan staf akademik
-                        dengan akses yang lebih cepat dan efisien.
+                        Platform ini menyediakan layanan utama berupa pengajuan <strong>Surat Aktif Kuliah</strong>
+                        untuk keperluan administrasi, <strong>Surat Ijin Survey</strong> untuk penelitian,
+                        <strong>Surat Cuti Akademik</strong> untuk jeda studi, dan <strong>Surat Pindah</strong>
+                        untuk perpindahan program studi atau perguruan tinggi.
+                    </p>
+                    <p class="about-description">
+                        Dengan sistem yang terintegrasi, mahasiswa dapat mengajukan, memantau status, dan mengunduh
+                        dokumen resmi dengan mudah dan efisien tanpa perlu datang ke kampus.
                     </p>
                 </div>
 

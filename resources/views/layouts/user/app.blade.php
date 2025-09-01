@@ -27,8 +27,6 @@
     <link href="{{ asset('user/assets/vendor/glightbox/css/glightbox.min.css') }}" rel="stylesheet">
     <link href="{{ asset('user/assets/vendor/swiper/swiper-bundle.min.css') }}" rel="stylesheet">
 
-    {{-- Datatables --}}
-    <link href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css" rel="stylesheet">
 
     {{-- SweetAlert2 --}}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
@@ -99,7 +97,6 @@
 
     <!-- Vendor JS Files -->
     <script src="{{ asset('user/assets/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-    <script src="{{ asset('user/assets/vendor/php-email-form/validate.js') }}"></script>
     <script src="{{ asset('user/assets/vendor/aos/aos.js') }}"></script>
     <script src="{{ asset('user/assets/vendor/glightbox/js/glightbox.min.js') }}"></script>
     <script src="{{ asset('user/assets/vendor/swiper/swiper-bundle.min.js') }}"></script>
@@ -107,7 +104,6 @@
 
     {{-- Pdf js --}}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
 
     <!-- Main JS File -->
     <script src="{{ asset('user/assets/js/main.js') }}"></script>

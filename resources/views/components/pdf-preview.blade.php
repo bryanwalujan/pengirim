@@ -67,7 +67,7 @@
         let pageNum = 1;
         let pageRendering = false;
         let pageNumPending = null;
-        let scale = 1.0;
+        let scale = 1.5;
         let isAutoFit = true;
 
         const canvas = document.getElementById('pdfCanvas');
@@ -118,7 +118,7 @@
 
             pdfDoc.getPage(1).then(function(page) {
                 const viewport = page.getViewport({
-                    scale: 0.6
+                    scale: 0.5
                 });
                 const containerWidth = container.clientWidth - 40; // padding
                 const containerHeight = window.innerHeight * 0.7; // max 70% of viewport height
