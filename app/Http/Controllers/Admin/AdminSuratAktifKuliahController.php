@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use App\Helpers\SuratNotificationHelper;
 use App\Services\SuratSubmissionService;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use App\Notifications\SuratTakenNotification;
@@ -270,6 +271,11 @@ class AdminSuratAktifKuliahController extends DocumentController
 
             DB::commit();
 
+            // Clear notification badge cache
+            if (class_exists('\App\Helpers\SuratNotificationHelper')) {
+                SuratNotificationHelper::clearSuratCache('surat_aktif_kuliah');
+            }
+
             // Clear cache after status update
             app(SuratSubmissionService::class)->clearCache($surat->mahasiswa_id);
 
@@ -407,6 +413,11 @@ class AdminSuratAktifKuliahController extends DocumentController
                 }
 
                 DB::commit();
+
+                // Clear notification badge cache
+                if (class_exists('\App\Helpers\SuratNotificationHelper')) {
+                    SuratNotificationHelper::clearSuratCache('surat_aktif_kuliah');
+                }
 
                 // Clear cache after approval
                 app(SuratSubmissionService::class)->clearCache($surat->mahasiswa_id);
@@ -654,6 +665,11 @@ class AdminSuratAktifKuliahController extends DocumentController
             $surat->delete();
 
             DB::commit();
+
+            // Clear notification badge cache
+            if (class_exists('\App\Helpers\SuratNotificationHelper')) {
+                SuratNotificationHelper::clearSuratCache('surat_aktif_kuliah');
+            }
 
             // Clear cache SETELAH commit berhasil
             app(SuratSubmissionService::class)->clearCacheOnDelete($mahasiswaId);

@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use App\Helpers\SuratNotificationHelper;
 use App\Notifications\SuratTakenNotification;
 use App\Http\Requests\SuratAktifKuliahRequest;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -120,6 +121,9 @@ class SuratAktifKuliahController extends Controller
             // Clear cache after successful submission
             $this->clearSubmissionCache();
 
+            // Clear notification badge cache
+            SuratNotificationHelper::clearSuratCache('surat_aktif_kuliah');
+
             DB::commit();
 
             return redirect()->route('user.surat-aktif-kuliah.index')
@@ -181,6 +185,8 @@ class SuratAktifKuliahController extends Controller
             foreach ($staffs as $staff) {
                 $staff->notify(new SuratTakenNotification($surat));
             }
+            // Clear notification badge cache
+            SuratNotificationHelper::clearSuratCache('surat_aktif_kuliah');
 
             DB::commit();
 

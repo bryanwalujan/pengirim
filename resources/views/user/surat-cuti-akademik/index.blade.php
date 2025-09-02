@@ -50,22 +50,74 @@
         }
 
 
+        /* Action Buttons Redesign */
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            justify-content: flex-start;
+            flex-wrap: wrap;
+        }
+
         .action-btn {
-            width: 32px;
-            height: 32px;
+            width: 36px;
+            height: 36px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            border-radius: 50%;
+            border-radius: 8px;
             transition: all 0.3s ease;
-            color: #5a6a85;
-            background: rgba(90, 106, 133, 0.1);
+            text-decoration: none;
+            border: none;
+            font-size: 14px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .action-btn:hover::before {
+            left: 100%;
         }
 
         .action-btn:hover {
-            background: rgba(67, 97, 238, 0.2);
-            color: #4361ee;
-            transform: scale(1.1);
+            transform: translateY(-2px);
+            text-decoration: none;
+        }
+
+        /* Detail Button */
+        .action-btn.btn-detail {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .action-btn.btn-detail:hover {
+            background: linear-gradient(135deg, #1d4ed8, #1e40af);
+            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+            color: white;
+        }
+
+        /* Download Button */
+        .action-btn.btn-download {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .action-btn.btn-download:hover {
+            background: linear-gradient(135deg, #059669, #047857);
+            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+            color: white;
         }
 
         .table th,
@@ -200,26 +252,6 @@
             font-size: 0.875rem;
         }
 
-        .badge-count {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            font-size: 0.6rem;
-            min-width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #dc3545;
-            color: white;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 0.5rem;
-        }
-
         @media (max-width: 767.98px) {
             .filter-section .col-md-4 {
                 margin-bottom: 1rem;
@@ -269,6 +301,34 @@
         .tracking-code-container {
             display: flex;
             align-items: center;
+        }
+
+        /* Responsive Actions */
+        @media (max-width: 768px) {
+            .action-buttons {
+                flex-direction: column;
+                gap: 0.25rem;
+                align-items: stretch;
+            }
+
+            .action-btn {
+                width: 100%;
+                height: 32px;
+                border-radius: 6px;
+                font-size: 12px;
+                justify-content: flex-start;
+                padding: 0 0.75rem;
+            }
+
+            .action-btn i {
+                margin-right: 0.5rem;
+            }
+
+            .action-btn::after {
+                content: attr(title);
+                margin-left: 0.5rem;
+                font-size: 0.75rem;
+            }
         }
     </style>
 @endpush
@@ -382,18 +442,6 @@
                                                             class="action-btn btn btn-sm btn-info" title="Detail">
                                                             <i class="bi bi-eye"></i>
                                                         </a>
-                                                        @if ($surat->status === 'siap_diambil')
-                                                            <form
-                                                                action="{{ route('user.surat-cuti-akademik.confirm-taken', $surat->id) }}"
-                                                                method="POST" class="d-inline">
-                                                                @csrf
-                                                                <button type="submit"
-                                                                    class="action-btn btn btn-sm btn-success"
-                                                                    title="Konfirmasi">
-                                                                    <i class="bi bi-check-circle"></i>
-                                                                </button>
-                                                            </form>
-                                                        @endif
                                                         @if (in_array($surat->status, ['siap_diambil', 'sudah_diambil', 'disetujui']) && $surat->file_surat_path)
                                                             <a href="{{ route('user.surat-cuti-akademik.download', $surat->id) }}"
                                                                 class="action-btn btn btn-sm btn-primary" title="Download">

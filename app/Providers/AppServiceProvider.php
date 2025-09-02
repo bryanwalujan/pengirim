@@ -16,7 +16,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Register helper secara manual
+        $this->loadHelpersFrom(app_path('Helpers'));
     }
 
     /**
@@ -46,5 +47,19 @@ class AppServiceProvider extends ServiceProvider
         //  Set locale for Carbon to Indonesian
         Carbon::setLocale('id');
 
+    }
+
+    /**
+     * Load helper files from a directory
+     */
+    protected function loadHelpersFrom($directory)
+    {
+        $helperFiles = glob($directory . '/*.php');
+
+        foreach ($helperFiles as $file) {
+            if (file_exists($file)) {
+                require_once $file;
+            }
+        }
     }
 }
