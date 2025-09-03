@@ -3,13 +3,8 @@
 @section('title', 'Beranda')
 
 @push('style')
-    <!-- Critical Resource Preloading -->
-    <link rel="preload" href="{{ asset('img/logo-unima.png') }}" as="image" type="image/png">
-    <link rel="preload" href="{{ asset('user/assets/img/about-img.jpg') }}" as="image" type="image/jpeg">
-
     <!-- DNS prefetch untuk external resources -->
     <link rel="dns-prefetch" href="//www.youtube.com">
-    <link rel="dns-prefetch" href="//i.ytimg.com">
 
     <style>
         /* Critical CSS dengan optimasi performance */
@@ -31,32 +26,7 @@
             will-change: transform;
         }
 
-        /* Optimized lazy loading placeholder */
-        .lazy-loading {
-            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-            background-size: 200% 100%;
-            animation: loading 1.5s infinite;
-            contain: strict;
-        }
 
-        @keyframes loading {
-            0% {
-                background-position: 200% 0;
-            }
-
-            100% {
-                background-position: -200% 0;
-            }
-        }
-
-        /* Optimize images for better LCP */
-        .hero-image img {
-            width: 100%;
-            height: auto;
-            max-width: 500px;
-            aspect-ratio: 1 / 1;
-            object-fit: contain;
-        }
 
         /* Reduce layout shift */
         .service-card {
@@ -118,14 +88,7 @@
 
                 <div class="col-lg-6">
                     <div class="hero-image" data-aos="zoom-out" data-aos-delay="300">
-                        {{-- Enhanced Hero Image with Decorative Elements --}}
-                        <div class="image-container position-relative">
-                            {{-- Main Logo --}}
-                            <img src="{{ asset('img/logo-unima.png') }}" alt="Logo UNIMA - E-Service Teknik Informatika"
-                                class="img-fluid main-logo" width="500" height="500" loading="eager"
-                                fetchpriority="high" decoding="async">
-
-                        </div>
+                        <img src="{{ asset('img/logo-unima.png') }}" alt="Hero Image" class="img-fluid" loading="eager">
                     </div>
                 </div>
             </div>
