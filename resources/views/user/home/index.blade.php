@@ -5,14 +5,9 @@
 @push('style')
     <!-- DNS prefetch untuk external resources -->
     <link rel="dns-prefetch" href="//www.youtube.com">
+    <link rel="dns-prefetch" href="//i.ytimg.com">
 
     <style>
-        /* Critical CSS dengan optimasi performance */
-        .hero {
-            min-height: 100vh;
-            contain: layout style paint;
-        }
-
         .stats-container {
             display: flex;
             gap: 1rem;
@@ -50,45 +45,37 @@
             <div class="row align-items-center">
                 <div class="col-lg-6">
                     <div class="hero-content" data-aos="fade-up" data-aos-delay="200">
-                        {{-- Enhanced Company Badge --}}
                         <div class="company-badge mb-4">
-                            <i class="bi bi-cpu-fill me-2"></i>
-                            Optimalisasi Layanan Akademik Digital
+                            <i class="bi bi-gear-fill me-2"></i>
+                            Optimalisasi Layanan Akademik
                         </div>
 
-                        {{-- Enhanced Title with Better Typography --}}
                         <h1 class="mb-4">
-                            <span class="d-block">E-Service</span>
-                            <span class="d-block">Teknik Informatika</span>
-                            <span class="accent-text d-block">UNIMA</span>
+                            E-Service <br>
+                            Teknik Informatika <br>
+                            <span class="accent-text">UNIMA</span>
                         </h1>
 
-                        {{-- Enhanced Description --}}
-                        <p class="mb-4 mb-md-5 fs-5">
-                            Platform <strong>digital terdepan</strong> yang dirancang khusus untuk mempermudah akses
-                            layanan administrasi akademik dan informasi penting bagi mahasiswa, dosen, dan staf
-                            Program Studi Teknik Informatika Universitas Negeri Manado.
+                        <p class="mb-4 mb-md-5">
+                            Platform ini dirancang untuk mempermudah akses layanan administrasi akademik dan informasi
+                            penting bagi mahasiswa, dosen, dan staf Program Studi Teknik Informatika Universitas Negeri
+                            Manado.
                         </p>
 
-                        {{-- Enhanced Action Buttons --}}
-                        <div class="hero-buttons d-flex flex-column flex-sm-row gap-3">
-                            <a href="{{ route('login') }}" class="btn btn-primary">
-                                <i class="bi bi-rocket-takeoff me-2"></i>
-                                Mulai Sekarang
-                            </a>
-                            <a href="https://www.youtube.com/watch?v=mTcMxE4ZwaQ" class="btn btn-link glightbox"
-                                rel="noopener noreferrer" data-gallery="video">
-                                <i class="bi bi-play-circle me-2"></i>
-                                Lihat Video Demo
+                        <div class="hero-buttons">
+                            <a href="{{ route('login') }}" class="btn btn-primary me-0 me-sm-2 mx-1">Mulai Sekarang</a>
+                            <a href="https://www.youtube.com/watch?v=mTcMxE4ZwaQ"
+                                class="btn btn-link mt-2 mt-sm-0 glightbox">
+                                <i class="bi bi-play-circle me-1"></i>
+                                Lihat Video
                             </a>
                         </div>
-
                     </div>
                 </div>
 
                 <div class="col-lg-6">
                     <div class="hero-image" data-aos="zoom-out" data-aos-delay="300">
-                        <img src="{{ asset('img/logo-unima.png') }}" alt="Hero Image" class="img-fluid" loading="eager">
+                        <img src="{{ asset('img/logo-unima.png') }}" alt="Hero Image" class="img-fluid">
                     </div>
                 </div>
             </div>
