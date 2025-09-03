@@ -203,8 +203,6 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa'])->get('/payment-alert',
 })->name('user.payment.alert');
 
 
-
-
 // Untuk Staff
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
@@ -293,7 +291,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::prefix('mahasiswa')->name('mahasiswa.')->group(function () {
             Route::get('/export', [UserController::class, 'exportMahasiswa'])->name('export');
             Route::get('/import', [UserController::class, 'showImportMahasiswa'])->name('import');
-            Route::post('/import', [UserController::class, 'importMahasiswa'])->name('import');
+            Route::post('/import', [UserController::class, 'importMahasiswa'])->name('process-import');
             Route::get('/download-template', [UserController::class, 'downloadTemplateMahasiswa'])->name('download-template');
         });
 

@@ -32,8 +32,6 @@
     {{-- Perfect Scrollbar --}}
     <link rel="stylesheet" href="{{ asset('assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css') }}" />
 
-    {{-- Apex Charts --}}
-    <link rel="stylesheet" href="{{ asset('assets/vendor/libs/apex-charts/apex-charts.css') }}" />
 
     {{-- Helpers --}}
     <script src="{{ asset('assets/vendor/js/helpers.js') }}"></script>
@@ -80,10 +78,22 @@
                 </div>
                 <!-- Loader Overlay -->
                 <div id="loading-overlay" class="d-none">
-                    <div class="typewriter">
-                        <div class="slide"><i></i></div>
-                        <div class="paper"></div>
-                        <div class="keyboard"></div>
+                    <div class="loading-container">
+                        <!-- Tech Icon (Laptop SVG) -->
+                        <div class="loading-icon">
+                            <svg width="80" height="80" viewBox="0 0 24 24" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M20 16V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9m16 0H4m16 0l1.28 2.55a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45L4 16m16 0h-2.46a2 2 0 0 0-1.91 1.45L16 20m-4-4v4m0-4h4"
+                                    stroke="#ff6b35" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                <rect x="6" y="10" width="12" height="6" rx="1" fill="#ff6b35"
+                                    opacity="0.5" />
+                            </svg>
+                        </div>
+                        <!-- Typing Text -->
+                        <div class="loading-text">
+                            <span class="typing-text">Loading E-Services Teknik Informatika UNIMA...</span>
+                        </div>
                     </div>
                 </div>
 
@@ -184,7 +194,6 @@
         }
     </script>
 
-
     {{-- SweetAlert2 --}}
     <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -213,46 +222,6 @@
                 buttons: false,
             });
         @endif
-        // const Toast = Swal.mixin({
-        //     toast: true,
-        //     position: "top-end",
-        //     showConfirmButton: false,
-        //     timer: 3000,
-        //     timerProgressBar: true,
-        //     width: '380px',
-        //     padding: '1em',
-        //     color: '#ffffff',
-        //     background: 'linear-gradient(135deg, rgba(41,47,63,0.95) 0%, rgba(30,35,48,0.95) 100%)',
-        //     backdrop: false,
-        //     showClass: {
-        //         popup: 'animate__animated animate__fadeInRight animate__faster'
-        //     },
-        //     hideClass: {
-        //         popup: 'animate__animated animate__fadeOutRight animate__faster'
-        //     },
-        //     customClass: {
-        //         popup: 'shadow-2xl rounded-xl border border-gray-700/30',
-        //         title: 'font-semibold',
-        //         timerProgressBar: 'bg-gradient-to-r from-cyan-400 to-blue-500',
-        //         icon: 'text-white'
-        //     },
-        //     didOpen: (toast) => {
-        //         toast.onmouseenter = Swal.stopTimer;
-        //         toast.onmouseleave = Swal.resumeTimer;
-        //     }
-        // });
-
-        // @if (session()->has('success'))
-        //     Toast.fire({
-        //         icon: 'success',
-        //         text: "{{ session('success') }}",
-        //     });
-        // @elseif (session()->has('error'))
-        //     Toast.fire({
-        //         icon: 'error',
-        //         text: "{{ session('error') }}",
-        //     });
-        // @endif
     </script>
 
 

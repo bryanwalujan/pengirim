@@ -3,15 +3,16 @@
     <div class="app-brand demo text-center">
         <a href="{{ route('admin.dashboard.index') }}" class="app-brand-link">
             <div class="mb-1">
-                <img src="{{ asset('/img/logo-unima.png') }}" alt="E-Services Logo" style="height: 33px; width: auto;">
+                <img src="{{ asset('/img/logo-unima.png') }}" alt="E-Services Logo" style="height: 33px; width: auto;"
+                    loading="lazy" />
             </div>
-            <span class="app-brand-text demo menu-text fw-bold ml-2 fs-4">E-Services</span>
+            <span class="app-brand-text demo menu-text fw-bold ml-2 fs-4">E-Service</span>
         </a>
     </div>
 
     <!-- Menu Items -->
     <div class="menu-inner-shadow"></div>
-    <ul class="menu-inner py-1" style="padding-bottom: 30px !important;">
+    <ul class="menu-inner py-1 pb-8">
         <!-- Dashboard -->
         @can('view dashboard')
             <li class="menu-item {{ request()->routeIs('admin.dashboard.index') ? 'active' : '' }}">

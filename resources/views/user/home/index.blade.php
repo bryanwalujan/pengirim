@@ -242,7 +242,7 @@
     <section id="services" class="services-section orange-background">
         <div class="container" data-aos="fade-up">
             <div class="section-title pb-4">
-                <h2>Layanan E-Service</h2>
+                <h2>Layanan E-Services</h2>
                 <p>Berikut adalah beberapa layanan yang tersedia di E-Services Teknik Informatika UNIMA</p>
             </div>
             <div class="row d-flex justify-content-center" data-aos="fade-up" data-aos-delay="100">
