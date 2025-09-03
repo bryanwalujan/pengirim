@@ -76,7 +76,6 @@
 
     {{-- Hero Section --}}
     <section id="hero" class="hero section">
-
         <div class="container" data-aos="fade-up" data-aos-delay="100">
             <div class="row align-items-center">
                 <div class="col-lg-6">
@@ -95,7 +94,7 @@
                         </h1>
 
                         {{-- Enhanced Description --}}
-                        <p class="mb-4 mb-md-5 lead">
+                        <p class="mb-4 mb-md-5 fs-5">
                             Platform <strong>digital terdepan</strong> yang dirancang khusus untuk mempermudah akses
                             layanan administrasi akademik dan informasi penting bagi mahasiswa, dosen, dan staf
                             Program Studi Teknik Informatika Universitas Negeri Manado.
