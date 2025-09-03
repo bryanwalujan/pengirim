@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use App\Helpers\SuratNotificationHelper;
 use App\Services\SuratSubmissionService;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use App\Notifications\SuratTakenNotification;
@@ -251,6 +252,11 @@ class AdminSuratPindahController extends DocumentController
             // Clear cache after status update
             app(SuratSubmissionService::class)->clearCache($surat->mahasiswa_id);
 
+            // Clear notification badge cache
+            if (class_exists('\App\Helpers\SuratNotificationHelper')) {
+                SuratNotificationHelper::clearSuratCache('surat_pindah');
+            }
+
             return redirect()->route('admin.surat-pindah.show', $surat->id)
                 ->with('success', 'Status surat berhasil diperbarui');
 
@@ -394,6 +400,11 @@ class AdminSuratPindahController extends DocumentController
 
                 // Clear cache after approval
                 app(SuratSubmissionService::class)->clearCache($surat->mahasiswa_id);
+
+                // Clear notification badge cache
+                if (class_exists('\App\Helpers\SuratNotificationHelper')) {
+                    SuratNotificationHelper::clearSuratCache('surat_pindah');
+                }
 
                 return redirect()->route('admin.surat-pindah.index')
                     ->with('success', 'Surat berhasil disetujui dan file telah dibuat');
@@ -631,6 +642,11 @@ class AdminSuratPindahController extends DocumentController
             DB::commit();
             // Clear cache SETELAH commit berhasil
             app(SuratSubmissionService::class)->clearCacheOnDelete($mahasiswaId);
+
+            // Clear notification badge cache
+            if (class_exists('\App\Helpers\SuratNotificationHelper')) {
+                SuratNotificationHelper::clearSuratCache('surat_pindah');
+            }
 
             return redirect()->route('admin.surat-pindah.index')
                 ->with('success', 'Surat Pindah berhasil dihapus');

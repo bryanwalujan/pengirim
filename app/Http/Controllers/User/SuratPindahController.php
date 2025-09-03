@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use App\Helpers\SuratNotificationHelper;
 use App\Http\Requests\SuratPindahRequest;
 use App\Notifications\SuratTakenNotification;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -119,6 +120,11 @@ class SuratPindahController extends Controller
             // Clear cache after successful submission
             $this->clearSubmissionCache();
 
+            // Clear notification badge cache
+            if (class_exists('\App\Helpers\SuratNotificationHelper')) {
+                SuratNotificationHelper::clearSuratCache('surat_pindah');
+            }
+
             DB::commit();
 
             return redirect()->route('user.surat-pindah.index')
@@ -180,6 +186,11 @@ class SuratPindahController extends Controller
 
             // Clear cache after status change
             $this->clearSubmissionCache();
+
+            // Clear notification badge cache
+            if (class_exists('\App\Helpers\SuratNotificationHelper')) {
+                SuratNotificationHelper::clearSuratCache('surat_pindah');
+            }
 
             DB::commit();
 

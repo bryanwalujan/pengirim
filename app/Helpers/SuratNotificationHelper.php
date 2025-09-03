@@ -16,22 +16,26 @@ class SuratNotificationHelper
         'surat_aktif_kuliah' => [
             'model' => \App\Models\SuratAktifKuliah::class,
             'cache_key' => 'surat_aktif_kuliah_counts',
-            'statuses' => ['diajukan', 'diproses', 'disetujui', 'siap_diambil'] // Tambah disetujui untuk staff
+            'statuses' => ['diajukan', 'diproses', 'disetujui_kaprodi', 'disetujui', 'siap_diambil'],
+            'merge_to_diproses' => ['disetujui_kaprodi'] // Status yang digabung ke diproses untuk badge
         ],
         'surat_ijin_survey' => [
             'model' => \App\Models\SuratIjinSurvey::class,
             'cache_key' => 'surat_ijin_survey_counts',
-            'statuses' => ['diajukan', 'diproses', 'disetujui', 'siap_diambil']
+            'statuses' => ['diajukan', 'diproses', 'disetujui_kaprodi', 'disetujui', 'siap_diambil'],
+            'merge_to_diproses' => ['disetujui_kaprodi'] // Status yang digabung ke diproses untuk badge
         ],
         'surat_cuti_akademik' => [
             'model' => \App\Models\SuratCutiAkademik::class,
             'cache_key' => 'surat_cuti_akademik_counts',
-            'statuses' => ['diajukan', 'diproses', 'disetujui', 'siap_diambil']
+            'statuses' => ['diajukan', 'diproses', 'disetujui_kaprodi', 'disetujui', 'siap_diambil'],
+            'merge_to_diproses' => ['disetujui_kaprodi'] // Status yang digabung ke diproses untuk badge
         ],
         'surat_pindah' => [
             'model' => \App\Models\SuratPindah::class,
             'cache_key' => 'surat_pindah_counts',
-            'statuses' => ['diajukan', 'diproses', 'disetujui', 'siap_diambil']
+            'statuses' => ['diajukan', 'diproses', 'disetujui_kaprodi', 'disetujui', 'siap_diambil'],
+            'merge_to_diproses' => ['disetujui_kaprodi'] // Status yang digabung ke diproses untuk badge
         ],
     ];
 
@@ -47,7 +51,7 @@ class SuratNotificationHelper
         $config = self::$suratConfig[$suratType];
 
         try {
-            return Cache::remember($config['cache_key'], now()->addMinutes(5), function () use ($config) {
+            return Cache::remember($config['cache_key'], now()->addMinutes(5), function () use ($config, $suratType) {
                 $modelClass = $config['model'];
 
                 // Gunakan query builder untuk lebih reliable
@@ -61,7 +65,23 @@ class SuratNotificationHelper
                     ->groupBy('status_surats.status')
                     ->get();
 
-                return $results->pluck('count', 'status');
+                $counts = $results->pluck('count', 'status');
+
+                // Universal handling untuk semua jenis surat: gabungkan status tertentu ke diproses
+                if (isset($config['merge_to_diproses']) && !empty($config['merge_to_diproses'])) {
+                    $diprosesCount = $counts->get('diproses', 0);
+
+                    // Gabungkan semua status yang perlu digabung ke diproses
+                    foreach ($config['merge_to_diproses'] as $mergeStatus) {
+                        $mergeCount = $counts->get($mergeStatus, 0);
+                        $diprosesCount += $mergeCount;
+                    }
+
+                    // Update count diproses dengan total gabungan
+                    $counts->put('diproses', $diprosesCount);
+                }
+
+                return $counts;
             });
         } catch (\Exception $e) {
             Log::error("Error in getSuratCounts for {$suratType}: " . $e->getMessage());
@@ -93,10 +113,16 @@ class SuratNotificationHelper
         // Dosen menggunakan SuratNeedApprovalNotification
         if ($user->hasRole('staff')) {
             $config = self::$suratConfig[$suratType];
-            foreach ($config['statuses'] as $status) {
+
+            // Universal handling untuk semua jenis surat
+            // Status yang ditampilkan untuk staff (tanpa status yang di-merge)
+            $displayStatuses = ['diajukan', 'diproses', 'disetujui', 'siap_diambil'];
+
+            foreach ($displayStatuses as $status) {
                 $result['user_specific'][$status] = $counts->get($status, 0);
             }
-            // Count statuses that require action for staff (tambah disetujui)
+
+            // Count statuses that require action for staff
             $actionRequiredStatuses = ['diajukan', 'diproses', 'disetujui', 'siap_diambil'];
             $result['total_pending'] = collect($result['user_specific'])
                 ->only($actionRequiredStatuses)
@@ -117,6 +143,16 @@ class SuratNotificationHelper
 
         $config = self::$suratConfig[$suratType];
         Cache::forget($config['cache_key']);
+    }
+
+    /**
+     * Clear ALL surat caches at once
+     */
+    public static function clearAllSuratCaches()
+    {
+        foreach (self::$suratConfig as $config) {
+            Cache::forget($config['cache_key']);
+        }
     }
 
     /**
@@ -154,6 +190,32 @@ class SuratNotificationHelper
     }
 
     /**
+     * Check if status should be merged to diproses for display
+     */
+    public static function shouldMergeToDisproses($suratType, $status)
+    {
+        $config = self::$suratConfig[$suratType] ?? null;
+        if (!$config || !isset($config['merge_to_diproses'])) {
+            return false;
+        }
+
+        return in_array($status, $config['merge_to_diproses']);
+    }
+
+    /**
+     * Get display status for sidebar active state
+     */
+    public static function getDisplayStatus($suratType, $actualStatus)
+    {
+        // Jika status perlu di-merge ke diproses, return 'diproses'
+        if (self::shouldMergeToDisproses($suratType, $actualStatus)) {
+            return 'diproses';
+        }
+
+        return $actualStatus;
+    }
+
+    /**
      * Debug function untuk troubleshooting
      */
     public static function debugCounts($suratType)
@@ -184,11 +246,40 @@ class SuratNotificationHelper
             ->get()
             ->pluck('count', 'status');
 
+        // Get processed counts (after merging)
+        $processedCounts = self::getSuratCounts($suratType);
+        $userSpecificCounts = self::getUserSpecificCounts($suratType);
+
         return [
             'total_records' => $totalRecords,
             'status_surat_count' => $statusSuratCount,
-            'status_distribution' => $statusDistribution,
-            'config_statuses' => $config['statuses']
+            'raw_status_distribution' => $statusDistribution,
+            'processed_counts' => $processedCounts,
+            'user_specific_counts' => $userSpecificCounts,
+            'config_statuses' => $config['statuses'],
+            'merge_to_diproses' => $config['merge_to_diproses'] ?? []
         ];
+    }
+
+    /**
+     * Get statuses that are displayed in sidebar for staff
+     */
+    public static function getDisplayStatuses($suratType)
+    {
+        // Universal display statuses untuk semua jenis surat
+        return ['diajukan', 'diproses', 'disetujui', 'siap_diambil', 'sudah_diambil', 'ditolak'];
+    }
+
+    /**
+     * Get all possible statuses for a surat type (including merged ones)
+     */
+    public static function getAllStatuses($suratType)
+    {
+        $config = self::$suratConfig[$suratType] ?? null;
+        if (!$config) {
+            return [];
+        }
+
+        return $config['statuses'];
     }
 }
