@@ -124,5 +124,14 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'asset_url' => env('ASSET_URL', null),
+    'mix_url' => env('MIX_URL', null),
+
+    // Add compression
+    'compression' => [
+        'enabled' => true,
+        'level' => 6,
+    ],
+
 
 ];
