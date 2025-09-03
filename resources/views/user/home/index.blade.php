@@ -3,6 +3,10 @@
 @section('title', 'Beranda')
 
 @push('style')
+    <!-- Critical Resource Preloading -->
+    <link rel="preload" href="{{ asset('img/logo-unima.png') }}" as="image" type="image/png">
+    <link rel="preload" href="{{ asset('user/assets/img/about-img.jpg') }}" as="image" type="image/jpeg">
+
     <!-- DNS prefetch untuk external resources -->
     <link rel="dns-prefetch" href="//www.youtube.com">
     <link rel="dns-prefetch" href="//i.ytimg.com">
@@ -77,7 +81,10 @@
 
                 <div class="col-lg-6">
                     <div class="hero-image" data-aos="zoom-out" data-aos-delay="300">
-                        <img src="{{ asset('img/logo-unima.png') }}" alt="Hero Image" class="img-fluid">
+                        {{-- Main Logo --}}
+                        <img src="{{ asset('img/logo-unima.png') }}" alt="Logo UNIMA - E-Service Teknik Informatika"
+                            class="img-fluid main-logo" width="500" height="500" loading="eager" fetchpriority="high"
+                            decoding="async">
                     </div>
                 </div>
             </div>
