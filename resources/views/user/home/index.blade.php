@@ -41,7 +41,9 @@
 
     {{-- Hero Section --}}
     <section id="hero" class="hero section">
+
         <div class="container" data-aos="fade-up" data-aos-delay="100">
+
             <div class="row align-items-center">
                 <div class="col-lg-6">
                     <div class="hero-content" data-aos="fade-up" data-aos-delay="200">
@@ -80,53 +82,41 @@
                 </div>
             </div>
 
-            {{-- Enhanced Statistics Section --}}
-            <div class="stats-row mt-5" data-aos="fade-up" data-aos-delay="500">
-                <div class="row g-0">
-                    @php
-                        $stats = [
-                            [
-                                'icon' => 'bi-file-earmark-text',
-                                'label' => 'Surat Aktif Kuliah',
-                                'count' => $letterCounts['aktif_kuliah'] ?? 0,
-                                'color' => 'primary',
-                            ],
-                            [
-                                'icon' => 'bi-calendar-x',
-                                'label' => 'Surat Cuti Akademik',
-                                'count' => $letterCounts['cuti_akademik'] ?? 0,
-                                'color' => 'warning',
-                            ],
-                            [
-                                'icon' => 'bi-arrow-right-circle',
-                                'label' => 'Surat Pindah',
-                                'count' => $letterCounts['pindah'] ?? 0,
-                                'color' => 'info',
-                            ],
-                            [
-                                'icon' => 'bi-search',
-                                'label' => 'Surat Izin Survey',
-                                'count' => $letterCounts['ijin_survey'] ?? 0,
-                                'color' => 'success',
-                            ],
-                        ];
-                    @endphp
-
-                    @foreach ($stats as $stat)
-                        <div class="col-sm-6 col-lg-3">
-                            <div class="stat-item" data-aos="fade-up" data-aos-delay="{{ 600 + $loop->index * 100 }}">
-                                <div class="stat-icon">
-                                    <i class="bi {{ $stat['icon'] }}"></i>
-                                </div>
-                                <div class="stat-content">
-                                    <h4 class="stat-number" data-count="{{ $stat['count'] }}">0</h4>
-                                    <p class="stat-label">{{ $stat['label'] }}</p>
-                                </div>
-                            </div>
-                        </div>
-                    @endforeach
+            <div class="stats-container mt-5" data-aos="fade-up" data-aos-delay="500">
+                <div class="stat-item">
+                    <div class="stat-icon">
+                        <i class="bi bi-file-earmark-text"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h4>{{ number_format($letterCounts['aktif_kuliah']) }} Surat Aktif Kuliah</h4>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon">
+                        <i class="bi bi-calendar-x"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h4>{{ number_format($letterCounts['cuti_akademik']) }} Surat Cuti Akademik</h4>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon">
+                        <i class="bi bi-arrow-right-circle"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h4>{{ number_format($letterCounts['pindah']) }} Surat Pindah</h4>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon">
+                        <i class="bi bi-search"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h4>{{ number_format($letterCounts['ijin_survey']) }} Surat Izin Survey</h4>
+                    </div>
                 </div>
             </div>
+
 
         </div>
     </section>
