@@ -76,9 +76,6 @@
 
     {{-- Hero Section --}}
     <section id="hero" class="hero section">
-        {{-- Floating Tech Elements --}}
-        <div class="floating-elements"></div>
-        <div class="tech-pattern"></div>
 
         <div class="container" data-aos="fade-up" data-aos-delay="100">
             <div class="row align-items-center">
