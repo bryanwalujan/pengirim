@@ -13,27 +13,15 @@
 
     <div class="pdf-viewer-container">
         <div class="pdf-toolbar">
-            <div class="pdf-navigation">
+            <div class="pdf-navigation mx-auto">
                 <button type="button" class="btn btn-sm btn-outline-orange" id="prevPage" disabled>
-                    <i class="bi bi-chevron-left"></i>
+                    <i class="bi bi-chevron-left"></i> Prev
                 </button>
                 <span class="page-info mx-3">
                     <span id="currentPage">1</span> / <span id="totalPages">-</span>
                 </span>
                 <button type="button" class="btn btn-sm btn-outline-orange" id="nextPage" disabled>
-                    <i class="bi bi-chevron-right"></i>
-                </button>
-            </div>
-            <div class="pdf-zoom">
-                <button type="button" class="btn btn-sm btn-outline-orange" id="zoomOut">
-                    <i class="bi bi-zoom-out"></i>
-                </button>
-                <span class="zoom-level mx-2" id="zoomLevel">100%</span>
-                <button type="button" class="btn btn-sm btn-outline-orange" id="zoomIn">
-                    <i class="bi bi-zoom-in"></i>
-                </button>
-                <button type="button" class="btn btn-sm btn-outline-orange" id="fitToWidth">
-                    <i class="bi bi-arrows-angle-expand"></i> Fit Width
+                    Next <i class="bi bi-chevron-right"></i>
                 </button>
             </div>
         </div>
@@ -67,8 +55,7 @@
         let pageNum = 1;
         let pageRendering = false;
         let pageNumPending = null;
-        let scale = 1.5;
-        let isAutoFit = true;
+        let scale = 1.0;
 
         const canvas = document.getElementById('pdfCanvas');
         const ctx = canvas.getContext('2d');
@@ -92,15 +79,13 @@
             }
 
             // Initial render with auto-fit
-            calculateAutoFitScale();
+            calculateFitToWidthScale();
             renderPage(pageNum);
 
             // Update on window resize
             window.addEventListener('resize', function() {
-                if (isAutoFit) {
-                    calculateAutoFitScale();
-                    renderPage(pageNum);
-                }
+                calculateFitToWidthScale();
+                renderPage(pageNum);
             });
 
         }).catch(function(error) {
@@ -113,22 +98,39 @@
         `;
         });
 
-        function calculateAutoFitScale() {
+        function calculateFitToWidthScale() {
             if (!pdfDoc) return;
 
             pdfDoc.getPage(1).then(function(page) {
                 const viewport = page.getViewport({
-                    scale: 0.5
+                    scale: 1.0
                 });
-                const containerWidth = container.clientWidth - 40; // padding
-                const containerHeight = window.innerHeight * 0.7; // max 70% of viewport height
 
-                const scaleX = containerWidth / viewport.width;
-                const scaleY = containerHeight / viewport.height;
+                // Calculate available width dengan padding yang responsif
+                let paddingHorizontal;
+                if (window.innerWidth <= 359) {
+                    paddingHorizontal = 20; // 10px per sisi
+                } else if (window.innerWidth <= 575) {
+                    paddingHorizontal = 30; // 15px per sisi
+                } else if (window.innerWidth <= 767) {
+                    paddingHorizontal = 40; // 20px per sisi
+                } else if (window.innerWidth <= 991) {
+                    paddingHorizontal = 50; // 25px per sisi
+                } else {
+                    paddingHorizontal = 70; // 35px per sisi
+                }
 
-                // Use the smaller scale to ensure PDF fits completely
-                scale = Math.min(scaleX, scaleY, 1.5); // max scale 1.5
-                updateZoomLevel();
+                const containerWidth = container.clientWidth - paddingHorizontal;
+
+                // Calculate scale untuk fit width dengan margin yang aman
+                scale = Math.min(containerWidth / viewport.width, 2.0); // max scale 2.0
+
+                // Set minimum scale untuk readability
+                if (window.innerWidth <= 575) {
+                    scale = Math.max(scale, 0.4); // minimum 0.4 untuk mobile
+                } else {
+                    scale = Math.max(scale, 0.6); // minimum 0.6 untuk desktop
+                }
             });
         }
 
@@ -142,7 +144,7 @@
                 canvas.height = viewport.height;
                 canvas.width = viewport.width;
 
-                // Center the canvas
+                // Set canvas wrapper dimensions
                 canvasWrapper.style.width = viewport.width + 'px';
                 canvasWrapper.style.height = viewport.height + 'px';
 
@@ -159,11 +161,42 @@
                         renderPage(pageNumPending);
                         pageNumPending = null;
                     }
+
+                    // Update container height setelah render
+                    updateContainerHeight();
                 });
             });
 
             document.getElementById('currentPage').textContent = num;
             updateNavigationButtons();
+        }
+
+        function updateContainerHeight() {
+            // Calculate responsive padding
+            let paddingTop, paddingBottom;
+
+            if (window.innerWidth <= 359) {
+                paddingTop = paddingBottom = 15;
+            } else if (window.innerWidth <= 575) {
+                paddingTop = paddingBottom = 20;
+            } else if (window.innerWidth <= 767) {
+                paddingTop = paddingBottom = 25;
+            } else if (window.innerWidth <= 991) {
+                paddingTop = paddingBottom = 30;
+            } else {
+                paddingTop = paddingBottom = 40;
+            }
+
+            // Set exact container height
+            const canvasHeight = canvas.height;
+            const exactHeight = canvasHeight + paddingTop + paddingBottom;
+
+            container.style.height = exactHeight + 'px';
+            container.style.paddingTop = paddingTop + 'px';
+            container.style.paddingBottom = paddingBottom + 'px';
+
+            // Center canvas wrapper
+            canvasWrapper.style.margin = '0 auto';
         }
 
         function queueRenderPage(num) {
@@ -179,10 +212,6 @@
             document.getElementById('nextPage').disabled = pageNum >= pdfDoc.numPages;
         }
 
-        function updateZoomLevel() {
-            document.getElementById('zoomLevel').textContent = Math.round(scale * 100) + '%';
-        }
-
         // Navigation controls
         document.getElementById('prevPage').addEventListener('click', function() {
             if (pageNum <= 1) return;
@@ -193,29 +222,6 @@
         document.getElementById('nextPage').addEventListener('click', function() {
             if (pageNum >= pdfDoc.numPages) return;
             pageNum++;
-            queueRenderPage(pageNum);
-        });
-
-        // Zoom controls
-        document.getElementById('zoomIn').addEventListener('click', function() {
-            isAutoFit = false;
-            scale += 0.2;
-            updateZoomLevel();
-            queueRenderPage(pageNum);
-        });
-
-        document.getElementById('zoomOut').addEventListener('click', function() {
-            if (scale <= 0.4) return;
-            isAutoFit = false;
-            scale -= 0.2;
-            updateZoomLevel();
-            queueRenderPage(pageNum);
-        });
-
-        // Fit to width
-        document.getElementById('fitToWidth').addEventListener('click', function() {
-            isAutoFit = true;
-            calculateAutoFitScale();
             queueRenderPage(pageNum);
         });
 

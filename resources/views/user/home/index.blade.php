@@ -224,7 +224,7 @@
         </div>
     </section>
 
-    <!-- Academic Calendar Section -->
+    {{-- Academic Calendar Section --}}
     <section id="academic-calendar" class="academic-calendar-section">
         <div class="calendar-section-wrapper">
             <div class="container" data-aos="fade-up">
@@ -232,7 +232,6 @@
                     <h2 class="mb-3">Kalender Akademik</h2>
                     <p class="lead mb-0">Informasi jadwal akademik terkini Universitas Negeri Manado</p>
                 </div>
-
                 <div class="row justify-content-center" data-aos="fade-up" data-aos-delay="100">
                     <div class="col-12 col-lg-11 col-xl-10">
                         @if ($activeCalendar)

@@ -25,20 +25,6 @@
                         class="{{ request()->is('tracking-surat') || request()->is('tracking-surat/*') ? 'active' : '' }}"
                         onclick="scrollToSection('tracking')">Tracking Surat</a>
                 </li>
-                {{-- <li class="dropdown">
-                    <a href="{{ Auth::check() ? '#' : route('login') }}"
-                        class="{{ request()->is('layanan/*') ? 'active' : '' }}">
-                        <span>Pengurusan Surat</span>
-                        <i class="bi bi-chevron-down toggle-dropdown"></i>
-                    </a>
-                    <ul>
-                        @foreach ($services->where('is_active', true)->take(5) as $service)
-                            <li><a href="{{ route('user.services.create', $service->slug) }}">{{ $service->name }}</a>
-                            </li>
-                        @endforeach
-                        <li><a href="{{ route('user.services.index') }}">Lihat Semua</a></li>
-                    </ul>
-                </li> --}}
                 <li><a href="{{ url('/#academic-calendar') }}"
                         class="{{ request()->is('/') && request()->has('scroll') && request()->get('scroll') == 'academic-calendar' ? 'active' : '' }}"
                         onclick="scrollToSection('academic-calendar')">Kalender
@@ -63,12 +49,6 @@
                             </div>
                             <div class="status-indicator"></div>
                         </div>
-                        <div class="user-info d-none d-lg-block ms-2">
-                            <span class="user-name" title="{{ Auth::user()->name }}">
-                                {{ strlen(Auth::user()->name) > 15 ? substr(Auth::user()->name, 0, 25) . '...' : Auth::user()->name }}
-                            </span>
-                        </div>
-                        <i class="bi bi-chevron-down ms-2 dropdown-arrow"></i>
                     </a>
 
                     <!-- Enhanced Dropdown Menu -->
