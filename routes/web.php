@@ -66,6 +66,7 @@ Route::get('/storage/academic-calendars/{filename}', function ($filename) {
 Route::get('/verify/{code}', [DocumentVerificationController::class, 'verify'])
     ->name('document.verify');
 
+
 Route::get('/preview-komisi-pdf', [AdminKomisiHasilController::class, 'previewPdf'])
     ->name('preview.komisi.pdf')
     ->middleware('auth');

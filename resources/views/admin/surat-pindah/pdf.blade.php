@@ -52,6 +52,7 @@
 
         .underline {
             text-decoration: underline;
+            margin-bottom: -10px;
         }
 
         .qr-code-container {

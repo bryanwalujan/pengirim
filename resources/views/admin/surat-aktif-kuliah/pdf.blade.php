@@ -52,6 +52,7 @@
 
         .underline {
             text-decoration: underline;
+            margin-bottom: -10px;
         }
 
         .qr-code-container {
@@ -134,12 +135,12 @@
             <tr>
                 <td width="110">Nama</td>
                 <td width="10">:</td>
-                <td>{{ $surat->mahasiswa->name }}</td>
+                {{-- <td>{{ $surat->mahasiswa->name }}</td> --}}
             </tr>
             <tr>
                 <td>NIM</td>
                 <td>:</td>
-                <td>{{ $surat->mahasiswa->nim }}</td>
+                {{-- <td>{{ $surat->mahasiswa->nim }}</td> --}}
             </tr>
             <tr>
                 <td>Semester</td>
