@@ -311,6 +311,20 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 
     // Admin routes untuk Surat Aktif Kuliah
     Route::prefix('surat-aktif-kuliah')->name('surat-aktif-kuliah.')->group(function () {
+        // PDF Management Routes - DIPINDAHKAN KE ATAS
+        Route::middleware('role:staff')->group(function () {
+            Route::get('pdf-rekapan', [AdminSuratAktifKuliahController::class, 'pdfRekapan'])
+                ->name('pdf-rekapan');
+            Route::post('download-multiple', [AdminSuratAktifKuliahController::class, 'downloadMultiplePdfs'])
+                ->name('download-multiple');
+            Route::post('cleanup-pdfs', [AdminSuratAktifKuliahController::class, 'cleanupOldPdfs'])
+                ->name('cleanup-pdfs');
+            Route::get('pdf-info/{id}', [AdminSuratAktifKuliahController::class, 'getPdfInfo'])
+                ->name('pdf-info');
+            Route::post('regenerate-pdf/{id}', [AdminSuratAktifKuliahController::class, 'regeneratePdf'])
+                ->name('regenerate-pdf');
+        });
+
         Route::get('/', [AdminSuratAktifKuliahController::class, 'index'])->name('index');
         Route::get('/{surat}', [AdminSuratAktifKuliahController::class, 'show'])->name('show');
         Route::delete('/{surat}', [AdminSuratAktifKuliahController::class, 'destroy'])->name('destroy');

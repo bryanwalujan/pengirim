@@ -289,6 +289,15 @@
                                 <div>Sudah Diambil</div>
                             </a>
                         </li>
+
+                        {{-- PDF Rekapan - Hanya untuk Staff --}}
+                        <li
+                            class="menu-item {{ request()->routeIs('admin.surat-aktif-kuliah.pdf-rekapan') ? 'active' : '' }}">
+                            <a href="{{ route('admin.surat-aktif-kuliah.pdf-rekapan') }}" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-file-blank"></i>
+                                <div>PDF Rekapan</div>
+                            </a>
+                        </li>
                     @endif
                 </ul>
             </li>

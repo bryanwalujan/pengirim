@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use ZipArchive;
 use App\Models\User;
 use App\Models\StatusSurat;
 use Illuminate\Http\Request;
@@ -14,6 +15,7 @@ use App\Traits\BaseSuratController;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use App\Helpers\SuratNotificationHelper;
 use App\Services\SuratSubmissionService;
@@ -467,6 +469,323 @@ class AdminSuratAktifKuliahController extends DocumentController
         return $this->generateNomorSuratUniversal('UN41.2/TI', $customNumber);
     }
 
+    /**
+     * Menampilkan halaman rekapan surat PDF
+     */
+    // Tambahkan method ini untuk memastikan middleware dan permission
+    // Tambahkan atau perbaiki method ini
+    public function pdfRekapan(Request $request)
+    {
+
+
+        $status = $request->input('status');
+        $tahun_ajaran = $request->input('tahun_ajaran');
+        $semester = $request->input('semester');
+        $tanggal_dari = $request->input('tanggal_dari');
+        $tanggal_sampai = $request->input('tanggal_sampai');
+        $search = $request->input('search');
+
+        $query = SuratAktifKuliah::with(['mahasiswa', 'status'])
+            ->whereNotNull('file_surat_path');
+
+        // Apply filters
+        if ($status) {
+            $query->whereHas('status', function ($q) use ($status) {
+                $q->where('status', $status);
+            });
+        }
+
+        if ($tahun_ajaran) {
+            $query->where('tahun_ajaran', $tahun_ajaran);
+        }
+
+        if ($semester) {
+            $query->where('semester', $semester);
+        }
+
+        if ($tanggal_dari) {
+            $query->whereDate('created_at', '>=', $tanggal_dari);
+        }
+
+        if ($tanggal_sampai) {
+            $query->whereDate('created_at', '<=', $tanggal_sampai);
+        }
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('nomor_surat', 'like', '%' . $search . '%')
+                    ->orWhereHas('mahasiswa', function ($subQ) use ($search) {
+                        $subQ->where('name', 'like', '%' . $search . '%')
+                            ->orWhere('nim', 'like', '%' . $search . '%');
+                    });
+            });
+        }
+
+        $surats = $query->latest()->paginate(20);
+
+        // Get filter options
+        $tahunAjaranOptions = SuratAktifKuliah::select('tahun_ajaran')
+            ->distinct()
+            ->whereNotNull('tahun_ajaran')
+            ->orderBy('tahun_ajaran', 'desc')
+            ->pluck('tahun_ajaran');
+
+        $statusOptions = [
+            'diajukan' => 'Diajukan',
+            'diproses' => 'Diproses',
+            'disetujui_kaprodi' => 'Disetujui Korprodi',
+            'disetujui_pimpinan' => 'Disetujui Pimpinan',
+            'disetujui' => 'Disetujui',
+            'siap_diambil' => 'Siap Diambil',
+            'sudah_diambil' => 'Sudah Diambil',
+        ];
+
+        // Calculate statistics
+        $statistics = [
+            'total_files' => $surats->total(),
+            'total_size' => 0,
+            'status_counts' => [],
+        ];
+
+        // Get total file size and status counts
+        foreach ($surats as $surat) {
+            if ($surat->file_surat_path && Storage::disk('public')->exists($surat->file_surat_path)) {
+                $statistics['total_size'] += Storage::disk('public')->size($surat->file_surat_path);
+            }
+
+            $suratStatus = $surat->status->status ?? 'unknown';
+            $statistics['status_counts'][$suratStatus] = ($statistics['status_counts'][$suratStatus] ?? 0) + 1;
+        }
+
+        return view('admin.surat-aktif-kuliah.pdf-rekapan', compact(
+            'surats',
+            'statistics',
+            'tahunAjaranOptions',
+            'statusOptions',
+            'status',
+            'tahun_ajaran',
+            'semester',
+            'tanggal_dari',
+            'tanggal_sampai',
+            'search'
+        ));
+    }
+
+    /**
+     * Download multiple PDFs as ZIP
+     */
+    public function downloadMultiplePdfs(Request $request)
+    {
+        $selectedIds = $request->input('selected_ids', []);
+
+        if (empty($selectedIds)) {
+            return redirect()->back()->with('error', 'Tidak ada file yang dipilih');
+        }
+
+        $surats = SuratAktifKuliah::with('mahasiswa')
+            ->whereIn('id', $selectedIds)
+            ->whereNotNull('file_surat_path')
+            ->get();
+
+        if ($surats->isEmpty()) {
+            return redirect()->back()->with('error', 'Tidak ada file PDF yang tersedia');
+        }
+
+        // Create temporary ZIP file
+        $zipFileName = 'Surat_Aktif_Kuliah_' . now()->format('Y-m-d_H-i-s') . '.zip';
+        $zipPath = storage_path('app/temp/' . $zipFileName);
+
+        // Ensure temp directory exists
+        if (!File::exists(dirname($zipPath))) {
+            File::makeDirectory(dirname($zipPath), 0755, true);
+        }
+
+        $zip = new ZipArchive();
+        if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== TRUE) {
+            return redirect()->back()->with('error', 'Gagal membuat file ZIP');
+        }
+
+        $addedFiles = 0;
+        foreach ($surats as $surat) {
+            $filePath = Storage::disk('public')->path($surat->file_surat_path);
+
+            if (File::exists($filePath)) {
+                // Generate safe filename for ZIP
+                $nim = preg_replace('/[^a-zA-Z0-9]/', '', $surat->mahasiswa->nim ?? 'unknown');
+                $name = preg_replace('/[^a-zA-Z0-9\s]/', '', $surat->mahasiswa->name ?? 'unknown');
+                $name = str_replace(' ', '_', $name);
+
+                $zipEntryName = sprintf(
+                    '%s_%s_%s.pdf',
+                    $nim,
+                    $name,
+                    $surat->nomor_surat ? str_replace(['/', '\\', ':', '*', '?', '"', '<', '>', '|'], '_', $surat->nomor_surat) : $surat->id
+                );
+
+                $zip->addFile($filePath, $zipEntryName);
+                $addedFiles++;
+            }
+        }
+
+        $zip->close();
+
+        if ($addedFiles === 0) {
+            File::delete($zipPath);
+            return redirect()->back()->with('error', 'Tidak ada file PDF yang dapat diunduh');
+        }
+
+        return response()->download($zipPath, $zipFileName)->deleteFileAfterSend(true);
+    }
+
+    /**
+     * Cleanup old PDF files
+     */
+    public function cleanupOldPdfs(Request $request)
+    {
+        $olderThanDays = $request->input('older_than_days', 90);
+        $onlyBackedUp = $request->input('only_backed_up', false);
+        $excludeStatus = $request->input('exclude_status', []);
+
+        $query = SuratAktifKuliah::whereNotNull('file_surat_path')
+            ->whereDate('created_at', '<', now()->subDays($olderThanDays));
+
+        if ($onlyBackedUp) {
+            $query->whereNotNull('backup_status')
+                ->where('backup_status', 'completed');
+        }
+
+        if (!empty($excludeStatus)) {
+            $query->whereDoesntHave('status', function ($q) use ($excludeStatus) {
+                $q->whereIn('status', $excludeStatus);
+            });
+        }
+
+        $surats = $query->get();
+        $deletedCount = 0;
+        $totalSizeFreed = 0;
+
+        DB::beginTransaction();
+        try {
+            foreach ($surats as $surat) {
+                if (Storage::disk('public')->exists($surat->file_surat_path)) {
+                    $fileSize = Storage::disk('public')->size($surat->file_surat_path);
+
+                    // Delete the file
+                    if (Storage::disk('public')->delete($surat->file_surat_path)) {
+                        $surat->update(['file_surat_path' => null]);
+                        $deletedCount++;
+                        $totalSizeFreed += $fileSize;
+                    }
+                }
+            }
+
+            DB::commit();
+
+            $message = sprintf(
+                'Berhasil menghapus %d file PDF (%.2f MB ruang disk dibebaskan)',
+                $deletedCount,
+                $totalSizeFreed / 1024 / 1024
+            );
+
+            return redirect()->back()->with('success', $message);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Gagal menghapus file: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Get PDF file information
+     */
+    public function getPdfInfo($id)
+    {
+        $surat = SuratAktifKuliah::with(['mahasiswa', 'status'])->findOrFail($id);
+
+        $info = [
+            'id' => $surat->id,
+            'mahasiswa' => $surat->mahasiswa->name,
+            'nim' => $surat->mahasiswa->nim,
+            'nomor_surat' => $surat->nomor_surat,
+            'status' => $surat->status->status ?? 'unknown',
+            'file_exists' => false,
+            'file_size' => 0,
+            'file_path' => $surat->file_surat_path,
+            'created_at' => $surat->created_at,
+            'updated_at' => $surat->updated_at,
+        ];
+
+        if ($surat->file_surat_path && Storage::disk('public')->exists($surat->file_surat_path)) {
+            $info['file_exists'] = true;
+            $info['file_size'] = Storage::disk('public')->size($surat->file_surat_path);
+            $info['file_size_formatted'] = $this->formatBytes($info['file_size']);
+        }
+
+        return response()->json($info);
+    }
+
+    /**
+     * Regenerate PDF file
+     */
+    public function regeneratePdf($id)
+    {
+        $surat = SuratAktifKuliah::with(['mahasiswa', 'status'])->findOrFail($id);
+
+        try {
+            // Check if surat has required data
+            if (!$surat->nomor_surat || !$surat->tanggal_surat) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data surat tidak lengkap (nomor surat atau tanggal surat kosong)'
+                ]);
+            }
+
+            // Determine QR type based on status
+            $qrType = null;
+            $isFinalApproval = false;
+
+            if (in_array($surat->status->status, ['disetujui_kaprodi'])) {
+                $qrType = 'kaprodi';
+                $isFinalApproval = true;
+            } elseif (in_array($surat->status->status, ['disetujui_pimpinan', 'disetujui', 'siap_diambil', 'sudah_diambil'])) {
+                $qrType = 'pimpinan';
+                $isFinalApproval = true;
+            }
+
+            // Delete old file if exists
+            if ($surat->file_surat_path && Storage::disk('public')->exists($surat->file_surat_path)) {
+                Storage::disk('public')->delete($surat->file_surat_path);
+            }
+
+            // Generate new PDF
+            $filePath = $this->generateSuratFile($surat, $isFinalApproval, $qrType);
+            $surat->update(['file_surat_path' => $filePath]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'PDF berhasil di-generate ulang',
+                'file_path' => $filePath
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal generate PDF: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Format bytes to human readable format
+     */
+    private function formatBytes($size, $precision = 2)
+    {
+        $base = log($size, 1024);
+        $suffixes = array('B', 'KB', 'MB', 'GB', 'TB');
+
+        return round(pow(1024, $base - floor($base)), $precision) . ' ' . $suffixes[floor($base)];
+    }
+
 
     protected function generateSuratFile(SuratAktifKuliah $surat, $isFinalApproval = false, $qrType = null)
     {
@@ -534,26 +853,31 @@ class AdminSuratAktifKuliahController extends DocumentController
             'qr_type' => $qrType,
         ]);
 
-        // SECURE FILENAME GENERATION
-        // Sanitize NIM - remove any non-alphanumeric characters
+        // SECURE FILENAME GENERATION dengan tracking version
         $nimSanitized = preg_replace('/[^a-zA-Z0-9]/', '', $surat->mahasiswa->nim ?? 'unknown');
-
-        // Generate random number for security
         $randomNumber = str_pad(random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
-
-        // Generate timestamp
         $timestamp = now()->format('Ymd_His');
-
-        // Generate unique hash based on surat ID and current time
         $hash = substr(md5($surat->id . '_' . now()->timestamp), 0, 8);
 
-        // Create secure filename with multiple security layers
+        // Add version identifier based on status and QR type
+        $versionSuffix = '';
+        if ($qrType === 'kaprodi') {
+            $versionSuffix = '_kaprodi';
+        } elseif ($qrType === 'pimpinan') {
+            $versionSuffix = '_final';
+        } elseif ($isFinalApproval) {
+            $versionSuffix = '_approved';
+        } else {
+            $versionSuffix = '_preview';
+        }
+
         $filename = sprintf(
-            'surat_aktif_kuliah_%s_%s_%s_%s.pdf',
+            'surat_aktif_kuliah_%s_%s_%s_%s%s.pdf',
             $nimSanitized,
             $timestamp,
             $randomNumber,
-            $hash
+            $hash,
+            $versionSuffix
         );
 
         // Create secure directory structure
@@ -568,6 +892,15 @@ class AdminSuratAktifKuliahController extends DocumentController
 
         // Store the PDF
         Storage::disk('public')->put($path, $pdf->output());
+
+        // Log PDF generation
+        Log::info('PDF generated for SuratAktifKuliah', [
+            'surat_id' => $surat->id,
+            'filename' => $filename,
+            'qr_type' => $qrType,
+            'is_final_approval' => $isFinalApproval,
+            'file_size' => Storage::disk('public')->size($path)
+        ]);
 
         return $path;
     }
@@ -596,7 +929,6 @@ class AdminSuratAktifKuliahController extends DocumentController
         // Return the mapped value or default to 'I (Satu)' if the number is not in the map
         return $map[$number] ?? 'I (Satu)';
     }
-    /*******  fd36cc89-0674-4920-b84d-3d755248178b  *******/
 
 
     public function download(SuratAktifKuliah $surat)
@@ -681,5 +1013,7 @@ class AdminSuratAktifKuliahController extends DocumentController
             return back()->with('error', 'Gagal menghapus surat: ' . $e->getMessage());
         }
     }
+
+
 
 }
