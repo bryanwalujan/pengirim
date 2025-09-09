@@ -375,6 +375,13 @@
                     <div class="row g-4">
                         <div class="col-md-6">
                             <div class="form-floating">
+                                <input type="text" class="form-control" id="tahun_ajaran" name="tahun_ajaran"
+                                    value="{{ $tahunAjaranAktif->tahun ?? '' }}" readonly>
+                                <label for="tahun_ajaran">Tahun Ajaran</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating">
                                 <input type="text" class="form-control" id="semester" name="semester"
                                     value="{{ $tahunAjaranAktif->semester ?? '' }}" readonly>
                                 <label for="semester">Semester</label>

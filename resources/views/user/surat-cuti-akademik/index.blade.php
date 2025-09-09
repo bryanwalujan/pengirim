@@ -2,336 +2,6 @@
 
 @section('title', 'Daftar Surat Cuti Akademik')
 
-@push('styles')
-    <style>
-        .card {
-            border-radius: 1rem;
-            border: none;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-            background: #fff;
-            overflow: hidden;
-        }
-
-        .card-header {
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-            background: #fff;
-            padding: 1.5rem;
-        }
-
-        .card-body {
-            padding: 1.5rem;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #4361ee, #3a0ca3);
-            border: none;
-            border-radius: 50px;
-            padding: 0.75rem 1.5rem;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.2);
-        }
-
-        .btn-primary:hover {
-            background: linear-gradient(135deg, #3a0ca3, #4361ee);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(67, 97, 238, 0.3);
-        }
-
-        .btn-outline-primary {
-            border-color: #4361ee;
-            color: #4361ee;
-            transition: all 0.3s ease;
-        }
-
-        .btn-outline-primary:hover {
-            background: #4361ee;
-            color: white;
-        }
-
-
-        /* Action Buttons Redesign */
-        .action-buttons {
-            display: flex;
-            gap: 0.5rem;
-            align-items: center;
-            justify-content: flex-start;
-            flex-wrap: wrap;
-        }
-
-        .action-btn {
-            width: 36px;
-            height: 36px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            border: none;
-            font-size: 14px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .action-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.5s;
-        }
-
-        .action-btn:hover::before {
-            left: 100%;
-        }
-
-        .action-btn:hover {
-            transform: translateY(-2px);
-            text-decoration: none;
-        }
-
-        /* Detail Button */
-        .action-btn.btn-detail {
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-            color: white;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-        }
-
-        .action-btn.btn-detail:hover {
-            background: linear-gradient(135deg, #1d4ed8, #1e40af);
-            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
-            color: white;
-        }
-
-        /* Download Button */
-        .action-btn.btn-download {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-        }
-
-        .action-btn.btn-download:hover {
-            background: linear-gradient(135deg, #059669, #047857);
-            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
-            color: white;
-        }
-
-        .table th,
-        .table td {
-            vertical-align: middle;
-            padding: 1rem !important;
-        }
-
-        .table th {
-            background: #f8fafc;
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            letter-spacing: 0.5px;
-            color: #5a6a85;
-            border-bottom-width: 1px;
-        }
-
-        .table td {
-            font-size: 0.875rem;
-            color: #2c3e50;
-        }
-
-        .form-label {
-            font-weight: 600;
-            color: #2c3e50;
-            font-size: 0.875rem;
-            margin-bottom: 0.5rem;
-        }
-
-
-        .text-muted {
-            font-size: 0.8rem;
-            color: #6c757d !important;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 3rem;
-        }
-
-        .empty-state img {
-            max-width: 200px;
-            margin-bottom: 1.5rem;
-            opacity: 0.8;
-        }
-
-        .empty-state h5 {
-            font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 0.5rem;
-        }
-
-        .empty-state p {
-            color: #6c757d;
-            margin-bottom: 1.5rem;
-            max-width: 400px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .search-box {
-            position: relative;
-            max-width: 300px;
-        }
-
-        .search-box .form-control {
-            padding-left: 40px;
-            border-radius: 8px;
-            border-color: #e0e0e0;
-            height: 42px;
-        }
-
-        .search-box .search-icon {
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #6c757d;
-        }
-
-        .filter-section {
-            background: #f8fafc;
-            border-radius: 10px;
-            padding: 1rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .filter-section .row {
-            align-items: flex-end;
-        }
-
-        .filter-section .btn-reset {
-            height: 42px;
-            display: flex;
-            align-items: center;
-        }
-
-        .table-responsive {
-            border-radius: 10px;
-        }
-
-        .table {
-            margin-bottom: 0;
-        }
-
-        .table-hover tbody tr:hover {
-            background-color: rgba(67, 97, 238, 0.03);
-        }
-
-        .pagination .page-item.active .page-link {
-            background-color: #4361ee;
-            border-color: #4361ee;
-        }
-
-        .pagination .page-link {
-            color: #4361ee;
-            border-color: #e0e0e0;
-        }
-
-        .pagination .page-link:hover {
-            background-color: #f8f9fa;
-        }
-
-        .card-header h4 {
-            font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 0;
-        }
-
-        .card-header .btn {
-            font-size: 0.875rem;
-        }
-
-        @media (max-width: 767.98px) {
-            .filter-section .col-md-4 {
-                margin-bottom: 1rem;
-            }
-
-            .search-box {
-                max-width: 100%;
-                margin-bottom: 1rem;
-            }
-
-            .card-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 1rem;
-            }
-
-            .card-header .btn {
-                width: 100%;
-            }
-        }
-
-        /* Gaya asli tetap dipertahankan */
-        .btn-copy-code {
-            width: 28px;
-            height: 28px;
-            padding: 0;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 6px;
-            margin-left: 8px;
-            background: rgba(67, 97, 238, 0.1);
-            border: 1px solid rgba(67, 97, 238, 0.2);
-            color: #4361ee;
-            transition: all 0.3s ease;
-        }
-
-        .btn-copy-code:hover {
-            background: rgba(67, 97, 238, 0.2);
-            transform: scale(1.05);
-        }
-
-        .btn-copy-code i {
-            font-size: 0.875rem;
-        }
-
-        .tracking-code-container {
-            display: flex;
-            align-items: center;
-        }
-
-        /* Responsive Actions */
-        @media (max-width: 768px) {
-            .action-buttons {
-                flex-direction: column;
-                gap: 0.25rem;
-                align-items: stretch;
-            }
-
-            .action-btn {
-                width: 100%;
-                height: 32px;
-                border-radius: 6px;
-                font-size: 12px;
-                justify-content: flex-start;
-                padding: 0 0.75rem;
-            }
-
-            .action-btn i {
-                margin-right: 0.5rem;
-            }
-
-            .action-btn::after {
-                content: attr(title);
-                margin-left: 0.5rem;
-                font-size: 0.75rem;
-            }
-        }
-    </style>
-@endpush
 
 @section('main')
     <!-- Page Title -->
@@ -348,130 +18,161 @@
         </div>
     </div><!-- End Page Title -->
 
-    <!-- Daftar Surat Section -->
-    <section id="services" class="daftar-surat section py-5">
+    <section id="services" class="section py-5">
         <div class="container">
             <div class="row justify-content-center">
-                <div class="col-lg-12">
-                    <div class="card" data-aos="fade-up">
-                        <div class="card-header">
+                <div class="col-12">
+                    <div class="surat-card" data-aos="fade-up">
+                        <div class="surat-card-header">
                             <div class="d-flex justify-content-between align-items-center w-100">
-                                <h4 class="mb-0 fw-bold">Riwayat Pengajuan</h4>
-                                <a href="{{ route('user.surat-cuti-akademik.create') }}" class="btn btn-primary">
-                                    <i class="bi bi-plus-circle me-2"></i> Ajukan Baru
+                                <h4 class="surat-card-title">
+                                    <i class="bi bi-person-dash"></i>
+                                    Riwayat Pengajuan Surat Cuti Akademik
+                                </h4>
+                                <a href="{{ route('user.surat-cuti-akademik.create') }}" class="btn-surat-primary">
+                                    <i class="bi bi-plus-circle"></i>
+                                    Ajukan Baru
                                 </a>
                             </div>
                         </div>
 
-                        <div class="card-body">
+                        <div class="surat-card-body">
                             <!-- Filter Section -->
-                            <div class="filter-section">
-                                <form id="filter-form" method="GET"
-                                    action="{{ route('user.surat-cuti-akademik.index') }}">
-                                    <div class="row g-3">
-                                        <div class="col-md-4">
-                                            <div class="search-box">
+                            <div class="surat-filter-section">
+                                <form method="GET" action="{{ route('user.surat-cuti-akademik.index') }}">
+                                    <div class="row g-3 align-items-end">
+                                        <div class="col-md-6">
+                                            <div class="surat-search-box">
+                                                <input type="text" class="form-control" name="search"
+                                                    placeholder="Cari berdasarkan tahun ajaran, semester, atau alasan..."
+                                                    value="{{ request('search') }}">
                                                 <i class="bi bi-search search-icon"></i>
-                                                <input type="text" class="form-control" id="search-input" name="search"
-                                                    placeholder="Cari tahun/semester..." value="{{ request('search') }}">
                                             </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <button type="submit" class="btn-surat-primary w-100">
+                                                <i class="bi bi-search"></i>
+                                                Cari
+                                            </button>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <a href="{{ route('user.surat-cuti-akademik.index') }}"
+                                                class="btn btn-outline-secondary w-100">
+                                                <i class="bi bi-arrow-clockwise"></i>
+                                                Reset
+                                            </a>
                                         </div>
                                     </div>
                                 </form>
                             </div>
 
-                            <!-- Table -->
-                            <div class="table-responsive">
-                                <table class="table table-hover" id="surat-table">
-                                    <thead>
-                                        <tr>
-                                            <th width="15%">No. Surat</th>
-                                            <th width="15%">Tracking Code</th>
-                                            <th width="15%">Tahun/Semester</th>
-                                            <th width="25%">Alasan Cuti</th>
-                                            <th width="15%">Tanggal Pengajuan</th>
-                                            <th width="15%">Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @forelse($surats as $surat)
-                                            <tr>
-                                                <td>
-                                                    @if ($surat->nomor_surat)
-                                                        <span class="d-block">{{ $surat->nomor_surat }}</span>
-                                                        <small class="text-muted">Tgl. Surat:
-                                                            {{ optional($surat->tanggal_surat)->format('d/m/Y') }}</small>
-                                                    @else
-                                                        <span class="text-muted">Belum ada nomor</span>
-                                                    @endif
-                                                </td>
-                                                <td>
-                                                    <div class="tracking-code-container">
-                                                        <span class="tracking-code"
-                                                            title="Klik tombol disamping untuk menyalin">
-                                                            {{ $surat->tracking_code }}
-                                                        </span>
-                                                        <button class="btn-copy-code"
-                                                            onclick="copyTrackingCode('{{ $surat->tracking_code }}', this)">
-                                                            <i class="bi bi-clipboard"></i>
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    <span class="d-block">{{ $surat->tahun_ajaran }}</span>
-                                                    <small class="text-muted">Semester:
-                                                        {{ ucfirst($surat->semester) }}</small>
-                                                </td>
-                                                <td>
-                                                    {{ Str::limit($surat->alasan_pengajuan, 40) }}
-                                                    @if ($surat->keterangan_tambahan)
-                                                        <small class="text-muted d-block"
-                                                            title="{{ $surat->keterangan_tambahan }}">
-                                                            {{ Str::limit($surat->keterangan_tambahan, 30) }}
-                                                        </small>
-                                                    @endif
-                                                </td>
-                                                <td>
-                                                    <span class="d-block">{{ $surat->created_at->format('d F Y') }}</span>
-                                                    <small
-                                                        class="text-muted">{{ $surat->created_at->format('H:i') }}</small>
-                                                </td>
-                                                <td>
-                                                    <div class="action-buttons">
-                                                        <a href="{{ route('user.surat-cuti-akademik.show', $surat->id) }}"
-                                                            class="action-btn btn btn-sm btn-info" title="Detail">
-                                                            <i class="bi bi-eye"></i>
-                                                        </a>
-                                                        @if (in_array($surat->status, ['siap_diambil', 'sudah_diambil', 'disetujui']) && $surat->file_surat_path)
-                                                            <a href="{{ route('user.surat-cuti-akademik.download', $surat->id) }}"
-                                                                class="action-btn btn btn-sm btn-primary" title="Download">
-                                                                <i class="bi bi-download"></i>
-                                                            </a>
-                                                        @endif
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        @empty
-                                            <tr>
-                                                <td colspan="6" class="empty-state">
-                                                    <p><i class="bi bi-emoji-frown"></i></p>
-                                                    <h5>Belum Ada Pengajuan Surat</h5>
-                                                    <p>Anda belum pernah mengajukan surat cuti akademik. Yuk, ajukan
-                                                        sekarang!</p>
-                                                    <a href="{{ route('user.surat-cuti-akademik.create') }}"
-                                                        class="btn btn-primary">
-                                                        <i class="bi bi-plus-circle me-2"></i> Ajukan Sekarang
-                                                    </a>
-                                                </td>
-                                            </tr>
-                                        @endforelse
-                                    </tbody>
-                                </table>
+                            <!-- Table Section -->
+                            <div class="surat-table-container">
+                                @if ($surats->count() > 0)
+                                    <div class="table-responsive">
+                                        <table class="surat-table table">
+                                            <thead>
+                                                <tr>
+                                                    <th width="15%">No. Surat</th>
+                                                    <th width="15%">Kode Tracking</th>
+                                                    <th width="15%">Tahun/Semester</th>
+                                                    <th width="25%">Alasan Cuti</th>
+                                                    <th width="15%">Tanggal Pengajuan</th>
+                                                    <th width="15%">Aksi</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach ($surats as $surat)
+                                                    <tr>
+                                                        <td>
+                                                            @if ($surat->nomor_surat)
+                                                                <div class="fw-bold text-surat-primary">
+                                                                    {{ $surat->nomor_surat }}</div>
+                                                                <small class="text-surat-secondary">
+                                                                    Tgl:
+                                                                    {{ optional($surat->tanggal_surat)->format('d/m/Y') }}
+                                                                </small>
+                                                            @else
+                                                                <span class="text-surat-secondary fst-italic">Belum ada
+                                                                    nomor</span>
+                                                            @endif
+                                                        </td>
+                                                        <td>
+                                                            <div class="surat-tracking-container">
+                                                                <span
+                                                                    class="surat-tracking-code">{{ $surat->tracking_code }}</span>
+                                                                <button type="button" class="surat-copy-btn"
+                                                                    onclick="copyTrackingCode('{{ $surat->tracking_code }}', this)"
+                                                                    title="Salin kode tracking">
+                                                                    <i class="bi bi-clipboard"></i>
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div class="fw-semibold">{{ $surat->tahun_ajaran }}</div>
+                                                            <small class="text-surat-secondary">
+                                                                Semester {{ ucfirst($surat->semester) }}
+                                                            </small>
+                                                        </td>
+                                                        <td>
+                                                            <div title="{{ $surat->alasan_pengajuan }}">
+                                                                {{ Str::limit($surat->alasan_pengajuan, 40) }}
+                                                            </div>
+                                                            @if ($surat->keterangan_tambahan)
+                                                                <small class="text-surat-secondary"
+                                                                    title="{{ $surat->keterangan_tambahan }}">
+                                                                    {{ Str::limit($surat->keterangan_tambahan, 30) }}
+                                                                </small>
+                                                            @endif
+                                                        </td>
+                                                        <td>
+                                                            <div class="fw-semibold">
+                                                                {{ $surat->created_at->format('d M Y') }}</div>
+                                                            <small
+                                                                class="text-surat-secondary">{{ $surat->created_at->format('H:i') }}
+                                                                WITA</small>
+                                                        </td>
+                                                        <td>
+                                                            <div class="surat-action-buttons">
+                                                                <a href="{{ route('user.surat-cuti-akademik.show', $surat->id) }}"
+                                                                    class="surat-action-btn surat-action-btn--detail"
+                                                                    title="Lihat Detail" data-title="Detail">
+                                                                    <i class="bi bi-eye"></i>
+                                                                </a>
+                                                                @if (in_array($surat->status, ['siap_diambil', 'sudah_diambil', 'disetujui']) && $surat->file_surat_path)
+                                                                    <a href="{{ route('user.surat-cuti-akademik.download', $surat->id) }}"
+                                                                        class="surat-action-btn surat-action-btn--download"
+                                                                        title="Download Surat" data-title="Download">
+                                                                        <i class="bi bi-download"></i>
+                                                                    </a>
+                                                                @endif
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                @else
+                                    <div class="surat-empty-state">
+                                        <div class="empty-icon">
+                                            <i class="bi bi-person-dash-fill"></i>
+                                        </div>
+                                        <h5>Belum Ada Pengajuan Surat</h5>
+                                        <p>Anda belum pernah mengajukan surat cuti akademik. Jika Anda memerlukan cuti
+                                            sementara dari kegiatan akademik, silakan ajukan surat cuti akademik sekarang.
+                                        </p>
+                                        <a href="{{ route('user.surat-cuti-akademik.create') }}" class="btn-surat-primary">
+                                            <i class="bi bi-plus-circle"></i>
+                                            Ajukan Sekarang
+                                        </a>
+                                    </div>
+                                @endif
                             </div>
 
                             <!-- Pagination -->
                             @if ($surats->hasPages())
-                                <div class="mt-4">
+                                <div class="surat-pagination mt-4 d-flex justify-content-center">
                                     {{ $surats->withQueryString()->links() }}
                                 </div>
                             @endif
@@ -480,73 +181,5 @@
                 </div>
             </div>
         </div>
-    </section><!-- End Daftar Surat Section -->
+    </section>
 @endsection
-
-@push('scripts')
-    <!-- JS Libraries -->
-    <script>
-        function copyTrackingCode(code, button) {
-            // Buat elemen input sementara
-            const tempInput = document.createElement('input');
-            tempInput.value = code;
-            document.body.appendChild(tempInput);
-
-            // Pilih teks
-            tempInput.select();
-            tempInput.setSelectionRange(0, 99999); // Untuk mobile
-
-            try {
-                // Jalankan perintah salin
-                const successful = document.execCommand('copy');
-
-                if (successful) {
-                    // Ubah ikon sementara
-                    const icon = button.querySelector('i');
-                    icon.classList.remove('bi-clipboard');
-                    icon.classList.add('bi-check');
-
-                    // Tampilkan tooltip/alert
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Disalin!',
-                        text: 'Kode tracking telah disalin ke clipboard.',
-                        showConfirmButton: false,
-                        timer: 1500
-                    });
-
-                    // Kembalikan ikon setelah 2 detik
-                    setTimeout(() => {
-                        icon.classList.remove('bi-check');
-                        icon.classList.add('bi-clipboard');
-                    }, 2000);
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Gagal',
-                        text: 'Gagal menyalin kode tracking',
-                        showConfirmButton: false,
-                        timer: 1500
-                    });
-                }
-            } catch (err) {
-                console.error('Error saat menyalin teks:', err);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Terjadi kesalahan saat menyalin',
-                    showConfirmButton: false,
-                    timer: 1500
-                });
-            }
-
-            // Hapus elemen input sementara
-            document.body.removeChild(tempInput);
-        }
-        // AOS init
-        AOS.init({
-            duration: 400,
-            once: true
-        });
-    </script>
-@endpush

@@ -34,6 +34,9 @@ class SuratPindahController extends Controller
     {
         $service = Service::where('slug', 'surat-pindah')->firstOrFail();
 
+        $tahunAjaranAktif = TahunAjaran::where('status_aktif', true)->first();
+
+
         $surats = SuratPindah::with(['status', 'trackings', 'mahasiswa'])
             ->where('mahasiswa_id', Auth::id())
             ->when($request->search, function ($query) use ($request) {
@@ -56,6 +59,7 @@ class SuratPindahController extends Controller
         return view('user.surat-pindah.index', [
             'service' => $service,
             'surats' => $surats,
+            'tahunAjaranAktif' => $tahunAjaranAktif,
         ]);
     }
 
@@ -140,9 +144,12 @@ class SuratPindahController extends Controller
         $surat = SuratPindah::with(['status', 'trackings', 'mahasiswa'])
             ->findOrFail($id);
 
+        $tahunAjaranAktif = TahunAjaran::where('status_aktif', true)->first();
+
+
         $this->authorize('view', $surat);
 
-        return view('user.surat-pindah.show', compact('surat'));
+        return view('user.surat-pindah.show', compact('surat', 'tahunAjaranAktif'));
     }
 
     public function confirmTaken($id)

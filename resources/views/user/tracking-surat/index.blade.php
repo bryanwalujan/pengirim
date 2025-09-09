@@ -4,182 +4,174 @@
 
 @push('styles')
     <style>
+        /* ===============================================
+                                   OPTIMIZED TRACKING SURAT STYLES
+                                   =============================================== */
+        :root {
+            --primary-color: #f97316;
+            --primary-dark: #ea580c;
+            --background-light: #fff7ed;
+            --border-color: #fed7aa;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --error-color: #dc2626;
+            --success-color: #10b981;
+            --shadow-light: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --border-radius: 12px;
+            --transition: all 0.2s ease;
+        }
+
         body {
-            font-family: 'Inter', 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #fff7ed 0%, #fed7aa 100%);
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--background-light) 0%, var(--border-color) 100%);
             min-height: 100vh;
         }
 
+        /* ===============================================
+                                   MAIN CONTAINER
+                                   =============================================== */
         .tracking-container {
             background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 2rem;
-            box-shadow: 0 25px 50px rgba(234, 88, 12, 0.1);
-            transition: all 0.4s ease;
+            backdrop-filter: blur(8px);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-md);
             border: 1px solid rgba(249, 115, 22, 0.1);
+            overflow: hidden;
+            max-width: 600px;
+            margin: 0 auto;
         }
 
-        .tracking-container:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 35px 70px rgba(234, 88, 12, 0.15);
-        }
-
-        .card-header {
-            background: linear-gradient(135deg, #f97316 0%, #ea580c 50%, #dc2626 100%);
+        /* ===============================================
+                                   HEADER SECTION
+                                   =============================================== */
+        .tracking-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
             color: white;
             padding: 2rem;
-            border-radius: 2rem 2rem 0 0;
-            position: relative;
-            overflow: hidden;
+            text-align: center;
         }
 
-        .card-header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.5s ease;
+        .header-icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 1rem;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
         }
 
-        .card-header:hover::before {
-            left: 100%;
+        .header-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
         }
 
-        .card-header .header-content {
-            position: relative;
-            z-index: 2;
+        .header-subtitle {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin: 0;
         }
 
-        .tracking-icon {
-            width: 3rem;
-            height: 3rem;
-            margin-right: 1rem;
-            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
-            animation: pulse 2s infinite;
+        /* ===============================================
+                                   FORM SECTION
+                                   =============================================== */
+        .tracking-body {
+            padding: 2rem;
         }
 
-        @keyframes pulse {
-
-            0%,
-            100% {
-                transform: scale(1);
-            }
-
-            50% {
-                transform: scale(1.05);
-            }
+        .form-group {
+            margin-bottom: 1.5rem;
         }
 
-        .card-body {
-            padding: 2.5rem;
-            background: linear-gradient(135deg, #ffffff 0%, #fef7f0 100%);
-        }
-
-        .form-container {
-            position: relative;
+        .form-label {
+            display: block;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
         }
 
         .input-wrapper {
             position: relative;
-            margin-bottom: 1.5rem;
         }
 
-        .form-control {
+        .form-input {
             width: 100%;
-            border: 2px solid #fed7aa;
-            border-radius: 1rem;
-            padding: 1rem 1.5rem;
+            padding: 0.875rem 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius);
             font-size: 1rem;
-            transition: all 0.3s ease;
-            background: #ffffff;
-            color: #1f2937;
-            box-shadow: 0 4px 6px rgba(249, 115, 22, 0.05);
+            transition: var(--transition);
+            background: white;
+            color: var(--text-primary);
         }
 
-        .form-control:focus {
-            border-color: #f97316;
-            box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.1);
+        .form-input:focus {
             outline: none;
-            background: #ffffff;
-            transform: translateY(-2px);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
         }
 
-        .form-control::placeholder {
-            color: #9ca3af;
-            font-weight: 400;
+        .form-input.is-invalid {
+            border-color: var(--error-color);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-secondary);
         }
 
         .input-icon {
             position: absolute;
-            right: 1rem;
+            right: 0.875rem;
             top: 50%;
             transform: translateY(-50%);
-            width: 1.5rem;
-            height: 1.5rem;
-            color: #f97316;
-            opacity: 0.7;
+            color: var(--text-secondary);
+            font-size: 1.125rem;
+            pointer-events: none;
         }
 
+        /* ===============================================
+                                   BUTTON STYLES
+                                   =============================================== */
         .btn-primary {
-            background: linear-gradient(135deg, #f97316 0%, #ea580c 50%, #dc2626 100%);
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
             border: none;
-            border-radius: 1rem;
-            padding: 1rem 2.5rem;
+            border-radius: var(--border-radius);
+            padding: 0.875rem 1.5rem;
             color: white;
             font-weight: 600;
             font-size: 1rem;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
             cursor: pointer;
-            box-shadow: 0 8px 20px rgba(249, 115, 22, 0.3);
-            min-width: 140px;
+            transition: var(--transition);
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
         }
 
         .btn-primary:hover:not(:disabled) {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 25px rgba(249, 115, 22, 0.4);
-        }
-
-        .btn-primary:active {
             transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
         }
 
         .btn-primary:disabled {
-            opacity: 0.7;
+            opacity: 0.6;
             cursor: not-allowed;
             transform: none;
         }
 
-        .btn-primary::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            transition: width 0.6s ease, height 0.6s ease;
-        }
-
-        .btn-primary:hover::after {
-            width: 300px;
-            height: 300px;
-        }
-
-        .loading-spinner {
+        .btn-spinner {
+            width: 18px;
+            height: 18px;
             border: 2px solid rgba(255, 255, 255, 0.3);
-            border-top: 2px solid #ffffff;
+            border-top: 2px solid white;
             border-radius: 50%;
-            width: 20px;
-            height: 20px;
             animation: spin 1s linear infinite;
-            margin-right: 0.5rem;
         }
 
         @keyframes spin {
@@ -192,213 +184,218 @@
             }
         }
 
+        /* ===============================================
+                                   ALERT STYLES
+                                   =============================================== */
         .alert {
-            border-radius: 1rem;
-            padding: 1.25rem;
-            margin-top: 1.5rem;
-            border: none;
-            box-shadow: 0 8px 20px rgba(220, 38, 38, 0.1);
-            animation: slideIn 0.5s ease;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            margin-top: 1rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
         }
 
         .alert-error {
-            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
-            border-left: 5px solid #dc2626;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
             color: #991b1b;
         }
 
-        .feature-highlight {
-            background: linear-gradient(135deg, #fff7ed 0%, #fed7aa 100%);
-            border-radius: 1rem;
-            padding: 1.5rem;
-            margin-top: 2rem;
-            border: 1px solid rgba(249, 115, 22, 0.2);
+        .alert-icon {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+            margin-top: 1px;
         }
 
-        .feature-item {
+        /* ===============================================
+                                   INFO SECTION
+                                   =============================================== */
+        .info-section {
+            background: linear-gradient(135deg, #fef7f0, #fed7aa);
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            margin-top: 1.5rem;
+        }
+
+        .info-title {
+            font-weight: 600;
+            color: #9a3412;
+            margin-bottom: 1rem;
             display: flex;
             align-items: center;
-            margin-bottom: 0.75rem;
-            color: #9a3412;
-            font-size: 0.9rem;
+            gap: 0.5rem;
         }
 
-        .feature-item:last-child {
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #9a3412;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-item:last-child {
             margin-bottom: 0;
         }
 
-        .feature-icon {
-            width: 1.25rem;
-            height: 1.25rem;
-            margin-right: 0.75rem;
-            color: #f97316;
+        .info-icon {
+            width: 16px;
+            height: 16px;
+            color: var(--primary-color);
+            flex-shrink: 0;
         }
 
-
-        .breadcrumb-item {
-            color: rgba(255, 255, 255, 0.8);
-            transition: color 0.3s ease;
+        /* ===============================================
+                                   CHARACTER COUNTER
+                                   =============================================== */
+        .char-counter {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-align: right;
+            margin-top: 0.25rem;
         }
 
-        .breadcrumb-item:hover {
-            color: white;
+        .char-counter.valid {
+            color: var(--success-color);
         }
 
-        .breadcrumb-separator {
-            margin: 0 0.5rem;
-            color: rgba(255, 255, 255, 0.6);
+        .char-counter.invalid {
+            color: var(--error-color);
         }
 
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        @media (min-width: 640px) {
-            .input-group {
-                flex-direction: row;
-                align-items: flex-end;
-            }
-
-            .input-wrapper {
-                flex: 1;
-                margin-bottom: 0;
-            }
-        }
-
-        /* Responsive improvements */
-        @media (max-width: 640px) {
-            .card-header {
+        /* ===============================================
+                                   RESPONSIVE DESIGN
+                                   =============================================== */
+        @media (max-width: 768px) {
+            .tracking-header {
                 padding: 1.5rem;
             }
 
-            .card-body {
+            .tracking-body {
                 padding: 1.5rem;
             }
 
-            .tracking-icon {
-                width: 2.5rem;
-                height: 2.5rem;
+            .header-title {
+                font-size: 1.25rem;
             }
 
-            .btn-primary {
-                width: 100%;
-                padding: 1.25rem;
+            .tracking-container {
+                margin: 1rem;
+                max-width: calc(100% - 2rem);
             }
         }
 
-        /* Add floating animation */
-        .tracking-container {
-            animation: float 6s ease-in-out infinite;
+        /* ===============================================
+                                   UTILITIES
+                                   =============================================== */
+        .hidden {
+            display: none !important;
         }
 
-        @keyframes float {
+        .text-center {
+            text-align: center;
+        }
 
-            0%,
-            100% {
-                transform: translateY(0px);
-            }
+        .mb-0 {
+            margin-bottom: 0 !important;
+        }
 
-            50% {
-                transform: translateY(-10px);
-            }
+        .mt-1 {
+            margin-top: 0.25rem;
+        }
+
+        /* Remove heavy animations and effects for better performance */
+        * {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Optimize transforms for GPU acceleration */
+        .btn-primary {
+            will-change: transform;
         }
     </style>
 @endpush
 
 @section('main')
+    <!-- Page Title -->
     <div class="page-title light-background">
-        <div class="container mx-auto px-4">
-            <h1 data-aos="fade-up" class="text-4xl font-bold">Tracking Surat</h1>
-            <nav class="breadcrumbs mt-2" data-aos="fade-up" data-aos-delay="100">
-                <ol class="flex space-x-2">
-                    <li><a href="{{ route('user.home.index') }}" class="hover:text-white">Beranda</a></li>
+        <div class="container">
+            <h1 data-aos="fade-up">Tracking Surat</h1>
+            <nav class="breadcrumbs" data-aos="fade-up" data-aos-delay="100">
+                <ol>
+                    <li><a href="{{ route('user.home.index') }}">Beranda</a></li>
                     <li class="current">Tracking Surat</li>
                 </ol>
             </nav>
         </div>
     </div>
 
-    <section id="tracking" class="py-16">
-        <div class="container mx-auto px-4">
-            <div class="tracking-container max-w-3xl mx-auto" data-aos="fade-up" data-aos-delay="300">
-                <div class="card-header">
-                    <div class="header-content flex items-center">
-                        <svg class="tracking-icon fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                            <path
-                                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-                        </svg>
-                        <div>
-                            <h4 class="text-xl font-bold text-white mb-1">Cek Status Surat Anda</h4>
-                            <p class="text-orange-100 text-sm">Masukkan kode tracking untuk melihat status terkini</p>
-                        </div>
+    <!-- Main Content -->
+    <section id="tracking" class="section py-5">
+        <div class="container">
+            <div class="tracking-container" data-aos="fade-up">
+                <!-- Header -->
+                <div class="tracking-header">
+                    <div class="header-icon">
+                        <i class="bi bi-search"></i>
                     </div>
+                    <h2 class="header-title text-white">Cek Status Surat</h2>
+                    <p class="header-subtitle">Masukkan kode tracking untuk melihat status terkini surat Anda</p>
                 </div>
 
-                <div class="card-body">
-                    <div class="form-container">
-                        <form action="{{ route('user.tracking-surat.index') }}" method="GET" id="trackingForm">
-                            <div class="input-group">
-                                <div class="input-wrapper">
-                                    <input type="text" class="form-control" name="tracking_code"
-                                        placeholder="Masukkan Kode Tracking (12 karakter)" required maxlength="12"
-                                        value="{{ old('tracking_code') }}" autocomplete="off" id="trackingInput">
-                                    <svg class="input-icon" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd"
-                                            d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-                                            clip-rule="evenodd"></path>
-                                    </svg>
-                                </div>
-                                <button id="searchBtn" class="btn btn-primary" type="submit">
-                                    <span class="loading-spinner hidden"></span>
-                                    <span class="btn-text flex items-center">
-                                        <i class="bi bi-search mr-2"></i>
-                                        Lacak Surat
-                                    </span>
-                                </button>
+                <!-- Form Body -->
+                <div class="tracking-body">
+                    <form id="trackingForm" action="{{ route('user.tracking-surat.index') }}" method="GET">
+                        <div class="form-group">
+                            <label for="trackingInput" class="form-label">
+                                Kode Tracking
+                            </label>
+                            <div class="input-wrapper">
+                                <input type="text" id="trackingInput" name="tracking_code" class="form-input"
+                                    placeholder="Masukkan 12 karakter kode tracking" value="{{ old('tracking_code') }}"
+                                    maxlength="12" autocomplete="off" required>
+                                <i class="bi bi-search input-icon"></i>
                             </div>
-                        </form>
+                            <div class="char-counter" id="charCounter">0/12 karakter</div>
+                        </div>
 
-                        @if (session('error'))
-                            <div class="alert alert-error flex items-start" data-aos="fade-in">
-                                <svg class="w-6 h-6 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd"
-                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                                        clip-rule="evenodd"></path>
-                                </svg>
-                                <div>
-                                    <p class="font-semibold">Pencarian Gagal</p>
-                                    <p class="text-sm mt-1">{{ session('error') }}</p>
-                                </div>
-                            </div>
-                        @endif
+                        <button type="submit" id="submitBtn" class="btn-primary" disabled>
+                            <span class="btn-spinner hidden" id="spinner"></span>
+                            <span id="btnText">
+                                <i class="bi bi-search"></i>
+                                Lacak Surat
+                            </span>
+                        </button>
+                    </form>
 
-                        <div class="feature-highlight" data-aos="fade-up" data-aos-delay="400">
-                            <h5 class="font-semibold text-orange-800 mb-3 flex items-center">
-                                <i class="bi bi-info-circle mr-2"></i>
-                                Informasi Tracking
-                            </h5>
-                            <div class="feature-item">
-                                <i class="bi bi-check-circle feature-icon"></i>
-                                <span>Kode tracking terdiri dari 12 karakter</span>
+                    <!-- Error Alert -->
+                    @if (session('error'))
+                        <div class="alert alert-error" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill alert-icon"></i>
+                            <div>
+                                <strong>Pencarian Gagal</strong>
+                                <p class="mb-0 mt-1">{{ session('error') }}</p>
                             </div>
-                            <div class="feature-item">
-                                <i class="bi bi-shield-check feature-icon"></i>
-                                <span>Data terlindungi dan hanya dapat diakses oleh pemilik</span>
-                            </div>
+                        </div>
+                    @endif
+
+                    <!-- Info Section -->
+                    <div class="info-section">
+                        <h3 class="info-title">
+                            <i class="bi bi-info-circle"></i>
+                            Informasi Tracking
+                        </h3>
+                        <div class="info-item">
+                            <i class="bi bi-check-circle info-icon"></i>
+                            <span>Kode tracking terdiri dari tepat 12 karakter</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="bi bi-shield-check info-icon"></i>
+                            <span>Data terlindungi dan hanya dapat diakses oleh pemilik</span>
                         </div>
                     </div>
                 </div>
@@ -409,75 +406,81 @@
 
 @push('scripts')
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Initialize AOS
-            AOS.init({
-                duration: 800,
-                easing: 'ease-out-cubic',
-                once: true,
-                offset: 50
-            });
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elements
+            const form = document.getElementById('trackingForm');
+            const input = document.getElementById('trackingInput');
+            const submitBtn = document.getElementById('submitBtn');
+            const spinner = document.getElementById('spinner');
+            const btnText = document.getElementById('btnText');
+            const charCounter = document.getElementById('charCounter');
 
-            const trackingForm = document.getElementById('trackingForm');
-            const trackingInput = document.getElementById('trackingInput');
-            const searchBtn = document.getElementById('searchBtn');
+            // Auto-focus input
+            input.focus();
 
+            // Input validation and counter
+            function updateInputState() {
+                const value = input.value.trim();
+                const length = value.length;
 
-            function updateButtonState() {
-                const isValid = trackingInput.value.length === 12;
-                searchBtn.disabled = !isValid;
+                // Update character counter
+                charCounter.textContent = `${length}/12 karakter`;
 
-                if (isValid) {
-                    searchBtn.classList.remove('opacity-50');
-                    trackingInput.classList.remove('border-red-300');
-                    trackingInput.classList.add('border-orange-300');
+                // Update counter color and button state
+                if (length === 12) {
+                    charCounter.className = 'char-counter valid';
+                    submitBtn.disabled = false;
+                    input.classList.remove('is-invalid');
                 } else {
-                    searchBtn.classList.add('opacity-50');
-                    if (trackingInput.value.length > 0) {
-                        trackingInput.classList.add('border-red-300');
-                        trackingInput.classList.remove('border-orange-300');
+                    charCounter.className = length > 0 ? 'char-counter invalid' : 'char-counter';
+                    submitBtn.disabled = true;
+                    if (length > 0 && length !== 12) {
+                        input.classList.add('is-invalid');
+                    } else {
+                        input.classList.remove('is-invalid');
                     }
                 }
             }
 
-            // Form submission
-            trackingForm.addEventListener('submit', function(e) {
-                const code = trackingInput.value.trim();
-                const btnText = searchBtn.querySelector('.btn-text');
-                const spinner = searchBtn.querySelector('.loading-spinner');
+            // Input event listeners
+            input.addEventListener('input', updateInputState);
+            input.addEventListener('paste', function() {
+                // Delay to allow paste content to be processed
+                setTimeout(updateInputState, 10);
+            });
 
-                // Validation
+            // Form submission
+            form.addEventListener('submit', function(e) {
+                const code = input.value.trim();
+
+                // Final validation
                 if (code.length !== 12) {
                     e.preventDefault();
-
-                    trackingInput.focus();
+                    input.focus();
+                    input.classList.add('is-invalid');
                     return false;
                 }
 
                 // Show loading state
-                btnText.classList.add('hidden');
+                submitBtn.disabled = true;
                 spinner.classList.remove('hidden');
-                searchBtn.disabled = true;
+                btnText.innerHTML = '<i class="bi bi-hourglass-split"></i> Mencari...';
 
-                // Add loading text
-                const loadingText = document.createElement('span');
-                loadingText.textContent = 'Mencari...';
-                loadingText.className = 'ml-2';
-                searchBtn.appendChild(loadingText);
+                return true;
             });
 
-            // Auto-focus on input
-            trackingInput.focus();
+            // Initialize state
+            updateInputState();
 
-            // Add paste event handler
-            trackingInput.addEventListener('paste', function(e) {
-                setTimeout(() => {
-                    updateButtonState();
-                }, 10);
-            });
-
-            // Initialize button state
-            updateButtonState();
+            // Initialize AOS with minimal settings for better performance
+            if (typeof AOS !== 'undefined') {
+                AOS.init({
+                    duration: 400,
+                    once: true,
+                    offset: 100,
+                    disable: 'mobile' // Disable on mobile for better performance
+                });
+            }
         });
     </script>
 @endpush

@@ -288,6 +288,11 @@
                                         <input type="text" class="form-control"
                                             value="{{ $surat->nomor_surat ?? 'Belum ditentukan' }}" readonly>
                                     </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Tanggal Pengajuan</label>
+                                        <input type="text" class="form-control"
+                                            value="{{ $surat->created_at->format('d F Y') }}" readonly>
+                                    </div>
                                 </div>
                             </div>
                             <!-- Informasi Mahasiswa -->
@@ -324,7 +329,7 @@
                                     <div class="col-md-6">
                                         <label class="form-label">Tahun Ajaran</label>
                                         <input type="text" class="form-control"
-                                            value="{{ $surat->tahun_ajaran ?? '-' }}" readonly>
+                                            value="{{ $tahunAjaranAktif->tahun ?? '-' }}" readonly>
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label">Semester</label>

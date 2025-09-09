@@ -220,13 +220,11 @@
                                         <input type="text" class="form-control"
                                             value="{{ $surat->nomor_surat ?? 'Belum ditentukan' }}" readonly>
                                     </div>
+
                                     <div class="col-md-6">
-                                        <label class="form-label">Status Surat</label>
-                                        <div class="d-flex align-items-center">
-                                            <span class="{{ $surat->status_badge_class }}">
-                                                {{ $surat->status_display }}
-                                            </span>
-                                        </div>
+                                        <label class="form-label">Tanggal Pengajuan</label>
+                                        <input type="text" class="form-control"
+                                            value="{{ $surat->created_at->format('d F Y') }}" readonly>
                                     </div>
                                 </div>
                             </div>
