@@ -23,54 +23,29 @@ class TrackingSuratController extends Controller
             ]);
 
             $code = $request->tracking_code;
-
-            // Kumpulkan semua tracking code
             $trackingCodes = $this->collectTrackingCodes();
-            sort($trackingCodes);
 
-            // Hitung waktu dan iterasi untuk binary search
-            $startTime = microtime(true);
-            $searchResult = $this->binarySearch($trackingCodes, $code);
-            $endTime = microtime(true);
-            $executionTime = ($endTime - $startTime) * 1000; // Konversi ke milidetik
-            $iterationCount = is_array($searchResult) ? $searchResult['iterations'] : null;
+            // === COMPARISON ANALYSIS ===
+            $performanceData = $this->performSearchComparison($trackingCodes, $code);
 
-            // Binary search
-            if ($this->binarySearch($trackingCodes, $code) === false) {
-                Log::warning('Kode tracking tidak ditemukan', [
-                    'code' => $code,
-                    'user_id' => Auth::id(),
-                ]);
+            if (!$performanceData['found']) {
                 return back()->with('error', 'Kode tracking tidak ditemukan.');
             }
 
-            // Cari surat
             $surat = $this->findSuratByTrackingCode($code);
 
             if (!$surat || $surat->mahasiswa_id !== Auth::id()) {
                 return back()->with('error', 'Surat tidak ditemukan atau Anda tidak memiliki akses.');
             }
 
-            // Load relasi dengan eager loading yang benar
+            // Load data seperti sebelumnya...
             $surat->load([
                 'mahasiswa',
-                'status.updatedBy', // Pastikan updatedBy dimuat
+                'status.updatedBy',
                 'trackings.mahasiswa',
                 'penandatangan',
                 'penandatanganKaprodi',
             ]);
-
-            // Pastikan status ada
-            if (!$surat->status()->exists()) {
-                StatusSurat::create([
-                    'surat_type' => get_class($surat),
-                    'surat_id' => $surat->id,
-                    'status' => 'diajukan',
-                    'catatan_admin' => 'Status default dibuat sistem',
-                    'updated_by' => Auth::id(),
-                ]);
-                $surat->load('status.updatedBy'); // Reload relasi status dan updatedBy
-            }
 
             $progressPercentage = $this->calculateProgressPercentage($surat->statusSurat->status);
             $statusSteps = $this->getStatusSteps($surat->statusSurat->status);
@@ -85,11 +60,63 @@ class TrackingSuratController extends Controller
                 'unknown' => 'bi-question-circle'
             ];
 
-
-            return view('user.tracking-surat.show', compact('surat', 'executionTime', 'iterationCount', 'progressPercentage', 'statusSteps', 'statusIcons'));
+            return view('user.tracking-surat.show', compact(
+                'surat',
+                'performanceData',
+                'progressPercentage',
+                'statusSteps',
+                'statusIcons'
+            ));
         }
 
         return view('user.tracking-surat.index');
+    }
+
+    /**
+     * Melakukan perbandingan performa antara Linear Search dan Binary Search
+     */
+    protected function performSearchComparison($trackingCodes, $target)
+    {
+        $dataSize = count($trackingCodes);
+
+        // === LINEAR SEARCH ===
+        $startTime = microtime(true);
+        $linearResult = $this->linearSearch($trackingCodes, $target);
+        $endTime = microtime(true);
+        $linearTime = ($endTime - $startTime) * 1000;
+
+        // === BINARY SEARCH ===
+        sort($trackingCodes); // Binary search memerlukan data terurut
+        $startTime = microtime(true);
+        $binaryResult = $this->binarySearch($trackingCodes, $target);
+        $endTime = microtime(true);
+        $binaryTime = ($endTime - $startTime) * 1000;
+
+        // === CALCULATE PERFORMANCE METRICS ===
+        $improvement = $linearTime > 0 ? (($linearTime - $binaryTime) / $linearTime) * 100 : 0;
+        $speedup = $binaryTime > 0 ? $linearTime / $binaryTime : 1;
+
+        return [
+            'found' => $linearResult['found'] && $binaryResult['found'],
+            'data_size' => $dataSize,
+            'linear_search' => [
+                'time' => $linearTime,
+                'iterations' => $linearResult['iterations'],
+                'complexity' => 'O(n)',
+                'worst_case' => $dataSize
+            ],
+            'binary_search' => [
+                'time' => $binaryTime,
+                'iterations' => $binaryResult['iterations'],
+                'complexity' => 'O(log n)',
+                'worst_case' => ceil(log($dataSize, 2))
+            ],
+            'performance' => [
+                'improvement_percentage' => round($improvement, 2),
+                'speedup_factor' => round($speedup, 2),
+                'efficiency_gained' => $linearResult['iterations'] - $binaryResult['iterations']
+            ]
+        ];
     }
 
     protected function calculateProgressPercentage($status)
@@ -185,6 +212,9 @@ class TrackingSuratController extends Controller
         return array_unique($codes);
     }
 
+    /**
+     * Binary Search Implementation (Enhanced)
+     */
     protected function binarySearch($array, $target)
     {
         $left = 0;
@@ -196,7 +226,11 @@ class TrackingSuratController extends Controller
             $mid = floor(($left + $right) / 2);
 
             if ($array[$mid] === $target) {
-                return ['index' => $mid, 'iterations' => $iterations];
+                return [
+                    'found' => true,
+                    'index' => $mid,
+                    'iterations' => $iterations
+                ];
             }
 
             if ($array[$mid] < $target) {
@@ -206,7 +240,36 @@ class TrackingSuratController extends Controller
             }
         }
 
-        return ['index' => false, 'iterations' => $iterations];
+        return [
+            'found' => false,
+            'index' => -1,
+            'iterations' => $iterations
+        ];
+    }
+
+    /**
+     * Linear Search Implementation
+     */
+    protected function linearSearch($array, $target)
+    {
+        $iterations = 0;
+
+        for ($i = 0; $i < count($array); $i++) {
+            $iterations++;
+            if ($array[$i] === $target) {
+                return [
+                    'found' => true,
+                    'index' => $i,
+                    'iterations' => $iterations
+                ];
+            }
+        }
+
+        return [
+            'found' => false,
+            'index' => -1,
+            'iterations' => $iterations
+        ];
     }
 
     protected function findSuratByTrackingCode($code)

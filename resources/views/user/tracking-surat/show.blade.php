@@ -300,6 +300,42 @@
             margin-bottom: 1rem;
         }
 
+        /* Algorithm Comparison Enhancements */
+        .algorithm-step {
+            transition: all 0.3s ease;
+        }
+
+        .algorithm-step:hover {
+            transform: translateX(5px);
+            background-color: rgba(0, 0, 0, 0.02);
+        }
+
+        .performance-grid {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        }
+
+        .metric-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Responsive improvements */
+        @media (max-width: 640px) {
+            .algorithm-step {
+                flex-direction: column;
+                align-items: start;
+            }
+
+            .performance-grid>div {
+                text-align: left;
+            }
+        }
+
         @media (max-width: 768px) {
             .status-steps {
                 flex-wrap: wrap;
@@ -492,30 +528,235 @@
                     @endif
                 </div>
 
-                <!-- Performance Info (for tech-savvy users) -->
-                <details class="card p-4 mb-6 overflow-hidden" data-aos="fade-up" data-aos-delay="300">
-                    <summary class="cursor-pointer font-semibold text-gray-700 flex items-center">
-                        <i class="bi bi-speedometer2 mr-2 text-blue-600"></i>
-                        Informasi Teknis Pencarian
-                        <span class="ml-auto transform transition-transform duration-300">›</span>
-                    </summary>
-                    <div class="mt-4 pt-4 border-t border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="bg-blue-50 p-4 rounded-lg">
-                            <p class="text-sm text-blue-800 font-medium">Jumlah Iterasi</p>
-                            <p class="text-2xl font-bold text-blue-600">{{ $iterationCount ?? '0' }}</p>
+
+                <!-- Performance Comparison Analysis -->
+                <div class="card p-6 mb-6" data-aos="fade-up" data-aos-delay="400">
+                    <h2 class="text-2xl font-semibold mb-6 flex items-center">
+                        <i class="bi bi-graph-up mr-2 text-green-600"></i>
+                        Analisis Performa Algoritma Pencarian
+                    </h2>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                        <!-- Linear Search Results -->
+                        <div class="bg-red-50 border border-red-200 rounded-xl p-6">
+                            <div class="flex items-center mb-4">
+                                <div class="bg-red-100 p-3 rounded-full mr-4">
+                                    <i class="bi bi-arrow-right text-red-600 text-xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-red-800">Linear Search</h3>
+                                    <p class="text-sm text-red-600">Pencarian Berurutan (O(n))</p>
+                                </div>
+                            </div>
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-red-700">Waktu Eksekusi:</span>
+                                    <span class="font-mono font-semibold text-red-800">
+                                        {{ number_format($performanceData['linear_search']['time'], 4) }} ms
+                                    </span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-red-700">Jumlah Iterasi:</span>
+                                    <span class="font-mono font-semibold text-red-800">
+                                        {{ $performanceData['linear_search']['iterations'] }}
+                                    </span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-red-700">Worst Case:</span>
+                                    <span class="font-mono font-semibold text-red-800">
+                                        {{ $performanceData['linear_search']['worst_case'] }} iterasi
+                                    </span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="bg-purple-50 p-4 rounded-lg">
-                            <p class="text-sm text-purple-800 font-medium">Waktu Eksekusi</p>
-                            <p class="text-2xl font-bold text-purple-600">{{ number_format($executionTime ?? 0, 2) }} ms
-                            </p>
-                        </div>
-                        <div class="md:col-span-2 bg-gray-50 p-4 rounded-lg">
-                            <p class="text-sm text-gray-800 font-medium">Efisiensi Algoritma</p>
-                            <p class="text-gray-600">Binary Search (O(log n)) memberikan performa optimal untuk pencarian
-                                dalam kumpulan data yang besar.</p>
+
+                        <!-- Binary Search Results -->
+                        <div class="bg-green-50 border border-green-200 rounded-xl p-6">
+                            <div class="flex items-center mb-4">
+                                <div class="bg-green-100 p-3 rounded-full mr-4">
+                                    <i class="bi bi-lightning text-green-600 text-xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-green-800">Binary Search</h3>
+                                    <p class="text-sm text-green-600">Pencarian Biner (O(log n))</p>
+                                </div>
+                            </div>
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-green-700">Waktu Eksekusi:</span>
+                                    <span class="font-mono font-semibold text-green-800">
+                                        {{ number_format($performanceData['binary_search']['time'], 4) }} ms
+                                    </span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-green-700">Jumlah Iterasi:</span>
+                                    <span class="font-mono font-semibold text-green-800">
+                                        {{ $performanceData['binary_search']['iterations'] }}
+                                    </span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-green-700">Worst Case:</span>
+                                    <span class="font-mono font-semibold text-green-800">
+                                        {{ $performanceData['binary_search']['worst_case'] }} iterasi
+                                    </span>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </details>
+
+                    <!-- Performance Metrics -->
+                    <div class="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-6">
+                        <h3 class="font-bold text-blue-800 mb-4 flex items-center">
+                            <i class="bi bi-trophy mr-2"></i>
+                            Hasil Optimasi
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-blue-600 mb-1">
+                                    {{ $performanceData['performance']['improvement_percentage'] }}%
+                                </div>
+                                <div class="text-sm text-blue-700">Peningkatan Efisiensi</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-blue-600 mb-1">
+                                    {{ $performanceData['performance']['speedup_factor'] }}x
+                                </div>
+                                <div class="text-sm text-blue-700">Faktor Percepatan</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-blue-600 mb-1">
+                                    {{ $performanceData['performance']['efficiency_gained'] }}
+                                </div>
+                                <div class="text-sm text-blue-700">Iterasi Dihemat</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Scalability Analysis -->
+                    <div class="bg-gray-50 rounded-xl p-6">
+                        <h3 class="font-bold text-gray-800 mb-4 flex items-center">
+                            <i class="bi bi-graph-up-arrow mr-2"></i>
+                            Analisis Skalabilitas
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="text-center">
+                                <h4 class="font-semibold text-gray-700 mb-2">Data Saat Ini</h4>
+                                <p class="text-2xl font-bold text-gray-800">
+                                    {{ number_format($performanceData['data_size']) }}</p>
+                                <p class="text-sm text-gray-600">tracking codes</p>
+                            </div>
+                            <div class="text-center">
+                                <h4 class="font-semibold text-gray-700 mb-2">Proyeksi 1,000 Data</h4>
+                                <p class="text-sm text-gray-600">
+                                    <span class="text-red-600 font-semibold">Linear:</span> ~1,000 iterasi<br>
+                                    <span class="text-green-600 font-semibold">Binary:</span> ~10 iterasi
+                                </p>
+                            </div>
+                            <div class="text-center">
+                                <h4 class="font-semibold text-gray-700 mb-2">Proyeksi 10,000 Data</h4>
+                                <p class="text-sm text-gray-600">
+                                    <span class="text-red-600 font-semibold">Linear:</span> ~10,000 iterasi<br>
+                                    <span class="text-green-600 font-semibold">Binary:</span> ~14 iterasi
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Algorithm Visualization -->
+                <div class="card p-6 mb-6" data-aos="fade-up" data-aos-delay="500">
+                    <h2 class="text-2xl font-semibold mb-6 flex items-center">
+                        <i class="bi bi-diagram-3 mr-2 text-purple-600"></i>
+                        Visualisasi Proses Algoritma
+                    </h2>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-red-50 rounded-lg p-6 border border-red-200">
+                            <h3 class="font-bold text-red-800 mb-3 flex items-center">
+                                <i class="bi bi-arrow-right-circle mr-2"></i>
+                                Linear Search Process
+                            </h3>
+                            <div class="text-sm text-red-700 space-y-2">
+                                <div class="flex items-start">
+                                    <span
+                                        class="bg-red-200 text-red-800 rounded-full w-6 h-6 flex items-center justify-center text-xs mr-3 mt-0.5">1</span>
+                                    <p>Mulai dari elemen pertama dalam array</p>
+                                </div>
+                                <div class="flex items-start">
+                                    <span
+                                        class="bg-red-200 text-red-800 rounded-full w-6 h-6 flex items-center justify-center text-xs mr-3 mt-0.5">2</span>
+                                    <p>Periksa setiap elemen satu per satu</p>
+                                </div>
+                                <div class="flex items-start">
+                                    <span
+                                        class="bg-red-200 text-red-800 rounded-full w-6 h-6 flex items-center justify-center text-xs mr-3 mt-0.5">3</span>
+                                    <p>Berhenti ketika elemen ditemukan</p>
+                                </div>
+                                <div class="mt-4 p-3 bg-red-100 rounded">
+                                    <p class="font-semibold text-red-800">Kompleksitas: O(n)</p>
+                                    <p class="text-xs text-red-600">Waktu eksekusi bertambah linear dengan ukuran data</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-green-50 rounded-lg p-6 border border-green-200">
+                            <h3 class="font-bold text-green-800 mb-3 flex items-center">
+                                <i class="bi bi-lightning-charge mr-2"></i>
+                                Binary Search Process
+                            </h3>
+                            <div class="text-sm text-green-700 space-y-2">
+                                <div class="flex items-start">
+                                    <span
+                                        class="bg-green-200 text-green-800 rounded-full w-6 h-6 flex items-center justify-center text-xs mr-3 mt-0.5">1</span>
+                                    <p>Bagi array yang sudah terurut menjadi dua bagian</p>
+                                </div>
+                                <div class="flex items-start">
+                                    <span
+                                        class="bg-green-200 text-green-800 rounded-full w-6 h-6 flex items-center justify-center text-xs mr-3 mt-0.5">2</span>
+                                    <p>Bandingkan target dengan elemen tengah</p>
+                                </div>
+                                <div class="flex items-start">
+                                    <span
+                                        class="bg-green-200 text-green-800 rounded-full w-6 h-6 flex items-center justify-center text-xs mr-3 mt-0.5">3</span>
+                                    <p>Pilih setengah yang relevan dan ulangi</p>
+                                </div>
+                                <div class="mt-4 p-3 bg-green-100 rounded">
+                                    <p class="font-semibold text-green-800">Kompleksitas: O(log n)</p>
+                                    <p class="text-xs text-green-600">Waktu eksekusi bertambah logaritmik dengan ukuran
+                                        data</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Performance Graph Simulation -->
+                    <div class="mt-6 p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border">
+                        <h4 class="font-bold text-gray-800 mb-4 text-center">Perbandingan Performa pada Berbagai Ukuran
+                            Data</h4>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                            <div>
+                                <p class="text-sm text-gray-600">100 Data</p>
+                                <p class="text-red-600 font-semibold">Linear: ~100</p>
+                                <p class="text-green-600 font-semibold">Binary: ~7</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-600">1,000 Data</p>
+                                <p class="text-red-600 font-semibold">Linear: ~1,000</p>
+                                <p class="text-green-600 font-semibold">Binary: ~10</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-600">10,000 Data</p>
+                                <p class="text-red-600 font-semibold">Linear: ~10,000</p>
+                                <p class="text-green-600 font-semibold">Binary: ~14</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-600">100,000 Data</p>
+                                <p class="text-red-600 font-semibold">Linear: ~100,000</p>
+                                <p class="text-green-600 font-semibold">Binary: ~17</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Action Buttons -->
                 <div class="flex flex-col sm:flex-row justify-between gap-4" data-aos="fade-up">

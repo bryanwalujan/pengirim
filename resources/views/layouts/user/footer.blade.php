@@ -74,8 +74,8 @@
                             Pindah</a></li>
                     <li><a href="{{ route('user.services.index') }}"><i class="bi bi-chevron-right"></i>Layanan
                             Akademik</a></li>
-                    <li><a href="{{ route('academic-calendar.view', ['filename' => 'latest.pdf']) }}"><i
-                                class="bi bi-chevron-right"></i>Kalender Akademik</a></li>
+                    <li><a href="{{ url('/#academic-calendar') }}"><i class="bi bi-chevron-right"></i>Kalender
+                            Akademik</a></li>
                 </ul>
             </div>
 
@@ -83,9 +83,11 @@
             <div class="col-lg-2 col-md-4 col-6 footer-links">
                 <h4><i class="bi bi-info-circle me-2"></i>Informasi</h4>
                 <ul>
-                    <li><a href="#"><i class="bi bi-chevron-right"></i>Tentang E-Services</a></li>
-                    <li><a href="#"><i class="bi bi-chevron-right"></i>FAQ</a></li>
-                    <li><a href="#"><i class="bi bi-chevron-right"></i>Panduan Penggunaan</a></li>
+                    <li><a href="{{ url('/#about') }}"><i class="bi bi-chevron-right"></i>Tentang
+                            E-Services</a></li>
+                    <li><a href="{{ url('/#faq') }}"><i class="bi bi-chevron-right"></i>FAQ</a></li>
+                    <li><a href="#"><i class="bi bi-chevron-right"></i>Panduan
+                            Penggunaan</a></li>
                 </ul>
             </div>
 
@@ -112,7 +114,7 @@
             <div class="row align-items-center">
                 <div class="col-md-6 text-center text-md-start">
                     <p class="copyright-text">
-                        © <span id="currentYear">2025</span>
+                        © <span id="currentYear">{{ date('Y') }}</span>
                         <strong class="sitename">E-Services Teknik Informatika</strong>
                         <span>All Rights Reserved</span>
                     </p>

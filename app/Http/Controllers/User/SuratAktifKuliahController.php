@@ -56,7 +56,7 @@ class SuratAktifKuliahController extends Controller
                 $query->where('semester', $request->semester);
             })
             ->latest()
-            ->paginate(10);
+            ->paginate(5);
 
         return view('user.surat-aktif-kuliah.index', [
             'service' => $service,

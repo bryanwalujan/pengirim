@@ -255,7 +255,7 @@
     </section>
 
     <!-- FAQ Section -->
-    <section class="faq-9 faq section orange-background" id="faq">
+    <section class="faq section orange-background" id="faq">
         <div class="container">
             <div class="row">
                 <div class="col-lg-5" data-aos="fade-up">
