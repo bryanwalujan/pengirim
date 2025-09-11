@@ -439,12 +439,41 @@
 @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Enhanced search functionality
+            // Declare all variables at the top
             const searchInput = document.querySelector('input[name="search"]');
             const resetBtn = document.querySelector('#resetBtn');
             const searchForm = document.querySelector('.search-container form');
 
-            // Auto-focus search input on page load (hanya jika tidak ada nilai search)
+            // Function to toggle reset button visibility
+            function toggleResetButton() {
+                if (searchInput && searchInput.value.trim().length > 0) {
+                    resetBtn.style.display = 'flex';
+                    searchInput.style.paddingRight = '110px';
+                } else if (resetBtn) {
+                    resetBtn.style.display = 'none';
+                    if (searchInput) {
+                        searchInput.style.paddingRight = '3.5rem';
+                    }
+                }
+            }
+
+            // Initialize reset button state
+            if (searchInput && resetBtn) {
+                toggleResetButton();
+
+                // Listen for input changes
+                searchInput.addEventListener('input', toggleResetButton);
+
+                // Reset button click handler
+                resetBtn.addEventListener('click', function() {
+                    searchInput.value = '';
+                    toggleResetButton();
+                    // Redirect to clear search
+                    window.location.href = "{{ route('user.services.index') }}";
+                });
+            }
+
+            // Auto-focus search input on page load (only if no search value)
             if (searchInput && !searchInput.value.trim()) {
                 setTimeout(() => {
                     searchInput.focus();
@@ -452,15 +481,17 @@
             }
 
             // Real-time search validation
-            if (searchInput) {
+            if (searchInput && searchForm) {
                 searchInput.addEventListener('input', function() {
                     const value = this.value.trim();
                     const submitBtn = searchForm.querySelector('button[type="submit"]');
 
-                    if (value.length === 0) {
-                        submitBtn.style.opacity = '0.6';
-                    } else {
-                        submitBtn.style.opacity = '1';
+                    if (submitBtn) {
+                        if (value.length === 0) {
+                            submitBtn.style.opacity = '0.6';
+                        } else {
+                            submitBtn.style.opacity = '1';
+                        }
                     }
                 });
 
@@ -492,121 +523,174 @@
             const paginationLinks = document.querySelectorAll('.services-pagination .page-link');
             paginationLinks.forEach(link => {
                 link.addEventListener('click', function(e) {
-                    if (!this.closest('.page-item').classList.contains('disabled') &&
-                        !this.closest('.page-item').classList.contains('active')) {
+                    const pageItem = this.closest('.page-item');
+                    if (pageItem && !pageItem.classList.contains('disabled') &&
+                        !pageItem.classList.contains('active')) {
                         // Add loading state
+                        const originalHTML = this.innerHTML;
                         this.innerHTML = '<i class="bi bi-arrow-clockwise"></i>';
                         this.style.pointerEvents = 'none';
+
+                        // Restore original state if navigation fails
+                        setTimeout(() => {
+                            this.innerHTML = originalHTML;
+                            this.style.pointerEvents = '';
+                        }, 5000);
                     }
                 });
             });
 
             // Initialize AOS with enhanced settings
-            if (typeof AOS !== 'undefined') {
-                AOS.init({
-                    duration: 600,
-                    easing: 'ease-out-cubic',
-                    once: true,
-                    mirror: false,
-                    offset: 50
-                });
+            if (typeof AOS !== 'undefined' && AOS && typeof AOS.init === 'function') {
+                try {
+                    AOS.init({
+                        duration: 600,
+                        easing: 'ease-out-cubic',
+                        once: true,
+                        mirror: false,
+                        offset: 50,
+                        disable: function() {
+                            return window.innerWidth < 768;
+                        }
+                    });
+                } catch (error) {
+                    console.warn('AOS initialization failed:', error);
+                }
             }
 
             // Performance optimization: Lazy load service cards
             if ('IntersectionObserver' in window) {
                 const serviceCards = document.querySelectorAll('.service-card');
-                const cardObserver = new IntersectionObserver((entries) => {
-                    entries.forEach(entry => {
-                        if (entry.isIntersecting) {
-                            entry.target.style.willChange = 'transform';
-                            cardObserver.unobserve(entry.target);
-                        }
+                if (serviceCards.length > 0) {
+                    const cardObserver = new IntersectionObserver((entries) => {
+                        entries.forEach(entry => {
+                            if (entry.isIntersecting) {
+                                entry.target.style.willChange = 'transform';
+                                cardObserver.unobserve(entry.target);
+                            }
+                        });
+                    }, {
+                        threshold: 0.1,
+                        rootMargin: '50px'
                     });
+
+                    serviceCards.forEach(card => {
+                        cardObserver.observe(card);
+                    });
+                }
+            }
+
+            // Enhanced search suggestions (placeholder for future enhancement)
+            function initSearchSuggestions() {
+                if (!searchInput) return;
+
+                const commonSearchTerms = [
+                    'surat aktif kuliah',
+                    'surat cuti akademik',
+                    'surat pindah',
+                    'ijin survey',
+                    'akademik'
+                ];
+
+                // Placeholder for search suggestions functionality
+                // Can be implemented in the future if needed
+            }
+
+            // Initialize search suggestions
+            initSearchSuggestions();
+
+            // Service card hover optimization
+            const serviceCards = document.querySelectorAll('.service-card');
+            serviceCards.forEach(card => {
+                let hoverTimeout;
+
+                card.addEventListener('mouseenter', function() {
+                    clearTimeout(hoverTimeout);
+                    this.style.willChange = 'transform';
                 }, {
-                    threshold: 0.1,
-                    rootMargin: '50px'
+                    passive: true
                 });
 
-                serviceCards.forEach(card => {
-                    cardObserver.observe(card);
+                card.addEventListener('mouseleave', function() {
+                    hoverTimeout = setTimeout(() => {
+                        this.style.willChange = 'auto';
+                    }, 300);
+                }, {
+                    passive: true
                 });
+            });
+
+            // Keyboard navigation enhancement
+            if (searchInput) {
+                searchInput.addEventListener('keydown', function(e) {
+                    // Press Escape to clear search
+                    if (e.key === 'Escape') {
+                        this.value = '';
+                        toggleResetButton();
+                        this.blur();
+                    }
+                    // Press Enter to submit (default behavior)
+                    else if (e.key === 'Enter' && this.value.trim().length === 0) {
+                        e.preventDefault();
+                        this.focus();
+                    }
+                });
+            }
+
+            // Handle browser back/forward buttons
+            window.addEventListener('popstate', function(e) {
+                // Refresh page content if needed
+                if (searchInput) {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const searchParam = urlParams.get('search');
+                    searchInput.value = searchParam || '';
+                    toggleResetButton();
+                }
+            });
+
+            // Performance monitoring (optional - remove in production)
+            if (typeof PerformanceObserver !== 'undefined') {
+                try {
+                    const observer = new PerformanceObserver((list) => {
+                        for (const entry of list.getEntries()) {
+                            if (entry.duration > 16) { // > 1 frame at 60fps
+                                console.warn('Long task detected:', entry.duration + 'ms', entry.name);
+                            }
+                        }
+                    });
+                    observer.observe({
+                        entryTypes: ['longtask']
+                    });
+                } catch (error) {
+                    console.warn('Performance observer failed:', error);
+                }
             }
         });
 
-        // Function to toggle reset button visibility
-        function toggleResetButton() {
-            if (searchInput.value.trim().length > 0) {
-                resetBtn.style.display = 'flex';
-                searchInput.style.paddingRight = '110px';
-            } else {
-                resetBtn.style.display = 'none';
-                searchInput.style.paddingRight = '3.5rem';
+        // Passive scroll listener for performance
+        let scrollTicking = false;
+        document.addEventListener('scroll', function() {
+            if (!scrollTicking) {
+                requestAnimationFrame(() => {
+                    scrollTicking = false;
+                });
+                scrollTicking = true;
             }
-        }
+        }, {
+            passive: true
+        });
 
-        // Initial check
-        if (searchInput) {
-            toggleResetButton();
-
-            // Listen for input changes
-            searchInput.addEventListener('input', toggleResetButton);
-
-            // Reset button click handler
-            resetBtn.addEventListener('click', function() {
-                searchInput.value = '';
-                toggleResetButton();
-                // Redirect to clear search
-                window.location.href = "{{ route('user.services.index') }}";
-            });
-
-            // Auto-focus search input on page load (hanya jika tidak ada nilai search)
-            if (!searchInput.value.trim()) {
-                setTimeout(() => {
-                    searchInput.focus();
-                }, 800);
+        // Handle page visibility changes
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden && typeof AOS !== 'undefined' && AOS && typeof AOS.refresh === 'function') {
+                try {
+                    setTimeout(() => {
+                        AOS.refresh();
+                    }, 100);
+                } catch (error) {
+                    console.warn('AOS visibility refresh failed:', error);
+                }
             }
-
-            // Real-time search validation
-            searchInput.addEventListener('input', function() {
-                const value = this.value.trim();
-                const submitBtn = searchForm.querySelector('button[type="submit"]');
-
-                if (value.length === 0) {
-                    submitBtn.style.opacity = '0.6';
-                } else {
-                    submitBtn.style.opacity = '1';
-                }
-            });
-
-            // Enhanced search form submission
-            searchForm.addEventListener('submit', function(e) {
-                const searchValue = searchInput.value.trim();
-                if (searchValue.length === 0) {
-                    e.preventDefault();
-                    searchInput.focus();
-                    return false;
-                }
-            });
-        }
-
-        // Enhanced search suggestions (optional)
-        function initSearchSuggestions() {
-            const searchInput = document.querySelector('input[name="search"]');
-            if (!searchInput) return;
-
-            const commonSearchTerms = [
-                'surat aktif kuliah',
-                'surat cuti akademik',
-                'surat pindah',
-                'ijin survey',
-                'akademik'
-            ];
-
-            // You can implement search suggestions here if needed
-            // This is just a placeholder for future enhancement
-        }
-
-        // Call initialization
-        initSearchSuggestions();
+        });
     </script>
 @endpush

@@ -12,16 +12,40 @@
     <link rel="dns-prefetch" href="//i.ytimg.com">
 
     <style>
-        /* Reduce layout shift */
+        /* Critical CSS untuk services section */
         .service-card {
             min-height: 120px;
-            contain: layout;
+            contain: layout style;
+            transform: translateZ(0);
+            /* Force GPU acceleration */
+            backface-visibility: hidden;
         }
 
-        /* Optimize animations */
+        /* Optimize animations untuk 60fps */
         [data-aos] {
-            transition-duration: 0.6s;
+            transition-duration: 0.4s;
             transition-timing-function: ease-out;
+        }
+
+        /* Preload hover states */
+        .service-card:hover {
+            transform: translateY(-4px) translateZ(0);
+        }
+
+        /* Reduce paint complexity */
+        .services-section::before {
+            will-change: auto;
+        }
+
+        /* Optimize for mobile */
+        @media (max-width: 768px) {
+            .service-card {
+                min-height: 100px;
+            }
+
+            [data-aos] {
+                transition-duration: 0.2s;
+            }
         }
     </style>
 @endpush
@@ -171,33 +195,28 @@
             @if ($services->count() > 0)
                 <div class="services-grid" data-aos="fade-up" data-aos-delay="100">
                     @foreach ($services as $service)
-                        <div class="service-card" data-aos="fade-up" data-aos-delay="{{ 100 + $loop->index * 50 }}">
+                        <div class="service-card" data-aos="fade-up"
+                            data-aos-delay="{{ min(300, 100 + $loop->index * 50) }}" data-aos-duration="400">
                             <div class="icon flex-shrink-0">
-                                <i class="{{ $service->icon }}"></i>
+                                <i class="{{ $service->icon }}" aria-hidden="true"></i>
                             </div>
                             <div class="service-content">
                                 <h3>{{ $service->name }}</h3>
-                                <p>{{ Str::limit(strip_tags($service->description), 150) }}</p>
+                                <p>{{ Str::limit(strip_tags($service->description), 120) }}</p>
                                 @auth
-                                    <a href="{{ $service->getServiceIndexRoute() }}" class="read-more">
+                                    <a href="{{ $service->getServiceIndexRoute() }}" class="read-more" rel="noopener">
                                         <span>Lihat Layanan</span>
-                                        <i class="bi bi-arrow-right"></i>
+                                        <i class="bi bi-arrow-right" aria-hidden="true"></i>
                                     </a>
                                 @else
-                                    <a href="{{ route('login') }}" class="read-more">
+                                    <a href="{{ route('login') }}" class="read-more" rel="noopener">
                                         <span>Lihat Layanan</span>
-                                        <i class="bi bi-arrow-right"></i>
+                                        <i class="bi bi-arrow-right" aria-hidden="true"></i>
                                     </a>
                                 @endauth
                             </div>
                         </div>
                     @endforeach
-                </div>
-            @else
-                <div class="services-empty-state" data-aos="fade-up" data-aos-delay="100">
-                    <i class="bi bi-folder2-open"></i>
-                    <h4>Belum Ada Layanan</h4>
-                    <p>Layanan E-Services akan segera tersedia untuk memudahkan kebutuhan akademik Anda.</p>
                 </div>
             @endif
 
@@ -301,29 +320,25 @@
 
 @push('scripts')
     <script>
-        // High-performance lazy loading with Intersection Observer
+        // Optimized performance script with fixed AOS initialization
         document.addEventListener('DOMContentLoaded', function() {
-            // Optimized Intersection Observer
+            // Throttled intersection observer untuk lazy loading
             if ('IntersectionObserver' in window) {
                 const imageObserver = new IntersectionObserver((entries, observer) => {
                     entries.forEach(entry => {
                         if (entry.isIntersecting) {
                             const img = entry.target;
 
-                            // Create new image for preloading
-                            const newImg = new Image();
-                            newImg.onload = function() {
-                                img.src = img.dataset.src;
-                                img.classList.remove('lazy-image');
-                                img.style.background = 'none';
-                            };
-                            newImg.src = img.dataset.src;
+                            // Faster image loading
+                            img.src = img.dataset.src;
+                            img.classList.remove('lazy-image');
+                            img.style.background = 'none';
 
                             imageObserver.unobserve(img);
                         }
                     });
                 }, {
-                    rootMargin: '50px 0px',
+                    rootMargin: '25px 0px',
                     threshold: 0.1
                 });
 
@@ -331,64 +346,142 @@
                     imageObserver.observe(img);
                 });
             } else {
-                // Fallback untuk browser lama
+                // Fallback
                 document.querySelectorAll('.lazy-image').forEach(img => {
                     img.src = img.dataset.src;
                 });
             }
 
-            // Optimized link prefetching
-            let prefetchedLinks = new Set();
-            const linkObserver = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const link = entry.target;
-                        const href = link.href;
-
-                        if (href && href.startsWith('/') && !prefetchedLinks.has(href)) {
-                            const linkPreload = document.createElement('link');
-                            linkPreload.rel = 'prefetch';
-                            linkPreload.href = href;
-                            document.head.appendChild(linkPreload);
-                            prefetchedLinks.add(href);
-                        }
+            // Fixed AOS initialization with proper error handling
+            if (typeof AOS !== 'undefined' && AOS && typeof AOS.init === 'function') {
+                try {
+                    // Clear any existing AOS instances first
+                    if (typeof AOS.refresh === 'function') {
+                        AOS.refresh();
                     }
+
+                    // Reset all AOS elements before initialization
+                    document.querySelectorAll('[data-aos]').forEach(element => {
+                        element.classList.remove('aos-animate', 'aos-init');
+                        element.style.transition = '';
+                        element.style.transform = '';
+                        element.style.opacity = '';
+                    });
+
+                    // Wait a bit before initializing to avoid conflicts
+                    setTimeout(() => {
+                        AOS.init({
+                            duration: 400,
+                            easing: 'ease-out',
+                            once: true,
+                            mirror: false, // Explicitly set to false
+                            offset: 50,
+                            delay: 0, // Add explicit delay
+                            disable: function() {
+                                // Disable on smaller screens and slower devices
+                                return window.innerWidth < 768 ||
+                                    (navigator.hardwareConcurrency && navigator
+                                        .hardwareConcurrency < 4);
+                            },
+                            // Additional options to prevent conflicts
+                            useClassNames: false,
+                            disableMutationObserver: false,
+                            debounceDelay: 50,
+                            throttleDelay: 99,
+                            startEvent: 'DOMContentLoaded',
+                            animatedClassName: 'aos-animate',
+                            initClassName: 'aos-init'
+                        });
+                    }, 100);
+
+                } catch (error) {
+                    console.warn('AOS initialization failed:', error);
+                    // Fallback: remove all AOS attributes to prevent further errors
+                    document.querySelectorAll('[data-aos]').forEach(element => {
+                        element.removeAttribute('data-aos');
+                        element.removeAttribute('data-aos-delay');
+                        element.removeAttribute('data-aos-duration');
+                        element.removeAttribute('data-aos-easing');
+                    });
+                }
+            } else {
+                console.warn('AOS library not found or not properly loaded');
+            }
+
+            // Optimized service card hover effects with throttling
+            let hoverTimeout;
+            document.querySelectorAll('.service-card').forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    clearTimeout(hoverTimeout);
+                    this.style.willChange = 'transform';
+                }, {
+                    passive: true
                 });
-            }, {
-                rootMargin: '100px'
+
+                card.addEventListener('mouseleave', function() {
+                    hoverTimeout = setTimeout(() => {
+                        this.style.willChange = 'auto';
+                    }, 300);
+                }, {
+                    passive: true
+                });
             });
 
-            document.querySelectorAll('a[href^="/"]').forEach(link => {
-                linkObserver.observe(link);
-            });
+            // Enhanced error handling for performance monitoring
+            if (typeof PerformanceObserver !== 'undefined') {
+                try {
+                    const observer = new PerformanceObserver((list) => {
+                        for (const entry of list.getEntries()) {
+                            if (entry.duration > 16) { // > 1 frame at 60fps
+                                console.warn('Long task detected:', entry.duration + 'ms');
+                            }
+                        }
+                    });
+                    observer.observe({
+                        entryTypes: ['longtask']
+                    });
+                } catch (error) {
+                    console.warn('Performance observer failed:', error);
+                }
+            }
         });
 
-        // Throttled scroll handler untuk better performance
-        let ticking = false;
-
-        function updateOnScroll() {
-            // Minimal scroll handling
-            ticking = false;
-        }
-
+        // Passive scroll listener
+        let scrollTicking = false;
         document.addEventListener('scroll', function() {
-            if (!ticking) {
-                requestAnimationFrame(updateOnScroll);
-                ticking = true;
+            if (!scrollTicking) {
+                requestAnimationFrame(() => {
+                    scrollTicking = false;
+                });
+                scrollTicking = true;
             }
         }, {
             passive: true
         });
 
-        // Optimize AOS animations
-        if (typeof AOS !== 'undefined') {
-            AOS.init({
-                duration: 600,
-                easing: 'ease-out-cubic',
-                once: true,
-                mirror: false,
-                disable: window.innerWidth < 768 // Disable on mobile
-            });
-        }
+        // Additional error handling for window load
+        window.addEventListener('load', function() {
+            // Double check AOS after page fully loaded
+            if (typeof AOS !== 'undefined' && AOS && typeof AOS.refresh === 'function') {
+                try {
+                    AOS.refresh();
+                } catch (error) {
+                    console.warn('AOS refresh failed:', error);
+                }
+            }
+        });
+
+        // Handle page visibility changes to refresh AOS
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden && typeof AOS !== 'undefined' && AOS && typeof AOS.refresh === 'function') {
+                try {
+                    setTimeout(() => {
+                        AOS.refresh();
+                    }, 100);
+                } catch (error) {
+                    console.warn('AOS visibility refresh failed:', error);
+                }
+            }
+        });
     </script>
 @endpush

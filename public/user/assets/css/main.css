@@ -1839,19 +1839,18 @@ section,
 }
 
 /*--------------------------------------------------------------
-# Services Section - Modern Redesign
+# Services Section - Performance Optimized
 --------------------------------------------------------------*/
 .services-section {
     position: relative;
     padding: 100px 0 80px 0;
     background: linear-gradient(
         135deg,
-        rgba(255, 140, 0, 0.04) 0%,
-        rgba(255, 107, 53, 0.03) 30%,
+        rgba(255, 140, 0, 0.03) 0%,
         rgba(255, 255, 255, 1) 70%,
         rgba(248, 250, 252, 1) 100%
     );
-    overflow: hidden;
+    /* Removed complex background patterns for better performance */
 }
 
 .services-section::before {
@@ -1862,17 +1861,13 @@ section,
     right: 0;
     bottom: 0;
     background: radial-gradient(
-            circle at 15% 20%,
-            rgba(255, 140, 0, 0.06) 0%,
-            transparent 50%
-        ),
-        radial-gradient(
-            circle at 85% 80%,
-            rgba(255, 107, 53, 0.04) 0%,
-            transparent 60%
-        );
+        circle at 15% 20%,
+        rgba(255, 140, 0, 0.04) 0%,
+        transparent 50%
+    );
     pointer-events: none;
     z-index: 0;
+    /* Simplified background overlay */
 }
 
 .services-section .container {
@@ -1880,58 +1875,37 @@ section,
     z-index: 1;
 }
 
-/* Enhanced Service Card */
+/* Optimized Service Card */
 .service-card {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.98);
     margin: 1rem 0;
-    padding: 2rem 1.5rem;
-    border-radius: 20px;
-    border: 1px solid rgba(255, 140, 0, 0.1);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06),
-        0 4px 15px rgba(255, 140, 0, 0.08);
-    transition: all 0.3s ease;
+    padding: 1.75rem 1.5rem;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 140, 0, 0.08);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
     display: flex;
     align-items: flex-start;
     gap: 1.5rem;
-    min-height: 180px;
-    contain: layout style;
+    min-height: 160px;
+    contain: layout style paint;
     position: relative;
-    overflow: hidden;
+    will-change: transform;
+    /* Simplified styling, faster transitions */
 }
 
-.service-card::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(
-        135deg,
-        rgba(255, 140, 0, 0.02) 0%,
-        transparent 50%
-    );
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.service-card:hover::before {
-    opacity: 1;
-}
-
+/* Removed complex pseudo-elements for better performance */
 .service-card:hover {
-    transform: translateY(-8px);
-    border-color: rgba(255, 140, 0, 0.2);
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1),
-        0 8px 25px rgba(255, 140, 0, 0.15);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    border-color: rgba(255, 140, 0, 0.15);
 }
 
-/* Enhanced Icon Styling */
+/* Simplified Icon Styling */
 .service-card .icon {
     flex-shrink: 0;
-    width: 70px;
-    height: 70px;
+    width: 64px;
+    height: 64px;
     background: linear-gradient(
         135deg,
         rgba(255, 140, 0, 0.1) 0%,
@@ -1940,61 +1914,37 @@ section,
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 16px;
-    border: 2px solid rgba(255, 140, 0, 0.15);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 140, 0, 0.12);
     color: var(--orange-primary);
-    font-size: 28px;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
+    font-size: 24px;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+    /* Removed complex pseudo-elements */
 }
 
-.service-card .icon::before {
-    content: "";
-    position: absolute;
-    inset: 0;
+.service-card:hover .icon {
+    transform: scale(1.02);
     background: linear-gradient(
         135deg,
         var(--orange-primary) 0%,
         var(--orange-secondary) 100%
     );
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    border-radius: inherit;
-}
-
-.service-card:hover .icon {
-    border-color: var(--orange-primary);
-    transform: scale(1.05);
-}
-
-.service-card:hover .icon::before {
-    opacity: 1;
-}
-
-.service-card .icon i {
-    position: relative;
-    z-index: 2;
-    transition: color 0.3s ease;
-}
-
-.service-card:hover .icon i {
     color: white;
 }
 
-/* Content Styling */
+/* Simplified Content Styling */
 .service-card .service-content {
     flex-grow: 1;
     min-width: 0;
 }
 
 .service-card h3 {
-    font-size: 1.25rem;
+    font-size: 1.2rem;
     font-weight: 700;
     color: var(--heading-color);
     margin-bottom: 0.75rem;
-    line-height: 1.4;
-    transition: color 0.3s ease;
+    line-height: 1.3;
+    transition: color 0.2s ease;
 }
 
 .service-card:hover h3 {
@@ -2004,15 +1954,16 @@ section,
 .service-card p {
     font-size: 0.95rem;
     color: rgba(45, 70, 94, 0.8);
-    line-height: 1.6;
-    margin-bottom: 1.25rem;
+    line-height: 1.5;
+    margin-bottom: 1rem;
     display: -webkit-box;
-    --webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
+    --webkit-line-clamp: 2;
+    --webkit-box-orient: vertical;
     overflow: hidden;
+    /* Reduced line clamp for consistency */
 }
 
-/* Enhanced Read More Button */
+/* Simplified Read More Button */
 .read-more {
     display: inline-flex;
     align-items: center;
@@ -2022,146 +1973,79 @@ section,
     font-size: 0.9rem;
     text-decoration: none;
     padding: 0.5rem 1rem;
-    border-radius: 8px;
+    border-radius: 6px;
     background: rgba(255, 140, 0, 0.05);
     border: 1px solid rgba(255, 140, 0, 0.1);
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-}
-
-.read-more::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-        135deg,
-        var(--orange-primary) 0%,
-        var(--orange-secondary) 100%
-    );
-    opacity: 0;
-    transition: opacity 0.3s ease;
+    transition: all 0.2s ease;
+    /* Removed complex pseudo-elements */
 }
 
 .read-more:hover {
     color: white;
+    background: var(--orange-primary);
     border-color: var(--orange-primary);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(255, 140, 0, 0.2);
-}
-
-.read-more:hover::before {
-    opacity: 1;
 }
 
 .read-more i {
-    font-size: 14px;
-    transition: transform 0.3s ease;
-    position: relative;
-    z-index: 2;
+    font-size: 12px;
+    transition: transform 0.2s ease;
 }
 
 .read-more:hover i {
-    transform: translateX(3px);
+    transform: translateX(2px);
 }
 
-.read-more span {
-    position: relative;
-    z-index: 2;
-}
-
-/* Enhanced Explore Button */
+/* Simplified Explore Button */
 .explore-btn {
-    position: relative;
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 1rem 2.5rem;
+    padding: 0.875rem 2rem;
     font-size: 1rem;
     font-weight: 600;
     text-decoration: none;
     color: var(--orange-primary);
-    background: rgba(255, 255, 255, 0.9);
+    background: white;
     border: 2px solid var(--orange-primary);
-    border-radius: 50px;
-    transition: all 0.3s ease;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 4px 15px rgba(255, 140, 0, 0.2);
-    overflow: hidden;
-}
-
-.explore-btn::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-        135deg,
-        var(--orange-primary) 0%,
-        var(--orange-secondary) 100%
-    );
-    transform: translateX(-100%);
-    transition: transform 0.3s ease;
+    border-radius: 25px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(255, 140, 0, 0.1);
+    /* Removed complex background effects */
 }
 
 .explore-btn:hover {
     color: white;
+    background: var(--orange-primary);
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(255, 140, 0, 0.3);
-}
-
-.explore-btn:hover::before {
-    transform: translateX(0);
-}
-
-.explore-btn span,
-.explore-btn i {
-    position: relative;
-    z-index: 2;
-    transition: transform 0.3s ease;
+    box-shadow: 0 4px 12px rgba(255, 140, 0, 0.2);
 }
 
 .explore-btn:hover i {
-    transform: translateX(3px);
+    transform: translateX(2px);
 }
 
-/* Section Title Override for Services */
-.services-section .section-title h2 {
-    background: linear-gradient(
-        135deg,
-        var(--heading-color) 0%,
-        var(--orange-primary) 100%
-    );
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.services-section .section-title p {
-    color: rgba(45, 70, 94, 0.8);
-    max-width: 650px;
-}
-
-/* Service Grid Layout */
+/* Optimized Grid Layout */
 .services-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-    gap: 2rem;
-    margin-top: 3rem;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2.5rem;
 }
 
-/* Empty State Styling */
+/* Simplified Empty State */
 .services-empty-state {
     text-align: center;
-    padding: 4rem 2rem;
-    background: rgba(255, 255, 255, 0.8);
-    border-radius: 20px;
-    border: 2px dashed rgba(255, 140, 0, 0.2);
+    padding: 3rem 2rem;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 16px;
+    border: 1px dashed rgba(255, 140, 0, 0.2);
     margin: 2rem 0;
 }
 
 .services-empty-state i {
-    font-size: 4rem;
-    color: rgba(255, 140, 0, 0.3);
+    font-size: 3rem;
+    color: rgba(255, 140, 0, 0.4);
     margin-bottom: 1rem;
 }
 
@@ -2175,51 +2059,55 @@ section,
     margin-bottom: 0;
 }
 
-/* Responsive Design */
+/* Responsive Design - Optimized */
 @media (max-width: 1200px) {
-    .services-grid {
-        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-        gap: 1.5rem;
-    }
-}
-
-@media (max-width: 992px) {
-    .services-section {
-        padding: 80px 0 60px 0;
-    }
-
-    .service-card {
-        flex-direction: column;
-        text-align: center;
-        gap: 1.25rem;
-        padding: 1.75rem 1.25rem;
-        min-height: auto;
-    }
-
-    .service-card .icon {
-        margin: 0 auto;
-    }
-
     .services-grid {
         grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
         gap: 1.25rem;
     }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 992px) {
     .services-section {
-        padding: 60px 0 50px 0;
+        padding: 70px 0 50px 0;
     }
 
     .service-card {
-        padding: 1.5rem 1rem;
-        margin: 0.75rem 0;
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+        padding: 1.5rem 1.25rem;
+        min-height: auto;
     }
 
     .service-card .icon {
-        width: 60px;
-        height: 60px;
-        font-size: 24px;
+        margin: 0 auto;
+        width: 56px;
+        height: 56px;
+        font-size: 22px;
+    }
+
+    .services-grid {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .services-section {
+        padding: 50px 0 40px 0;
+    }
+
+    .service-card {
+        padding: 1.25rem 1rem;
+        margin: 0.5rem 0;
+        border-radius: 12px;
+    }
+
+    .service-card .icon {
+        width: 48px;
+        height: 48px;
+        font-size: 20px;
     }
 
     .service-card h3 {
@@ -2228,31 +2116,29 @@ section,
 
     .service-card p {
         font-size: 0.9rem;
-        --webkit-line-clamp: 2;
     }
 
     .explore-btn {
-        padding: 0.875rem 2rem;
+        padding: 0.75rem 1.75rem;
         font-size: 0.95rem;
     }
 
     .services-grid {
         grid-template-columns: 1fr;
-        gap: 1rem;
+        gap: 0.75rem;
     }
 }
 
 @media (max-width: 576px) {
     .service-card {
-        border-radius: 15px;
-        padding: 1.25rem 0.875rem;
+        padding: 1rem 0.875rem;
     }
 
     .service-card .icon {
-        width: 55px;
-        height: 55px;
-        font-size: 22px;
-        border-radius: 12px;
+        width: 44px;
+        height: 44px;
+        font-size: 18px;
+        border-radius: 10px;
     }
 
     .service-card h3 {
@@ -2261,50 +2147,40 @@ section,
 
     .read-more {
         font-size: 0.85rem;
-        padding: 0.4rem 0.8rem;
+        padding: 0.4rem 0.75rem;
     }
 
     .explore-btn {
         width: 100%;
         justify-content: center;
-        padding: 0.75rem 2rem;
+        padding: 0.75rem 1.5rem;
     }
 
     .services-empty-state {
-        padding: 3rem 1.5rem;
+        padding: 2rem 1.5rem;
     }
 
     .services-empty-state i {
-        font-size: 3rem;
+        font-size: 2.5rem;
     }
 }
 
 /* Performance Optimizations */
 .services-section * {
-    contain: layout;
+    /* Removed contain property that might cause issues */
 }
 
 .service-card {
     contain: layout style;
+    /* More specific containment */
 }
 
-/* Accessibility Improvements */
+/* Accessibility - Simplified */
 .service-card:focus-within,
 .read-more:focus-visible,
 .explore-btn:focus-visible {
     outline: 2px solid var(--orange-primary);
     outline-offset: 2px;
-}
-
-/* High contrast mode support */
-@media (prefers-contrast: high) {
-    .service-card {
-        border: 2px solid var(--orange-primary);
-    }
-
-    .service-card .icon {
-        border-width: 3px;
-    }
 }
 
 /* Reduced motion preference */
@@ -2314,12 +2190,20 @@ section,
     .read-more,
     .explore-btn {
         transition: none;
-        animation: none;
     }
 
     .service-card:hover {
         transform: none;
     }
+}
+
+/* GPU acceleration for smooth animations */
+.service-card,
+.service-card .icon,
+.read-more,
+.explore-btn {
+    backface-visibility: hidden;
+    transform: translateZ(0);
 }
 
 /*--------------------------------------------------------------
