@@ -12,21 +12,6 @@
     <link rel="dns-prefetch" href="//i.ytimg.com">
 
     <style>
-        .stats-container {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-            contain: layout;
-        }
-
-        .stat-item {
-            flex: 1;
-            min-width: 200px;
-            will-change: transform;
-        }
-
-
-
         /* Reduce layout shift */
         .service-card {
             min-height: 120px;
@@ -45,34 +30,33 @@
 
     {{-- Hero Section --}}
     <section id="hero" class="hero section">
-
         <div class="container" data-aos="fade-up" data-aos-delay="100">
-
             <div class="row align-items-center">
                 <div class="col-lg-6">
                     <div class="hero-content" data-aos="fade-up" data-aos-delay="200">
-                        <div class="company-badge mb-4">
-                            <i class="bi bi-gear-fill me-2"></i>
-                            Optimalisasi Layanan Akademik
+                        <div class="company-badge">
+                            <i class="bi bi-gear-fill"></i>
+                            <span>Optimalisasi Layanan Akademik</span>
                         </div>
 
-                        <h1 class="mb-4">
+                        <h1>
                             E-Service <br>
                             Teknik Informatika <br>
                             <span class="accent-text">UNIMA</span>
                         </h1>
 
-                        <p class="mb-4 mb-md-5">
-                            Platform ini dirancang untuk mempermudah akses layanan administrasi akademik dan informasi
-                            penting bagi mahasiswa, dosen, dan staf Program Studi Teknik Informatika Universitas Negeri
-                            Manado.
+                        <p>
+                            Platform digital terpadu untuk mempermudah akses layanan administrasi akademik mahasiswa, dosen,
+                            dan staf Program Studi Teknik Informatika Universitas Negeri Manado.
                         </p>
 
                         <div class="hero-buttons">
-                            <a href="{{ route('login') }}" class="btn btn-primary me-0 me-sm-2 mx-1">Mulai Sekarang</a>
-                            <a href="https://www.youtube.com/watch?v=mTcMxE4ZwaQ"
-                                class="btn btn-link mt-2 mt-sm-0 glightbox">
-                                <i class="bi bi-play-circle me-1"></i>
+                            <a href="{{ route('login') }}" class="btn btn-primary">
+                                <i class="bi bi-rocket-takeoff"></i>
+                                Mulai Sekarang
+                            </a>
+                            <a href="https://www.youtube.com/watch?v=mTcMxE4ZwaQ" class="btn btn-link glightbox">
+                                <i class="bi bi-play-circle"></i>
                                 Lihat Video
                             </a>
                         </div>
@@ -81,15 +65,14 @@
 
                 <div class="col-lg-6">
                     <div class="hero-image" data-aos="zoom-out" data-aos-delay="300">
-                        {{-- Main Logo --}}
                         <img src="{{ asset('img/logo-unima.png') }}" alt="Logo UNIMA - E-Service Teknik Informatika"
-                            class="img-fluid main-logo" width="500" height="500" loading="eager" fetchpriority="high"
+                            class="img-fluid main-logo" width="450" height="450" loading="eager" fetchpriority="high"
                             decoding="async">
                     </div>
                 </div>
             </div>
 
-            <div class="stats-container mt-5" data-aos="fade-up" data-aos-delay="500">
+            <div class="stats-container" data-aos="fade-up" data-aos-delay="500">
                 <div class="stat-item">
                     <div class="stat-icon">
                         <i class="bi bi-file-earmark-text"></i>
@@ -123,15 +106,12 @@
                     </div>
                 </div>
             </div>
-
-
         </div>
     </section>
     {{-- End Hero Section --}}
 
     {{-- About Section --}}
     <section id="about" class="about section ">
-        <div class="floating-shapes"></div>
         <div class="container" data-aos="fade-up" data-aos-delay="100">
             <div class="row gy-4 align-items-center justify-content-between">
                 <div class="col-xl-5" data-aos="fade-up" data-aos-delay="200">
@@ -254,7 +234,7 @@
         </div>
     </section>
 
-    <!-- FAQ Section -->
+    {{-- FAQ Section --}}
     <section class="faq section orange-background" id="faq">
         <div class="container">
             <div class="row">
@@ -310,9 +290,7 @@
             </div>
         </div>
     </section>
-    <!-- End FAQ Section -->
-
-
+    {{-- End FAQ Section --}}
 @endsection
 
 @push('scripts')

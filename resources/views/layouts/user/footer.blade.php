@@ -43,18 +43,17 @@
                 <div class="social-links">
                     <h5 class="social-title">Ikuti Kami</h5>
                     <div class="social-icons">
-                        <a href="https://twitter.com/unima_official" class="social-link twitter" title="Twitter">
-                            <i class="bi bi-twitter-x"></i>
-                        </a>
-                        <a href="https://facebook.com/unima.official" class="social-link facebook" title="Facebook">
+                        <a href="https://www.facebook.com/profile.php?id=100046755076902" target="_blank"
+                            class="social-link facebook" title="Facebook">
                             <i class="bi bi-facebook"></i>
                         </a>
-                        <a href="https://instagram.com/unima_official" class="social-link instagram" title="Instagram">
+                        <a href="https://www.instagram.com/informatikaftunima/" target="_blank"
+                            class="social-link instagram" title="Instagram">
                             <i class="bi bi-instagram"></i>
                         </a>
-                        <a href="https://linkedin.com/company/universitas-negeri-manado" class="social-link linkedin"
-                            title="LinkedIn">
-                            <i class="bi bi-linkedin"></i>
+                        <a href="https://www.youtube.com/@informatikaftunima6429" target="_blank"
+                            class="social-link youtube" title="Youtube">
+                            <i class="bi bi-youtube"></i>
                         </a>
                     </div>
                 </div>
@@ -132,5 +131,4 @@
             </div>
         </div>
     </div>
-
 </footer>
