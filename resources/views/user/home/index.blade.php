@@ -162,43 +162,49 @@
     {{-- End About Section --}}
 
     <!-- Services Section -->
-    <section id="services" class="services-section orange-background">
+    <section id="services" class="services-section">
         <div class="container" data-aos="fade-up">
-            <div class="section-title pb-4">
+            <div class="section-title pb-1">
                 <h2>Layanan E-Services</h2>
                 <p>Berikut adalah beberapa layanan yang tersedia di E-Services Teknik Informatika UNIMA</p>
             </div>
-            <div class="row d-flex justify-content-center" data-aos="fade-up" data-aos-delay="100">
-                @forelse ($services as $service)
-                    <div class="col-lg-4" data-aos="fade-up" data-aos-delay="{{ 100 + $loop->index * 100 }}">
-                        <div class="service-card d-flex">
+            @if ($services->count() > 0)
+                <div class="services-grid" data-aos="fade-up" data-aos-delay="100">
+                    @foreach ($services as $service)
+                        <div class="service-card" data-aos="fade-up" data-aos-delay="{{ 100 + $loop->index * 50 }}">
                             <div class="icon flex-shrink-0">
                                 <i class="{{ $service->icon }}"></i>
                             </div>
-                            <div>
+                            <div class="service-content">
                                 <h3>{{ $service->name }}</h3>
-                                <p class="text-small">{{ Str::limit(strip_tags($service->description), 150) }}</p>
+                                <p>{{ Str::limit(strip_tags($service->description), 150) }}</p>
                                 @auth
                                     <a href="{{ $service->getServiceIndexRoute() }}" class="read-more">
-                                        Lihat Layanan <i class="bi bi-arrow-right"></i>
+                                        <span>Lihat Layanan</span>
+                                        <i class="bi bi-arrow-right"></i>
                                     </a>
                                 @else
                                     <a href="{{ route('login') }}" class="read-more">
-                                        Lihat Layanan <i class="bi bi-arrow-right"></i>
+                                        <span>Lihat Layanan</span>
+                                        <i class="bi bi-arrow-right"></i>
                                     </a>
                                 @endauth
                             </div>
                         </div>
-                    </div>
-                @empty
-                    <div class="col-12 text-center">
-                        <p class="text-muted">Belum ada layanan tersedia.</p>
-                    </div>
-                @endforelse
-            </div>
-            <div class="text-center mt-4" data-aos="fade-up" data-aos-delay="300">
+                    @endforeach
+                </div>
+            @else
+                <div class="services-empty-state" data-aos="fade-up" data-aos-delay="100">
+                    <i class="bi bi-folder2-open"></i>
+                    <h4>Belum Ada Layanan</h4>
+                    <p>Layanan E-Services akan segera tersedia untuk memudahkan kebutuhan akademik Anda.</p>
+                </div>
+            @endif
+
+            <div class="text-center mt-5" data-aos="fade-up" data-aos-delay="300">
                 <a href="{{ route('user.services.index') }}" class="explore-btn">
-                    Lihat Semua Layanan <i class="bi bi-arrow-right ms-2"></i>
+                    <span>Lihat Semua Layanan</span>
+                    <i class="bi bi-arrow-right"></i>
                 </a>
             </div>
         </div>
