@@ -416,13 +416,6 @@ class AdminSuratAktifKuliahController extends DocumentController
 
                 DB::commit();
 
-                // Clear notification badge cache
-                if (class_exists('\App\Helpers\SuratNotificationHelper')) {
-                    SuratNotificationHelper::clearSuratCache('surat_aktif_kuliah');
-                }
-
-                // Clear cache after approval
-                app(SuratSubmissionService::class)->clearCache($surat->mahasiswa_id);
 
                 return redirect()->route('admin.surat-aktif-kuliah.index')
                     ->with('success', 'Surat berhasil disetujui dan file telah dibuat');
@@ -449,6 +442,14 @@ class AdminSuratAktifKuliahController extends DocumentController
                 ]);
 
                 DB::commit();
+
+                // Clear cache after approval
+                app(SuratSubmissionService::class)->clearCache($surat->mahasiswa_id);
+
+                // Clear notification badge cache
+                if (class_exists('\App\Helpers\SuratNotificationHelper')) {
+                    SuratNotificationHelper::clearSuratCache('surat_aktif_kuliah');
+                }
 
                 return redirect()->back()
                     ->with('success', 'Surat telah ditolak');

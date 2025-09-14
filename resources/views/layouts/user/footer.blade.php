@@ -25,10 +25,10 @@
                         </div>
                     </div>
                     <div class="contact-item">
-                        <i class="bi bi-telephone-fill"></i>
+                        <i class="bi bi-whatsapp-fill"></i>
                         <div>
-                            <strong>Phone:</strong>
-                            <span>+62 431 123456</span>
+                            <strong>Whatsapp:</strong>
+                            <span>+62 898-5029-407</span>
                         </div>
                     </div>
                     <div class="contact-item">
