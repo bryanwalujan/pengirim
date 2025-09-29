@@ -417,6 +417,12 @@ class AdminSuratAktifKuliahController extends DocumentController
                 DB::commit();
 
 
+                // Clear notification badge cache
+                if (class_exists('\App\Helpers\SuratNotificationHelper')) {
+                    SuratNotificationHelper::clearSuratCache('surat_aktif_kuliah');
+                }
+
+
                 return redirect()->route('admin.surat-aktif-kuliah.index')
                     ->with('success', 'Surat berhasil disetujui dan file telah dibuat');
             } else {

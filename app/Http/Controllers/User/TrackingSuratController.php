@@ -213,7 +213,7 @@ class TrackingSuratController extends Controller
     }
 
     /**
-     * Binary Search Implementation (Enhanced)
+     * Binary Search Implementation 
      */
     protected function binarySearch($array, $target)
     {

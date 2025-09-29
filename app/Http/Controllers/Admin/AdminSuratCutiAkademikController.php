@@ -379,6 +379,11 @@ class AdminSuratCutiAkademikController extends DocumentController
 
                 DB::commit();
 
+                // Clear notification badge cache
+                if (class_exists('\App\Helpers\SuratNotificationHelper')) {
+                    SuratNotificationHelper::clearSuratCache('surat_cuti_akademik');
+                }
+
 
                 return redirect()->route('admin.surat-cuti-akademik.index')
                     ->with('success', 'Surat berhasil disetujui dan file telah dibuat');

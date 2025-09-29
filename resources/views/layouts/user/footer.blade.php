@@ -25,7 +25,7 @@
                         </div>
                     </div>
                     <div class="contact-item">
-                        <i class="bi bi-whatsapp-fill"></i>
+                        <i class="bi bi-whatsapp"></i>
                         <div>
                             <strong>Whatsapp:</strong>
                             <span>+62 898-5029-407</span>

@@ -458,6 +458,11 @@ class AdminSuratIjinSurveyController extends DocumentController
 
                 DB::commit();
 
+                // Clear notification badge cache
+                if (class_exists('\App\Helpers\SuratNotificationHelper')) {
+                    SuratNotificationHelper::clearSuratCache('surat_ijin_survey');
+                }
+
                 return redirect()->route('admin.surat-ijin-survey.index')
                     ->with('success', 'Surat berhasil disetujui dan file telah dibuat');
             } else {

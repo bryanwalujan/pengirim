@@ -78,7 +78,7 @@
         <div class="text-center">
             <h4 class="font-weight-bold" style="margin: 0; padding: 0; font-size: 14pt; line-height: 2;">
                 PERSETUJUAN KOMISI PEMBIMBING<br>
-                UNTUK SEMINAR HASIL SKRIPSI
+                UNTUK UJIAN HASIL SKRIPSI
             </h4>
         </div>
 
