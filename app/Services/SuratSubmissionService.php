@@ -38,7 +38,7 @@ class SuratSubmissionService
     {
         $userId = $userId ?? Auth::id();
         $finalStatuses = config('surat.final_statuses', []);
-        $requireFile = config('surat.require_generated_file', true);
+        $requireFile = config('surat.require_generated_file', false);
         $models = config('surat.models', []);
         $labels = config('surat.model_labels', []);
 

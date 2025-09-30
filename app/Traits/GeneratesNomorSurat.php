@@ -3,9 +3,11 @@
 namespace App\Traits;
 
 use App\Models\SuratPindah;
+use App\Models\TahunAjaran;
 use App\Models\SuratIjinSurvey;
 use App\Models\SuratAktifKuliah;
 use App\Models\SuratCutiAkademik;
+use Illuminate\Support\Facades\Log;
 // Tambahkan model lain yang menggunakan nomor surat
 // use App\Models\SuratLainnya;
 
@@ -16,11 +18,20 @@ trait GeneratesNomorSurat
      */
     public function generateNomorSuratUniversal($prefix = 'UN41.2/TI', $customNumber = null)
     {
-        $currentYear = date('Y');
+        // Ambil tahun ajaran aktif
+        $activeTahunAjaran = TahunAjaran::where('status_aktif', true)->first();
+
+        if (!$activeTahunAjaran) {
+            throw new \Exception('Tidak ada tahun ajaran aktif yang ditemukan');
+        }
+
+        // Extract tahun dari tahun ajaran (format: 2024/2025)
+        $tahunParts = explode('/', $activeTahunAjaran->tahun);
+        $currentAcademicYear = $tahunParts[0]; // Ambil tahun pertama
 
         // Jika ada nomor custom yang valid
         if ($customNumber && preg_match('#^\d{1,4}$#', $customNumber)) {
-            return sprintf('%04d/%s/%s', $customNumber, $prefix, $currentYear);
+            return sprintf('%04d/%s/%s', $customNumber, $prefix, $currentAcademicYear);
         }
 
         // Daftar semua model surat yang menggunakan sistem penomoran ini
@@ -29,16 +40,15 @@ trait GeneratesNomorSurat
             SuratIjinSurvey::class,
             SuratCutiAkademik::class,
             SuratPindah::class,
-            // Tambahkan model lain di sini, misalnya:
-            // SuratLainnya::class,
         ];
 
         $latestNumbers = [];
 
         foreach ($suratModels as $model) {
+            // Cari surat dengan tahun ajaran yang sama
             $latest = $model::withTrashed()
-                ->whereYear('created_at', $currentYear)
                 ->whereNotNull('nomor_surat')
+                ->where('nomor_surat', 'like', "%/{$prefix}/{$currentAcademicYear}")
                 ->orderBy('nomor_surat', 'desc')
                 ->first();
 
@@ -50,7 +60,7 @@ trait GeneratesNomorSurat
 
         $latestNumber = !empty($latestNumbers) ? max($latestNumbers) : 0;
 
-        return sprintf('%04d/%s/%s', $latestNumber + 1, $prefix, $currentYear);
+        return sprintf('%04d/%s/%s', $latestNumber + 1, $prefix, $currentAcademicYear);
     }
 
     /**
@@ -117,5 +127,35 @@ trait GeneratesNomorSurat
         }
 
         return $latestSurat ? $latestSurat->nomor_surat : null;
+    }
+
+    /**
+     * Get next nomor surat for current academic year
+     */
+    public function getNextNomorSurat()
+    {
+        return $this->generateNomorSuratUniversal($this->getNomorSuratPrefix() ?? 'UN41.2/TI');
+    }
+
+    /**
+     * Reset nomor surat counter untuk tahun ajaran baru
+     * Method ini bisa dipanggil ketika tahun ajaran diganti
+     */
+    public function resetNomorSuratCounter()
+    {
+        // Ambil tahun ajaran aktif yang baru
+        $activeTahunAjaran = TahunAjaran::where('status_aktif', true)->first();
+
+        if (!$activeTahunAjaran) {
+            throw new \Exception('Tidak ada tahun ajaran aktif yang ditemukan');
+        }
+
+        $tahunParts = explode('/', $activeTahunAjaran->tahun);
+        $newAcademicYear = $tahunParts[0];
+
+        // Log reset untuk audit
+        Log::info("Nomor surat counter reset untuk tahun ajaran: {$activeTahunAjaran->tahun}");
+
+        return "Nomor surat akan dimulai dari 0001 untuk tahun ajaran {$activeTahunAjaran->tahun}";
     }
 }
