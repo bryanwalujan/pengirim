@@ -140,8 +140,8 @@ class DummySuratSeeder extends Seeder
     // Tambahkan tracking_code dan isi kolom opsional hanya jika ada di tabel
     private function withOptionalFields(array $data, string $table): array
     {
-        // tracking_code unik (12 char)
-        if (Schema::hasColumn($table, 'tracking_code')) {
+        // tracking_code unik (12 char) — hanya set jika belum ada di $data
+        if (Schema::hasColumn($table, 'tracking_code') && !array_key_exists('tracking_code', $data)) {
             $data['tracking_code'] = $this->generateTrackingCode($table);
         }
 
@@ -168,13 +168,24 @@ class DummySuratSeeder extends Seeder
         return $data;
     }
 
-    private function generateTrackingCode(string $table): string
+    // Buat kode terurut dan tetap unik
+    private function generateTrackingCode(string $table, ?string $prefix = null, ?int $seq = null): string
     {
-        // Pastikan unik terhadap constraint unique di kolom tracking_code
+        if ($prefix !== null && $seq !== null) {
+            // Panjang = 2 (PP) + 4 (ym) + 6 (seq) = 12
+            $base = strtoupper($prefix) . now()->format('ym');
+            $num = $seq;
+            do {
+                $candidate = $base . str_pad($num, 6, '0', STR_PAD_LEFT);
+                $num++;
+            } while (DB::table($table)->where('tracking_code', $candidate)->exists());
+            return $candidate;
+        }
+
+        // Fallback random 12 char (tetap unik)
         do {
             $code = strtoupper(Str::random(12));
         } while (DB::table($table)->where('tracking_code', $code)->exists());
-
         return $code;
     }
 
