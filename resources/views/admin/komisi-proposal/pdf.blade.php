@@ -99,7 +99,7 @@
                     <div class="signature-space"></div>
                     <span
                         class="font-weight-bold underline">{{ $koordinator_nama ?? 'Kristofel Santa, S.ST, M.MT' }}</span><br>
-                    NIP. {{ $koordinator_nip ?? '17870531 201504 1 003' }}
+                    NIP. {{ $koordinator_nip ?? '198705312015041003' }}
                 </td>
             </tr>
         </table>
