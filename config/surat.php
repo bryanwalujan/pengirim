@@ -21,7 +21,7 @@ return [
      |---------------------------------------------------------------
      | Jika true: walau status final, tetap tunggu file surat terbuat.
      */
-    'require_generated_file' => false,
+    'require_generated_file' => true,
 
     /*
      |---------------------------------------------------------------

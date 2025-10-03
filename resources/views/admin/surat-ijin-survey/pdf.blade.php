@@ -156,8 +156,7 @@
         </table>
         <p style="text-indent: 2.5rem">
             Bermaksud mengadakan survey di {{ $surat->tempat_survey }}. Dalam Rangka Penyelesaian Hasil Penelitian
-            (Skripsi)
-            Dekan berkenan menerbitkan surat keterangan aktif kuliah untuk mahasiswa tersebut.
+            (Skripsi).
         </p>
 
         <p style="text-indent: 2.5rem">

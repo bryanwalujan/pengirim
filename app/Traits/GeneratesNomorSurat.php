@@ -8,8 +8,6 @@ use App\Models\SuratIjinSurvey;
 use App\Models\SuratAktifKuliah;
 use App\Models\SuratCutiAkademik;
 use Illuminate\Support\Facades\Log;
-// Tambahkan model lain yang menggunakan nomor surat
-// use App\Models\SuratLainnya;
 
 trait GeneratesNomorSurat
 {
