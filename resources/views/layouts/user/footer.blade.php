@@ -121,7 +121,8 @@
                 <div class="col-md-6 text-center text-md-end">
                     <div class="footer-credits">
                         <span>Developed by</span>
-                        <a href="https://github.com/patrickrompas20" target="_blank" class="developer-link">Trick20</a>
+                        <a href="https://www.instagram.com/trick20_z/" target="_blank"
+                            class="developer-link">Trick20</a>
                         <span>|</span>
                         <a href="https://ti.unima.ac.id" target="_blank" class="institution-link">
                             Program Studi Teknik Informatika, Universitas Negeri Manado

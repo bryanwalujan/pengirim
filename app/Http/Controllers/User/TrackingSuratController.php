@@ -18,12 +18,10 @@ class TrackingSuratController extends Controller
     public function index(Request $request)
     {
         if ($request->has('tracking_code')) {
-            $request->validate([
-                'tracking_code' => 'required|string|size:12',
-            ]);
-
+            $request->validate(['tracking_code' => 'required|string|size:12',]);
             $code = $request->tracking_code;
             $trackingCodes = $this->collectTrackingCodes();
+            sort($trackingCodes);
 
             // === COMPARISON ANALYSIS ===
             $performanceData = $this->performSearchComparison($trackingCodes, $code);
@@ -198,17 +196,10 @@ class TrackingSuratController extends Controller
     protected function collectTrackingCodes()
     {
         $codes = [];
-        $models = [
-            SuratAktifKuliah::class,
-            SuratCutiAkademik::class,
-            SuratPindah::class,
-            SuratIjinSurvey::class,
-        ];
-
+        $models = [SuratAktifKuliah::class, SuratCutiAkademik::class, SuratPindah::class, SuratIjinSurvey::class,];
         foreach ($models as $model) {
             $codes = array_merge($codes, $model::pluck('tracking_code')->filter()->toArray());
         }
-
         return array_unique($codes);
     }
 
@@ -274,20 +265,13 @@ class TrackingSuratController extends Controller
 
     protected function findSuratByTrackingCode($code)
     {
-        $models = [
-            SuratAktifKuliah::class,
-            SuratCutiAkademik::class,
-            SuratPindah::class,
-            SuratIjinSurvey::class,
-        ];
-
+        $models = [SuratAktifKuliah::class, SuratCutiAkademik::class, SuratPindah::class, SuratIjinSurvey::class,];
         foreach ($models as $model) {
             $surat = $model::where('tracking_code', $code)->first();
             if ($surat) {
                 return $surat;
             }
         }
-
         return null;
     }
 }

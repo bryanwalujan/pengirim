@@ -126,12 +126,18 @@
                     </ul>
                 </div>
             @else
-                <!-- Jika bukan mahasiswa (staff/dosen), redirect ke dashboard -->
-                <a class="btn btn-sm btn-outline-primary px-3 order-2 me-2"
-                    href="{{ route('admin.dashboard.index') }}">Dashboard</a>
+                <!-- Enhanced Dashboard Button for Staff/Dosen -->
+                <a class="header-auth-btn btn-dashboard" href="{{ route('admin.dashboard.index') }}">
+                    <i class="bi bi-speedometer2"></i>
+                    <span>Dashboard</span>
+                </a>
             @endif
         @else
-            <a class="btn btn-sm btn-outline-primary px-3 order-2 me-2" href="{{ route('login') }}">Log in</a>
+            <!-- Enhanced Login Button -->
+            <a class="header-auth-btn btn-login" href="{{ route('login') }}">
+                <i class="bi bi-box-arrow-in-right"></i>
+                <span>Log in</span>
+            </a>
         @endauth
     </div>
 </header>
