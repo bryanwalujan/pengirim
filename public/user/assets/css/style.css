@@ -1238,30 +1238,6 @@
     }
 }
 
-@media (max-width: 991.98px) {
-    .user-dropdown-wrapper {
-        max-width: 180px;
-    }
-
-    .user-name {
-        max-width: 80px;
-        font-size: 12px;
-    }
-
-    .user-dropdown-menu {
-        min-width: 280px;
-        max-width: 300px;
-    }
-
-    .profile-content {
-        padding: 20px 15px;
-        gap: 12px;
-    }
-
-    .profile-name {
-        font-size: 15px;
-    }
-}
 
 @media (max-width: 767.98px) {
     .user-dropdown-wrapper {
@@ -1285,6 +1261,8 @@
         font-size: 10px;
     }
 }
+
+
 
 /* Tooltip Enhancement */
 .user-name[title]:hover::after,
@@ -1340,6 +1318,640 @@
 
 .dropdown-section-title i {
     font-size: 14px;
+}
+
+/* ===============================================
+   COMPACT SERVICES SECTION IN DROPDOWN
+   =============================================== */
+
+.dropdown-section.services-section {
+    padding: 15px 18px;
+    background: linear-gradient(135deg, #fafbfc 0%, #f8f9fa 100%);
+}
+
+.dropdown-section-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+}
+
+.dropdown-section-title i {
+    font-size: 13px;
+    color: #ff6b2c;
+}
+
+/* Compact Services Grid Layout - 2x3 Grid */
+.services-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 0;
+}
+
+/* Compact Service Card Mini */
+.service-card-mini {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 6px;
+    background: white;
+    border-radius: 10px;
+    text-decoration: none;
+    color: #374151;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 2px solid transparent;
+    position: relative;
+    overflow: hidden;
+    min-height: 75px;
+}
+
+.service-card-mini::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, #ff6b2c 0%, #ff8c52 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 0;
+}
+
+.service-card-mini:hover::before {
+    opacity: 1;
+}
+
+.service-card-mini:hover {
+    border-color: #ff6b2c;
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 6px 16px rgba(255, 107, 44, 0.25);
+}
+
+/* Compact Service Icon Mini */
+.service-icon-mini {
+    position: relative;
+    z-index: 1;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: rgba(255, 107, 44, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 6px;
+    transition: all 0.3s ease;
+}
+
+.service-icon-mini i {
+    font-size: 16px;
+    color: #ff6b2c;
+    transition: all 0.3s ease;
+}
+
+.service-card-mini:hover .service-icon-mini {
+    background: rgba(255, 255, 255, 0.95);
+    transform: scale(1.1) rotate(5deg);
+}
+
+.service-card-mini:hover .service-icon-mini i {
+    color: #ff6b2c;
+}
+
+/* Compact Service Name Mini */
+.service-name-mini {
+    position: relative;
+    z-index: 1;
+    font-size: 10px;
+    font-weight: 600;
+    text-align: center;
+    line-height: 1.2;
+    color: #374151;
+    transition: color 0.3s ease;
+    display: -webkit-box;
+    --webkit-line-clamp: 2;
+    --webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    word-break: break-word;
+}
+
+.service-card-mini:hover .service-name-mini {
+    color: white;
+}
+
+/* View All Services Button - Compact */
+.view-all-services {
+    text-align: center;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 107, 44, 0.15);
+}
+
+.btn-view-all {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 7px 16px;
+    background: linear-gradient(135deg, #ff6b2c 0%, #ff8c52 100%);
+    color: white;
+    text-decoration: none;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 10px rgba(255, 107, 44, 0.2);
+}
+
+.btn-view-all:hover {
+    background: linear-gradient(135deg, #ff8c52 0%, #ff6b2c 100%);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 5px 14px rgba(255, 107, 44, 0.3);
+}
+
+.btn-view-all i {
+    font-size: 10px;
+    transition: transform 0.3s ease;
+}
+
+.btn-view-all:hover i {
+    transform: translateX(2px);
+}
+
+/* Empty State - Compact */
+.services-grid .text-center {
+    grid-column: 1 / -1;
+    padding: 15px 10px;
+}
+
+.services-grid .text-center i {
+    font-size: 28px;
+    color: #9ca3af;
+    margin-bottom: 6px;
+}
+
+.services-grid .text-center p {
+    font-size: 11px;
+}
+
+/* ===============================================
+   COMPACT QUICK ACTIONS SECTION
+   =============================================== */
+
+.dropdown-section {
+    padding: 12px 18px;
+}
+
+.quick-actions {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+}
+
+.quick-action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 8px;
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    text-decoration: none;
+    color: #374151;
+    transition: all 0.3s ease;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.quick-action-btn:hover {
+    border-color: #ff6b2c;
+    background: rgba(255, 107, 44, 0.05);
+    color: #ff6b2c;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 107, 44, 0.15);
+}
+
+.action-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.action-icon.tracking {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+}
+
+.action-icon.services {
+    background: rgba(255, 107, 44, 0.1);
+    color: #ff6b2c;
+}
+
+.quick-action-btn:hover .action-icon.tracking {
+    background: #3b82f6;
+    color: white;
+    transform: scale(1.05);
+}
+
+.quick-action-btn:hover .action-icon.services {
+    background: #ff6b2c;
+    color: white;
+    transform: scale(1.05);
+}
+
+.action-icon i {
+    font-size: 16px;
+}
+
+/* ===============================================
+   COMPACT LOGOUT SECTION
+   =============================================== */
+
+.dropdown-footer {
+    padding: 10px 15px;
+    background: #f9fafb;
+    border-top: 1px solid #e5e7eb;
+}
+
+.logout-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: white;
+    border: 2px solid #fee2e2;
+    border-radius: 10px;
+    color: #dc2626;
+    font-weight: 600;
+    font-size: 12px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.logout-btn:hover {
+    background: #dc2626;
+    border-color: #dc2626;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
+}
+
+.logout-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: #fee2e2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.logout-btn:hover .logout-icon {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.logout-icon i {
+    font-size: 14px;
+}
+
+.logout-arrow {
+    margin-left: auto;
+    transition: transform 0.3s ease;
+}
+
+.logout-btn:hover .logout-arrow {
+    transform: translateX(3px);
+}
+
+.logout-arrow i {
+    font-size: 12px;
+}
+
+/* ===============================================
+   COMPACT DROPDOWN MENU SIZE
+   =============================================== */
+
+.user-dropdown-menu {
+    min-width: 340px;
+    max-width: 380px;
+    max-height: 80vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    border-radius: 16px;
+}
+
+/* Slim Scrollbar */
+.user-dropdown-menu::-webkit-scrollbar {
+    width: 5px;
+}
+
+.user-dropdown-menu::-webkit-scrollbar-track {
+    background: rgba(255, 107, 44, 0.05);
+    border-radius: 10px;
+}
+
+.user-dropdown-menu::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #ff6b2c 0%, #ff8c52 100%);
+    border-radius: 10px;
+}
+
+.user-dropdown-menu::-webkit-scrollbar-thumb:hover {
+    background: #ff6b2c;
+}
+
+/* Compact Divider */
+.user-dropdown-menu .dropdown-divider {
+    margin: 0;
+    opacity: 0.7;
+}
+
+/* ===============================================
+   COMPACT PROFILE HEADER
+   =============================================== */
+
+.user-profile-header {
+    position: relative;
+    padding: 0;
+    margin-bottom: 0;
+}
+
+.profile-content {
+    position: relative;
+    z-index: 3;
+    padding: 20px 18px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.avatar-large {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+}
+
+.avatar-text-large {
+    color: white;
+    font-weight: 700;
+    font-size: 15px;
+    text-transform: uppercase;
+}
+
+.profile-name {
+    color: white;
+    font-weight: 700;
+    font-size: 15px;
+    margin-bottom: 3px;
+    line-height: 1.3;
+}
+
+.profile-nim {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 11px;
+    margin-bottom: 2px;
+    font-weight: 500;
+}
+
+.profile-email {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 10px;
+    margin-bottom: 6px;
+}
+
+.profile-badge {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    display: inline-block;
+}
+
+/* ===============================================
+   RESPONSIVE DESIGN - COMPACT VERSION
+   =============================================== */
+
+@media (max-width: 1199.98px) {
+    .user-dropdown-menu {
+        min-width: 320px;
+        max-width: 360px;
+    }
+
+    .services-grid {
+        gap: 6px;
+    }
+
+    .service-card-mini {
+        padding: 8px 5px;
+        min-height: 70px;
+    }
+
+    .service-icon-mini {
+        width: 32px;
+        height: 32px;
+    }
+
+    .service-icon-mini i {
+        font-size: 14px;
+    }
+
+    .service-name-mini {
+        font-size: 9px;
+    }
+}
+
+
+@media (max-width: 767.98px) {
+    .user-dropdown-menu {
+        min-width: 280px;
+        max-width: calc(100vw - 30px);
+        left: 50% !important;
+        right: auto !important;
+        transform: translateX(-50%);
+    }
+
+    .services-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+    }
+
+    .service-card-mini {
+        padding: 8px 4px;
+        min-height: 65px;
+    }
+
+    .service-icon-mini {
+        width: 30px;
+        height: 30px;
+        margin-bottom: 5px;
+    }
+
+    .service-icon-mini i {
+        font-size: 13px;
+    }
+
+    .service-name-mini {
+        font-size: 9px;
+    }
+
+    .btn-view-all {
+        padding: 6px 14px;
+        font-size: 10px;
+    }
+
+    .dropdown-section {
+        padding: 10px 15px;
+    }
+
+    .dropdown-section-title {
+        font-size: 10px;
+        margin-bottom: 8px;
+    }
+
+    .profile-content {
+        padding: 18px 15px;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .user-dropdown-menu {
+        min-width: 260px;
+        max-width: calc(100vw - 20px);
+    }
+
+    .services-grid {
+        gap: 5px;
+    }
+
+    .service-card-mini {
+        padding: 7px 3px;
+        min-height: 62px;
+    }
+
+    .service-icon-mini {
+        width: 28px;
+        height: 28px;
+    }
+
+    .service-icon-mini i {
+        font-size: 12px;
+    }
+
+    .service-name-mini {
+        font-size: 8.5px;
+    }
+
+    .dropdown-section.services-section {
+        padding: 10px 12px;
+    }
+
+    .quick-action-btn {
+        padding: 9px 5px;
+        font-size: 9.5px;
+    }
+
+    .action-icon {
+        width: 30px;
+        height: 30px;
+    }
+
+    .action-icon i {
+        font-size: 13px;
+    }
+
+    .logout-btn {
+        padding: 9px 10px;
+        font-size: 11px;
+    }
+
+    .logout-icon {
+        width: 28px;
+        height: 28px;
+    }
+}
+
+/* ===============================================
+   LOADING STATE
+   =============================================== */
+
+.services-grid.loading {
+    position: relative;
+    min-height: 80px;
+}
+
+.services-grid.loading::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 25px;
+    height: 25px;
+    border: 2px solid rgba(255, 107, 44, 0.2);
+    border-top-color: #ff6b2c;
+    border-radius: 50%;
+    animation: spin-loader 0.8s linear infinite;
+}
+
+@keyframes spin-loader {
+    to {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
+
+/* ===============================================
+   ACCESSIBILITY
+   =============================================== */
+
+.service-card-mini:focus-visible,
+.quick-action-btn:focus-visible,
+.btn-view-all:focus-visible,
+.logout-btn:focus-visible {
+    outline: 2px solid rgba(255, 107, 44, 0.5);
+    outline-offset: 2px;
+}
+
+/* ===============================================
+   REDUCED MOTION
+   =============================================== */
+
+@media (prefers-reduced-motion: reduce) {
+    .service-card-mini,
+    .service-icon-mini,
+    .service-icon-mini i,
+    .quick-action-btn,
+    .action-icon,
+    .btn-view-all,
+    .btn-view-all i,
+    .logout-btn,
+    .logout-arrow {
+        transition: none;
+        animation: none;
+    }
 }
 
 /* Quick Actions */
@@ -1506,30 +2118,6 @@
     transform: translateX(0);
 }
 
-/* Responsive Design */
-@media (max-width: 991.98px) {
-    .user-dropdown-menu {
-        min-width: 280px;
-        max-width: 300px;
-    }
-
-    .profile-content {
-        padding: 20px 15px;
-        gap: 12px;
-    }
-
-    .dropdown-section {
-        padding: 12px 15px;
-    }
-
-    .dropdown-item-custom {
-        padding: 10px 15px;
-    }
-
-    .dropdown-footer {
-        padding: 12px 15px;
-    }
-}
 
 @media (max-width: 767.98px) {
     .user-dropdown-menu {
@@ -1569,6 +2157,31 @@
         transform: translateY(0) scale(1);
     }
 }
+
+/* ===============================================
+   SIMPLE MOBILE DROPDOWN FIX - TAMBAHKAN DI AKHIR FILE
+   =============================================== */
+
+/* Mobile Dropdown Position Fix */
+@media (max-width: 767.98px) {
+    /* Fix dropdown position untuk mobile */
+    .user-dropdown-menu {
+        position: fixed !important;
+        top: 70px !important; /* Sesuaikan dengan tinggi header Anda */
+        right: 10px !important;
+        left: auto !important;
+        transform: none !important;
+        margin: 0 !important;
+    }
+
+
+    /* Prevent body scroll saat dropdown open */
+    body.dropdown-open {
+        overflow: hidden;
+    }
+}
+
+
 
 /* ===============================================
    CARD COMPONENTS

@@ -9,30 +9,13 @@
 
         <nav id="navmenu" class="navmenu">
             <ul>
-                <li><a href="{{ url('/') }} " class="{{ request()->is('/') ? 'active' : '' }}"
-                        onclick="scrollToSection('hero')">Beranda</a></li>
-                <li><a href="{{ url('/#about') }}"
-                        class="{{ request()->is('/') && request()->has('scroll') && request()->get('scroll') == 'about' ? 'active' : '' }}"
-                        onclick="scrollToSection('about')">Tentang</a>
-                </li>
-                <li>
-                    <a href="{{ url('/#services') }}"
-                        class="{{ request()->is('layanan') || request()->is('layanan/*') || request()->is('surat-aktif-kuliah') || request()->is('surat-aktif-kuliah/*') ? 'active' : '' }}"
-                        onclick="scrollToSection('services')">Layanan</a>
-                </li>
-                <li>
-                    <a href="{{ route('user.tracking-surat.index') }}"
-                        class="{{ request()->is('tracking-surat') || request()->is('tracking-surat/*') ? 'active' : '' }}"
-                        onclick="scrollToSection('tracking')">Tracking Surat</a>
-                </li>
-                <li><a href="{{ url('/#academic-calendar') }}"
-                        class="{{ request()->is('/') && request()->has('scroll') && request()->get('scroll') == 'academic-calendar' ? 'active' : '' }}"
-                        onclick="scrollToSection('academic-calendar')">Kalender
-                        Akademik</a></li>
-                <li><a href="{{ url('/#faq') }}"
-                        class="{{ request()->is('/') && request()->has('scroll') && request()->get('scroll') == 'faq' ? 'active' : '' }}"
-                        onclick="scrollToSection('faq')">FAQ</a>
-                </li>
+                <li><a href="{{ url('/') }}" class="{{ request()->is('/') ? 'active' : '' }}">Beranda</a></li>
+                <li><a href="{{ url('/#about') }}">Tentang</a></li>
+                <li><a href="{{ url('/#services') }}">Layanan</a></li>
+                <li><a href="{{ route('user.tracking-surat.index') }}"
+                        class="{{ request()->is('tracking-surat*') ? 'active' : '' }}">Tracking Surat</a></li>
+                <li><a href="{{ url('/#academic-calendar') }}">Kalender Akademik</a></li>
+                <li><a href="{{ url('/#faq') }}">FAQ</a></li>
             </ul>
             <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
         </nav>
@@ -51,9 +34,9 @@
                         </div>
                     </a>
 
-                    <!-- Enhanced Dropdown Menu -->
+                    <!-- Enhanced Dropdown Menu dengan Services -->
                     <ul class="dropdown-menu user-dropdown-menu dropdown-menu-end shadow-lg" aria-labelledby="userDropdown">
-                        <!-- Profile Header with Gradient Background -->
+                        <!-- Profile Header -->
                         <li class="dropdown-header user-profile-header">
                             <div class="profile-header-bg"></div>
                             <div class="profile-content">
@@ -63,20 +46,49 @@
                                     </div>
                                 </div>
                                 <div class="profile-info">
-                                    <!-- Full name di dropdown - bisa lebih panjang -->
                                     <h6 class="profile-name" title="{{ Auth::user()->name }}">
                                         {{ Auth::user()->name }}
                                     </h6>
                                     <p class="profile-nim">{{ Auth::user()->nim }}</p>
                                     <p class="profile-email" title="{{ Auth::user()->email }}">
-                                        {{ strlen(Auth::user()->email) > 25 ? substr(Auth::user()->email, 0, 25) . '...' : Auth::user()->email }}
+                                        {{ Str::limit(Auth::user()->email, 25) }}
                                     </p>
                                     <span class="profile-badge">S1 Teknik Informatika</span>
                                 </div>
                             </div>
                         </li>
 
-                        <!-- Divider -->
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+
+                        <!-- Quick Services Section -->
+                        <li class="dropdown-section services-section">
+                            <h6 class="dropdown-section-title">
+                                <i class="bi bi-grid-3x3-gap-fill"></i>
+                                Layanan Cepat
+                            </h6>
+                            <div class="services-grid">
+                                @if (isset($services) && $services->count() > 0)
+                                    @foreach ($services->take(6) as $service)
+                                        <a href="{{ $service->getServiceIndexRoute() }}" class="service-card-mini"
+                                            title="{{ $service->name }}">
+                                            <div class="service-icon-mini">
+                                                <i class="{{ $service->icon }}"></i>
+                                            </div>
+                                            <span class="service-name-mini">{{ Str::limit($service->name, 18) }}</span>
+                                        </a>
+                                    @endforeach
+                                @else
+                                    <div class="text-center py-2 text-muted small">
+                                        <i class="bi bi-inbox"></i>
+                                        <p class="mb-0 mt-1">Belum ada layanan</p>
+                                    </div>
+                                @endif
+                            </div>
+
+                        </li>
+
                         <li>
                             <hr class="dropdown-divider">
                         </li>
@@ -96,14 +108,13 @@
                                 </a>
                                 <a href="{{ route('user.services.index') }}" class="quick-action-btn">
                                     <div class="action-icon services">
-                                        <i class="bi bi-file-earmark-text"></i>
+                                        <i class="bi bi-grid-3x3-gap"></i>
                                     </div>
-                                    <span>Layanan</span>
+                                    <span>Semua Layanan</span>
                                 </a>
                             </div>
                         </li>
 
-                        <!-- Divider -->
                         <li>
                             <hr class="dropdown-divider">
                         </li>
@@ -126,14 +137,14 @@
                     </ul>
                 </div>
             @else
-                <!-- Enhanced Dashboard Button for Staff/Dosen -->
+                <!-- Dashboard Button for Staff/Dosen -->
                 <a class="header-auth-btn btn-dashboard" href="{{ route('admin.dashboard.index') }}">
                     <i class="bi bi-speedometer2"></i>
                     <span>Dashboard</span>
                 </a>
             @endif
         @else
-            <!-- Enhanced Login Button -->
+            <!-- Login Button -->
             <a class="header-auth-btn btn-login" href="{{ route('login') }}">
                 <i class="bi bi-box-arrow-in-right"></i>
                 <span>Log in</span>
