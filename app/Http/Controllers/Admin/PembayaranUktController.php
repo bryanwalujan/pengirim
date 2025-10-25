@@ -244,12 +244,13 @@ class PembayaranUktController extends Controller
     {
         $request->validate([
             'tahun_ajaran_id' => 'required|exists:tahun_ajarans,id',
-            'file' => 'required|mimes:xlsx,xls|max:5120' // Max 5MB
+            'file' => 'required|mimes:xlsx,xls|max:2048' // Max 2MB
         ], [
             'tahun_ajaran_id.required' => 'Tahun ajaran wajib dipilih',
+            'tahun_ajaran_id.exists' => 'Tahun ajaran tidak valid',
             'file.required' => 'File Excel wajib diupload',
-            'file.mimes' => 'File harus berformat Excel (.xlsx atau .xls)',
-            'file.max' => 'Ukuran file maksimal 5MB',
+            'file.mimes' => 'File harus berformat .xlsx atau .xls',
+            'file.max' => 'Ukuran file maksimal 2MB',
         ]);
 
         DB::beginTransaction();
@@ -280,7 +281,10 @@ class PembayaranUktController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('UKT import failed', ['error' => $e->getMessage()]);
+            Log::error('UKT import failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
 
             return back()
                 ->with('error', 'Gagal mengimpor data: ' . $e->getMessage())
