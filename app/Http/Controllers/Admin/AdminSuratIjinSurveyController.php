@@ -51,40 +51,58 @@ class AdminSuratIjinSurveyController extends DocumentController
      */
     public function index(Request $request)
     {
+        $user = User::find(Auth::id());
         $status = $request->input('status', 'diajukan');
         $search = $request->input('search');
 
-        // Adjust default status based on user role and position
-        if (Auth::check() && User::find(Auth::id())->hasRole('dosen')) {
-            $user = Auth::user();
+        // Tentukan status default berdasarkan peran dan jabatan
+        if ($user->hasRole('dosen')) {
             if (str_contains(strtolower($user->jabatan), 'koordinator program studi')) {
                 $status = 'diproses';
-            } elseif (str_contains(strtolower($user->jabatan), 'pimpinan jurusan') || str_contains(strtolower($user->jabatan), 'ptik')) {
+            } elseif (
+                str_contains(strtolower($user->jabatan), 'pimpinan jurusan') ||
+                str_contains(strtolower($user->jabatan), 'ptik')
+            ) {
                 $status = 'disetujui_kaprodi';
             }
         }
 
-        $surats = SuratIjinSurvey::with(['mahasiswa', 'status'])
-            ->when($status, function ($query) use ($status) {
+        $surats = SuratIjinSurvey::with(['mahasiswa', 'status', 'penandatangan', 'penandatanganKaprodi'])
+            ->when($status && $status !== 'all', function ($query) use ($status) {
                 $query->whereHas('status', function ($q) use ($status) {
                     $q->where('status', $status);
                 });
             })
             ->when($search, function ($query) use ($search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('nomor_surat', 'like', "%$search%")
-                        ->orWhere('judul', 'like', "%$search%")
-                        ->orWhere('tempat_survey', 'like', "%$search%")
-                        ->orWhereHas('mahasiswa', function ($q) use ($search) {
-                            $q->where('name', 'like', "%$search%")
-                                ->orWhere('nim', 'like', "%$search%");
-                        });
+                $searchTerm = '%' . $search . '%';
+                $query->where(function ($q) use ($searchTerm) {
+                    // Search by nomor surat
+                    $q->where('nomor_surat', 'like', $searchTerm)
+                        // Search by judul
+                        ->orWhere('judul', 'like', $searchTerm)
+                        // Search by tempat survey
+                        ->orWhere('tempat_survey', 'like', $searchTerm)
+                        // Search by mahasiswa name or NIM
+                        ->orWhereHas('mahasiswa', function ($subQ) use ($searchTerm) {
+                        $subQ->where('name', 'like', $searchTerm)
+                            ->orWhere('nim', 'like', $searchTerm);
+                    });
                 });
             })
-            ->latest()
-            ->paginate(15);
+            ->latest('created_at')
+            ->paginate(15)
+            ->withQueryString();
 
-        return view('admin.surat-ijin-survey.index', compact('surats', 'status', 'search'));
+        // Get statistics - HANYA status yang diperlukan
+        $statistics = [
+            'total' => SuratIjinSurvey::count(),
+            'diajukan' => SuratIjinSurvey::whereHas('status', fn($q) => $q->where('status', 'diajukan'))->count(),
+            'diproses' => SuratIjinSurvey::whereHas('status', fn($q) => $q->where('status', 'diproses'))->count(),
+            'disetujui' => SuratIjinSurvey::whereHas('status', fn($q) => $q->where('status', 'disetujui'))->count(),
+            'siap_diambil' => SuratIjinSurvey::whereHas('status', fn($q) => $q->where('status', 'siap_diambil'))->count(),
+        ];
+
+        return view('admin.surat-ijin-survey.index', compact('surats', 'status', 'search', 'statistics'));
     }
 
     /**
