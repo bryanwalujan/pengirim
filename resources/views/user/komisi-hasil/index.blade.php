@@ -10,22 +10,6 @@
             background: #f5f7fb;
         }
 
-        .page-title h1 {
-            font-weight: 600;
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-            color: #2c3e50;
-        }
-
-        .breadcrumbs ol {
-            margin-bottom: 0;
-            padding-left: 0;
-            list-style: none;
-            display: flex;
-            gap: 0.5rem;
-            font-size: 0.9rem;
-            color: #6c757d;
-        }
 
         .card {
             border-radius: 1rem;
@@ -334,7 +318,8 @@
                                                     </div>
                                                 </td>
                                                 <td>
-                                                    <div class="judul-skripsi" title="{{ $hasil->judul_skripsi }}">
+                                                    <div class="judul-skripsi"
+                                                        title="{{ strip_tags($proposal->judul_skripsi) }}">
                                                         {!! $hasil->judul_skripsi !!}
                                                     </div>
                                                     <div class="pembimbing-info mt-1">
