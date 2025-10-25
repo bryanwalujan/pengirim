@@ -463,9 +463,6 @@
                 background: linear-gradient(135deg, #696cff 0%, #5f63f2 100%) !important;
             }
             
-            .dropdown-menu {
-                animation: dropdownSlideIn 0.3s ease-out;
-            }
             
             @keyframes dropdownSlideIn {
                 from {
