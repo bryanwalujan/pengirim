@@ -143,22 +143,21 @@
             </li>
             <!-- User -->
             <li class="nav-item navbar-dropdown dropdown-user dropdown">
-                <a class="nav-link dropdown-toggle hide-arrow p-0" href="javascript:void(0);" data-bs-toggle="dropdown">
-                    <div class="avatar">
+                <a class="nav-link dropdown-toggle hide-arrow p-0" href="javascript:void(0);" data-bs-toggle="dropdown"
+                    aria-expanded="false">
+                    <div class="avatar avatar-online-indicator">
                         @php
                             $userName = Auth::user()->name;
                             $nameParts = explode(' ', trim($userName));
                             $initials = '';
 
                             if (count($nameParts) >= 2) {
-                                // Ambil inisial nama depan dan belakang
                                 $initials = strtoupper(substr($nameParts[0], 0, 1) . substr(end($nameParts), 0, 1));
                             } else {
-                                // Jika hanya satu kata, ambil 2 huruf pertama
                                 $initials = strtoupper(substr($userName, 0, 2));
                             }
 
-                            // Warna background berdasarkan inisial (untuk variasi)
+                            // Enhanced color palette
                             $colors = [
                                 '#FF6B6B',
                                 '#4ECDC4',
@@ -173,52 +172,170 @@
                                 '#F5B041',
                                 '#F8C471',
                                 '#A569BD',
+                                '#5DADE2',
+                                '#48C9B0',
                             ];
                             $colorIndex = array_sum(str_split(ord($initials[0]))) % count($colors);
                             $bgColor = $colors[$colorIndex];
+
+                            // Get user info
+                            $userRole = Auth::user()->roles()->first()->name ?? 'User';
+                            $userEmail = Auth::user()->email;
+                            $userJabatan = Auth::user()->jabatan ?? null;
                         @endphp
                         <div class="avatar-initials w-px-40 h-px-40 rounded-circle d-flex align-items-center justify-content-center text-white fw-bold"
-                            style="background-color: {{ $bgColor }}; font-size: 14px;">
+                            style="background: linear-gradient(135deg, {{ $bgColor }} 0%, {{ $bgColor }}dd 100%); 
+                                   font-size: 14px; 
+                                   box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
                             {{ $initials }}
                         </div>
                     </div>
                 </a>
-                <ul class="dropdown-menu dropdown-menu-end">
+
+                <ul class="dropdown-menu dropdown-menu-end shadow-lg"
+                    style="min-width: 320px; border-radius: 12px; border: none; padding: 0;">
+                    <!-- User Profile Header -->
+                    <li class="dropdown-header bg-gradient-primary text-white"
+                        style="border-radius: 12px 12px 0 0; padding: 20px;">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0 me-3">
+                                <div class="avatar avatar-lg">
+                                    <div class="avatar-initials w-px-50 h-px-50 rounded-circle d-flex align-items-center justify-content-center text-white fw-bold"
+                                        style="background: rgba(255, 255, 255, 0.25); 
+                                               font-size: 18px; 
+                                               backdrop-filter: blur(10px);
+                                               border: 2px solid rgba(255, 255, 255, 0.3);">
+                                        {{ $initials }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 text-white">
+                                <h6 class="mb-1 fw-bold text-white" style="font-size: 15px;">
+                                    {{ Str::limit(Auth::user()->name, 25) }}</h6>
+                                <small class="d-block text-white-50 mb-1" style="font-size: 11px;">
+                                    <i class="bx bx-envelope me-1"></i>{{ Str::limit($userEmail, 30) }}
+                                </small>
+                                @if ($userJabatan)
+                                    <small class="d-block text-white-50" style="font-size: 10px;">
+                                        <i class="bx bx-briefcase me-1"></i>{{ Str::limit($userJabatan, 35) }}
+                                    </small>
+                                @endif
+                            </div>
+                        </div>
+                    </li>
+
+                    <!-- Role Badge Section -->
+                    <li class="px-3 py-2 bg-light">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <small class="text-muted" style="font-size: 10px;">STATUS AKUN</small>
+                            @php
+                                $roleColors = [
+                                    'admin' => 'danger',
+                                    'staff' => 'primary',
+                                    'dosen' => 'info',
+                                    'mahasiswa' => 'success',
+                                ];
+                                $roleColor = $roleColors[strtolower($userRole)] ?? 'secondary';
+
+                                $roleIcons = [
+                                    'admin' => 'bx-shield-alt-2',
+                                    'staff' => 'bx-user-check',
+                                    'dosen' => 'bx-chalkboard',
+                                    'mahasiswa' => 'bx-user',
+                                ];
+                                $roleIcon = $roleIcons[strtolower($userRole)] ?? 'bx-user';
+                            @endphp
+                            <span class="badge bg-{{ $roleColor }}" style="font-size: 10px; padding: 4px 10px;">
+                                <i class="bx {{ $roleIcon }} me-1"></i>{{ strtoupper($userRole) }}
+                            </span>
+                        </div>
+                    </li>
+
                     <li>
-                        <a class="dropdown-item" href="javascript:void(0);">
-                            <div class="d-flex">
-                                <div class="flex-shrink-0 me-3">
-                                    <div class="avatar">
-                                        <div class="avatar-initials w-px-40 h-px-40 rounded-circle d-flex align-items-center justify-content-center text-white fw-bold"
-                                            style="background-color: {{ $bgColor }}; font-size: 14px;">
-                                            {{ $initials }}
+                        <hr class="dropdown-divider my-0">
+                    </li>
+
+                    <!-- User Info Details -->
+                    <li class="px-3 py-2">
+                        <div class="user-info-details">
+                            <!-- Full Name -->
+                            <div class="info-item mb-2">
+                                <div class="d-flex align-items-start">
+                                    <i class="bx bx-user text-primary me-2 mt-1" style="font-size: 16px;"></i>
+                                    <div class="flex-grow-1">
+                                        <small class="text-muted d-block" style="font-size: 10px;">Nama Lengkap</small>
+                                        <span class="fw-semibold"
+                                            style="font-size: 12px;">{{ Auth::user()->name }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Email -->
+                            <div class="info-item mb-2">
+                                <div class="d-flex align-items-start">
+                                    <i class="bx bx-envelope text-info me-2 mt-1" style="font-size: 16px;"></i>
+                                    <div class="flex-grow-1">
+                                        <small class="text-muted d-block" style="font-size: 10px;">Email</small>
+                                        <span class="fw-medium text-truncate d-block"
+                                            style="font-size: 11px; max-width: 220px;" title="{{ $userEmail }}">
+                                            {{ $userEmail }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Jabatan (if exists) -->
+                            @if ($userJabatan)
+                                <div class="info-item mb-2">
+                                    <div class="d-flex align-items-start">
+                                        <i class="bx bx-briefcase text-warning me-2 mt-1" style="font-size: 16px;"></i>
+                                        <div class="flex-grow-1">
+                                            <small class="text-muted d-block" style="font-size: 10px;">Jabatan</small>
+                                            <span class="fw-medium"
+                                                style="font-size: 11px;">{{ $userJabatan }}</span>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="flex-grow-1">
-                                    <h6 class="mb-2">{{ Auth::user()->name }}</h6>
-                                    <small
-                                        class="badge rounded-pill bg-label-warning">{{ Auth::user()->roles()->first()->name }}</small>
-                                </div>
-                            </div>
-                        </a>
-                    </li>
-                    <li>
-                        <div class="dropdown-divider my-1"></div>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" href="{{ route('logout') }}"
-                            onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                            <i class="icon-base bx bx-power-off icon-md me-3"></i>
-                            <span>Log Out</span>
-                        </a>
+                            @endif
 
-                        <!-- Hidden logout form -->
-                        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-                            @csrf
-                        </form>
+                        </div>
+                    </li>
+
+                    <li>
+                        <hr class="dropdown-divider my-0">
+                    </li>
+
+                    <!-- Action Buttons -->
+                    <li class="px-3 py-3">
+                        <div class="d-grid gap-2">
+
+                            <!-- Logout Button -->
+                            <a href="{{ route('logout') }}" class="btn btn-sm btn-danger"
+                                style="border-radius: 8px;"
+                                onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                <i class="bx bx-power-off me-2"></i>
+                                <span>Logout</span>
+                            </a>
+                            <!-- Hidden logout form -->
+                            <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                                @csrf
+                            </form>
+                        </div>
+                    </li>
+
+                    <!-- Footer Info -->
+                    <li class="dropdown-footer text-center bg-light py-2" style="border-radius: 0 0 12px 12px;">
+                        <small class="text-muted" style="font-size: 9px;">
+                            <i class="bx bx-shield-quarter me-1"></i>
+                            Session Anda Terlindungi
+                        </small>
                     </li>
                 </ul>
+
+                <!-- Hidden logout form -->
+                <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                    @csrf
+                </form>
             </li>
             <!--/ User -->
         </ul>
@@ -307,4 +424,71 @@
             }
         }
     }
+
+
+    // Add online status indicator animation
+    document.addEventListener('DOMContentLoaded', function() {
+        const avatarOnline = document.querySelector('.avatar-online-indicator');
+        if (avatarOnline) {
+            // Add pulsing effect to online indicator
+            const style = document.createElement('style');
+            style.textContent = `
+            .avatar-online-indicator::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                right: 0;
+                width: 12px;
+                height: 12px;
+                background-color: #28a745;
+                border-radius: 50%;
+                border: 2px solid white;
+                animation: pulse-online 2s infinite;
+                z-index: 1;
+            }
+            
+            @keyframes pulse-online {
+                0% {
+                    box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7);
+                }
+                50% {
+                    box-shadow: 0 0 0 5px rgba(40, 167, 69, 0);
+                }
+                100% {
+                    box-shadow: 0 0 0 0 rgba(40, 167, 69, 0);
+                }
+            }
+            
+            .bg-gradient-primary {
+                background: linear-gradient(135deg, #696cff 0%, #5f63f2 100%) !important;
+            }
+            
+            .dropdown-menu {
+                animation: dropdownSlideIn 0.3s ease-out;
+            }
+            
+            @keyframes dropdownSlideIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(-10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            
+            .user-info-details .info-item {
+                padding: 8px;
+                border-radius: 8px;
+                transition: background-color 0.2s ease;
+            }
+            
+            .user-info-details .info-item:hover {
+                background-color: rgba(105, 108, 255, 0.05);
+            }
+        `;
+            document.head.appendChild(style);
+        }
+    });
 </script>
