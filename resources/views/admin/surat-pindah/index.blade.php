@@ -4,108 +4,196 @@
 
 @section('content')
     <div class="container-xxl flex-grow-1 container-p-y">
-        <h4 class="fw-bold py-3 mb-2">
-            @if (auth()->user()->hasRole('dosen'))
-                @if (str_contains(auth()->user()->jabatan, 'Koordinator Program Studi'))
-                    <span class="text-muted">Daftar Surat Pindah Menunggu Persetujuan Korprodi</span>
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="fw-bold mb-0">
+                @if (auth()->user()->hasRole('dosen'))
+                    @if (str_contains(auth()->user()->jabatan, 'Koordinator Program Studi'))
+                        <span class="text-muted">Daftar Surat Menunggu Persetujuan Korprodi</span>
+                    @else
+                        <span class="text-muted">Daftar Surat Menunggu Persetujuan Pimpinan</span>
+                    @endif
                 @else
-                    <span class="text-muted">Daftar Surat Pindah Menunggu Persetujuan Pimpinan</span>
+                    <span class="text-muted">Daftar Pengajuan Surat Pindah</span>
                 @endif
-            @else
-                <span class="text-muted">Daftar Pengajuan Surat Pindah</span>
+            </h4>
+
+            <!-- Statistics Badge -->
+            @if (!auth()->user()->hasRole('dosen') && isset($statistics))
+                <div class="d-none d-md-flex gap-2">
+                    <span class="badge bg-label-primary">Total: {{ $statistics['total'] }}</span>
+                    <span class="badge bg-label-warning">Diajukan: {{ $statistics['diajukan'] }}</span>
+                    <span class="badge bg-label-success">Disetujui: {{ $statistics['disetujui'] }}</span>
+                </div>
             @endif
-        </h4>
+        </div>
 
         <div class="card">
+            <!-- Enhanced Filter Section -->
             <div class="card-header border-bottom">
-                <div class="row align-items-center justify-content-between g-2">
-                    <!-- Status Filter - Hanya tampilkan untuk staff/admin -->
+                <div class="row g-3">
+                    <!-- Status Filter - Hanya untuk staff/admin -->
                     @if (!auth()->user()->hasRole('dosen'))
-                        <div class="col-4 col-md-3 col-lg-2">
-                            <select class="form-select" onchange="window.location.href=this.value">
-                                <option value="{{ route('admin.surat-pindah.index', ['status' => 'diajukan']) }}"
-                                    {{ $status === 'diajukan' ? 'selected' : '' }}>Diajukan</option>
-                                <option value="{{ route('admin.surat-pindah.index', ['status' => 'diproses']) }}"
-                                    {{ $status === 'diproses' ? 'selected' : '' }}>Diproses</option>
-                                <option value="{{ route('admin.surat-pindah.index', ['status' => 'disetujui_kaprodi']) }}"
-                                    {{ $status === 'disetujui_kaprodi' ? 'selected' : '' }}>Disetujui Korprodi</option>
-                                <option value="{{ route('admin.surat-pindah.index', ['status' => 'disetujui_pimpinan']) }}"
-                                    {{ $status === 'disetujui_pimpinan' ? 'selected' : '' }}>Disetujui Pimpinan</option>
-                                <option value="{{ route('admin.surat-pindah.index', ['status' => 'disetujui']) }}"
-                                    {{ $status === 'disetujui' ? 'selected' : '' }}>Disetujui</option>
-                                <option value="{{ route('admin.surat-pindah.index', ['status' => 'ditolak']) }}"
-                                    {{ $status === 'ditolak' ? 'selected' : '' }}>Ditolak</option>
-                                <option value="{{ route('admin.surat-pindah.index', ['status' => 'siap_diambil']) }}"
-                                    {{ $status === 'siap_diambil' ? 'selected' : '' }}>Siap Diambil</option>
-                                <option value="{{ route('admin.surat-pindah.index', ['status' => 'sudah_diambil']) }}"
-                                    {{ $status === 'sudah_diambil' ? 'selected' : '' }}>Sudah Diambil</option>
+                        <div class="col-12 col-md-4 col-lg-3">
+                            <label class="form-label small text-muted mb-1">Status Surat</label>
+                            <select class="form-select form-select-sm" id="statusFilter"
+                                onchange="filterByStatus(this.value)">
+                                <option value="all" {{ !$status || $status === 'all' ? 'selected' : '' }}>Semua Status
+                                </option>
+                                <option value="diajukan" {{ $status === 'diajukan' ? 'selected' : '' }}>
+                                    Diajukan @if (isset($statistics))
+                                        ({{ $statistics['diajukan'] }})
+                                    @endif
+                                </option>
+                                <option value="diproses" {{ $status === 'diproses' ? 'selected' : '' }}>
+                                    Diproses @if (isset($statistics))
+                                        ({{ $statistics['diproses'] }})
+                                    @endif
+                                </option>
+                                <option value="disetujui" {{ $status === 'disetujui' ? 'selected' : '' }}>
+                                    Disetujui @if (isset($statistics))
+                                        ({{ $statistics['disetujui'] }})
+                                    @endif
+                                </option>
+                                <option value="siap_diambil" {{ $status === 'siap_diambil' ? 'selected' : '' }}>
+                                    Siap Diambil @if (isset($statistics))
+                                        ({{ $statistics['siap_diambil'] }})
+                                    @endif
+                                </option>
                             </select>
                         </div>
                     @endif
-                    <!-- Search -->
-                    <div class="col-4 col-md-4 col-lg-3">
-                        <form action="{{ route('admin.surat-pindah.index') }}" method="GET">
-                            <div class="input-group input-group-merge">
-                                <span class="input-group-text" id="basic-addon-search31">
+
+                    <!-- Enhanced Search -->
+                    <div class="col-12 col-md-8 col-lg-6">
+                        <label class="form-label small text-muted mb-1">Pencarian</label>
+                        <form action="{{ route('admin.surat-pindah.index') }}" method="GET" id="searchForm">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-white">
                                     <i class="bx bx-search"></i>
                                 </span>
-                                <input type="text" class="form-control" name="search" value="{{ $search ?? '' }}"
-                                    placeholder="Cari nama/NIM..." aria-label="Search..."
-                                    aria-describedby="basic-addon-search31" />
-                                @if (auth()->user()->hasRole('dosen'))
+                                <input type="text" class="form-control border-start-0" name="search" id="searchInput"
+                                    value="{{ $search ?? '' }}" placeholder="Cari nama, NIM, universitas tujuan..."
+                                    aria-label="Search" />
+                                @if (!auth()->user()->hasRole('dosen'))
+                                    <input type="hidden" name="status" value="{{ $status }}" id="hiddenStatus">
+                                @else
                                     <input type="hidden" name="status" value="{{ $status }}">
                                 @endif
+
+                                @if ($search)
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="clearSearch()">
+                                        <i class="bx bx-x"></i>
+                                    </button>
+                                @endif
+
+                                <button type="submit" class="btn btn-sm btn-primary">
+                                    <i class="bx bx-search me-1"></i>Cari
+                                </button>
                             </div>
+
+                            <!-- Search Tips -->
+                            <small class="text-muted d-block mt-1">
+                                <i class="bx bx-info-circle"></i>
+                                Tip: Ketik nama mahasiswa, NIM, universitas tujuan, atau alasan pindah
+                            </small>
                         </form>
                     </div>
+
+                    <!-- Quick Actions -->
+                    <div class="col-12 col-md-12 col-lg-3">
+                        <label class="form-label small text-muted mb-1">Aksi Cepat</label>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-sm btn-outline-primary w-100" onclick="refreshPage()">
+                                <i class="bx bx-refresh"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- Search Result Info -->
+                @if ($search)
+                    <div class="mt-3">
+                        <div class="alert alert-info alert-dismissible fade show mb-0" role="alert">
+                            <i class="bx bx-search me-2"></i>
+                            Menampilkan hasil pencarian untuk: <strong>"{{ $search }}"</strong>
+                            <span class="badge bg-primary ms-2">{{ $surats->total() }} hasil</span>
+                            <button type="button" class="btn-close" onclick="clearSearch()" aria-label="Close"></button>
+                        </div>
+                    </div>
+                @endif
             </div>
 
+            <!-- Table -->
             <div class="table-responsive">
                 <table class="table border-top">
                     <thead>
                         <tr>
-                            <th>No</th>
-                            <th>Mahasiswa</th>
-                            <th>No. Surat</th>
-                            <th>Universitas Tujuan</th>
-                            <th>Alasan Pindah</th>
-                            <th>Status</th>
-                            <th>Aksi</th>
+                            <th width="5%">No</th>
+                            <th width="20%">Mahasiswa</th>
+                            <th width="15%">No. Surat</th>
+                            <th width="25%">Universitas Tujuan</th>
+                            <th width="20%">Alasan Pindah</th>
+                            <th width="10%">Status</th>
+                            <th width="5%">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse ($surats as $surat)
                             <tr>
-                                <td>{{ $loop->iteration }}</td>
+                                <td>{{ ($surats->currentPage() - 1) * $surats->perPage() + $loop->iteration }}</td>
                                 <td>
-                                    {{ $surat->mahasiswa->name }} <br>
-                                    <small class="text-muted">{{ $surat->mahasiswa->nim }}</small>
+                                    <div class="d-flex flex-column">
+                                        <span class="fw-semibold">{{ $surat->mahasiswa->name }}</span>
+                                        <small class="text-muted">
+                                            <i class="bx bx-id-card"></i> {{ $surat->mahasiswa->nim }}
+                                        </small>
+                                    </div>
                                 </td>
                                 <td>
-                                    {{ $surat->nomor_surat ?? '-' }} <br>
-                                    <small class="text-muted">
-                                        {{ $surat->tanggal_surat ? $surat->tanggal_surat->format('d/m/Y') : '-' }}
+                                    <div class="d-flex flex-column">
+                                        <span class="fw-medium">{{ $surat->nomor_surat ?? '-' }}</span>
+                                        @if ($surat->tanggal_surat)
+                                            <small class="text-muted">
+                                                <i class="bx bx-calendar"></i>
+                                                {{ $surat->tanggal_surat->format('d M Y') }}
+                                            </small>
+                                        @endif
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="text-truncate d-block" style="max-width: 200px;"
+                                        title="{{ $surat->universitas_tujuan }}">
+                                        <i class="bx bx-buildings"></i>
+                                        {{ Str::limit($surat->universitas_tujuan, 40) }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <small class="text-truncate d-block" style="max-width: 150px;"
+                                        title="{{ $surat->alasan_pengajuan }}">
+                                        {{ Str::limit($surat->alasan_pengajuan, 35) }}
                                     </small>
                                 </td>
-                                <td>{{ $surat->universitas_tujuan ?? '-' }}</td>
-                                <td>{{ $surat->alasan_pengajuan ?? '-' }}</td>
                                 <td>
                                     @php
                                         $statusClass = match ($surat->status ?? 'diajukan') {
                                             'diajukan' => 'warning',
                                             'diproses' => 'info',
-                                            'disetujui_kaprodi' => 'primary',
-                                            'disetujui_pimpinan' => 'primary',
                                             'disetujui' => 'success',
-                                            'ditolak' => 'danger',
                                             'siap_diambil' => 'primary',
-                                            'sudah_diambil' => 'secondary',
-                                            default => 'warning',
+                                            default => 'secondary',
+                                        };
+
+                                        $statusLabel = match ($surat->status ?? 'diajukan') {
+                                            'diajukan' => 'Diajukan',
+                                            'diproses' => 'Diproses',
+                                            'disetujui' => 'Disetujui',
+                                            'siap_diambil' => 'Siap Diambil',
+                                            default => ucfirst($surat->status ?? 'diajukan'),
                                         };
                                     @endphp
                                     <span class="badge bg-label-{{ $statusClass }}">
-                                        {{ str_replace('_', ' ', ucfirst($surat->status ?? 'diajukan')) }}
+                                        {{ $statusLabel }}
                                     </span>
                                 </td>
                                 <td>
@@ -119,20 +207,19 @@
                                                 href="{{ route('admin.surat-pindah.show', $surat->id) }}">
                                                 <i class="bx bx-show me-1"></i> Detail
                                             </a>
-                                            @if (auth()->user()->hasRole('staff') && in_array($surat->status, ['diajukan', 'ditolak']))
+                                            @if (auth()->user()->hasRole('staff') && in_array($surat->status, ['diajukan']))
                                                 <form id="delete-form-{{ $surat->id }}"
                                                     action="{{ route('admin.surat-pindah.destroy', $surat->id) }}"
-                                                    method="POST" class="dropdown-item text-danger">
+                                                    method="POST" class="d-inline">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button type="submit"
-                                                        class="btn btn-link p-0 border-0 bg-transparent text-danger delete-btn"
+                                                    <button type="button" class="dropdown-item text-danger delete-btn"
                                                         data-form-id="delete-form-{{ $surat->id }}">
                                                         <i class="bx bx-trash me-1"></i> Hapus
                                                     </button>
                                                 </form>
                                             @endif
-                                            @if (in_array($surat->status, ['siap_diambil', 'sudah_diambil']))
+                                            @if (in_array($surat->status, ['siap_diambil']))
                                                 <a class="dropdown-item text-success"
                                                     href="{{ route('admin.surat-pindah.download', $surat->id) }}">
                                                     <i class="bx bx-download me-1"></i> Unduh
@@ -144,12 +231,25 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center">
-                                    @if (auth()->user()->hasRole('dosen'))
-                                        Tidak ada surat pindah yang menunggu persetujuan Anda
-                                    @else
-                                        Tidak ada pengajuan surat pindah
-                                    @endif
+                                <td colspan="7" class="text-center py-4">
+                                    <div class="d-flex flex-column align-items-center">
+                                        <i class="bx bx-folder-open" style="font-size: 48px; color: #ccc;"></i>
+                                        <p class="mt-2 mb-0 text-muted">
+                                            @if ($search)
+                                                Tidak ada hasil untuk pencarian "{{ $search }}"
+                                            @elseif(auth()->user()->hasRole('dosen'))
+                                                Tidak ada surat yang menunggu persetujuan Anda
+                                            @else
+                                                Tidak ada pengajuan surat pindah
+                                            @endif
+                                        </p>
+                                        @if ($search)
+                                            <button type="button" class="btn btn-sm btn-outline-primary mt-2"
+                                                onclick="clearSearch()">
+                                                <i class="bx bx-x-circle me-1"></i>Hapus Filter
+                                            </button>
+                                        @endif
+                                    </div>
                                 </td>
                             </tr>
                         @endforelse
@@ -157,9 +257,20 @@
                 </table>
             </div>
 
+            <!-- Pagination -->
             @if ($surats->hasPages())
                 <div class="card-footer border-top py-3">
-                    {{ $surats->withQueryString()->links() }}
+                    <div class="row align-items-center">
+                        <div class="col-md-6 mb-2 mb-md-0">
+                            <small class="text-muted">
+                                Menampilkan {{ $surats->firstItem() }} - {{ $surats->lastItem() }}
+                                dari {{ $surats->total() }} data
+                            </small>
+                        </div>
+                        <div class="col-md-6">
+                            {{ $surats->withQueryString()->links() }}
+                        </div>
+                    </div>
                 </div>
             @endif
         </div>
@@ -168,8 +279,53 @@
 
 @push('scripts')
     <script>
+        // Filter by status
+        function filterByStatus(status) {
+            const searchValue = document.getElementById('searchInput').value;
+
+            let url = '{{ route('admin.surat-pindah.index') }}';
+            const params = new URLSearchParams();
+
+            if (status && status !== 'all') {
+                params.append('status', status);
+            }
+
+            if (searchValue) {
+                params.append('search', searchValue);
+            }
+
+            const queryString = params.toString();
+            window.location.href = queryString ? `${url}?${queryString}` : url;
+        }
+
+        // Clear search
+        function clearSearch() {
+            const statusValue = document.getElementById('statusFilter') ?
+                document.getElementById('statusFilter').value : '';
+            let url = '{{ route('admin.surat-pindah.index') }}';
+
+            if (statusValue && statusValue !== 'all') {
+                url += '?status=' + statusValue;
+            }
+
+            window.location.href = url;
+        }
+
+        // Refresh page
+        function refreshPage() {
+            window.location.reload();
+        }
+
+        // Search on Enter key
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('searchForm').submit();
+            }
+        });
+
+        // SweetAlert for Delete Confirmation
         document.addEventListener('DOMContentLoaded', function() {
-            // SweetAlert for Delete Confirmation
             document.querySelectorAll('.delete-btn').forEach(button => {
                 button.addEventListener('click', function(e) {
                     e.preventDefault();
@@ -192,6 +348,72 @@
                     });
                 });
             });
+
+            // Show loading state on form submit
+            document.getElementById('searchForm').addEventListener('submit', function() {
+                const submitBtn = this.querySelector('button[type="submit"]');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML =
+                    '<span class="spinner-border spinner-border-sm me-1"></span>Mencari...';
+            });
         });
     </script>
+@endpush
+
+@push('styles')
+    <style>
+        /* Search input focus */
+        #searchInput:focus {
+            border-color: #696cff;
+            box-shadow: 0 0 0 0.2rem rgba(105, 108, 255, 0.25);
+        }
+
+        /* Table hover effect */
+        .table tbody tr:hover {
+            background-color: rgba(105, 108, 255, 0.05);
+        }
+
+        /* Badge animations */
+        .badge {
+            transition: all 0.3s ease;
+        }
+
+        .badge:hover {
+            transform: scale(1.05);
+        }
+
+        /* Dropdown button hover */
+        .dropdown-toggle:hover {
+            background-color: rgba(105, 108, 255, 0.1);
+            border-radius: 50%;
+        }
+
+        /* Empty state icon */
+        .bx-folder-open {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        /* Responsive table text */
+        @media (max-width: 768px) {
+            .table td {
+                font-size: 0.875rem;
+            }
+
+            .table .text-truncate {
+                max-width: 100px !important;
+            }
+        }
+    </style>
 @endpush
