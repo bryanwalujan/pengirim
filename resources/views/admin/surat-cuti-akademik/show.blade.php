@@ -255,6 +255,7 @@
             </div>
         </div>
 
+        {{-- Form untuk Staff --}}
         @if (auth()->user()->hasRole('staff') && in_array($surat->status, ['diajukan', 'disetujui']))
             <div class="card mb-4">
                 <div class="card-header">
@@ -315,10 +316,23 @@
                             </div>
 
                             <div class="col-12 mb-3">
-                                <label for="catatan_admin" class="form-label">Catatan <span
-                                        class="text-danger">*</span></label>
-                                <textarea name="catatan_admin" id="catatan_admin" class="form-control" rows="3" required
-                                    placeholder="Masukkan catatan untuk mahasiswa">{{ $surat->status()->first()?->catatan_admin }}</textarea>
+                                <label for="catatan_admin" class="form-label">
+                                    Catatan <span class="text-danger">*</span>
+                                    <i class="bx bx-info-circle text-info" data-bs-toggle="tooltip"
+                                        title="Gunakan template atau tulis catatan custom"></i>
+                                </label>
+
+                                <x-template-notes-selector
+                                    textarea-id="catatan_admin"
+                                    textarea-name="catatan_admin"
+                                    :current-value="old('catatan_admin', $surat->status()->first()?->catatan_admin)"
+                                    user-role="staff"
+                                    status-field="status"
+                                />
+
+                                @error('catatan_admin')
+                                    <div class="text-danger small mt-1">{{ $message }}</div>
+                                @enderror
                             </div>
 
                             <div class="col-12 text-end">
@@ -332,6 +346,7 @@
             </div>
         @endif
 
+        {{-- Form untuk Dosen --}}
         @if (auth()->user()->hasRole('dosen'))
             @php
                 $isKaprodi = str_contains(strtolower(auth()->user()->jabatan), 'koordinator program studi');
@@ -352,58 +367,77 @@
                         </h5>
                     </div>
                     <div class="card-body">
-                        <form action="{{ route('admin.surat-cuti-akademik.approve', $surat->id) }}" method="POST">
+                        <form action="{{ route('admin.surat-cuti-akademik.approve', $surat->id) }}" method="POST"
+                            id="approvalForm">
                             @csrf
                             @method('PUT')
 
-                            <input type="hidden" name="action" value="approve">
+                            <input type="hidden" name="action" id="approvalAction" value="approve">
                             <input type="hidden" name="status"
                                 value="{{ $surat->status === 'diproses' ? 'disetujui_kaprodi' : 'disetujui' }}">
 
                             @if ($surat->status === 'diproses')
+                                {{-- Form Kaprodi --}}
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
-                                        <label class="form-label">Penandatangan (Korprodi)</label>
-                                        <select name="penandatangan_kaprodi_id" class="form-select" required>
+                                        <label class="form-label">Penandatangan (Korprodi) <span
+                                                class="text-danger">*</span></label>
+                                        <select name="penandatangan_kaprodi_id" id="penandatangan_kaprodi_id"
+                                            class="form-select" required>
                                             <option value="{{ auth()->user()->id }}" selected>
                                                 {{ auth()->user()->name }} (Anda)
                                             </option>
                                         </select>
                                     </div>
                                     <div class="col-md-6 mb-3">
-                                        <label class="form-label">Jabatan Korprodi</label>
-                                        <input type="text" name="jabatan_penandatangan_kaprodi" class="form-control"
+                                        <label class="form-label">Jabatan Korprodi <span
+                                                class="text-danger">*</span></label>
+                                        <input type="text" name="jabatan_penandatangan_kaprodi"
+                                            id="jabatan_penandatangan_kaprodi" class="form-control"
                                             value="{{ auth()->user()->jabatan ?? 'Koordinator Program Studi' }}" required>
                                     </div>
                                 </div>
                             @else
+                                {{-- Form Pimpinan --}}
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
-                                        <label class="form-label">Penandatangan (Pimpinan)</label>
-                                        <select name="penandatangan_id" class="form-select" required>
+                                        <label class="form-label">Penandatangan (Pimpinan) <span
+                                                class="text-danger">*</span></label>
+                                        <select name="penandatangan_id" id="penandatangan_id" class="form-select"
+                                            required>
                                             <option value="{{ auth()->user()->id }}" selected>
                                                 {{ auth()->user()->name }} (Anda)
                                             </option>
                                         </select>
                                     </div>
                                     <div class="col-md-6 mb-3">
-                                        <label class="form-label">Jabatan Pimpinan</label>
-                                        <input type="text" name="jabatan_penandatangan" class="form-control"
+                                        <label class="form-label">Jabatan Pimpinan <span
+                                                class="text-danger">*</span></label>
+                                        <input type="text" name="jabatan_penandatangan" id="jabatan_penandatangan"
+                                            class="form-control"
                                             value="{{ auth()->user()->jabatan ?? 'Pimpinan Jurusan PTIK' }}" required>
                                     </div>
                                 </div>
                             @endif
 
                             <div class="mb-3">
-                                <label for="catatan_admin" class="form-label">Catatan Persetujuan</label>
-                                <textarea name="catatan_admin" class="form-control" rows="3" required>{{ $surat->status()->first()?->catatan_admin }}</textarea>
+                                <label for="catatan_admin_dosen" class="form-label">
+                                    Catatan Persetujuan <span class="text-danger">*</span>
+                                </label>
+
+                                <x-template-notes-selector
+                                    textarea-id="catatan_admin_dosen"
+                                    textarea-name="catatan_admin"
+                                    :current-value="old('catatan_admin', $surat->status()->first()?->catatan_admin)"
+                                    user-role="dosen"
+                                />
                             </div>
 
                             <div class="text-end">
-                                <button type="submit" name="action" value="approve" class="btn btn-success me-2">
+                                <button type="button" class="btn btn-success me-2" id="btnApprove">
                                     <i class="bx bx-check me-1"></i> Setujui
                                 </button>
-                                <button type="submit" name="action" value="reject" class="btn btn-danger">
+                                <button type="button" class="btn btn-danger" id="btnReject">
                                     <i class="bx bx-x me-1"></i> Tolak
                                 </button>
                             </div>
@@ -422,6 +456,7 @@
             @endif
         @endif
 
+        {{-- Tombol Hapus untuk Staff --}}
         @if (auth()->user()->hasRole('staff') && in_array($surat->status, ['diajukan', 'ditolak']))
             <div class="card mb-4">
                 <div class="card-body">
@@ -430,7 +465,7 @@
                         @csrf
                         @method('DELETE')
                         <p>Anda akan menghapus pengajuan ini secara permanen. Tindakan ini tidak dapat dibatalkan.</p>
-                        <button type="submit" class="btn btn-danger delete-btn delete-btn-card"
+                        <button type="submit" class="btn btn-danger delete-btn"
                             data-form-id="delete-form-{{ $surat->id }}">
                             <i class="bx bx-trash me-1"></i> Hapus Pengajuan
                         </button>
@@ -439,6 +474,7 @@
             </div>
         @endif
 
+        {{-- Riwayat Status --}}
         <div class="card">
             <div class="card-header">
                 <h5 class="card-title mb-0">Riwayat Status</h5>
@@ -484,33 +520,80 @@
 @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const actionSelect = document.querySelector('[name="action"]');
-            const penandatanganPimpinan = document.getElementById('penandatangan_id');
-            const jabatanPimpinan = document.getElementById('jabatan_penandatangan');
-            const penandatanganKaprodi = document.getElementById('penandatangan_kaprodi_id');
-            const jabatanKaprodi = document.getElementById('jabatan_penandatangan_kaprodi');
+            // Initialize tooltips
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function(tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
 
-            if (actionSelect) {
-                function toggleDosenFields() {
-                    const isApprove = actionSelect.value === 'approve';
-                    const fields =
-                        @if ($surat->status === 'diproses')
-                            [penandatanganKaprodi, jabatanKaprodi]
-                        @else
-                            [penandatanganPimpinan, jabatanPimpinan]
-                        @endif ;
+            // Approval buttons for dosen
+            const btnApprove = document.getElementById('btnApprove');
+            const btnReject = document.getElementById('btnReject');
+            const approvalAction = document.getElementById('approvalAction');
+            const approvalForm = document.getElementById('approvalForm');
 
-                    fields.forEach(field => {
-                        field.closest('.col-md-6').style.display = isApprove ? 'block' : 'none';
-                        field.required = isApprove;
+            if (btnApprove && btnReject) {
+                // Show approve templates when approve button is clicked
+                btnApprove.addEventListener('click', function() {
+                    approvalAction.value = 'approve';
+
+                    // Show approve templates
+                    const approveTemplates = document.getElementById('template-approve-catatan_admin_dosen');
+                    const rejectTemplates = document.getElementById('template-reject-catatan_admin_dosen');
+
+                    if (approveTemplates) approveTemplates.style.display = 'block';
+                    if (rejectTemplates) rejectTemplates.style.display = 'none';
+
+                    Swal.fire({
+                        title: 'Konfirmasi Persetujuan',
+                        text: 'Apakah Anda yakin ingin menyetujui surat ini?',
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: '#28a745',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Ya, Setujui',
+                        cancelButtonText: 'Batal'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            approvalForm.submit();
+                        }
                     });
-                }
+                });
 
-                actionSelect.addEventListener('change', toggleDosenFields);
-                toggleDosenFields();
+                btnReject.addEventListener('click', function() {
+                    approvalAction.value = 'reject';
+
+                    // Show reject templates
+                    const approveTemplates = document.getElementById('template-approve-catatan_admin_dosen');
+                    const rejectTemplates = document.getElementById('template-reject-catatan_admin_dosen');
+
+                    if (approveTemplates) approveTemplates.style.display = 'none';
+                    if (rejectTemplates) rejectTemplates.style.display = 'block';
+
+                    Swal.fire({
+                        title: 'Konfirmasi Penolakan',
+                        text: 'Apakah Anda yakin ingin menolak surat ini?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#dc3545',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Ya, Tolak',
+                        cancelButtonText: 'Batal'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            approvalForm.submit();
+                        }
+                    });
+                });
+
+                // Initially show approve templates
+                setTimeout(() => {
+                    const approveTemplates = document.getElementById('template-approve-catatan_admin_dosen');
+                    if (approveTemplates) approveTemplates.style.display = 'block';
+                }, 200);
             }
 
-            // Konfirmasi Penghapusan
+            // SweetAlert for Delete Confirmation
             document.querySelectorAll('.delete-btn').forEach(button => {
                 button.addEventListener('click', function(e) {
                     e.preventDefault();
