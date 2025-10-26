@@ -380,7 +380,7 @@
                                                 class="text-danger">*</span></label>
                                         <input type="text" name="jabatan_penandatangan_kaprodi"
                                             id="jabatan_penandatangan_kaprodi" class="form-control"
-                                            value="{{ auth()->user()->jabatan ?? 'Koordinator Program Studi' }}" required>
+                                            value="{{ auth()->user()->jabatan ?? 'Koordinator Program Studi' }}" required readonly>
                                     </div>
                                 </div>
                             @else
@@ -401,7 +401,7 @@
                                                 class="text-danger">*</span></label>
                                         <input type="text" name="jabatan_penandatangan" id="jabatan_penandatangan"
                                             class="form-control"
-                                            value="{{ auth()->user()->jabatan ?? 'Pimpinan Jurusan PTIK' }}" required>
+                                            value="{{ auth()->user()->jabatan ?? 'Pimpinan Jurusan PTIK' }}" required readonly>
                                     </div>
                                 </div>
                             @endif

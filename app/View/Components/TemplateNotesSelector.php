@@ -39,7 +39,7 @@ class TemplateNotesSelector extends Component
                     'category' => 'Template Proses Surat',
                     'icon' => 'bx-check-circle',
                     'items' => [
-                        ['text' => '📝 Proses Normal', 'template' => 'Surat sedang diproses dan akan segera diteruskan ke dosen pembimbing.', 'class' => 'bg-primary'],
+                        ['text' => '📝 Proses Normal', 'template' => 'Surat sedang diproses dan akan segera diteruskan ke Korprodi dan Pimpinan Jurusan PTIK.', 'class' => 'bg-primary'],
                         ['text' => '✅ Verifikasi Data', 'template' => 'Dokumen lengkap, surat dalam proses verifikasi data mahasiswa.', 'class' => 'bg-primary'],
                         ['text' => '📋 Tahap Administrasi', 'template' => 'Pengajuan diterima dan sedang dalam tahap pemrosesan administrasi.', 'class' => 'bg-primary'],
                     ]

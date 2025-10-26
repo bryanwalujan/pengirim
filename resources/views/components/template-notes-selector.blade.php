@@ -1,4 +1,3 @@
-{{-- filepath: resources/views/components/template-notes-selector.blade.php --}}
 <div class="template-notes-selector-wrapper">
     <div class="template-section">
         <div class="info-card">
@@ -200,9 +199,9 @@
                             clearBtn.addEventListener('click', () => {
                                 this.textarea.value = '';
                                 document.querySelectorAll(`.template-badge-${this.textareaId}`).forEach(
-                                b => {
-                                    b.classList.remove('selected-template');
-                                });
+                                    b => {
+                                        b.classList.remove('selected-template');
+                                    });
                                 this.updateCharCounter();
                                 if (this.preview) this.preview.style.display = 'none';
                                 this.showToast('info', 'Template dihapus');
@@ -215,9 +214,9 @@
                             customBtn.addEventListener('click', () => {
                                 this.textarea.focus();
                                 document.querySelectorAll(`.template-badge-${this.textareaId}`).forEach(
-                                b => {
-                                    b.classList.remove('selected-template');
-                                });
+                                    b => {
+                                        b.classList.remove('selected-template');
+                                    });
                                 this.showToast('info', 'Tulis catatan custom Anda');
                             });
                         }
@@ -276,10 +275,10 @@
                                 templateGroup.style.display = 'block';
                                 console.log(
                                     `Template group found and displayed: template-${statusValue}-${this.textareaId}`
-                                    );
+                                );
                             } else {
                                 console.warn(
-                                `Template group not found: template-${statusValue}-${this.textareaId}`);
+                                    `Template group not found: template-${statusValue}-${this.textareaId}`);
                             }
                         } else {
                             console.warn(`Status select not found: ${this.statusField}`);
