@@ -19,7 +19,7 @@ class SuratSubmissionService
 
         $cacheKey = "surat_submission_check_{$userId}";
 
-        return Cache::remember($cacheKey, 300, function () use ($userId) {
+        return Cache::remember($cacheKey, 120, function () use ($userId) {
             $pendingSurat = $this->getPendingSurat($userId);
 
             if ($pendingSurat) {
