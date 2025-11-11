@@ -154,6 +154,7 @@ class AdminKomisiProposalController extends Controller
 
         return false;
     }
+    
 
     public function index(Request $request)
     {
@@ -166,15 +167,16 @@ class AdminKomisiProposalController extends Controller
             $isKorprodi = $this->isKoordinatorProdi($user);
             $isPAForAnyProposal = KomisiProposal::where('dosen_pembimbing_id', $user->id)->exists();
 
-            if ($isPAForAnyProposal && !$isKorprodi) {
+            // PERUBAHAN: Korprodi bisa melihat SEMUA proposal
+            if ($isKorprodi) {
+                // Korprodi bisa melihat semua proposal, tidak ada filter
+                // Query tetap default (semua data)
+            } elseif ($isPAForAnyProposal) {
+                // Dosen biasa hanya bisa melihat proposal mahasiswa bimbingannya
                 $query->where('dosen_pembimbing_id', $user->id);
-            } elseif ($isKorprodi && $isPAForAnyProposal) {
-                $query->where(function ($q) use ($user) {
-                    $q->where('status', 'approved_pa')
-                        ->orWhere('dosen_pembimbing_id', $user->id);
-                });
-            } elseif ($isKorprodi) {
-                $query->where('status', 'approved_pa');
+            } else {
+                // Dosen yang bukan PA dan bukan Korprodi tidak bisa melihat apa-apa
+                $query->whereRaw('1 = 0'); // Empty result
             }
         }
 
@@ -192,30 +194,42 @@ class AdminKomisiProposalController extends Controller
 
         $komisiProposals = $query->paginate(15);
 
+        // PERUBAHAN: Statistics untuk Korprodi menampilkan semua data
         if ($user->hasRole('dosen')) {
-            $baseQuery = KomisiProposal::query();
             $isKorprodi = $this->isKoordinatorProdi($user);
             $isPAForAnyProposal = KomisiProposal::where('dosen_pembimbing_id', $user->id)->exists();
 
-            if ($isPAForAnyProposal && !$isKorprodi) {
-                $baseQuery->where('dosen_pembimbing_id', $user->id);
-            } elseif ($isKorprodi && $isPAForAnyProposal) {
-                $baseQuery->where(function ($q) use ($user) {
-                    $q->where('status', 'approved_pa')
-                        ->orWhere('dosen_pembimbing_id', $user->id);
-                });
-            } elseif ($isKorprodi) {
-                $baseQuery->where('status', 'approved_pa');
+            if ($isKorprodi) {
+                // Korprodi melihat semua statistik
+                $statistics = [
+                    'total' => KomisiProposal::count(),
+                    'pending' => KomisiProposal::where('status', 'pending')->count(),
+                    'approved_pa' => KomisiProposal::where('status', 'approved_pa')->count(),
+                    'approved' => KomisiProposal::where('status', 'approved')->count(),
+                    'rejected' => KomisiProposal::where('status', 'rejected')->count(),
+                ];
+            } elseif ($isPAForAnyProposal) {
+                // PA hanya melihat statistik mahasiswa bimbingannya
+                $baseQuery = KomisiProposal::where('dosen_pembimbing_id', $user->id);
+                $statistics = [
+                    'total' => $baseQuery->count(),
+                    'pending' => (clone $baseQuery)->where('status', 'pending')->count(),
+                    'approved_pa' => (clone $baseQuery)->where('status', 'approved_pa')->count(),
+                    'approved' => (clone $baseQuery)->where('status', 'approved')->count(),
+                    'rejected' => (clone $baseQuery)->where('status', 'rejected')->count(),
+                ];
+            } else {
+                // Dosen biasa
+                $statistics = [
+                    'total' => 0,
+                    'pending' => 0,
+                    'approved_pa' => 0,
+                    'approved' => 0,
+                    'rejected' => 0,
+                ];
             }
-
-            $statistics = [
-                'total' => $baseQuery->count(),
-                'pending' => (clone $baseQuery)->where('status', 'pending')->count(),
-                'approved_pa' => (clone $baseQuery)->where('status', 'approved_pa')->count(),
-                'approved' => (clone $baseQuery)->where('status', 'approved')->count(),
-                'rejected' => (clone $baseQuery)->where('status', 'rejected')->count(),
-            ];
         } else {
+            // Admin/Staff melihat semua statistik
             $statistics = [
                 'total' => KomisiProposal::count(),
                 'pending' => KomisiProposal::where('status', 'pending')->count(),
@@ -233,12 +247,15 @@ class AdminKomisiProposalController extends Controller
         $komisiProposal->load(['user', 'pembimbing', 'penandatanganPA', 'penandatanganKorprodi']);
 
         $user = User::find(Auth::id());
+
+        // PERUBAHAN: Validasi akses yang lebih jelas
         if ($user->hasRole('dosen')) {
             $isKorprodi = $this->isKoordinatorProdi($user);
             $isPAForThisProposal = $komisiProposal->dosen_pembimbing_id == $user->id;
-            $needKorprodiApproval = $komisiProposal->status === 'approved_pa';
 
-            if (!$isPAForThisProposal && !($isKorprodi && $needKorprodiApproval)) {
+            // Korprodi bisa melihat semua proposal
+            // PA bisa melihat proposal mahasiswa bimbingannya
+            if (!$isKorprodi && !$isPAForThisProposal) {
                 abort(403, 'Anda tidak memiliki akses untuk melihat proposal ini.');
             }
         }
@@ -619,7 +636,7 @@ class AdminKomisiProposalController extends Controller
         ]);
 
         // Validasi permission
-        if (!$user->hasRole(['admin', 'dosen'])) {
+        if (!$user->hasRole(['admin', 'dosen', 'staff'])) {
             Log::warning('Unauthorized delete attempt', [
                 'user_id' => $user->id,
                 'user_role' => $user->getRoleNames(),
@@ -631,12 +648,14 @@ class AdminKomisiProposalController extends Controller
             ], 403);
         }
 
-        // Jika dosen, validasi bahwa dia adalah PA atau Korprodi
+        // PERUBAHAN: Validasi untuk dosen
         if ($user->hasRole('dosen')) {
             $isPA = $komisiProposal->dosen_pembimbing_id == $user->id;
             $isKorprodi = $this->isKoordinatorProdi($user);
 
-            if (!$isPA && !$isKorprodi) {
+            // Korprodi bisa menghapus semua proposal
+            // PA hanya bisa menghapus proposal mahasiswa bimbingannya
+            if (!$isKorprodi && !$isPA) {
                 Log::warning('Dosen tidak memiliki akses untuk menghapus', [
                     'user_id' => $user->id,
                     'is_pa' => $isPA,
