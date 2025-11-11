@@ -146,11 +146,21 @@ class UserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'nip' => $request->nip,
-            'jabatan' => $request->jabatan,
+            'jabatan' => strtolower($request->jabatan), // Normalize to lowercase
             'password' => Hash::make($request->password)
         ]);
 
         $user->assignRole('dosen');
+
+        // Auto-assign approval permissions for certain jabatan
+        if ($user->isDosenWithApprovalAuthority()) {
+            $user->givePermissionTo([
+                'approve surat aktif kuliah',
+                'approve surat ijin survey',
+                'approve surat cuti akademik',
+                'approve surat pindah',
+            ]);
+        }
 
         return redirect()->route('admin.users.dosen')->with('success', 'Dosen berhasil ditambahkan');
     }
@@ -238,22 +248,39 @@ class UserController extends Controller
             'email' => 'required|email|unique:users,email,' . $user->id,
             'nip' => 'required|unique:users,nip,' . $user->id,
             'jabatan' => 'required|string|max:255',
-            'password' => 'nullable|min:8' // Tambahkan validasi password
+            'password' => 'nullable|min:8'
         ]);
 
         $data = [
             'name' => $request->name,
             'email' => $request->email,
             'nip' => $request->nip,
-            'jabatan' => $request->jabatan
+            'jabatan' => strtolower($request->jabatan), // Normalize to lowercase
         ];
 
-        // Jika password diisi, update password
         if ($request->filled('password')) {
             $data['password'] = Hash::make($request->password);
         }
 
         $user->update($data);
+
+        // Update permissions based on jabatan
+        if ($user->isDosenWithApprovalAuthority()) {
+            $user->givePermissionTo([
+                'approve surat aktif kuliah',
+                'approve surat ijin survey',
+                'approve surat cuti akademik',
+                'approve surat pindah',
+            ]);
+        } else {
+            // Remove approval permissions if jabatan changed
+            $user->revokePermissionTo([
+                'approve surat aktif kuliah',
+                'approve surat ijin survey',
+                'approve surat cuti akademik',
+                'approve surat pindah',
+            ]);
+        }
 
         return redirect()->route('admin.users.dosen')->with('success', 'Data dosen berhasil diperbarui');
     }

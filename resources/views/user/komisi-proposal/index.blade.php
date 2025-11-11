@@ -283,6 +283,120 @@
         <div class="container">
             <div class="row justify-content-center">
                 <div class="col-lg-12">
+                    {{-- Alert Messages --}}
+                    @if (session('success'))
+                        <div class="alert alert-success alert-dismissible fade show" role="alert" data-aos="fade-down">
+                            <i class="bi bi-check-circle-fill me-2"></i>
+                            {{ session('success') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    @endif
+
+                    @if (session('error'))
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert" data-aos="fade-down">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            {{ session('error') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    @endif
+
+                    {{-- Status Information Card - Tampil jika tidak bisa mengajukan --}}
+                    @if (!$canCreateStatus['can_create'] && $latestProposal)
+                        <div class="card mb-4 border-{{ $latestProposal->status === 'approved' ? 'success' : ($latestProposal->status === 'rejected' ? 'danger' : 'warning') }}"
+                            data-aos="fade-up" style="border-width: 2px !important;">
+                            <div class="card-body p-4">
+                                <div class="d-flex align-items-start">
+                                    <div class="me-3">
+                                        <div class="rounded-circle d-flex align-items-center justify-content-center"
+                                            style="width: 60px; height: 60px; background: {{ $latestProposal->status === 'approved' ? '#d1fae5' : ($latestProposal->status === 'rejected' ? '#fee2e2' : '#fef3c7') }};">
+                                            <i class="bi bi-{{ $latestProposal->status === 'approved' ? 'check-circle' : ($latestProposal->status === 'rejected' ? 'x-circle' : 'clock-history') }}"
+                                                style="font-size: 2rem; color: {{ $latestProposal->status === 'approved' ? '#10b981' : ($latestProposal->status === 'rejected' ? '#ef4444' : '#f59e0b') }};"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h5 class="fw-bold mb-2">
+                                            @if ($latestProposal->status === 'approved')
+                                                <i class="bi bi-check-circle text-success me-1"></i> Pengajuan Sudah
+                                                Disetujui
+                                            @elseif($latestProposal->status === 'rejected')
+                                                <i class="bi bi-x-circle text-danger me-1"></i> Pengajuan Terakhir Ditolak
+                                            @else
+                                                <i class="bi bi-clock-history text-warning me-1"></i> Pengajuan Sedang
+                                                Diproses
+                                            @endif
+                                        </h5>
+                                        <p class="mb-3 text-muted">{{ $canCreateStatus['reason'] }}</p>
+
+                                        @if ($latestProposal->status === 'approved')
+                                            <div class="alert alert-success mb-0">
+                                                <small>
+                                                    <strong><i class="bi bi-calendar-check me-1"></i> Disetujui
+                                                        pada:</strong>
+                                                    {{ $latestProposal->tanggal_persetujuan_korprodi->translatedFormat('d F Y, H:i') }}
+                                                    WITA<br>
+                                                    <strong><i class="bi bi-journal-text me-1"></i> Judul Skripsi:</strong>
+                                                    {{ strip_tags($latestProposal->judul_skripsi) }}
+                                                </small>
+                                            </div>
+                                        @elseif($latestProposal->status === 'rejected')
+                                            <div class="alert alert-danger mb-3">
+                                                <small>
+                                                    <strong><i class="bi bi-info-circle me-1"></i> Alasan
+                                                        Penolakan:</strong><br>
+                                                    {{ $latestProposal->keterangan ?? 'Tidak ada keterangan' }}
+                                                </small>
+                                            </div>
+                                            <a href="{{ route('user.komisi-proposal.create') }}"
+                                                class="btn btn-primary btn-sm">
+                                                <i class="bi bi-arrow-repeat me-1"></i> Ajukan Ulang Sekarang
+                                            </a>
+                                        @else
+                                            <div class="alert alert-info mb-0">
+                                                <small>
+                                                    <strong><i class="bi bi-info-circle me-1"></i> Status:</strong>
+                                                    @if ($latestProposal->status === 'pending')
+                                                        Menunggu Persetujuan PA
+                                                    @else
+                                                        Menunggu Persetujuan Korprodi
+                                                    @endif
+                                                    <br>
+                                                    <strong><i class="bi bi-calendar me-1"></i> Diajukan pada:</strong>
+                                                    {{ $latestProposal->created_at->translatedFormat('d F Y, H:i') }}
+                                                    WITA<br>
+                                                    <strong><i class="bi bi-person-badge me-1"></i> Pembimbing
+                                                        Akademik:</strong>
+                                                    {{ $latestProposal->pembimbing->name ?? '-' }}
+                                                </small>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @else
+                        {{-- Info untuk mahasiswa baru yang belum pernah mengajukan --}}
+                        @if (!$latestProposal)
+                            <div class="alert alert-info alert-dismissible fade show" role="alert" data-aos="fade-up">
+                                <h5 class="alert-heading fw-bold">
+                                    <i class="bi bi-info-circle-fill me-2"></i> Informasi Penting
+                                </h5>
+                                <p class="mb-2">Anda belum memiliki pengajuan komisi proposal. Silakan klik tombol
+                                    <strong>"Buat Pengajuan Baru"</strong> untuk membuat pengajuan pertama Anda.
+                                </p>
+                                <hr>
+                                <p class="mb-0">
+                                    <small>
+                                        <i class="bi bi-exclamation-triangle me-1"></i>
+                                        <strong>Catatan:</strong> Anda hanya dapat mengajukan komisi proposal
+                                        <strong>sekali</strong>.
+                                        Pastikan semua data yang Anda isi sudah benar sebelum mengirim.
+                                    </small>
+                                </p>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        @endif
+                    @endif
+
                     <div class="card" data-aos="fade-up">
                         <div class="card-header">
                             <div class="d-flex justify-content-between align-items-center w-100">
@@ -290,14 +404,16 @@
                                     <h4 class="mb-0 fw-bold">Riwayat Pengajuan Anda</h4>
                                     <p class="mb-0 text-muted small">Total pengajuan: {{ $komisiProposals->count() }}</p>
                                 </div>
-                                <a href="{{ route('user.komisi-proposal.create') }}" class="btn btn-sm btn-primary">
-                                    <i class="bi bi-plus-circle me-2"></i> Buat Pengajuan Baru
-                                </a>
+                                {{-- Tombol hanya muncul jika boleh mengajukan --}}
+                                @if ($canCreateStatus['can_create'])
+                                    <a href="{{ route('user.komisi-proposal.create') }}" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-plus-circle me-2"></i> Buat Pengajuan Baru
+                                    </a>
+                                @endif
                             </div>
                         </div>
 
                         <div class="card-body">
-
                             <div class="table-responsive">
                                 <table class="table table-hover">
                                     <thead>
@@ -306,7 +422,7 @@
                                             <th width="20%">Tanggal Pengajuan</th>
                                             <th width="45%">Judul & Pembimbing</th>
                                             <th width="20%">Status</th>
-                                            <th width="25%">Aksi</th>
+                                            <th width="10%">Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -314,15 +430,15 @@
                                             <tr>
                                                 <td>{{ $loop->iteration }}</td>
                                                 <td>
-                                                    {{ \Carbon\Carbon::parse($proposal->created_at)->translatedFormat('d M Y') }}
+                                                    {{ $proposal->created_at->translatedFormat('d M Y') }}
                                                     <div class="small text-muted">
-                                                        {{ $proposal->created_at->format('H:i') }}
+                                                        {{ $proposal->created_at->format('H:i') }} WITA
                                                     </div>
                                                 </td>
                                                 <td>
                                                     <div class="judul-skripsi"
                                                         title="{{ strip_tags($proposal->judul_skripsi) }}">
-                                                        {{ strip_tags($proposal->judul_skripsi) }}
+                                                        {{ Str::limit(strip_tags($proposal->judul_skripsi), 80) }}
                                                     </div>
                                                     <div class="pembimbing-info mt-1">
                                                         <i class="bi bi-person-badge"></i>
@@ -332,18 +448,19 @@
                                                 <td>
                                                     <div class="status-info">
                                                         @if ($proposal->status == 'pending')
-                                                            <span class="badge bg-warning">Pending</span>
-                                                            <span class="status-date">Menunggu persetujuan</span>
+                                                            <span class="badge bg-warning">Menunggu PA</span>
+                                                            <span class="status-date">Sedang diproses</span>
+                                                        @elseif($proposal->status == 'approved_pa')
+                                                            <span class="badge bg-info">Menunggu Korprodi</span>
+                                                            <span class="status-date">Disetujui PA</span>
                                                         @elseif($proposal->status == 'approved')
-                                                            <span class="badge bg-success">Approved</span>
+                                                            <span class="badge bg-success">Disetujui Lengkap</span>
                                                             <span class="status-date">
-                                                                Disetujui:
-                                                                {{ $proposal->updated_at->translatedFormat('d M Y') }}
+                                                                {{ $proposal->tanggal_persetujuan_korprodi->translatedFormat('d M Y') }}
                                                             </span>
                                                         @else
-                                                            <span class="badge bg-danger">Rejected</span>
+                                                            <span class="badge bg-danger">Ditolak</span>
                                                             <span class="status-date">
-                                                                Ditolak:
                                                                 {{ $proposal->updated_at->translatedFormat('d M Y') }}
                                                             </span>
                                                         @endif
@@ -351,23 +468,22 @@
                                                 </td>
                                                 <td>
                                                     <div class="action-buttons">
-
                                                         @if ($proposal->status == 'approved' && $proposal->file_komisi)
-                                                            <a href="{{ asset('storage/' . $proposal->file_komisi) }}"
+                                                            <a href="{{ route('user.komisi-proposal.download', $proposal->id) }}"
                                                                 target="_blank" class="action-btn btn btn-sm btn-success"
-                                                                title="Unduh Surat Persetujuan">
+                                                                data-bs-toggle="tooltip" title="Download Dokumen">
                                                                 <i class="bi bi-download"></i>
                                                             </a>
                                                         @elseif ($proposal->status == 'rejected')
                                                             <button type="button"
-                                                                class="action-btn btn btn-sm btn-secondary"
+                                                                class="action-btn btn btn-sm btn-danger"
                                                                 data-bs-toggle="tooltip" data-bs-placement="top"
                                                                 title="Alasan: {{ $proposal->keterangan ?? 'Tidak ada keterangan' }}">
                                                                 <i class="bi bi-info-circle"></i>
                                                             </button>
                                                         @else
                                                             <button class="action-btn btn btn-sm btn-secondary" disabled
-                                                                title="Dalam Proses">
+                                                                data-bs-toggle="tooltip" title="Sedang Diproses">
                                                                 <i class="bi bi-clock-history"></i>
                                                             </button>
                                                         @endif
@@ -379,12 +495,13 @@
                                                 <td colspan="5" class="empty-state">
                                                     <p><i class="bi bi-emoji-frown" style="font-size: 2rem;"></i></p>
                                                     <h5>Belum Ada Pengajuan Komisi Proposal</h5>
-                                                    <p>Anda belum pernah membuat pengajuan komisi proposal. Yuk, ajukan
-                                                        sekarang!</p>
-                                                    <a href="{{ route('user.komisi-proposal.create') }}"
-                                                        class="btn btn-primary">
-                                                        <i class="bi bi-plus-circle me-2"></i> Buat Pengajuan Baru
-                                                    </a>
+                                                    <p>Anda belum pernah membuat pengajuan komisi proposal.</p>
+                                                    @if ($canCreateStatus['can_create'])
+                                                        <a href="{{ route('user.komisi-proposal.create') }}"
+                                                            class="btn btn-primary">
+                                                            <i class="bi bi-plus-circle me-2"></i> Buat Pengajuan Pertama
+                                                        </a>
+                                                    @endif
                                                 </td>
                                             </tr>
                                         @endforelse
@@ -410,6 +527,11 @@
                 duration: 400,
                 once: true
             });
+
+            // Auto-hide alerts after 5 seconds
+            setTimeout(function() {
+                $('.alert:not(.alert-info)').fadeOut('slow');
+            }, 5000);
         });
     </script>
 @endpush

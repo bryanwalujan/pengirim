@@ -45,6 +45,10 @@ use App\Http\Controllers\Admin\AdminPendaftaranUjianHasilController;
 use App\Http\Controllers\Admin\AdminPeminjamanLaboratoriumController;
 use App\Http\Controllers\Admin\AdminPendaftaranSeminarProposalController;
 
+Route::get('/preview-komisi-proposal-pdf', [AdminKomisiProposalController::class, 'previewPdf'])
+    ->name('preview.komisi-proposal.pdf')
+    ->middleware('auth');
+
 // Untuk User (Mahasiswa)
 Route::get('/', [HomeController::class, 'index'])->name('user.home.index');
 
@@ -161,6 +165,8 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa', 'check.ukt'])->group(fu
         Route::get('/', [KomisiProposalController::class, 'index'])->name('index');
         Route::get('/create', [KomisiProposalController::class, 'create'])->name('create');
         Route::post('/', [KomisiProposalController::class, 'store'])->name('store');
+        Route::get('/{komisiProposal}', [KomisiProposalController::class, 'show'])->name('show');
+        Route::get('/{komisiProposal}/download', [KomisiProposalController::class, 'downloadPdf'])->name('download'); // <-- TAMBAHKAN INI
     });
 
     // Layanan Komisi Hasil
@@ -325,104 +331,114 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
                 ->name('regenerate-pdf');
         });
 
-        Route::get('/', [AdminSuratAktifKuliahController::class, 'index'])->name('index');
-        Route::get('/{surat}', [AdminSuratAktifKuliahController::class, 'show'])->name('show');
-        Route::delete('/{surat}', [AdminSuratAktifKuliahController::class, 'destroy'])->name('destroy');
+        // Routes that require approval authority
+        Route::middleware('check.dosen.jabatan')->group(function () {
+            Route::get('/', [AdminSuratAktifKuliahController::class, 'index'])->name('index');
+            Route::get('/{surat}', [AdminSuratAktifKuliahController::class, 'show'])->name('show');
+            Route::delete('/{surat}', [AdminSuratAktifKuliahController::class, 'destroy'])->name('destroy');
 
-        // Hanya staff
-        Route::middleware('role:staff')->group(function () {
-            Route::put('/{surat}/status', [AdminSuratAktifKuliahController::class, 'updateStatus'])
-                ->name('update-status');
-        });
-        // Hanya dosen
-        Route::middleware('role:dosen')->group(function () {
-            Route::put('/{surat}/approve', action: [AdminSuratAktifKuliahController::class, 'approveByDosen'])
-                ->name('approve');
-        });
+            // Hanya staff
+            Route::middleware('role:staff')->group(function () {
+                Route::put('/{surat}/status', [AdminSuratAktifKuliahController::class, 'updateStatus'])
+                    ->name('update-status');
+            });
 
-        Route::get('/{surat}/download', [AdminSuratAktifKuliahController::class, 'download'])->name('download'); // Opsional
-        // Dokumen pendukung surat aktif kuliah
-        Route::get('/{surat}/download-pendukung', [AdminSuratAktifKuliahController::class, 'downloadPendukung'])
-            ->name('download-pendukung');
+            // Untuk dosen dengan jabatan approval authority
+            Route::middleware('role:dosen')->group(function () {
+                Route::put('/{surat}/approve', [AdminSuratAktifKuliahController::class, 'approveByDosen'])
+                    ->name('approve');
+            });
+
+            Route::get('/{surat}/download', [AdminSuratAktifKuliahController::class, 'download'])->name('download');
+            Route::get('/{surat}/download-pendukung', [AdminSuratAktifKuliahController::class, 'downloadPendukung'])
+                ->name('download-pendukung');
+        });
     });
 
     // Admin Routes untuk Surat Ijin Survey
     Route::prefix('surat-ijin-survey')->name('surat-ijin-survey.')->group(function () {
-        Route::get('/', [AdminSuratIjinSurveyController::class, 'index'])->name('index');
-        Route::get('/{surat}', [AdminSuratIjinSurveyController::class, 'show'])->name('show');
-        Route::delete('/{surat}', [AdminSuratIjinSurveyController::class, 'destroy'])->name('destroy');
+        // Routes that require approval authority
+        Route::middleware('check.dosen.jabatan')->group(function () {
+            Route::get('/', [AdminSuratIjinSurveyController::class, 'index'])->name('index');
+            Route::get('/{surat}', [AdminSuratIjinSurveyController::class, 'show'])->name('show');
+            Route::delete('/{surat}', [AdminSuratIjinSurveyController::class, 'destroy'])->name('destroy');
 
+            // Hanya staff
+            Route::middleware('role:staff')->group(function () {
+                Route::put('/{surat}/status', [AdminSuratIjinSurveyController::class, 'updateStatus'])
+                    ->name('update-status');
+            });
 
-        // Hanya staff
-        Route::middleware('role:staff')->group(function () {
-            Route::put('/{surat}/status', [AdminSuratIjinSurveyController::class, 'updateStatus'])
-                ->name('update-status');
+            // Untuk dosen dengan jabatan approval authority
+            Route::middleware('role:dosen')->group(function () {
+                Route::put('/{surat}/approve', [AdminSuratIjinSurveyController::class, 'approveByDosen'])
+                    ->name('approve');
+            });
+
+            Route::get('/{surat}/download', [AdminSuratIjinSurveyController::class, 'download'])->name('download');
+            Route::get('/{surat}/download-pendukung', [AdminSuratIjinSurveyController::class, 'downloadPendukung'])
+                ->name('download-pendukung');
         });
-        // Hanya dosen
-        Route::middleware('role:dosen')->group(function () {
-            Route::put('/{surat}/approve', action: [AdminSuratIjinSurveyController::class, 'approveByDosen'])
-                ->name('approve');
-        });
-
-        Route::get('/{surat}/download', [AdminSuratIjinSurveyController::class, 'download'])->name('download'); // Opsional
-
-        // Dokumen pendukung surat aktif kuliah
-        Route::get('/{surat}/download-pendukung', [AdminSuratIjinSurveyController::class, 'downloadPendukung'])
-            ->name('download-pendukung');
     });
 
     // Admin Routes untuk Surat Cuti Akademik
     Route::prefix('surat-cuti-akademik')->name('surat-cuti-akademik.')->group(function () {
-        Route::get('/', [AdminSuratCutiAkademikController::class, 'index'])->name('index');
-        Route::get('/{surat}', [AdminSuratCutiAkademikController::class, 'show'])->name('show');
-        Route::delete('/{surat}', [AdminSuratCutiAkademikController::class, 'destroy'])->name('destroy');
+        // Routes that require approval authority
+        Route::middleware('check.dosen.jabatan')->group(function () {
+            Route::get('/', [AdminSuratCutiAkademikController::class, 'index'])->name('index');
+            Route::get('/{surat}', [AdminSuratCutiAkademikController::class, 'show'])->name('show');
+            Route::delete('/{surat}', [AdminSuratCutiAkademikController::class, 'destroy'])->name('destroy');
 
+            // Hanya staff
+            Route::middleware('role:staff')->group(function () {
+                Route::put('/{surat}/status', [AdminSuratCutiAkademikController::class, 'updateStatus'])
+                    ->name('update-status');
+            });
 
-        // Hanya staff
-        Route::middleware('role:staff')->group(function () {
-            Route::put('/{surat}/status', [AdminSuratCutiAkademikController::class, 'updateStatus'])
-                ->name('update-status');
+            // Untuk dosen dengan jabatan approval authority
+            Route::middleware('role:dosen')->group(function () {
+                Route::put('/{surat}/approve', [AdminSuratCutiAkademikController::class, 'approveByDosen'])
+                    ->name('approve');
+            });
+
+            Route::get('/{surat}/download', [AdminSuratCutiAkademikController::class, 'download'])->name('download');
+            Route::get('/{surat}/download-pendukung', [AdminSuratCutiAkademikController::class, 'downloadPendukung'])
+                ->name('download-pendukung');
         });
-        // Hanya dosen
-        Route::middleware('role:dosen')->group(function () {
-            Route::put('/{surat}/approve', action: [AdminSuratCutiAkademikController::class, 'approveByDosen'])
-                ->name('approve');
-        });
-
-        Route::get('/{surat}/download', [AdminSuratCutiAkademikController::class, 'download'])->name('download');
-        Route::get('/{surat}/download-pendukung', [AdminSuratCutiAkademikController::class, 'downloadPendukung'])
-            ->name('download-pendukung');
     });
 
     // Admin Routes untuk Surat Pindah
     Route::prefix('surat-pindah')->name('surat-pindah.')->group(function () {
-        Route::get('/', [AdminSuratPindahController::class, 'index'])->name('index');
-        Route::get('/{surat}', [AdminSuratPindahController::class, 'show'])->name('show');
-        Route::delete('/{surat}', [AdminSuratPindahController::class, 'destroy'])->name('destroy');
+        // Routes that require approval authority
+        Route::middleware('check.dosen.jabatan')->group(function () {
+            Route::get('/', [AdminSuratPindahController::class, 'index'])->name('index');
+            Route::get('/{surat}', [AdminSuratPindahController::class, 'show'])->name('show');
+            Route::delete('/{surat}', [AdminSuratPindahController::class, 'destroy'])->name('destroy');
 
+            // Hanya staff
+            Route::middleware('role:staff')->group(function () {
+                Route::put('/{surat}/status', [AdminSuratPindahController::class, 'updateStatus'])
+                    ->name('update-status');
+            });
 
-        // Hanya staff
-        Route::middleware('role:staff')->group(function () {
-            Route::put('/{surat}/status', [AdminSuratPindahController::class, 'updateStatus'])
-                ->name('update-status');
+            // Untuk dosen dengan jabatan approval authority
+            Route::middleware('role:dosen')->group(function () {
+                Route::put('/{surat}/approve', [AdminSuratPindahController::class, 'approveByDosen'])
+                    ->name('approve');
+            });
+
+            Route::get('/{surat}/download', [AdminSuratPindahController::class, 'download'])->name('download');
+            Route::get('/{surat}/download-pendukung', [AdminSuratPindahController::class, 'downloadPendukung'])
+                ->name('download-pendukung');
         });
-        // Hanya dosen
-        Route::middleware('role:dosen')->group(function () {
-            Route::put('/{surat}/approve', action: [AdminSuratPindahController::class, 'approveByDosen'])
-                ->name('approve');
-        });
-
-        Route::get('/{surat}/download', [AdminSuratPindahController::class, 'download'])->name('download');
-        Route::get('/{surat}/download-pendukung', [AdminSuratPindahController::class, 'downloadPendukung'])
-            ->name('download-pendukung');
     });
 
     // Dosen routes untuk Surat Aktif Kuliah
-    Route::prefix('dosen/surat-aktif-kuliah')->name('dosen.surat-aktif-kuliah.')->group(function () {
-        Route::get('/', [DosenSuratAktifKuliahController::class, 'index'])->name('index');
-        Route::get('/{surat}', [DosenSuratAktifKuliahController::class, 'show'])->name('show');
-        Route::post('/{surat}/approve', [DosenSuratAktifKuliahController::class, 'approve'])->name('approve');
-    });
+    // Route::prefix('dosen/surat-aktif-kuliah')->name('dosen.surat-aktif-kuliah.')->group(function () {
+    //     Route::get('/', [DosenSuratAktifKuliahController::class, 'index'])->name('index');
+    //     Route::get('/{surat}', [DosenSuratAktifKuliahController::class, 'show'])->name('show');
+    //     Route::post('/{surat}/approve', [DosenSuratAktifKuliahController::class, 'approve'])->name('approve');
+    // });
 
     // Tahun Ajaran
     Route::prefix('tahun-ajaran')->name('tahun-ajaran.')->group(function () {
@@ -481,13 +497,21 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::get('/{pendaftaranUjianHasil}', [AdminPendaftaranUjianHasilController::class, 'show'])->name('show');
     });
 
-    // Komisi Proposal
+    // Komisi Proposal - Available for ALL dosen
     Route::prefix('komisi-proposal')->name('komisi-proposal.')->group(function () {
         Route::get('/', [AdminKomisiProposalController::class, 'index'])->name('index');
         Route::get('/{komisiProposal}', [AdminKomisiProposalController::class, 'show'])->name('show');
-        Route::post('/{komisiProposal}/update-status', [AdminKomisiProposalController::class, 'updateStatus'])->name('update-status');
-        Route::get('/{komisiProposal}/generate-pdf', [AdminKomisiProposalController::class, 'generatePdf'])->name('pdf');
-        Route::get('/{komisiProposal}/download', [AdminKomisiProposalController::class, 'downloadPdf'])->name('download');
+
+        Route::post('/{komisiProposal}/approve-pa', [AdminKomisiProposalController::class, 'approveByPA'])
+            ->name('approve-pa');
+        Route::post('/{komisiProposal}/approve-korprodi', [AdminKomisiProposalController::class, 'approveByKorprodi'])
+            ->name('approve-korprodi');
+
+        Route::get('/{komisiProposal}/download', [AdminKomisiProposalController::class, 'downloadPdf'])
+            ->name('download');
+
+        Route::delete('/{komisiProposal}', [AdminKomisiProposalController::class, 'destroy'])
+            ->name('destroy');
     });
 
     // Komisi Hasil

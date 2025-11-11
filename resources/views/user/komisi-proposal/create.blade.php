@@ -132,22 +132,6 @@
             transform: translateY(-3px);
         }
 
-        .dosen-card {
-            background: #fff;
-            border-radius: 10px;
-            border: 1px solid #e0e0e0;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            transition: var(--transition);
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.03);
-        }
-
-        .dosen-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            border-color: var(--accent-color);
-        }
-
         .dosen-name {
             font-weight: 600;
             color: var(--dark-gray);
@@ -204,62 +188,29 @@
             padding: 1rem 1.5rem;
         }
 
-        @media (max-width: 768px) {
-            .form-container {
-                padding: 1.5rem 0.5rem;
-            }
-
-            .form-section {
-                padding: 1rem 1.5rem 1.5rem;
-            }
-
-            .form-header {
-                padding: 1.5rem;
-            }
-
-            .btn-submit,
-            .btn-back {
-                padding: 0.75rem 1.5rem;
-                width: 100%;
-            }
-
-            .action-buttons {
-                flex-direction: column;
-                gap: 0.75rem;
-            }
-        }
-
         .dosen-scroll-container {
             width: 100%;
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
             scrollbar-width: none;
-            /* For Firefox */
             position: relative;
         }
 
         .dosen-scroll-container::-webkit-scrollbar {
             display: none;
-            /* For Chrome, Safari, and Opera */
         }
 
         .dosen-scroll-wrapper {
             display: inline-flex;
-            /* Changed from flex to inline-flex */
             gap: 1.5rem;
             padding: 0.5rem 1rem;
-            /* Added horizontal padding */
             width: auto;
-            /* Changed from max-content */
             white-space: nowrap;
-            /* Prevent wrapping */
         }
 
         .dosen-card {
             flex: 0 0 auto;
-            /* Prevent flex shrinking */
             width: 280px;
-            /* Fixed width instead of min-width */
             background: #fff;
             border-radius: 10px;
             border: 1px solid #e0e0e0;
@@ -267,14 +218,14 @@
             transition: var(--transition);
             box-shadow: 0 3px 10px rgba(0, 0, 0, 0.03);
             display: inline-block;
-            /* Added for better scrolling behavior */
         }
 
+        /* ✅ PERBAIKAN DI SINI */
         .dosen-card:hover {
-
             transform: translateY(-3px);
-            transition: 1s ease-in-out box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
             border-color: var(--accent-color);
+            transition: all 0.3s ease-in-out;
         }
 
         .btn-select-dosen {
@@ -304,17 +255,20 @@
             gap: 0.5rem;
             color: #6c757d;
             font-size: 0.85rem;
+            margin-top: 1rem;
         }
 
         .scroll-arrow {
-            font-size: 1rem;
+            font-size: 1.2rem;
             opacity: 0.7;
+            cursor: pointer;
+            transition: var(--transition);
         }
 
         .scroll-arrow:hover {
             opacity: 1;
-            cursor: pointer;
             color: var(--primary-color);
+            transform: scale(1.2);
         }
 
         .left-arrow {
@@ -326,6 +280,29 @@
         }
 
         @media (max-width: 768px) {
+            .form-container {
+                padding: 1.5rem 0.5rem;
+            }
+
+            .form-section {
+                padding: 1rem 1.5rem 1.5rem;
+            }
+
+            .form-header {
+                padding: 1.5rem;
+            }
+
+            .btn-submit,
+            .btn-back {
+                padding: 0.75rem 1.5rem;
+                width: 100%;
+            }
+
+            .d-flex.gap-3 {
+                flex-direction: column;
+                gap: 0.75rem !important;
+            }
+
             .dosen-card {
                 min-width: 240px;
                 padding: 1.25rem;
@@ -340,6 +317,33 @@
 
 @section('form-content')
     <div class="form-container" data-aos="fade-up" data-aos-delay="100">
+        {{-- Alert jika pengajuan ulang setelah ditolak --}}
+        @if ($latestProposal && $latestProposal->status === 'rejected')
+            <div class="alert alert-warning alert-dismissible fade show mb-4" role="alert">
+                <h5 class="alert-heading fw-bold">
+                    <i class="bi bi-arrow-repeat me-2"></i> Pengajuan Ulang
+                </h5>
+                <p class="mb-2">Pengajuan sebelumnya ditolak. Anda dapat mengajukan kembali dengan memperbaiki kekurangan
+                    yang ada.</p>
+                <hr>
+                <p class="mb-0">
+                    <small>
+                        <strong><i class="bi bi-exclamation-triangle me-1"></i> Alasan Penolakan Sebelumnya:</strong><br>
+                        <span class="text-danger">{{ $latestProposal->keterangan ?? 'Tidak ada keterangan' }}</span>
+                    </small>
+                </p>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+
+        @if (session('error'))
+            <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                {{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif {{-- TAMBAHKAN INI - INI YANG HILANG! --}}
+
         <div class="form-card">
             <div class="form-header">
                 <h4>Formulir Persetujuan Komisi Pembimbing</h4>
@@ -390,8 +394,6 @@
                         <!-- Trix Editor yang akan menampilkan konten -->
                         <trix-editor input="judul_skripsi" class="form-control @error('judul_skripsi') is-invalid @enderror"
                             placeholder="Masukkan judul lengkap skripsi Anda"></trix-editor>
-                        {{-- <textarea class="form-control @error('judul_skripsi') is-invalid @enderror" id="judul_skripsi" name="judul_skripsi"
-                            rows="4" required placeholder="Masukkan judul lengkap skripsi Anda">{{ old('judul_skripsi') }}</textarea> --}}
                         <div class="form-text mt-2">Pastikan judul skripsi sudah disetujui oleh calon pembimbing</div>
                         @error('judul_skripsi')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -407,13 +409,14 @@
                     </h5>
 
                     <div class="alert alert-info mb-4">
-                        <h6 class="alert-heading fw-bold"><i class="bi bi-info-circle-fill me-2"></i>Panduan Pemilihan Dosen
+                        <h6 class="alert-heading fw-bold"><i class="bi bi-info-circle-fill me-2"></i>Panduan Pemilihan
+                            Dosen
                         </h6>
                         <ul class="mb-0">
                             <li>Pastikan sudah berdiskusi dengan calon pembimbing sebelum mengajukan</li>
                             <li>Pilih dosen yang sesuai dengan bidang penelitian skripsi Anda</li>
-                            <li>Jika belum menentukan pembimbing, konsultasikan terlebih dahulu dengan koordinator program
-                                studi</li>
+                            <li>Jika belum menentukan pembimbing, konsultasikan terlebih dahulu dengan koordinator
+                                program studi</li>
                         </ul>
                     </div>
 
@@ -425,7 +428,8 @@
                             <option selected disabled value="">Pilih Dosen Pembimbing ...</option>
                             @foreach ($dosens as $dosen)
                                 <option value="{{ $dosen->id }}"
-                                    {{ old('dosen_pembimbing_id') == $dosen->id ? 'selected' : '' }}>{{ $dosen->name }}
+                                    {{ old('dosen_pembimbing_id') == $dosen->id ? 'selected' : '' }}>
+                                    {{ $dosen->name }}
                                 </option>
                             @endforeach
                         </select>
@@ -433,6 +437,7 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
+
                     <div class="dosen-list">
                         <h6 class="mb-3 fw-semibold">Daftar Dosen Pembimbing Tersedia:</h6>
                         <div class="dosen-scroll-container">
@@ -459,12 +464,23 @@
 
                 <!-- Form Actions -->
                 <div class="form-section pt-0" data-aos="fade-up" data-aos-delay="500">
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        <strong>Perhatian:</strong> Pastikan semua data sudah benar sebelum mengirim.
+                        @if (!$latestProposal)
+                            Anda hanya dapat mengajukan <strong>sekali</strong> kecuali pengajuan ditolak.
+                        @else
+                            Setelah pengajuan dibuat, Anda tidak dapat mengubahnya kecuali pengajuan ditolak.
+                        @endif
+                    </div>
+
                     <div class="d-flex justify-content-between gap-3">
                         <a href="{{ route('user.komisi-proposal.index') }}" class="btn btn-back">
                             <i class="bi bi-arrow-left me-2"></i> Kembali
                         </a>
                         <button type="submit" class="btn btn-submit text-white" id="submit-btn">
-                            <i class="bi bi-send-check me-2"></i> Ajukan Persetujuan
+                            <i class="bi bi-send-check me-2"></i>
+                            {{ $latestProposal && $latestProposal->status === 'rejected' ? 'Ajukan Ulang' : 'Ajukan Persetujuan' }}
                         </button>
                     </div>
                 </div>
@@ -489,48 +505,61 @@
                 width: '100%'
             });
 
-            // Prevent selecting same dosen for both pembimbing
-            $('#dosen_pembimbing_1_id, #dosen_pembimbing_2_id').on('change', function() {
-                const pembimbing1 = $('#dosen_pembimbing_1_id').val();
-                const pembimbing2 = $('#dosen_pembimbing_2_id').val();
+            // Auto-hide alerts
+            setTimeout(function() {
+                $('.alert').not('.alert-warning').fadeOut('slow');
+            }, 5000);
+        });
 
-                if (pembimbing1 && pembimbing2 && pembimbing1 === pembimbing2) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Pembimbing Tidak Valid',
-                        text: 'Dosen pembimbing 1 dan 2 tidak boleh sama',
-                        confirmButtonColor: '#4361ee'
-                    });
-                    $(this).val('').trigger('change');
+        // Form submission handler with confirmation
+        document.getElementById('proposal-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            Swal.fire({
+                title: '<strong>Konfirmasi Pengajuan</strong>',
+                html: `
+                    <div class="text-start">
+                        <p class="mb-3">Apakah Anda yakin data yang diisi sudah benar?</p>
+                        <div class="alert alert-warning mb-0">
+                            <small>
+                                <i class="bi bi-exclamation-triangle me-1"></i>
+                                <strong>Perhatian:</strong> Setelah pengajuan dibuat, Anda tidak dapat mengubahnya kecuali pengajuan ditolak.
+                            </small>
+                        </div>
+                    </div>
+                `,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: '<i class="bi bi-send me-1"></i>Ya, Kirim',
+                cancelButtonText: '<i class="bi bi-x me-1"></i>Batal',
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary me-2'
+                },
+                buttonsStyling: false,
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const btn = document.getElementById('submit-btn');
+                    btn.disabled = true;
+                    btn.innerHTML =
+                        '<span class="spinner-border spinner-border-sm me-2"></span>Mengirim...';
+                    this.submit();
                 }
             });
         });
 
-        // Form submission handler with SweetAlert
-        document.getElementById('proposal-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const btn = document.getElementById('submit-btn');
-            btn.disabled = true;
-            btn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i> Mengirim...';
-
-            // Simulate form submission
-            this.submit();
+        // Scroll buttons functionality
+        $('.left-arrow').on('click', function() {
+            $('.dosen-scroll-container').animate({
+                scrollLeft: '-=300'
+            }, 300);
         });
 
-        // Add this to your scripts section
-        $(document).ready(function() {
-            // Scroll buttons functionality
-            $('.left-arrow').on('click', function() {
-                $('.dosen-scroll-container').animate({
-                    scrollLeft: '-=300'
-                }, 300);
-            });
-
-            $('.right-arrow').on('click', function() {
-                $('.dosen-scroll-container').animate({
-                    scrollLeft: '+=300'
-                }, 300);
-            });
+        $('.right-arrow').on('click', function() {
+            $('.dosen-scroll-container').animate({
+                scrollLeft: '+=300'
+            }, 300);
         });
     </script>
 @endpush

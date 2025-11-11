@@ -110,4 +110,36 @@ class User extends Authenticatable
     {
         $this->notify(new CustomResetPasswordNotification($token));
     }
+
+    public function isDosen()
+    {
+        return $this->hasRole('dosen');
+    }
+
+    /**
+     * Check if user is dosen with approval authority (Koordinator Prodi or Pimpinan)
+     */
+    public function isDosenWithApprovalAuthority()
+    {
+        if (!$this->isDosen()) {
+            return false;
+        }
+
+        $approvalJabatan = [
+            'koordinator program studi',
+            'pimpinan jurusan ptik',
+            'ketua jurusan ptik', // tambahan jika ada variasi nama
+            'kaprodi', // tambahan jika ada singkatan
+        ];
+
+        return in_array(strtolower($this->jabatan ?? ''), $approvalJabatan);
+    }
+
+    /**
+     * Check if user is regular dosen (without approval authority)
+     */
+    public function isRegularDosen()
+    {
+        return $this->isDosen() && !$this->isDosenWithApprovalAuthority();
+    }
 }

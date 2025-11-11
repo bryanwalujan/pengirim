@@ -18,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
             'no-multi-surat' => \App\Http\Middleware\PreventMultipleSuratSubmission::class,
+            'check.dosen.jabatan' => \App\Http\Middleware\CheckDosenJabatan::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
