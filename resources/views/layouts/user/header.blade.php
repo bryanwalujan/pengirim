@@ -9,7 +9,8 @@
 
         <nav id="navmenu" class="navmenu">
             <ul>
-                <li><a href="{{ url('/') }}" class="{{ request()->is('/') ? 'active' : '' }}">Beranda</a></li>
+                <li><a href="{{ url('/') }} " class="{{ request()->is('/') ? 'active' : '' }}"
+                        onclick="scrollToSection('hero')">Beranda</a></li>
                 <li><a href="{{ url('/#about') }}">Tentang</a></li>
                 <li><a href="{{ url('/#services') }}">Layanan</a></li>
                 <li><a href="{{ route('user.tracking-surat.index') }}"

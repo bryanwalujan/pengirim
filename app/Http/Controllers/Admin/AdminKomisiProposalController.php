@@ -154,7 +154,7 @@ class AdminKomisiProposalController extends Controller
 
         return false;
     }
-    
+
 
     public function index(Request $request)
     {
@@ -167,16 +167,14 @@ class AdminKomisiProposalController extends Controller
             $isKorprodi = $this->isKoordinatorProdi($user);
             $isPAForAnyProposal = KomisiProposal::where('dosen_pembimbing_id', $user->id)->exists();
 
-            // PERUBAHAN: Korprodi bisa melihat SEMUA proposal
             if ($isKorprodi) {
-                // Korprodi bisa melihat semua proposal, tidak ada filter
-                // Query tetap default (semua data)
+                // Korprodi bisa melihat semua proposal
             } elseif ($isPAForAnyProposal) {
-                // Dosen biasa hanya bisa melihat proposal mahasiswa bimbingannya
+                // PA hanya bisa melihat proposal mahasiswa bimbingannya
                 $query->where('dosen_pembimbing_id', $user->id);
             } else {
-                // Dosen yang bukan PA dan bukan Korprodi tidak bisa melihat apa-apa
-                $query->whereRaw('1 = 0'); // Empty result
+                // Dosen biasa tidak bisa melihat apa-apa
+                $query->whereRaw('1 = 0');
             }
         }
 
@@ -194,13 +192,12 @@ class AdminKomisiProposalController extends Controller
 
         $komisiProposals = $query->paginate(15);
 
-        // PERUBAHAN: Statistics untuk Korprodi menampilkan semua data
+        // Statistics
         if ($user->hasRole('dosen')) {
             $isKorprodi = $this->isKoordinatorProdi($user);
             $isPAForAnyProposal = KomisiProposal::where('dosen_pembimbing_id', $user->id)->exists();
 
             if ($isKorprodi) {
-                // Korprodi melihat semua statistik
                 $statistics = [
                     'total' => KomisiProposal::count(),
                     'pending' => KomisiProposal::where('status', 'pending')->count(),
@@ -209,7 +206,6 @@ class AdminKomisiProposalController extends Controller
                     'rejected' => KomisiProposal::where('status', 'rejected')->count(),
                 ];
             } elseif ($isPAForAnyProposal) {
-                // PA hanya melihat statistik mahasiswa bimbingannya
                 $baseQuery = KomisiProposal::where('dosen_pembimbing_id', $user->id);
                 $statistics = [
                     'total' => $baseQuery->count(),
@@ -219,7 +215,6 @@ class AdminKomisiProposalController extends Controller
                     'rejected' => (clone $baseQuery)->where('status', 'rejected')->count(),
                 ];
             } else {
-                // Dosen biasa
                 $statistics = [
                     'total' => 0,
                     'pending' => 0,
@@ -229,7 +224,6 @@ class AdminKomisiProposalController extends Controller
                 ];
             }
         } else {
-            // Admin/Staff melihat semua statistik
             $statistics = [
                 'total' => KomisiProposal::count(),
                 'pending' => KomisiProposal::where('status', 'pending')->count(),
@@ -242,38 +236,40 @@ class AdminKomisiProposalController extends Controller
         return view('admin.komisi-proposal.index', compact('komisiProposals', 'statistics'));
     }
 
+    /**
+     * Show komisi proposal detail - untuk AJAX modal
+     */
     public function show(KomisiProposal $komisiProposal)
     {
         $komisiProposal->load(['user', 'pembimbing', 'penandatanganPA', 'penandatanganKorprodi']);
 
         $user = User::find(Auth::id());
 
-        // PERUBAHAN: Validasi akses yang lebih jelas
+        // Validasi akses
         if ($user->hasRole('dosen')) {
             $isKorprodi = $this->isKoordinatorProdi($user);
             $isPAForThisProposal = $komisiProposal->dosen_pembimbing_id == $user->id;
 
-            // Korprodi bisa melihat semua proposal
-            // PA bisa melihat proposal mahasiswa bimbingannya
             if (!$isKorprodi && !$isPAForThisProposal) {
+                if (request()->ajax()) {
+                    return response()->json([
+                        'error' => 'Anda tidak memiliki akses untuk melihat proposal ini.'
+                    ], 403);
+                }
                 abort(403, 'Anda tidak memiliki akses untuk melihat proposal ini.');
             }
         }
 
+        // Jika request AJAX, return modal content
         if (request()->ajax()) {
             return view('admin.komisi-proposal.detail-modal', [
                 'komisi' => $komisiProposal
             ]);
         }
 
-        return view('admin.komisi-proposal.show', [
-            'komisiProposal' => $komisiProposal
-        ]);
+        // Jika bukan AJAX (dari notification), redirect ke index dengan auto-open modal
+        return redirect()->route('admin.komisi-proposal.index', ['open' => $komisiProposal->id]);
     }
-
-    /**
-     * Approve by PA (Dosen Pembimbing Akademik)
-     */
     public function approveByPA(Request $request, KomisiProposal $komisiProposal)
     {
         $user = User::find(Auth::id());
@@ -580,10 +576,6 @@ class AdminKomisiProposalController extends Controller
         return response()->download($fullPath, $filename);
     }
 
-    public function updateStatus(Request $request, KomisiProposal $komisiProposal)
-    {
-        return back()->with('error', 'Gunakan tombol persetujuan yang sesuai dengan peran Anda');
-    }
 
     /**
      * Generate PDF (public method untuk user)

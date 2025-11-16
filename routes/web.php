@@ -214,40 +214,34 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa'])->get('/payment-alert',
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
 
-    // Route untuk menampilkan notifikasi
-    Route::post('/notifications/{notification}/mark-as-read', function ($notificationId) {
-        $notification = Auth::user()->unreadNotifications->where('id', $notificationId)->first();
-        if ($notification) {
-            $notification->markAsRead();
-            return response()->json(['success' => true]);
-        }
-        return response()->json(['success' => false, 'error' => 'Notification not found'], 404);
-    })->name('notifications.mark-as-read');
-
-    // Route untuk menampilkan semua notifikasi
-    Route::post('/notifications/{notification}/read', function ($notificationId) {
-        $notification = Auth::user()->notifications->find($notificationId);
-        $notification->markAsRead();
-        return redirect($notification->data['url']);
-    })->name('notifications.read');
-
-    Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllRead'])->name('notifications.mark-all-read');
-
-    Route::post('/notifications/{notification}/read-and-redirect', function ($notificationId) {
-        $notification = User::find(Auth::id())->notifications()->findOrFail($notificationId);
+    // Notification Routes - PERBARUI SECTION INI
+    Route::prefix('notifications')->name('notifications.')->group(function () {
+        // Display notifications
+        Route::get('/', [NotificationController::class, 'index'])->name('index');
 
         // Mark as read
-        $notification->markAsRead();
+        Route::post('/{notification}/mark-as-read', [NotificationController::class, 'markAsRead'])
+            ->name('mark-as-read');
 
-        // Redirect to the notification URL
-        return redirect($notification->data['url']);
-    })->name('notifications.read-and-redirect');
+        Route::post('/{notification}/read', [NotificationController::class, 'markAsReadAndStay'])
+            ->name('read');
 
-    // Route untuk menampilkan daftar notifikasi
-    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
-    // Route untuk menandai notifikasi sebagai dibaca
-    Route::post('/notifications/{notification}/read', [NotificationController::class, 'read'])->name('notifications.read');
-    Route::delete('/notifications/{notification}', [NotificationController::class, 'delete'])->name('notifications.delete');
+        // Read and redirect
+        Route::post('/{notification}/read-and-redirect', [NotificationController::class, 'readAndRedirect'])
+            ->name('read-and-redirect');
+
+        // Mark all as read
+        Route::post('/mark-all-read', [NotificationController::class, 'markAllRead'])
+            ->name('mark-all-read');
+
+        // Delete notification
+        Route::delete('/{notification}', [NotificationController::class, 'delete'])
+            ->name('delete');
+
+        // Get unread count (AJAX)
+        Route::get('/count', [NotificationController::class, 'getUnreadCount'])
+            ->name('count');
+    });
 
     Route::get('/activities', [ActivityController::class, 'index'])->name('activities');
 
@@ -500,16 +494,21 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     // Komisi Proposal - Available for ALL dosen
     Route::prefix('komisi-proposal')->name('komisi-proposal.')->group(function () {
         Route::get('/', [AdminKomisiProposalController::class, 'index'])->name('index');
+
+        // TAMBAHKAN ROUTE INI - untuk load modal content via AJAX
         Route::get('/{komisiProposal}', [AdminKomisiProposalController::class, 'show'])->name('show');
 
+        // Approval routes
         Route::post('/{komisiProposal}/approve-pa', [AdminKomisiProposalController::class, 'approveByPA'])
             ->name('approve-pa');
         Route::post('/{komisiProposal}/approve-korprodi', [AdminKomisiProposalController::class, 'approveByKorprodi'])
             ->name('approve-korprodi');
 
+        // Download
         Route::get('/{komisiProposal}/download', [AdminKomisiProposalController::class, 'downloadPdf'])
             ->name('download');
 
+        // Delete
         Route::delete('/{komisiProposal}', [AdminKomisiProposalController::class, 'destroy'])
             ->name('destroy');
     });

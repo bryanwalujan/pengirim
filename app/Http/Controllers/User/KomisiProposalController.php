@@ -5,9 +5,11 @@ namespace App\Http\Controllers\User;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Models\KomisiProposal;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
 class KomisiProposalController extends Controller
@@ -74,74 +76,169 @@ class KomisiProposalController extends Controller
     public function store(Request $request)
     {
         $userId = Auth::id();
+        $lockKey = "komisi_proposal_creation_{$userId}";
 
-        // VALIDASI PENTING: Cek apakah user boleh membuat proposal
-        $canCreateStatus = KomisiProposal::canCreateNewProposal($userId);
+        // STEP 1: Prevent duplicate submission dengan Cache Lock
+        $lock = Cache::lock($lockKey, 10); // Lock selama 10 detik
 
-        if (!$canCreateStatus['can_create']) {
-            Log::warning('Blocked proposal creation attempt', [
+        if (!$lock->get()) {
+            Log::warning('Duplicate submission attempt blocked by cache lock', [
                 'user_id' => $userId,
-                'reason' => $canCreateStatus['reason'],
                 'ip' => $request->ip(),
-            ]);
-
-            return redirect()
-                ->route('user.komisi-proposal.index')
-                ->with('error', $canCreateStatus['reason']);
-        }
-
-        $request->validate([
-            'judul_skripsi' => 'required|string|max:500',
-            'dosen_pembimbing_id' => 'required|exists:users,id',
-        ], [
-            'judul_skripsi.required' => 'Judul skripsi harus diisi.',
-            'judul_skripsi.max' => 'Judul skripsi maksimal 500 karakter.',
-            'dosen_pembimbing_id.required' => 'Pembimbing Akademik harus dipilih.',
-            'dosen_pembimbing_id.exists' => 'Pembimbing Akademik yang dipilih tidak valid.',
-        ]);
-
-        // Validasi bahwa dosen yang dipilih punya role dosen
-        $dosen = User::find($request->dosen_pembimbing_id);
-        if (!$dosen || !$dosen->hasRole('dosen')) {
-            Log::error('Invalid dosen selected', [
-                'dosen_id' => $request->dosen_pembimbing_id,
-                'user_id' => $userId,
+                'timestamp' => now(),
             ]);
 
             return back()
-                ->with('error', 'Dosen yang dipilih tidak valid.')
+                ->with('warning', 'Mohon tunggu, pengajuan Anda sedang diproses.')
                 ->withInput();
         }
 
         try {
-            $proposal = KomisiProposal::create([
-                'user_id' => $userId,
-                'judul_skripsi' => $request->judul_skripsi,
-                'dosen_pembimbing_id' => $request->dosen_pembimbing_id,
-                'status' => 'pending',
+            // STEP 2: Validasi apakah user boleh membuat proposal (dalam lock)
+            $canCreateStatus = KomisiProposal::canCreateNewProposal($userId);
+
+            if (!$canCreateStatus['can_create']) {
+                Log::warning('Blocked proposal creation attempt', [
+                    'user_id' => $userId,
+                    'reason' => $canCreateStatus['reason'],
+                    'existing_proposal_id' => $canCreateStatus['proposal']->id ?? null,
+                    'existing_status' => $canCreateStatus['proposal']->status ?? null,
+                    'ip' => $request->ip(),
+                ]);
+
+                return redirect()
+                    ->route('user.komisi-proposal.index')
+                    ->with('error', $canCreateStatus['reason']);
+            }
+
+            // STEP 3: Validasi input
+            $validated = $request->validate([
+                'judul_skripsi' => 'required|string|max:500',
+                'dosen_pembimbing_id' => 'required|exists:users,id',
+            ], [
+                'judul_skripsi.required' => 'Judul skripsi harus diisi.',
+                'judul_skripsi.max' => 'Judul skripsi maksimal 500 karakter.',
+                'dosen_pembimbing_id.required' => 'Pembimbing Akademik harus dipilih.',
+                'dosen_pembimbing_id.exists' => 'Pembimbing Akademik yang dipilih tidak valid.',
             ]);
 
-            Log::info('New komisi proposal created', [
-                'proposal_id' => $proposal->id,
-                'user_id' => $userId,
-                'dosen_id' => $dosen->id,
-                'dosen_name' => $dosen->name,
-            ]);
+            // STEP 4: Validasi dosen yang dipilih
+            $dosen = User::lockForUpdate()->find($request->dosen_pembimbing_id);
 
-            return redirect()
-                ->route('user.komisi-proposal.index')
-                ->with('success', 'Pengajuan Komisi Proposal berhasil dibuat. Menunggu persetujuan dari ' . $dosen->name);
+            if (!$dosen || !$dosen->hasRole('dosen')) {
+                Log::error('Invalid dosen selected', [
+                    'dosen_id' => $request->dosen_pembimbing_id,
+                    'user_id' => $userId,
+                    'ip' => $request->ip(),
+                ]);
+
+                return back()
+                    ->with('error', 'Dosen yang dipilih tidak valid.')
+                    ->withInput();
+            }
+
+            // STEP 5: Start Database Transaction
+            DB::beginTransaction();
+
+            try {
+                // DOUBLE CHECK: Cek lagi apakah ada proposal pending/approved_by_pa
+                $existingProposal = KomisiProposal::where('user_id', $userId)
+                    ->whereIn('status', ['pending', 'approved_by_pa'])
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($existingProposal) {
+                    DB::rollBack();
+
+                    Log::warning('Duplicate proposal detected in transaction', [
+                        'user_id' => $userId,
+                        'existing_proposal_id' => $existingProposal->id,
+                        'existing_status' => $existingProposal->status,
+                    ]);
+
+                    return redirect()
+                        ->route('user.komisi-proposal.index')
+                        ->with('error', 'Anda masih memiliki pengajuan yang sedang diproses.');
+                }
+
+                // STEP 6: Create proposal
+                $proposal = KomisiProposal::create([
+                    'user_id' => $userId,
+                    'judul_skripsi' => $validated['judul_skripsi'],
+                    'dosen_pembimbing_id' => $validated['dosen_pembimbing_id'],
+                    'status' => 'pending',
+                ]);
+
+                // STEP 7: Commit transaction
+                DB::commit();
+
+                // STEP 8: Log success
+                Log::info('New komisi proposal created successfully', [
+                    'proposal_id' => $proposal->id,
+                    'user_id' => $userId,
+                    'user_name' => Auth::user()->name,
+                    'user_nim' => Auth::user()->nim,
+                    'dosen_id' => $dosen->id,
+                    'dosen_name' => $dosen->name,
+                    'judul_skripsi' => $proposal->judul_skripsi,
+                    'timestamp' => now(),
+                    'ip' => $request->ip(),
+                ]);
+
+                // STEP 9: Success response
+                return redirect()
+                    ->route('user.komisi-proposal.index')
+                    ->with('success', 'Pengajuan Komisi Proposal berhasil dibuat. Menunggu persetujuan dari ' . $dosen->name);
+
+            } catch (\Illuminate\Database\QueryException $e) {
+                DB::rollBack();
+
+                // Handle specific database errors
+                if ($e->getCode() === '23000') { // Integrity constraint violation
+                    Log::error('Database constraint violation', [
+                        'user_id' => $userId,
+                        'error_code' => $e->getCode(),
+                        'error_message' => $e->getMessage(),
+                    ]);
+
+                    return back()
+                        ->with('error', 'Terjadi kesalahan integritas data. Silakan coba lagi.')
+                        ->withInput();
+                }
+
+                throw $e; // Re-throw untuk ditangani di catch luar
+            }
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Validation errors akan ditangani otomatis oleh Laravel
+            throw $e;
 
         } catch (\Exception $e) {
-            Log::error('Error creating proposal', [
+            // Rollback jika masih dalam transaction
+            if (DB::transactionLevel() > 0) {
+                DB::rollBack();
+            }
+
+            Log::error('Error creating komisi proposal', [
                 'user_id' => $userId,
-                'error' => $e->getMessage(),
+                'error_type' => get_class($e),
+                'error_message' => $e->getMessage(),
+                'error_code' => $e->getCode(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
                 'trace' => $e->getTraceAsString(),
+                'request_data' => $request->except(['_token']),
+                'ip' => $request->ip(),
+                'timestamp' => now(),
             ]);
 
             return back()
                 ->with('error', 'Terjadi kesalahan saat membuat pengajuan. Silakan coba lagi.')
                 ->withInput();
+
+        } finally {
+            // STEP 10: Release lock
+            optional($lock)->release();
         }
     }
 

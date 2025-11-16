@@ -374,6 +374,24 @@
                 `);
             });
 
+            // AUTO-OPEN MODAL dari notification
+            @if (request()->has('open'))
+                const komisiId = {{ request('open') }};
+                console.log('Auto-opening modal for komisi ID:', komisiId);
+
+                // Tunggu sebentar agar halaman fully loaded
+                setTimeout(function() {
+                    // Find button dengan data-id yang sesuai
+                    const modalButton = $(`button[data-bs-target="#detailModal"][data-id="${komisiId}"]`);
+
+                    if (modalButton.length) {
+                        modalButton.trigger('click');
+                    } else {
+                        console.error('Modal button not found for komisi ID:', komisiId);
+                    }
+                }, 500);
+            @endif
+
             // Auto-hide alerts after 5 seconds
             setTimeout(function() {
                 $('.alert').fadeOut('slow');
