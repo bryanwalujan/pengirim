@@ -49,6 +49,10 @@ Route::get('/preview-komisi-proposal-pdf', [AdminKomisiProposalController::class
     ->name('preview.komisi-proposal.pdf')
     ->middleware('auth');
 
+Route::get('/preview-komisi-hasil-pdf', [AdminKomisiHasilController::class, 'previewPdf'])
+    ->name('preview.komisi-hasil.pdf')
+    ->middleware('auth');
+
 // Untuk User (Mahasiswa)
 Route::get('/', [HomeController::class, 'index'])->name('user.home.index');
 
@@ -174,6 +178,8 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa', 'check.ukt'])->group(fu
         Route::get('/', [KomisiHasilController::class, 'index'])->name('index');
         Route::get('/create', [KomisiHasilController::class, 'create'])->name('create');
         Route::post('/', [KomisiHasilController::class, 'store'])->name('store');
+        Route::get('/{komisiHasil}', [KomisiHasilController::class, 'show'])->name('show');
+        Route::get('/{komisiHasil}/download', [KomisiHasilController::class, 'downloadPdf'])->name('download');
     });
 
 
@@ -513,13 +519,47 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             ->name('destroy');
     });
 
-    // Komisi Hasil
+    // Komisi Hasil - Available for ALL dosen (3-tier approval)
     Route::prefix('komisi-hasil')->name('komisi-hasil.')->group(function () {
+        // Index & Show (bisa diakses staff & dosen)
         Route::get('/', [AdminKomisiHasilController::class, 'index'])->name('index');
         Route::get('/{komisiHasil}', [AdminKomisiHasilController::class, 'show'])->name('show');
-        Route::post('/{komisiHasil}/update-status', [AdminKomisiHasilController::class, 'updateStatus'])->name('update-status');
-        Route::get('/{komisiHasil}/generate-pdf', [AdminKomisiHasilController::class, 'generatePdf'])->name('pdf');
-        Route::get('/{komisiHasil}/download', [AdminKomisiHasilController::class, 'downloadPdf'])->name('download');
+
+        // Approval Routes - Pembimbing 1 (hanya dosen ybs)
+        Route::post('/{komisiHasil}/approve-pembimbing1', [AdminKomisiHasilController::class, 'approveByPembimbing1'])
+            ->name('approve-pembimbing1')
+            ->middleware('role:dosen');
+
+        // Approval Routes - Pembimbing 2 (hanya dosen ybs)
+        Route::post('/{komisiHasil}/approve-pembimbing2', [AdminKomisiHasilController::class, 'approveByPembimbing2'])
+            ->name('approve-pembimbing2')
+            ->middleware('role:dosen');
+
+        // Approval Routes - Korprodi (hanya dosen dengan jabatan korprodi)
+        Route::post('/{komisiHasil}/approve-korprodi', [AdminKomisiHasilController::class, 'approveByKorprodi'])
+            ->name('approve-korprodi')
+            ->middleware('role:dosen');
+
+        // Reject Routes
+        Route::post('/{komisiHasil}/reject-pembimbing1', [AdminKomisiHasilController::class, 'rejectByPembimbing1'])
+            ->name('reject-pembimbing1')
+            ->middleware('role:dosen');
+
+        Route::post('/{komisiHasil}/reject-pembimbing2', [AdminKomisiHasilController::class, 'rejectByPembimbing2'])
+            ->name('reject-pembimbing2')
+            ->middleware('role:dosen');
+
+        Route::post('/{komisiHasil}/reject-korprodi', [AdminKomisiHasilController::class, 'rejectByKorprodi'])
+            ->name('reject-korprodi')
+            ->middleware('role:dosen');
+
+        // Download PDF (semua role bisa download jika sudah approved)
+        Route::get('/{komisiHasil}/download', [AdminKomisiHasilController::class, 'downloadPdf'])
+            ->name('download');
+
+        // Delete (hanya staff atau dosen pembimbing)
+        Route::delete('/{komisiHasil}', [AdminKomisiHasilController::class, 'destroy'])
+            ->name('destroy');
     });
 
 });

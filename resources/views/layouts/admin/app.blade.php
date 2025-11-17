@@ -46,6 +46,8 @@
     {{-- Trix editor --}}
     <link rel="stylesheet" type="text/css" href="https://unpkg.com/trix@2.0.8/dist/trix.css">
 
+    {{-- Alpine js --}}
+  
 
     @stack('styles')
 
@@ -129,6 +131,9 @@
 
     {{-- Trix editor --}}
     <script type="text/javascript" src="https://unpkg.com/trix@2.0.8/dist/trix.umd.min.js"></script>
+
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
 
     {{-- Loader --}}
     <script>
@@ -224,4 +229,5 @@
         @endif
     </script>
 </body>
+
 </html>

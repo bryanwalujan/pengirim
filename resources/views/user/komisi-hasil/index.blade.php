@@ -319,7 +319,7 @@
                                                 </td>
                                                 <td>
                                                     <div class="judul-skripsi"
-                                                        title="{{ strip_tags($proposal->judul_skripsi) }}">
+                                                        title="{{ strip_tags($hasil->judul_skripsi) }}">
                                                         {!! $hasil->judul_skripsi !!}
                                                     </div>
                                                     <div class="pembimbing-info mt-1">

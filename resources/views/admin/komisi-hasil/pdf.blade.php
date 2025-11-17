@@ -1,3 +1,4 @@
+{{-- filepath: /c:/laragon/www/eservice-app/resources/views/admin/komisi-hasil/pdf.blade.php --}}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -29,7 +30,6 @@
             border-bottom: 1pt solid black;
         }
 
-
         .underline {
             text-decoration: underline;
         }
@@ -38,7 +38,6 @@
             width: 100%;
             margin-top: 20px;
             padding: 0 0 0 5px;
-
         }
 
         .signature-section td {
@@ -48,6 +47,16 @@
 
         .signature-space {
             height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 0;
+        }
+
+        .signature-image {
+            width: 110px;
+            height: auto;
+            background: white;
         }
 
         .details-section {
@@ -59,7 +68,7 @@
         .details-section td {
             vertical-align: top;
             padding-bottom: 2rem;
-            line-height: 2;
+            line-height: 1.5;
         }
 
         .details-label {
@@ -82,51 +91,62 @@
             </h4>
         </div>
 
+        {{-- Signature Section: Pembimbing 1 & 2 --}}
         <table class="signature-section">
             <tr>
                 <td>
                     Pembimbing I,
-                    <div class="signature-space"></div>
+                    <div class="signature-space">
+                        @if (isset($pembimbing1_qr))
+                            <img src="{{ $pembimbing1_qr }}" alt="QR Code Pembimbing 1" class="signature-image">
+                        @endif
+                    </div>
                     <span class="underline">{{ $komisi->pembimbing1->name ?? 'Nama Dosen' }}</span><br>
                     NIP. {{ $komisi->pembimbing1->nip ?? 'NIP' }}
                 </td>
-                <td style="">
+                <td>
                     Pembimbing II,
-                    <div class="signature-space"></div>
+                    <div class="signature-space">
+                        @if (isset($pembimbing2_qr))
+                            <img src="{{ $pembimbing2_qr }}" alt="QR Code Pembimbing 2" class="signature-image">
+                        @endif
+                    </div>
                     <span class="underline">{{ $komisi->pembimbing2->name ?? 'Nama Dosen' }}</span><br>
                     NIP. {{ $komisi->pembimbing2->nip ?? 'NIP' }}
                 </td>
-                {{-- <td style="padding-left: 1.5rem;">
-                    Mengetahui,<br>
-                    Koordinator Program Studi Teknik<br>
-                    Informatika Fakultas Teknik UNIMA,
-                    <div class="signature-space"></div>
-                    <span
-                        class="font-weight-bold underline">{{ $koordinator_nama ?? 'Kristofel Santa, S.ST, M.MT' }}</span><br>
-                    NIP. {{ $koordinator_nip ?? '17870531 201504 1 003' }}
-                </td> --}}
             </tr>
         </table>
 
         <hr style="border: none; border-top: 1pt solid black; margin-top: 20px;">
+
+        {{-- Signature Section: Koordinator Prodi --}}
         <table class="signature-section">
             <tr>
                 <td style="text-align: center;">
-                    Mengetahui,<br><br>
-                    Koordinator Program Studi Teknik Informatika <br>
-                    Fakultas Teknik <br>
-                    Universtias Negeri Manado, <div class="signature-space">
+                    Mengetahui,<br>
+                    Koordinator Program Studi Teknik Informatika<br>
+                    Fakultas Teknik<br>
+                    Universitas Negeri Manado,
+                    <div class="signature-space">
+                        @if (isset($show_korprodi_signature) && $show_korprodi_signature && isset($korprodi_qr))
+                            <img src="{{ $korprodi_qr }}" alt="QR Code Korprodi" class="signature-image">
+                        @endif
                     </div>
-                    <span
-                        class="font-weight-bold underline">{{ $koordinator_nama ?? 'Kristofel Santa, S.ST, M.MT' }}</span><br>
-                    NIP. {{ $koordinator_nip ?? '198705312015041003' }}
+                    @if (isset($show_korprodi_signature) && $show_korprodi_signature)
+                        <span
+                            class="font-weight-bold underline">{{ $komisi->penandatanganKorprodi->name ?? 'Kristofel Santa, S.ST, M.MT' }}</span><br>
+                        NIP. {{ $komisi->penandatanganKorprodi->nip ?? '198705312015041003' }}
+                    @else
+                        <span class="font-weight-bold underline">Kristofel Santa, S.ST, M.MT</span><br>
+                        NIP. 198705312015041003
+                    @endif
                 </td>
             </tr>
         </table>
 
-
         <hr style="border: none; border-top: 1pt solid black; margin-top: 20px;">
 
+        {{-- Details Section --}}
         <table class="details-section">
             <tr>
                 <td class="details-label">Nama</td>
@@ -142,9 +162,9 @@
                 <td class="details-label">Judul</td>
                 <td class="details-colon">:</td>
                 <td>{!! $komisi->judul_skripsi ?? 'Judul Skripsi' !!}</td>
-                </td>
             </tr>
         </table>
+
     </div>
 
 </body>

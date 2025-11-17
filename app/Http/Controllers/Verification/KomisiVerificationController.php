@@ -33,7 +33,7 @@ class KomisiVerificationController extends Controller
     protected function verifyKomisiProposal($code)
     {
         $komisi = KomisiProposal::where('verification_code', $code)
-            ->with(['user', 'pembimbing', 'penandatanganPA', 'penandatanganKorprodi'])
+            ->with(['user', 'pembimbingAkademik', 'penandatanganPA', 'penandatanganKorprodi'])
             ->first();
 
         if (!$komisi) {
@@ -54,17 +54,43 @@ class KomisiVerificationController extends Controller
     }
 
     /**
-     * Verifikasi Komisi Hasil
+     * Verifikasi Komisi Hasil (3-Tier Approval)
      */
     protected function verifyKomisiHasil($code)
     {
         $komisi = KomisiHasil::where('verification_code', $code)
-            ->with(['user', 'pembimbing', 'penandatanganPA', 'penandatanganKorprodi'])
+            ->with([
+                'user',
+                'pembimbing1',
+                'pembimbing2',
+                'penandatanganPembimbing1',
+                'penandatanganPembimbing2',
+                'penandatanganKorprodi'
+            ])
             ->first();
 
         if (!$komisi) {
             Log::warning('Komisi hasil not found', ['code' => $code]);
             return $this->showInvalid('Kode verifikasi komisi hasil tidak ditemukan atau sudah tidak valid.');
+        }
+
+        // Validasi: Hanya dokumen approved yang bisa diverifikasi
+        if ($komisi->status !== 'approved') {
+            $statusMessages = [
+                'pending' => 'Dokumen masih menunggu persetujuan Pembimbing 1',
+                'approved_pembimbing1' => 'Dokumen sudah disetujui Pembimbing 1, menunggu Pembimbing 2',
+                'approved_pembimbing2' => 'Dokumen sudah disetujui Pembimbing 1 & 2, menunggu Koordinator Prodi',
+                'rejected' => 'Dokumen ditolak'
+            ];
+
+            Log::info('Komisi hasil verification blocked - not fully approved', [
+                'komisi_id' => $komisi->id,
+                'status' => $komisi->status
+            ]);
+
+            return $this->showInvalid(
+                $statusMessages[$komisi->status] ?? 'Status dokumen tidak diketahui.'
+            );
         }
 
         Log::info('Komisi hasil verified successfully', [
@@ -89,7 +115,7 @@ class KomisiVerificationController extends Controller
             'nim' => $komisi->user->nim,
             'program_studi' => 'S1 Teknik Informatika',
             'judul' => $komisi->judul_skripsi,
-            'status' => $this->getStatusText($komisi->status),
+            'status' => $this->getStatusTextProposal($komisi->status),
             'status_code' => $komisi->status,
             'verification_code' => $komisi->verification_code,
             'created_at' => $komisi->created_at->format('d F Y'),
@@ -116,11 +142,11 @@ class KomisiVerificationController extends Controller
         }
 
         // Data Pembimbing (jika berbeda dengan PA)
-        if ($komisi->pembimbing && $komisi->pembimbing->id !== $komisi->penandatanganPA?->id) {
+        if ($komisi->pembimbingAkademik && $komisi->pembimbingAkademik->id !== $komisi->penandatanganPA?->id) {
             $data['dosen_pembimbing'] = [
-                'name' => $komisi->pembimbing->name,
-                'nip' => $komisi->pembimbing->nip,
-                'jabatan' => $komisi->pembimbing->jabatan ?? 'Dosen Pembimbing',
+                'name' => $komisi->pembimbingAkademik->name,
+                'nip' => $komisi->pembimbingAkademik->nip,
+                'jabatan' => $komisi->pembimbingAkademik->jabatan ?? 'Dosen Pembimbing',
             ];
         }
 
@@ -128,7 +154,7 @@ class KomisiVerificationController extends Controller
     }
 
     /**
-     * Prepare data untuk Komisi Hasil
+     * Prepare data untuk Komisi Hasil (3-Tier Approval)
      */
     protected function prepareKomisiHasilData(KomisiHasil $komisi): array
     {
@@ -138,22 +164,43 @@ class KomisiVerificationController extends Controller
             'nim' => $komisi->user->nim,
             'program_studi' => 'S1 Teknik Informatika',
             'judul' => $komisi->judul_skripsi ?? '-',
-            'status' => $this->getStatusText($komisi->status),
+            'status' => $this->getStatusTextHasil($komisi->status),
             'status_code' => $komisi->status,
             'verification_code' => $komisi->verification_code,
             'created_at' => $komisi->created_at->format('d F Y'),
         ];
 
-        // Similar structure dengan komisi proposal
-        if ($komisi->penandatanganPA) {
-            $data['dosen_pa'] = [
-                'name' => $komisi->penandatanganPA->name,
-                'nip' => $komisi->penandatanganPA->nip,
-                'jabatan' => $komisi->penandatanganPA->jabatan ?? 'Pembimbing Akademik',
-                'tanggal_persetujuan' => $komisi->tanggal_persetujuan_pa?->format('d F Y H:i'),
+        // Data Pembimbing 1
+        if ($komisi->pembimbing1) {
+            $data['pembimbing1'] = [
+                'name' => $komisi->pembimbing1->name,
+                'nip' => $komisi->pembimbing1->nip,
+                'jabatan' => $komisi->pembimbing1->jabatan ?? 'Dosen Pembimbing I',
             ];
+
+            if ($komisi->penandatanganPembimbing1) {
+                $data['pembimbing1']['penandatangan'] = $komisi->penandatanganPembimbing1->name;
+                $data['pembimbing1']['penandatangan_nip'] = $komisi->penandatanganPembimbing1->nip;
+                $data['pembimbing1']['tanggal_persetujuan'] = $komisi->tanggal_persetujuan_pembimbing1?->format('d F Y H:i');
+            }
         }
 
+        // Data Pembimbing 2
+        if ($komisi->pembimbing2) {
+            $data['pembimbing2'] = [
+                'name' => $komisi->pembimbing2->name,
+                'nip' => $komisi->pembimbing2->nip,
+                'jabatan' => $komisi->pembimbing2->jabatan ?? 'Dosen Pembimbing II',
+            ];
+
+            if ($komisi->penandatanganPembimbing2) {
+                $data['pembimbing2']['penandatangan'] = $komisi->penandatanganPembimbing2->name;
+                $data['pembimbing2']['penandatangan_nip'] = $komisi->penandatanganPembimbing2->nip;
+                $data['pembimbing2']['tanggal_persetujuan'] = $komisi->tanggal_persetujuan_pembimbing2?->format('d F Y H:i');
+            }
+        }
+
+        // Data Koordinator Prodi
         if ($komisi->penandatanganKorprodi) {
             $data['korprodi'] = [
                 'name' => $komisi->penandatanganKorprodi->name,
@@ -163,25 +210,32 @@ class KomisiVerificationController extends Controller
             ];
         }
 
-        if ($komisi->pembimbing && $komisi->pembimbing->id !== $komisi->penandatanganPA?->id) {
-            $data['dosen_pembimbing'] = [
-                'name' => $komisi->pembimbing->name,
-                'nip' => $komisi->pembimbing->nip,
-                'jabatan' => $komisi->pembimbing->jabatan ?? 'Dosen Pembimbing',
-            ];
-        }
-
         return $data;
     }
 
     /**
-     * Get status text
+     * Get status text untuk Komisi Proposal
      */
-    protected function getStatusText($status): string
+    protected function getStatusTextProposal($status): string
     {
         return match ($status) {
             'pending' => 'Menunggu Persetujuan PA',
             'approved_pa' => 'Disetujui PA, Menunggu Korprodi',
+            'approved' => 'Disetujui Lengkap',
+            'rejected' => 'Ditolak',
+            default => 'Status Tidak Diketahui'
+        };
+    }
+
+    /**
+     * Get status text untuk Komisi Hasil (3-Tier)
+     */
+    protected function getStatusTextHasil($status): string
+    {
+        return match ($status) {
+            'pending' => 'Menunggu Persetujuan Pembimbing 1',
+            'approved_pembimbing1' => 'Disetujui Pembimbing 1, Menunggu Pembimbing 2',
+            'approved_pembimbing2' => 'Disetujui Pembimbing 1 & 2, Menunggu Korprodi',
             'approved' => 'Disetujui Lengkap',
             'rejected' => 'Ditolak',
             default => 'Status Tidak Diketahui'
