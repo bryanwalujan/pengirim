@@ -1,5 +1,3 @@
-{{-- filepath: resources/views/admin/komisi-proposal/show.blade.php --}}
-
 @extends('layouts.admin.app')
 
 @section('title', 'Detail Komisi Proposal')

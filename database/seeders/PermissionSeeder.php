@@ -89,12 +89,6 @@ class PermissionSeeder extends Seeder
             'manage komisi hasil',
         ]);
 
-        // Create Mahasiswa Role
-        $mahasiswaRole = Role::create(['name' => 'mahasiswa']);
-        $mahasiswaRole->givePermissionTo([
-            'view dashboard'
-        ]);
-
         // Note: Approval permissions akan di-assign secara dinamis 
         // berdasarkan jabatan saat create/update dosen
     }

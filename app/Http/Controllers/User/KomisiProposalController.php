@@ -270,11 +270,13 @@ class KomisiProposalController extends Controller
             return back()->with('error', 'Dokumen hanya dapat diunduh setelah disetujui lengkap.');
         }
 
-        if (!$komisiProposal->file_komisi || !Storage::disk('public')->exists($komisiProposal->file_komisi)) {
+        // UBAH: Gunakan disk 'local'
+        if (!$komisiProposal->file_komisi || !Storage::disk('local')->exists($komisiProposal->file_komisi)) {
             return back()->with('error', 'File dokumen tidak ditemukan.');
         }
 
-        $fullPath = Storage::disk('public')->path($komisiProposal->file_komisi);
+        // UBAH: Gunakan disk 'local' untuk get path
+        $fullPath = Storage::disk('local')->path($komisiProposal->file_komisi);
         $filename = 'Komisi_Proposal_' . Auth::user()->nim . '_' . now()->format('Ymd') . '.pdf';
 
         return response()->download($fullPath, $filename);

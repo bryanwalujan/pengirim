@@ -181,7 +181,6 @@ class KomisiProposal extends Model
             }
         });
 
-        // TAMBAHAN: Kirim notifikasi saat komisi dibuat (status pending)
         static::created(function ($model) {
             if ($model->status === 'pending' && $model->pembimbing) {
                 $model->pembimbing->notify(
@@ -196,11 +195,8 @@ class KomisiProposal extends Model
             }
         });
 
-        // TAMBAHAN: Kirim notifikasi saat status berubah ke approved_pa
         static::updated(function ($model) {
-            // Jika status berubah menjadi approved_pa, kirim notifikasi ke Korprodi
             if ($model->isDirty('status') && $model->status === 'approved_pa') {
-                // Cari semua dosen dengan jabatan Korprodi
                 $korprodiList = \App\Models\User::role('dosen')
                     ->where(function ($query) {
                         $query->where('jabatan', 'like', '%koordinator program studi%')
@@ -224,14 +220,14 @@ class KomisiProposal extends Model
             }
         });
 
-        // Handle deleting event - hapus file PDF sebelum data dihapus
+        // UBAH: Gunakan disk 'local' untuk private storage
         static::deleting(function ($model) {
             $deletedFiles = [];
 
             // Hapus file_komisi_pa jika ada
-            if ($model->file_komisi_pa && Storage::disk('public')->exists($model->file_komisi_pa)) {
+            if ($model->file_komisi_pa && Storage::disk('local')->exists($model->file_komisi_pa)) {
                 try {
-                    Storage::disk('public')->delete($model->file_komisi_pa);
+                    Storage::disk('local')->delete($model->file_komisi_pa);
                     $deletedFiles[] = $model->file_komisi_pa;
                     Log::info('Deleted file_komisi_pa', ['path' => $model->file_komisi_pa]);
                 } catch (\Exception $e) {
@@ -243,9 +239,9 @@ class KomisiProposal extends Model
             }
 
             // Hapus file_komisi (final) jika ada
-            if ($model->file_komisi && Storage::disk('public')->exists($model->file_komisi)) {
+            if ($model->file_komisi && Storage::disk('local')->exists($model->file_komisi)) {
                 try {
-                    Storage::disk('public')->delete($model->file_komisi);
+                    Storage::disk('local')->delete($model->file_komisi);
                     $deletedFiles[] = $model->file_komisi;
                     Log::info('Deleted file_komisi', ['path' => $model->file_komisi]);
                 } catch (\Exception $e) {
@@ -256,7 +252,6 @@ class KomisiProposal extends Model
                 }
             }
 
-            // Hapus folder kosong jika ada
             if (!empty($deletedFiles)) {
                 $model->cleanupEmptyDirectories($deletedFiles);
             }
@@ -279,12 +274,12 @@ class KomisiProposal extends Model
             $directory = dirname($filePath);
 
             // Cek apakah directory masih ada dan kosong
-            if (Storage::disk('public')->exists($directory)) {
-                $files = Storage::disk('public')->files($directory);
+            if (Storage::disk('local')->exists($directory)) {
+                $files = Storage::disk('local')->files($directory);
 
                 if (empty($files)) {
                     try {
-                        Storage::disk('public')->deleteDirectory($directory);
+                        Storage::disk('local')->deleteDirectory($directory);
                         Log::info('Deleted empty directory', ['path' => $directory]);
                     } catch (\Exception $e) {
                         Log::warning('Failed to delete empty directory', [

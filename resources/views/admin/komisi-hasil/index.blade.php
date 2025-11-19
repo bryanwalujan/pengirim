@@ -623,6 +623,7 @@
                                     title: 'Berhasil!',
                                     text: data.message,
                                     confirmButtonText: 'OK',
+                                    timer: 3000,
                                     customClass: {
                                         confirmButton: 'btn btn-success'
                                     },
