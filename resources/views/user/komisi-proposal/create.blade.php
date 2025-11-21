@@ -497,20 +497,6 @@
             offset: 100
         });
 
-        // Initialize Select2
-        $(document).ready(function() {
-            $('.select2').select2({
-                placeholder: "Pilih dosen pembimbing",
-                allowClear: true,
-                width: '100%'
-            });
-
-            // Auto-hide alerts
-            setTimeout(function() {
-                $('.alert').not('.alert-warning').fadeOut('slow');
-            }, 5000);
-        });
-
         // Form submission handler with confirmation
         document.getElementById('proposal-form').addEventListener('submit', function(e) {
             e.preventDefault();

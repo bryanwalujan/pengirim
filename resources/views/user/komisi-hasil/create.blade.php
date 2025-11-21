@@ -1,478 +1,255 @@
 @extends('layouts.user.form')
 
-@section('title', 'Form Pengajuan Persetujuan Hasil')
+@section('title', 'Form Pengajuan Persetujuan Komisi Hasil')
 
 @push('styles')
+    {{-- Kita perlu sedikit CSS custom untuk memaksa Select2 mengikuti style Tailwind --}}
     <style>
-        :root {
-            --primary-color: #4361ee;
-            --secondary-color: #3f37c9;
-            --accent-color: #4895ef;
-            --light-gray: #f8f9fa;
-            --dark-gray: #343a40;
-            --border-radius: 15px;
-            --box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-            --transition: all 0.3s ease;
-        }
-
-        .form-container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 2.5rem 1rem;
-        }
-
-        .form-card {
-            border: none;
-            border-radius: var(--border-radius);
-            box-shadow: var(--box-shadow);
-            background: linear-gradient(145deg, #ffffff, #f9f9f9);
-            overflow: hidden;
-        }
-
-        .form-header {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            padding: 2rem;
-            text-align: center;
-            border-bottom: 4px solid var(--accent-color);
-        }
-
-        .form-header h4 {
-            font-weight: 700;
-            margin: 0;
-            font-size: 1.75rem;
-            letter-spacing: 0.5px;
-        }
-
-        .form-header p {
-            margin: 0.5rem 0 0;
-            opacity: 0.9;
-            font-size: 0.95rem;
-        }
-
-        .form-section {
-            padding: 1rem 2.5rem 2rem;
-            margin-bottom: 1.5rem;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: 10px;
-        }
-
-        .section-title {
-            display: flex;
-            align-items: center;
-            color: var(--dark-gray);
-            font-weight: 700;
-            margin-bottom: 1.5rem;
-            font-size: 1.2rem;
-        }
-
-        .section-title i {
-            margin-right: 0.75rem;
-            color: var(--accent-color);
-            font-size: 1.5rem;
-        }
-
-        .form-label {
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: var(--dark-gray);
-            font-size: 0.95rem;
-        }
-
-        .form-control,
-        .form-select {
-            border-radius: 10px;
-            padding: 0.85rem 1.25rem;
-            border: 1px solid #e0e0e0;
-            transition: var(--transition);
-            background: #fff;
-            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.03);
-        }
-
-        .form-control:focus,
-        .form-select:focus {
-            border-color: var(--accent-color);
-            box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.2);
-        }
-
-        .form-floating>label {
-            padding: 0.85rem 1.25rem;
-            color: #6c757d;
-        }
-
-        .btn-submit {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            border: none;
-            padding: 0.85rem 2.5rem;
-            font-weight: 600;
-            border-radius: 50px;
-            transition: var(--transition);
-        }
-
-        .btn-submit:hover {
-            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
-        }
-
-        .btn-back {
-            background: #fff;
-            border: 2px solid #e0e0e0;
-            color: var(--dark-gray);
-            padding: 0.85rem 2.5rem;
-            border-radius: 50px;
-            transition: var(--transition);
-        }
-
-        .btn-back:hover {
-            background: var(--light-gray);
-            border-color: var(--accent-color);
-            color: var(--dark-gray);
-            transform: translateY(-3px);
-        }
-
-        .dosen-card {
-            background: #fff;
-            border-radius: 10px;
-            border: 1px solid #e0e0e0;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            transition: var(--transition);
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.03);
-        }
-
-        .dosen-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            border-color: var(--accent-color);
-        }
-
-        .dosen-name {
-            font-weight: 600;
-            color: var(--dark-gray);
-            margin-bottom: 0.5rem;
-            font-size: .9rem;
-        }
-
-        .dosen-info {
-            font-size: 0.85rem;
-            color: #6c757d;
-        }
-
-        .dosen-info i {
-            margin-right: 0.5rem;
-            width: 16px;
-            text-align: center;
-        }
-
-        .select2-container--default .select2-selection--single {
-            height: 48px;
-            border-radius: 10px;
-            border: 1px solid #e0e0e0;
-            padding: 0.5rem 1rem;
-        }
-
-        .select2-container--default .select2-selection--single .select2-selection__rendered {
-            line-height: 36px;
-            color: #495057;
-        }
-
-        .select2-container--default .select2-selection--single .select2-selection__arrow {
-            height: 46px;
-        }
-
-        .select2-container--default .select2-results__option--highlighted {
-            background-color: var(--accent-color);
-        }
-
-        .select2-container--default .select2-results__option--selected {
-            background-color: var(--primary-color);
-        }
-
-        .select2-dropdown {
-            border-radius: 10px;
-            border: 1px solid #e0e0e0;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .alert-info {
-            background-color: #e7f5ff;
-            border-color: #d0ebff;
-            color: #1864ab;
-            border-radius: 10px;
-            padding: 1rem 1.5rem;
-        }
-
-        @media (max-width: 768px) {
-            .form-container {
-                padding: 1.5rem 0.5rem;
-            }
-
-            .form-section {
-                padding: 1rem 1.5rem 1.5rem;
-            }
-
-            .form-header {
-                padding: 1.5rem;
-            }
-
-            .btn-submit,
-            .btn-back {
-                padding: 0.75rem 1.5rem;
-                width: 100%;
-            }
-
-            .action-buttons {
-                flex-direction: column;
-                gap: 0.75rem;
-            }
-        }
-
-        .dosen-scroll-container {
-            width: 100%;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
-            position: relative;
-        }
-
-        .dosen-scroll-container::-webkit-scrollbar {
-            display: none;
-        }
-
-        .dosen-scroll-wrapper {
-            display: inline-flex;
-            gap: 1.5rem;
-            padding: 0.5rem 1rem;
-            width: auto;
-            white-space: nowrap;
-        }
-
-        .dosen-card {
-            flex: 0 0 auto;
-            width: 280px;
-            background: #fff;
-            border-radius: 10px;
-            border: 1px solid #e0e0e0;
-            padding: 1.5rem;
-            transition: var(--transition);
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.03);
-            display: inline-block;
-        }
-
-        .dosen-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            border-color: var(--accent-color);
-        }
-
-        .btn-select-dosen {
-            background: rgba(67, 97, 238, 0.1);
-            color: var(--primary-color);
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 50px;
-            font-size: 0.85rem;
-            transition: var(--transition);
-            display: none;
-        }
-
-        .dosen-card:hover .btn-select-dosen {
-            display: inline-block;
-        }
-
-        .btn-select-dosen:hover {
-            background: var(--primary-color);
-            color: white;
-        }
-
-        .scroll-indicator {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            color: #6c757d;
-            font-size: 0.85rem;
-            margin-top: 0.5rem;
-        }
-
-        .scroll-arrow {
+        /* Penyesuaian Select2 agar mirip Input Tailwind */
+        .select2-container--bootstrap-5 .select2-selection {
+            border-color: #e2e8f0 !important;
+            /* border-slate-200 */
+            padding: 0.75rem 1rem !important;
+            height: auto !important;
+            border-radius: 0.75rem !important;
+            /* rounded-xl */
             font-size: 1rem;
-            opacity: 0.7;
         }
 
-        .scroll-arrow:hover {
-            opacity: 1;
-            cursor: pointer;
-            color: var(--primary-color);
+        .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
+            color: #334155 !important;
+            /* text-slate-700 */
+            padding: 0 !important;
         }
 
-        .left-arrow {
-            margin-right: 0.5rem;
+        .select2-container--bootstrap-5 .select2-dropdown {
+            border-color: #e2e8f0 !important;
+            border-radius: 0.75rem !important;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1) !important;
         }
 
-        .right-arrow {
-            margin-left: 0.5rem;
+        /* Trix Editor Customization */
+        trix-editor {
+            border-color: #e2e8f0 !important;
+            border-radius: 0.75rem !important;
+            padding: 1rem !important;
+            background-color: white;
+            min-height: 150px;
         }
 
-        @media (max-width: 768px) {
-            .dosen-card {
-                min-width: 240px;
-                padding: 1.25rem;
-            }
+        trix-editor:focus {
+            border-color: #3b82f6 !important;
+            /* blue-500 */
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3) !important;
+            outline: none;
+        }
 
-            .scroll-indicator span {
-                display: none;
-            }
+        trix-toolbar .trix-button--icon {
+            border-radius: 0.5rem;
         }
     </style>
 @endpush
 
 @section('form-content')
-    <div class="form-container" data-aos="fade-up" data-aos-delay="100">
-        <div class="form-card">
-            <div class="form-header">
-                <h4>Formulir Persetujuan Komisi Pembimbing</h4>
-                <p>Silakan isi judul skripsi dan pilih dosen pembimbing Anda dari daftar yang tersedia</p>
+    <div class="max-w-4xl mx-auto pb-10" data-aos="fade-up" data-aos-delay="100">
+
+        {{-- Alert Pengajuan Ulang --}}
+        @if (isset($latestHasil) && $latestHasil && $latestHasil->status === 'rejected')
+            <div class="mb-6 bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-lg shadow-sm" role="alert">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="bi bi-arrow-repeat text-2xl text-amber-500"></i>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-bold text-amber-800">Pengajuan Ulang Diperlukan</h3>
+                        <div class="mt-2 text-sm text-amber-700">
+                            <p>Pengajuan sebelumnya ditolak. Silakan perbaiki berdasarkan catatan berikut:</p>
+                            <div class="mt-2 p-3 bg-white/50 rounded-lg border border-amber-200">
+                                <span class="font-semibold">Alasan Penolakan:</span>
+                                <span
+                                    class="block mt-1 text-red-600 font-medium">{{ $latestHasil->keterangan ?? 'Tidak ada keterangan' }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        {{-- Alert Error Session --}}
+        @if (session('error'))
+            <div class="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg flex items-center shadow-sm">
+                <i class="bi bi-exclamation-triangle-fill text-red-500 text-xl mr-3"></i>
+                <span class="text-red-700 font-medium">{{ session('error') }}</span>
+            </div>
+        @endif
+
+        {{-- Main Card --}}
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-100">
+
+            {{-- Header --}}
+            <div class="bg-gradient-to-r from-blue-600 to-indigo-700 p-8 text-center text-white relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-full bg-white/10 opacity-20"
+                    style="background-image: url('data:image/svg+xml,...');"></div> {{-- Optional Pattern --}}
+                <h4 class="text-2xl md:text-3xl font-bold tracking-tight relative z-10">Formulir Persetujuan Komisi Hasil
+                </h4>
+                <p class="mt-2 text-blue-100 text-sm md:text-base relative z-10 opacity-90">Lengkapi data skripsi dan pilih
+                    dosen pembimbing Anda</p>
             </div>
 
-            <form action="{{ route('user.komisi-hasil.store') }}" method="POST" id="hasil-form">
+            <form action="{{ route('user.komisi-hasil.store') }}" method="POST" id="hasil-form"
+                class="p-6 md:p-10 space-y-8">
                 @csrf
 
                 <!-- Informasi Mahasiswa Section -->
-                <div class="form-section" data-aos="fade-up" data-aos-delay="200">
-                    <h5 class="section-title">
-                        <i class="bi bi-person-circle"></i>
-                        Informasi Mahasiswa
-                    </h5>
-
-                    <div class="row g-4">
-                        <div class="col-md-6">
-                            <div class="form-floating">
-                                <input type="text" class="form-control" id="nama" value="{{ Auth::user()->name }}"
-                                    readonly>
-                                <label for="nama">Nama Lengkap</label>
-                            </div>
+                <div class="bg-slate-50 p-6 rounded-xl border border-slate-200" data-aos="fade-up" data-aos-delay="200">
+                    <div class="flex items-center mb-5 pb-3 border-b border-slate-200">
+                        <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3">
+                            <i class="bi bi-person-circle text-xl"></i>
                         </div>
+                        <h5 class="text-lg font-bold text-slate-800">Informasi Mahasiswa</h5>
+                    </div>
 
-                        <div class="col-md-6">
-                            <div class="form-floating">
-                                <input type="text" class="form-control" id="nim" value="{{ Auth::user()->nim }}"
-                                    readonly>
-                                <label for="nim">Nomor Induk Mahasiswa</label>
-                            </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-600 mb-2">Nama Lengkap</label>
+                            <input type="text" value="{{ Auth::user()->name }}" readonly
+                                class="w-full px-4 py-3 rounded-xl bg-slate-200 border-transparent text-slate-600 font-medium focus:ring-0 cursor-not-allowed">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-600 mb-2">Nomor Induk Mahasiswa</label>
+                            <input type="text" value="{{ Auth::user()->nim }}" readonly
+                                class="w-full px-4 py-3 rounded-xl bg-slate-200 border-transparent text-slate-600 font-medium focus:ring-0 cursor-not-allowed">
                         </div>
                     </div>
                 </div>
 
                 <!-- Judul Skripsi Section -->
-                <div class="form-section" data-aos="fade-up" data-aos-delay="300">
-                    <h5 class="section-title">
-                        <i class="bi bi-journal-text"></i>
-                        Judul Skripsi
-                    </h5>
+                <div data-aos="fade-up" data-aos-delay="300">
+                    <div class="flex items-center mb-4">
+                        <div
+                            class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 mr-3">
+                            <i class="bi bi-journal-text text-xl"></i>
+                        </div>
+                        <h5 class="text-lg font-bold text-slate-800">Judul Skripsi</h5>
+                    </div>
 
-                    <div class="mb-4">
-                        <label for="judul_skripsi" class="form-label">Judul Skripsi <span
-                                class="text-danger">*</span></label>
-                        <!-- Hidden input untuk menyimpan data -->
+                    <div class="relative">
+                        <label for="judul_skripsi" class="block text-sm font-semibold text-slate-700 mb-2">
+                            Judul Lengkap <span class="text-red-500">*</span>
+                        </label>
+
                         <input id="judul_skripsi" type="hidden" name="judul_skripsi" value="{{ old('judul_skripsi') }}">
-                        <!-- Trix Editor yang akan menampilkan konten -->
-                        <trix-editor input="judul_skripsi" class="form-control @error('judul_skripsi') is-invalid @enderror"
-                            placeholder="Masukkan judul lengkap skripsi Anda"></trix-editor>
-                        {{-- <textarea class="form-control @error('judul_skripsi') is-invalid @enderror" id="judul_skripsi" name="judul_skripsi"
-                            rows="4" required placeholder="Masukkan judul lengkap skripsi Anda">{{ old('judul_skripsi') }}</textarea> --}}
-                        <div class="form-text mt-2">Pastikan judul skripsi sudah disetujui oleh calon pembimbing</div>
+                        <trix-editor input="judul_skripsi"
+                            class="trix-content prose max-w-none @error('judul_skripsi') border-red-500 ring-1 ring-red-500 @enderror"
+                            placeholder="Masukkan judul skripsi Anda di sini..."></trix-editor>
+
+                        <p class="mt-2 text-xs text-slate-500 flex items-center">
+                            <i class="bi bi-info-circle mr-1"></i> Pastikan judul sesuai dengan yang disetujui pembimbing.
+                        </p>
                         @error('judul_skripsi')
-                            <div class="invalid-feedback">{{ $message }}</div>
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
                 </div>
 
                 <!-- Dosen Pembimbing Section -->
-                <div class="form-section" data-aos="fade-up" data-aos-delay="400">
-                    <h5 class="section-title">
-                        <i class="bi bi-people-fill"></i>
-                        Dosen Pembimbing
-                    </h5>
-
-                    <div class="alert alert-info mb-4">
-                        <h6 class="alert-heading fw-bold"><i class="bi bi-info-circle-fill me-2"></i>Panduan Pemilihan Dosen
-                        </h6>
-                        <ul class="mb-0">
-                            <li>Pastikan sudah berdiskusi dengan calon pembimbing sebelum mengajukan</li>
-                            <li>Pilih dosen yang sesuai dengan bidang penelitian skripsi Anda</li>
-                            <li>Jika belum menentukan pembimbing, konsultasikan terlebih dahulu dengan koordinator program
-                                studi</li>
-                        </ul>
+                <div data-aos="fade-up" data-aos-delay="400">
+                    <div class="flex items-center mb-4">
+                        <div
+                            class="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center text-violet-600 mr-3">
+                            <i class="bi bi-people-fill text-xl"></i>
+                        </div>
+                        <h5 class="text-lg font-bold text-slate-800">Dosen Pembimbing</h5>
                     </div>
 
-                    <div class="mb-4">
-                        <label for="dosen_pembimbing1_id" class="form-label">Dosen Pembimbing I <span
-                                class="text-danger">*</span></label>
-                        <select class="form-select @error('dosen_pembimbing1_id') is-invalid @enderror select2"
-                            id="dosen_pembimbing1_id" name="dosen_pembimbing1_id" required>
-                            <option selected disabled value="">Pilih Dosen Pembimbing ...</option>
-                            @foreach ($dosens as $dosen)
-                                <option value="{{ $dosen->id }}"
-                                    {{ old('dosen_pembimbing1_id') == $dosen->id ? 'selected' : '' }}>{{ $dosen->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('dosen_pembimbing1_id')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    <div class="mb-4">
-                        <label for="dosen_pembimbing2_id" class="form-label">Dosen Pembimbing II <span
-                                class="text-danger">*</span></label>
-                        <select class="form-select @error('dosen_pembimbing2_id') is-invalid @enderror select2"
-                            id="dosen_pembimbing2_id" name="dosen_pembimbing2_id" required>
-                            <option selected disabled value="">Pilih Dosen Pembimbing ...</option>
-                            @foreach ($dosens as $dosen)
-                                <option value="{{ $dosen->id }}"
-                                    {{ old('dosen_pembimbing2_id') == $dosen->id ? 'selected' : '' }}>{{ $dosen->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('dosen_pembimbing2_id')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
+                    @if (isset($dosens) && $dosens->count() > 0)
+                        <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-6">
+                            <h6 class="text-blue-800 font-bold text-sm mb-2 flex items-center">
+                                <i class="bi bi-lightbulb-fill mr-2"></i> Panduan Pemilihan
+                            </h6>
+                            <ul class="list-disc list-inside text-sm text-blue-700 space-y-1 ml-1">
+                                <li>Pilih dosen sesuai bidang penelitian.</li>
+                                <li><strong>Pembimbing 1 & 2 harus berbeda.</strong></li>
+                                <li>Konsultasikan dengan Koordinator Prodi jika ragu.</li>
+                            </ul>
+                        </div>
 
-                    <div class="dosen-list">
-                        <h6 class="mb-3 fw-semibold">Daftar Dosen Pembimbing Tersedia:</h6>
-                        <div class="dosen-scroll-container">
-                            <div class="dosen-scroll-wrapper">
-                                @foreach ($dosens as $dosen)
-                                    <div class="dosen-card">
-                                        <h6 class="dosen-name">{{ $dosen->name }}</h6>
-                                        <div class="dosen-info">
-                                            <div><i class="bi bi-envelope"></i> {{ $dosen->email }}</div>
-                                            <div><i class="bi bi-bookmark"></i> Bidang: {{ $dosen->jabatan ?? 'Umum' }}
-                                            </div>
-                                        </div>
-                                    </div>
-                                @endforeach
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Pembimbing 1 -->
+                            <div class="group">
+                                <label for="dosen_pembimbing1_id" class="block text-sm font-semibold text-slate-700 mb-2">
+                                    Dosen Pembimbing 1 <span class="text-red-500">*</span>
+                                </label>
+                                <select class="form-select select2 w-full" id="dosen_pembimbing1_id"
+                                    name="dosen_pembimbing1_id" required>
+                                    <option value="">Pilih Dosen Pembimbing 1...</option>
+                                    @foreach ($dosens as $dosen)
+                                        <option value="{{ $dosen->id }}"
+                                            {{ old('dosen_pembimbing1_id') == $dosen->id ? 'selected' : '' }}>
+                                            {{ $dosen->name }} - {{ $dosen->jabatan ?? 'Dosen' }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('dosen_pembimbing1_id')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <!-- Pembimbing 2 -->
+                            <div class="group">
+                                <label for="dosen_pembimbing2_id" class="block text-sm font-semibold text-slate-700 mb-2">
+                                    Dosen Pembimbing 2 <span class="text-red-500">*</span>
+                                </label>
+                                <select class="form-select select2 w-full" id="dosen_pembimbing2_id"
+                                    name="dosen_pembimbing2_id" required>
+                                    <option value="">Pilih Dosen Pembimbing 2...</option>
+                                    @foreach ($dosens as $dosen)
+                                        <option value="{{ $dosen->id }}"
+                                            {{ old('dosen_pembimbing2_id') == $dosen->id ? 'selected' : '' }}>
+                                            {{ $dosen->name }} - {{ $dosen->jabatan ?? 'Dosen' }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('dosen_pembimbing2_id')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
                             </div>
                         </div>
-                        <div class="scroll-indicator">
-                            <i class="bi bi-arrow-left scroll-arrow left-arrow"></i>
-                            <span>Geser untuk melihat lebih banyak</span>
-                            <i class="bi bi-arrow-right scroll-arrow right-arrow"></i>
+                    @else
+                        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center">
+                            <i class="bi bi-exclamation-circle-fill text-xl mr-3"></i>
+                            <div>
+                                <strong class="font-bold">Data Kosong!</strong>
+                                <span class="block sm:inline">Tidak ada data dosen tersedia. Hubungi admin.</span>
+                            </div>
                         </div>
-                    </div>
+                    @endif
                 </div>
 
                 <!-- Form Actions -->
-                <div class="form-section pt-0" data-aos="fade-up" data-aos-delay="500">
-                    <div class="d-flex justify-content-between gap-3">
-                        <a href="{{ route('user.komisi-hasil.index') }}" class="btn btn-back">
-                            <i class="bi bi-arrow-left me-2"></i> Kembali
+                <div class="pt-6 border-t border-slate-100" data-aos="fade-up" data-aos-delay="500">
+                    <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 flex items-start">
+                        <i class="bi bi-shield-exclamation text-amber-600 text-xl mr-3 mt-0.5"></i>
+                        <div class="text-sm text-amber-800">
+                            <strong>Perhatian:</strong>
+                            @if (!isset($latestHasil) || !$latestHasil)
+                                Pengajuan hanya dapat dilakukan <strong>sekali</strong>. Pastikan data benar.
+                            @else
+                                Data tidak dapat diubah setelah dikirim kecuali ditolak oleh admin.
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col-reverse md:flex-row justify-between gap-4">
+                        <a href="{{ route('user.komisi-hasil.index') }}"
+                            class="px-6 py-3 rounded-full border-2 border-slate-200 text-slate-600 font-semibold hover:bg-slate-50 hover:border-slate-300 hover:text-slate-800 transition-all duration-300 text-center flex items-center justify-center">
+                            <i class="bi bi-arrow-left mr-2"></i> Kembali
                         </a>
-                        <button type="submit" class="btn btn-submit text-white" id="submit-btn">
-                            <i class="bi bi-send-check me-2"></i> Ajukan Persetujuan
+
+                        <button type="submit" id="submit-btn"
+                            class="px-8 py-3 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:-translate-y-1 hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 flex items-center justify-center">
+                            <i class="bi bi-send-check mr-2"></i>
+                            {{ isset($latestHasil) && $latestHasil && $latestHasil->status === 'rejected' ? 'Ajukan Ulang' : 'Kirim Pengajuan' }}
                         </button>
                     </div>
                 </div>
@@ -483,63 +260,62 @@
 
 @push('scripts')
     <script>
-        AOS.init({
-            duration: 400,
-            once: true,
-            offset: 100
+        $(document).ready(function() {
+            // Initialize AOS
+            if (typeof AOS !== 'undefined') {
+                AOS.init({
+                    duration: 600,
+                    once: true,
+                    offset: 50
+                });
+            }
+
+            // Auto-hide alerts
+            setTimeout(() => {
+                $('.alert').not('.alert-warning, .alert-info').fadeOut('slow');
+            }, 5000);
         });
 
-        // Initialize Select2
-        $(document).ready(function() {
-            $('.select2').select2({
-                placeholder: "Pilih dosen pembimbing",
-                allowClear: true,
-                width: '100%'
-            });
+        // Form Submission Logic
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('hasil-form');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
 
-            // Prevent selecting same dosen for both pembimbing
-            $('#dosen_pembimbing1_id, #dosen_pembimbing2_id').on('change', function() {
-                const pembimbing1 = $('#dosen_pembimbing1_id').val();
-                const pembimbing2 = $('#dosen_pembimbing2_id').val();
+                    const p1 = $('#dosen_pembimbing1_id').val();
+                    const p2 = $('#dosen_pembimbing2_id').val();
 
-                if (pembimbing1 && pembimbing2 && pembimbing1 === pembimbing2) {
+                    if (!p1 || !p2) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Data Belum Lengkap',
+                            text: 'Mohon pilih kedua dosen pembimbing.',
+                            confirmButtonColor: '#4f46e5'
+                        });
+                        return;
+                    }
+
                     Swal.fire({
-                        icon: 'error',
-                        title: 'Pembimbing Tidak Valid',
-                        text: 'Dosen pembimbing 1 dan 2 tidak boleh sama',
-                        confirmButtonColor: '#4361ee'
+                        title: 'Konfirmasi Pengajuan',
+                        text: "Apakah data yang Anda masukkan sudah benar?",
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: '#4f46e5', // Indigo-600
+                        cancelButtonColor: '#94a3b8', // Slate-400
+                        confirmButtonText: 'Ya, Kirim!',
+                        cancelButtonText: 'Batal'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            const btn = document.getElementById('submit-btn');
+                            btn.disabled = true;
+                            btn.innerHTML =
+                                '<span class="spinner-border spinner-border-sm me-2"></span>Mengirim...';
+                            form.submit();
+                        }
                     });
-                    $(this).val('').trigger('change');
-                }
-            });
-
-        });
-
-        // Scroll buttons functionality
-        $(document).ready(function() {
-            // Scroll buttons functionality
-            $('.left-arrow').on('click', function() {
-                $('.dosen-scroll-container').animate({
-                    scrollLeft: '-=300'
-                }, 300);
-            });
-
-            $('.right-arrow').on('click', function() {
-                $('.dosen-scroll-container').animate({
-                    scrollLeft: '+=300'
-                }, 300);
-            });
-        });
-
-        // Form submission handler with SweetAlert
-        document.getElementById('proposal-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const btn = document.getElementById('submit-btn');
-            btn.disabled = true;
-            btn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i> Mengirim...';
-
-            // Simulate form submission
-            this.submit();
+                });
+            }
         });
     </script>
 @endpush

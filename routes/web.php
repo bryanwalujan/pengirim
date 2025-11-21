@@ -525,39 +525,23 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::get('/', [AdminKomisiHasilController::class, 'index'])->name('index');
         Route::get('/{komisiHasil}', [AdminKomisiHasilController::class, 'show'])->name('show');
 
-        // Approval Routes - Pembimbing 1 (hanya dosen ybs)
-        Route::post('/{komisiHasil}/approve-pembimbing1', [AdminKomisiHasilController::class, 'approveByPembimbing1'])
-            ->name('approve-pembimbing1')
-            ->middleware('role:dosen');
+        // Approval Routes - Pembimbing 1
+        Route::post('/{komisiHasil}/approve/pembimbing1', [AdminKomisiHasilController::class, 'approveByPembimbing1'])
+            ->name('approve.pembimbing1');
 
-        // Approval Routes - Pembimbing 2 (hanya dosen ybs)
-        Route::post('/{komisiHasil}/approve-pembimbing2', [AdminKomisiHasilController::class, 'approveByPembimbing2'])
-            ->name('approve-pembimbing2')
-            ->middleware('role:dosen');
+        // Approval Routes - Pembimbing 2
+        Route::post('/{komisiHasil}/approve/pembimbing2', [AdminKomisiHasilController::class, 'approveByPembimbing2'])
+            ->name('approve.pembimbing2');
 
-        // Approval Routes - Korprodi (hanya dosen dengan jabatan korprodi)
-        Route::post('/{komisiHasil}/approve-korprodi', [AdminKomisiHasilController::class, 'approveByKorprodi'])
-            ->name('approve-korprodi')
-            ->middleware('role:dosen');
+        // Approval Routes - Korprodi
+        Route::post('/{komisiHasil}/approve/korprodi', [AdminKomisiHasilController::class, 'approveByKorprodi'])
+            ->name('approve.korprodi');
 
-        // Reject Routes
-        Route::post('/{komisiHasil}/reject-pembimbing1', [AdminKomisiHasilController::class, 'rejectByPembimbing1'])
-            ->name('reject-pembimbing1')
-            ->middleware('role:dosen');
-
-        Route::post('/{komisiHasil}/reject-pembimbing2', [AdminKomisiHasilController::class, 'rejectByPembimbing2'])
-            ->name('reject-pembimbing2')
-            ->middleware('role:dosen');
-
-        Route::post('/{komisiHasil}/reject-korprodi', [AdminKomisiHasilController::class, 'rejectByKorprodi'])
-            ->name('reject-korprodi')
-            ->middleware('role:dosen');
-
-        // Download PDF (semua role bisa download jika sudah approved)
+        // Download PDF
         Route::get('/{komisiHasil}/download', [AdminKomisiHasilController::class, 'downloadPdf'])
             ->name('download');
 
-        // Delete (hanya staff atau dosen pembimbing)
+        // Delete
         Route::delete('/{komisiHasil}', [AdminKomisiHasilController::class, 'destroy'])
             ->name('destroy');
     });

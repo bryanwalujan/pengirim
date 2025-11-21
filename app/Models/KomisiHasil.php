@@ -1,4 +1,5 @@
 <?php
+// filepath: /c:/laragon/www/eservice-app/app/Models/KomisiHasil.php
 
 namespace App\Models;
 
@@ -93,7 +94,7 @@ class KomisiHasil extends Model
     }
 
     /**
-     * Check if proposal can be deleted
+     * Check if komisi hasil can be deleted
      */
     public function canBeDeleted(): bool
     {
@@ -134,8 +135,9 @@ class KomisiHasil extends Model
 
     /**
      * Get user's latest komisi hasil
+     * PERBAIKAN: Gunakan nama method yang konsisten
      */
-    public static function getLatestKomisiHasil(int $userId)
+    public static function getLatestHasil(int $userId)
     {
         return self::where('user_id', $userId)
             ->latest()
@@ -145,46 +147,50 @@ class KomisiHasil extends Model
     /**
      * Check if user can create new komisi hasil
      */
-    public static function canCreateNewKomisiHasil(int $userId): array
+    public static function canCreateNewHasil(int $userId): array
     {
-        $latestKomisi = self::getLatestKomisiHasil($userId);
+        $latestHasil = self::getLatestHasil($userId);
 
-        if (!$latestKomisi) {
+        // Jika belum pernah mengajukan
+        if (!$latestHasil) {
             return [
                 'can_create' => true,
                 'reason' => null,
-                'komisi' => null,
+                'hasil' => null,
             ];
         }
 
-        if ($latestKomisi->status === 'approved') {
+        // Jika sudah disetujui lengkap
+        if ($latestHasil->status === 'approved') {
             return [
                 'can_create' => false,
                 'reason' => 'Anda sudah memiliki komisi hasil yang disetujui. Tidak dapat mengajukan lagi.',
-                'komisi' => $latestKomisi,
+                'hasil' => $latestHasil,
             ];
         }
 
-        if (in_array($latestKomisi->status, ['pending', 'approved_pembimbing1', 'approved_pembimbing2'])) {
+        // Jika masih dalam proses persetujuan
+        if (in_array($latestHasil->status, ['pending', 'approved_pembimbing1', 'approved_pembimbing2'])) {
             return [
                 'can_create' => false,
                 'reason' => 'Anda masih memiliki pengajuan komisi hasil yang sedang diproses.',
-                'komisi' => $latestKomisi,
+                'hasil' => $latestHasil,
             ];
         }
 
-        if ($latestKomisi->status === 'rejected') {
+        // Jika ditolak, boleh mengajukan lagi
+        if ($latestHasil->status === 'rejected') {
             return [
                 'can_create' => true,
                 'reason' => null,
-                'komisi' => $latestKomisi,
+                'hasil' => $latestHasil,
             ];
         }
 
         return [
             'can_create' => false,
             'reason' => 'Status pengajuan tidak valid.',
-            'komisi' => $latestKomisi,
+            'hasil' => $latestHasil,
         ];
     }
 
@@ -319,9 +325,9 @@ class KomisiHasil extends Model
             ];
 
             foreach ($files as $file) {
-                if ($file && Storage::disk('public')->exists($file)) {
+                if ($file && Storage::disk('local')->exists($file)) {
                     try {
-                        Storage::disk('public')->delete($file);
+                        Storage::disk('local')->delete($file);
                         $deletedFiles[] = $file;
                         Log::info('Deleted file', ['path' => $file]);
                     } catch (\Exception $e) {
@@ -354,12 +360,12 @@ class KomisiHasil extends Model
         foreach ($deletedFiles as $filePath) {
             $directory = dirname($filePath);
 
-            if (Storage::disk('public')->exists($directory)) {
-                $files = Storage::disk('public')->files($directory);
+            if (Storage::disk('local')->exists($directory)) {
+                $files = Storage::disk('local')->files($directory);
 
                 if (empty($files)) {
                     try {
-                        Storage::disk('public')->deleteDirectory($directory);
+                        Storage::disk('local')->deleteDirectory($directory);
                         Log::info('Deleted empty directory', ['path' => $directory]);
                     } catch (\Exception $e) {
                         Log::warning('Failed to delete empty directory', [

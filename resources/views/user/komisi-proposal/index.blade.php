@@ -3,262 +3,88 @@
 @section('title', 'Riwayat Pengajuan Persetujuan Komisi Proposal')
 
 @push('styles')
-    <!-- CSS Libraries -->
-
     <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: #f5f7fb;
+        [x-cloak] {
+            display: none !important;
         }
 
-
-        .card {
-            border-radius: 1rem;
-            border: none;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-            background: #fff;
-            overflow: hidden;
-        }
-
-        .card-header {
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-            background: #fff;
-            padding: 1.5rem;
-        }
-
-        .card-body {
-            padding: 1.5rem;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #4361ee, #3a0ca3);
-            border: none;
-            border-radius: 50px;
-            padding: 0.75rem 1.5rem;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.2);
-        }
-
-        .btn-primary:hover {
-            background: linear-gradient(135deg, #3a0ca3, #4361ee);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(67, 97, 238, 0.3);
-        }
-
-        .table th,
-        .table td {
-            vertical-align: middle;
-            padding: 1rem !important;
-        }
-
-        .table th {
-            background: #f8fafc;
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            letter-spacing: 0.5px;
-            color: #5a6a85;
-            border-bottom-width: 1px;
-        }
-
-        .table td {
-            font-size: 0.875rem;
-            color: #2c3e50;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 3rem;
-        }
-
-        .empty-state img {
-            max-width: 200px;
-            margin-bottom: 1.5rem;
-            opacity: 0.8;
-        }
-
-        .empty-state h5 {
-            font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 0.5rem;
-        }
-
-        .empty-state p {
-            color: #6c757d;
-            margin-bottom: 1.5rem;
-            max-width: 400px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .table-responsive {
-            border-radius: 10px;
-        }
-
-        .table-hover tbody tr:hover {
-            background-color: rgba(67, 97, 238, 0.03);
-        }
-
-        .badge {
-            font-size: 0.75rem;
-            font-weight: 600;
-            padding: 0.4rem 0.8rem;
-            border-radius: 50rem;
-        }
-
-        .badge.bg-warning {
-            background-color: #ffc107 !important;
-            color: #212529;
-        }
-
-        .badge.bg-success {
-            background-color: #198754 !important;
-        }
-
-        .badge.bg-danger {
-            background-color: #dc3545 !important;
-        }
-
-        .badge.bg-info {
-            background-color: #0dcaf0 !important;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .action-btn {
-            width: 32px;
-            height: 32px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            transition: all 0.3s ease;
-            color: #5a6a85;
-            background: rgba(90, 106, 133, 0.1);
-        }
-
-        .action-btn:hover {
-            background: rgba(67, 97, 238, 0.2);
-            color: #4361ee;
-            transform: scale(1.1);
-        }
-
-        .judul-skripsi {
-            font-weight: 500;
-            color: #2c3e50;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .judul-skripsi:hover {
-            color: #4361ee;
-        }
-
-        .pembimbing-info {
-            font-size: 0.8rem;
-            color: #6c757d;
-        }
-
-        .status-info {
-            display: flex;
-            flex-direction: column;
-            gap: 0.25rem;
-        }
-
-        .status-date {
-            font-size: 0.75rem;
-            color: #6c757d;
-        }
-
-        .tooltip-inner {
-            max-width: 300px;
-            padding: 0.5rem 1rem;
-        }
-
-        .progress-tracker {
-            display: flex;
-            justify-content: space-between;
-            position: relative;
-            margin: 1rem 0;
-        }
-
-        .progress-tracker::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: #e9ecef;
-            transform: translateY(-50%);
-            z-index: 1;
-        }
-
-        .progress-step {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            position: relative;
-            z-index: 2;
-        }
-
-        .progress-dot {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: #e9ecef;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 0.5rem;
-        }
-
-        .progress-dot.active {
-            background: #4361ee;
-            color: white;
-        }
-
-        .progress-label {
-            font-size: 0.7rem;
-            text-align: center;
-            color: #6c757d;
-        }
-
-        .progress-label.active {
-            color: #4361ee;
-            font-weight: 500;
-        }
-
-        @media (max-width: 767.98px) {
-            .card-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 1rem;
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
             }
-
-            .card-header .btn {
-                width: 100%;
+            to {
+                opacity: 1;
+                transform: translateY(0);
             }
+        }
 
-            .progress-tracker {
-                flex-wrap: wrap;
-                gap: 1rem;
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
             }
+            to {
+                opacity: 1;
+            }
+        }
 
-            .progress-tracker::before {
-                display: none;
-            }
+        .animate-slide-down {
+            animation: slideDown 0.3s ease-out;
+        }
 
-            .progress-step {
-                flex: 1 0 30%;
-            }
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .status-badge {
+            @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold transition-all duration-200;
+        }
+
+        .status-badge.pending {
+            @apply bg-amber-100 text-amber-800 border border-amber-200;
+        }
+
+        .status-badge.approved {
+            @apply bg-emerald-100 text-emerald-800 border border-emerald-200;
+        }
+
+        .status-badge.rejected {
+            @apply bg-red-100 text-red-800 border border-red-200;
+        }
+
+        .status-badge.processing {
+            @apply bg-orange-100 text-orange-800 border border-orange-200;
+        }
+
+        .card-hover {
+            @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
+        }
+
+        .gradient-primary {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+        }
+
+        .gradient-secondary {
+            background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+        }
+
+        /* Custom scrollbar */
+        .overflow-x-auto::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .overflow-x-auto::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 8px;
+        }
+
+        .overflow-x-auto::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            border-radius: 8px;
+        }
+
+        .overflow-x-auto::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
         }
     </style>
 @endpush
@@ -267,7 +93,7 @@
     <!-- Page Title -->
     <div class="page-title light-background">
         <div class="container">
-            <h1 data-aos="fade-up">Riwayat Pengajuan Komisi Proposal</h1>
+            <h1 data-aos="fade-up" class="text-2xl md:text-3xl">Riwayat Pengajuan Komisi Proposal</h1>
             <nav class="breadcrumbs" data-aos="fade-up" data-aos-delay="100">
                 <ol>
                     <li><a href="{{ route('user.home.index') }}">Beranda</a></li>
@@ -276,262 +102,449 @@
                 </ol>
             </nav>
         </div>
-    </div><!-- End Page Title -->
+    </div>
 
-    <!-- Daftar Pengajuan Section -->
-    <section id="services" class="daftar-surat section py-5">
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-lg-12">
-                    {{-- Alert Messages --}}
-                    @if (session('success'))
-                        <div class="alert alert-success alert-dismissible fade show" role="alert" data-aos="fade-down">
-                            <i class="bi bi-check-circle-fill me-2"></i>
-                            {{ session('success') }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    <!-- Main Content Section -->
+    <section class="py-8 bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50">
+        <div class="container mx-auto px-4 max-w-6xl">
+            
+            {{-- Alert Messages --}}
+            @if (session('success'))
+                <div class="mb-5 animate-slide-down" x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)">
+                    <div class="bg-emerald-50 border-l-4 border-emerald-500 rounded-lg p-4 shadow-md">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <svg class="h-5 w-5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <div class="ml-3 flex-1">
+                                <p class="text-sm font-semibold text-emerald-800">{{ session('success') }}</p>
+                            </div>
+                            <button @click="show = false" class="ml-3 flex-shrink-0 text-emerald-500 hover:text-emerald-700 transition-colors">
+                                <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                                </svg>
+                            </button>
                         </div>
-                    @endif
+                    </div>
+                </div>
+            @endif
 
-                    @if (session('error'))
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert" data-aos="fade-down">
-                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                            {{ session('error') }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            @if (session('error'))
+                <div class="mb-5 animate-slide-down" x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)">
+                    <div class="bg-red-50 border-l-4 border-red-500 rounded-lg p-4 shadow-md">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <svg class="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <div class="ml-3 flex-1">
+                                <p class="text-sm font-semibold text-red-800">{{ session('error') }}</p>
+                            </div>
+                            <button @click="show = false" class="ml-3 flex-shrink-0 text-red-500 hover:text-red-700 transition-colors">
+                                <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                                </svg>
+                            </button>
                         </div>
-                    @endif
+                    </div>
+                </div>
+            @endif
 
-                    {{-- Status Information Card - Tampil jika tidak bisa mengajukan --}}
-                    @if (!$canCreateStatus['can_create'] && $latestProposal)
-                        <div class="card mb-4 border-{{ $latestProposal->status === 'approved' ? 'success' : ($latestProposal->status === 'rejected' ? 'danger' : 'warning') }}"
-                            data-aos="fade-up" style="border-width: 2px !important;">
-                            <div class="card-body p-4">
-                                <div class="d-flex align-items-start">
-                                    <div class="me-3">
-                                        <div class="rounded-circle d-flex align-items-center justify-content-center"
-                                            style="width: 60px; height: 60px; background: {{ $latestProposal->status === 'approved' ? '#d1fae5' : ($latestProposal->status === 'rejected' ? '#fee2e2' : '#fef3c7') }};">
-                                            <i class="bi bi-{{ $latestProposal->status === 'approved' ? 'check-circle' : ($latestProposal->status === 'rejected' ? 'x-circle' : 'clock-history') }}"
-                                                style="font-size: 2rem; color: {{ $latestProposal->status === 'approved' ? '#10b981' : ($latestProposal->status === 'rejected' ? '#ef4444' : '#f59e0b') }};"></i>
-                                        </div>
-                                    </div>
-                                    <div class="flex-grow-1">
-                                        <h5 class="fw-bold mb-2">
+            {{-- Status Information Card --}}
+            @if (!$canCreateStatus['can_create'] && $latestProposal)
+                <div class="mb-6 animate-fade-in" data-aos="fade-up">
+                    <div class="bg-white rounded-2xl shadow-lg border overflow-hidden
+                        {{ $latestProposal->status === 'approved' ? 'border-emerald-400' : ($latestProposal->status === 'rejected' ? 'border-red-400' : 'border-orange-400') }}">
+                        <div class="p-6">
+                            <div class="flex flex-col md:flex-row gap-6">
+                                <!-- Icon Section -->
+                                <div class="flex-shrink-0">
+                                    <div class="w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg
+                                        {{ $latestProposal->status === 'approved' ? 'bg-gradient-to-br from-emerald-400 to-emerald-600' : ($latestProposal->status === 'rejected' ? 'bg-gradient-to-br from-red-400 to-red-600' : 'bg-gradient-to-br from-orange-400 to-orange-600') }}">
+                                        <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
                                             @if ($latestProposal->status === 'approved')
-                                                <i class="bi bi-check-circle text-success me-1"></i> Pengajuan Sudah
-                                                Disetujui
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                                             @elseif($latestProposal->status === 'rejected')
-                                                <i class="bi bi-x-circle text-danger me-1"></i> Pengajuan Terakhir Ditolak
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
                                             @else
-                                                <i class="bi bi-clock-history text-warning me-1"></i> Pengajuan Sedang
-                                                Diproses
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
                                             @endif
-                                        </h5>
-                                        <p class="mb-3 text-muted">{{ $canCreateStatus['reason'] }}</p>
-
-                                        @if ($latestProposal->status === 'approved')
-                                            <div class="alert alert-success mb-0">
-                                                <small>
-                                                    <strong><i class="bi bi-calendar-check me-1"></i> Disetujui
-                                                        pada:</strong>
-                                                    {{ $latestProposal->tanggal_persetujuan_korprodi->translatedFormat('d F Y, H:i') }}
-                                                    WITA<br>
-                                                    <strong><i class="bi bi-journal-text me-1"></i> Judul Skripsi:</strong>
-                                                    {{ strip_tags($latestProposal->judul_skripsi) }}
-                                                </small>
-                                            </div>
-                                        @elseif($latestProposal->status === 'rejected')
-                                            <div class="alert alert-danger mb-3">
-                                                <small>
-                                                    <strong><i class="bi bi-info-circle me-1"></i> Alasan
-                                                        Penolakan:</strong><br>
-                                                    {{ $latestProposal->keterangan ?? 'Tidak ada keterangan' }}
-                                                </small>
-                                            </div>
-                                            <a href="{{ route('user.komisi-proposal.create') }}"
-                                                class="btn btn-primary btn-sm">
-                                                <i class="bi bi-arrow-repeat me-1"></i> Ajukan Ulang Sekarang
-                                            </a>
-                                        @else
-                                            <div class="alert alert-info mb-0">
-                                                <small>
-                                                    <strong><i class="bi bi-info-circle me-1"></i> Status:</strong>
-                                                    @if ($latestProposal->status === 'pending')
-                                                        Menunggu Persetujuan PA
-                                                    @else
-                                                        Menunggu Persetujuan Korprodi
-                                                    @endif
-                                                    <br>
-                                                    <strong><i class="bi bi-calendar me-1"></i> Diajukan pada:</strong>
-                                                    {{ $latestProposal->created_at->translatedFormat('d F Y, H:i') }}
-                                                    WITA<br>
-                                                    <strong><i class="bi bi-person-badge me-1"></i> Pembimbing
-                                                        Akademik:</strong>
-                                                    {{ $latestProposal->pembimbing->name ?? '-' }}
-                                                </small>
-                                            </div>
-                                        @endif
+                                        </svg>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                    @else
-                        {{-- Info untuk mahasiswa baru yang belum pernah mengajukan --}}
-                        @if (!$latestProposal)
-                            <div class="alert alert-info alert-dismissible fade show" role="alert" data-aos="fade-up">
-                                <h5 class="alert-heading fw-bold">
-                                    <i class="bi bi-info-circle-fill me-2"></i> Informasi Penting
-                                </h5>
-                                <p class="mb-2">Anda belum memiliki pengajuan komisi proposal. Silakan klik tombol
-                                    <strong>"Buat Pengajuan Baru"</strong> untuk membuat pengajuan pertama Anda.
-                                </p>
-                                <hr>
-                                <p class="mb-0">
-                                    <small>
-                                        <i class="bi bi-exclamation-triangle me-1"></i>
-                                        <strong>Catatan:</strong> Anda hanya dapat mengajukan komisi proposal
-                                        <strong>sekali</strong>.
-                                        Pastikan semua data yang Anda isi sudah benar sebelum mengirim.
-                                    </small>
-                                </p>
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                            </div>
-                        @endif
-                    @endif
 
-                    <div class="card" data-aos="fade-up">
-                        <div class="card-header">
-                            <div class="d-flex justify-content-between align-items-center w-100">
-                                <div>
-                                    <h4 class="mb-0 fw-bold">Riwayat Pengajuan Anda</h4>
-                                    <p class="mb-0 text-muted small">Total pengajuan: {{ $komisiProposals->count() }}</p>
+                                <!-- Content Section -->
+                                <div class="flex-grow space-y-4">
+                                    <div>
+                                        <h3 class="text-xl font-bold text-gray-900 mb-1">
+                                            @if ($latestProposal->status === 'approved')
+                                                <span class="text-emerald-600">✓</span> Pengajuan Disetujui
+                                            @elseif($latestProposal->status === 'rejected')
+                                                <span class="text-red-600">✕</span> Pengajuan Ditolak
+                                            @else
+                                                <span class="text-orange-600">⏱</span> Pengajuan Diproses
+                                            @endif
+                                        </h3>
+                                        <p class="text-gray-600 text-sm">{{ $canCreateStatus['reason'] }}</p>
+                                    </div>
+
+                                    @if ($latestProposal->status === 'approved')
+                                        <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 space-y-3">
+                                            <div class="flex items-start gap-3 text-sm">
+                                                <svg class="w-5 h-5 text-emerald-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                                                </svg>
+                                                <div>
+                                                    <span class="font-bold text-emerald-900">Disetujui pada:</span>
+                                                    <span class="text-emerald-700 ml-1 font-medium">
+                                                        {{ $latestProposal->tanggal_persetujuan_korprodi ? $latestProposal->tanggal_persetujuan_korprodi->translatedFormat('d F Y, H:i') : '-' }} WITA
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-start gap-3 text-sm">
+                                                <svg class="w-5 h-5 text-emerald-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/>
+                                                </svg>
+                                                <div>
+                                                    <span class="font-bold text-emerald-900">Judul Skripsi:</span>
+                                                    <p class="text-emerald-700 mt-1 font-medium leading-relaxed">{!! Str::limit(strip_tags($latestProposal->judul_skripsi), 150) !!}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @elseif($latestProposal->status === 'rejected')
+                                        <div class="bg-red-50 border border-red-200 rounded-xl p-4">
+                                            <div class="flex items-start gap-3 text-sm">
+                                                <svg class="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                                </svg>
+                                                <div class="flex-1">
+                                                    <span class="font-bold text-red-900 block mb-1">Alasan Penolakan:</span>
+                                                    <p class="text-red-700 font-medium leading-relaxed">{{ $latestProposal->keterangan ?? 'Tidak ada keterangan' }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <a href="{{ route('user.komisi-proposal.create') }}" 
+                                           class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm font-bold rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105">
+                                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/>
+                                            </svg>
+                                            Ajukan Ulang
+                                        </a>
+                                    @else
+                                        <div class="bg-orange-50 border border-orange-200 rounded-xl p-4 space-y-3">
+                                            <div class="flex items-start gap-3 text-sm">
+                                                <svg class="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                                                </svg>
+                                                <div>
+                                                    <span class="font-bold text-orange-900">Status:</span>
+                                                    <span class="text-orange-700 ml-1 font-medium">
+                                                        @if ($latestProposal->status === 'pending')
+                                                            Menunggu Persetujuan Pembimbing Akademik
+                                                        @else
+                                                            Menunggu Persetujuan Koordinator Program Studi
+                                                        @endif
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-start gap-3 text-sm">
+                                                <svg class="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                                                </svg>
+                                                <div>
+                                                    <span class="font-bold text-orange-900">Diajukan pada:</span>
+                                                    <span class="text-orange-700 ml-1 font-medium">
+                                                        {{ $latestProposal->created_at->translatedFormat('d F Y, H:i') }} WITA
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-start gap-3 text-sm">
+                                                <svg class="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"/>
+                                                </svg>
+                                                <div class="flex-1">
+                                                    <span class="font-bold text-orange-900 block mb-2">Pembimbing Akademik:</span>
+                                                    <div class="flex items-center justify-between bg-white rounded-lg p-2.5 shadow-sm">
+                                                        <span class="text-orange-700 font-medium">{{ $latestProposal->pembimbing->name ?? '-' }}</span>
+                                                        @if ($latestProposal->status === 'pending')
+                                                            <span class="px-2 py-1 bg-amber-100 text-amber-800 text-[10px] font-bold rounded-full">Menunggu</span>
+                                                        @else
+                                                            <span class="px-2 py-1 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-full">✓ Disetujui</span>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endif
                                 </div>
-                                {{-- Tombol hanya muncul jika boleh mengajukan --}}
-                                @if ($canCreateStatus['can_create'])
-                                    <a href="{{ route('user.komisi-proposal.create') }}" class="btn btn-sm btn-primary">
-                                        <i class="bi bi-plus-circle me-2"></i> Buat Pengajuan Baru
-                                    </a>
-                                @endif
-                            </div>
-                        </div>
-
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th width="5%">No</th>
-                                            <th width="20%">Tanggal Pengajuan</th>
-                                            <th width="45%">Judul & Pembimbing</th>
-                                            <th width="20%">Status</th>
-                                            <th width="10%">Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @forelse ($komisiProposals as $proposal)
-                                            <tr>
-                                                <td>{{ $loop->iteration }}</td>
-                                                <td>
-                                                    {{ $proposal->created_at->translatedFormat('d M Y') }}
-                                                    <div class="small text-muted">
-                                                        {{ $proposal->created_at->format('H:i') }} WITA
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    <div class="judul-skripsi"
-                                                        title="{{ strip_tags($proposal->judul_skripsi) }}">
-                                                        {{ Str::limit(strip_tags($proposal->judul_skripsi), 80) }}
-                                                    </div>
-                                                    <div class="pembimbing-info mt-1">
-                                                        <i class="bi bi-person-badge"></i>
-                                                        {{ $proposal->pembimbing->name }}
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    <div class="status-info">
-                                                        @if ($proposal->status == 'pending')
-                                                            <span class="badge bg-warning">Menunggu PA</span>
-                                                            <span class="status-date">Sedang diproses</span>
-                                                        @elseif($proposal->status == 'approved_pa')
-                                                            <span class="badge bg-info">Menunggu Korprodi</span>
-                                                            <span class="status-date">Disetujui PA</span>
-                                                        @elseif($proposal->status == 'approved')
-                                                            <span class="badge bg-success">Disetujui Lengkap</span>
-                                                            <span class="status-date">
-                                                                {{ $proposal->tanggal_persetujuan_korprodi->translatedFormat('d M Y') }}
-                                                            </span>
-                                                        @else
-                                                            <span class="badge bg-danger">Ditolak</span>
-                                                            <span class="status-date">
-                                                                {{ $proposal->updated_at->translatedFormat('d M Y') }}
-                                                            </span>
-                                                        @endif
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    <div class="action-buttons">
-                                                        @if ($proposal->status == 'approved' && $proposal->file_komisi)
-                                                            <a href="{{ route('user.komisi-proposal.download', $proposal->id) }}"
-                                                                target="_blank" class="action-btn btn btn-sm btn-success"
-                                                                data-bs-toggle="tooltip" title="Download Dokumen">
-                                                                <i class="bi bi-download"></i>
-                                                            </a>
-                                                        @elseif ($proposal->status == 'rejected')
-                                                            <button type="button"
-                                                                class="action-btn btn btn-sm btn-danger"
-                                                                data-bs-toggle="tooltip" data-bs-placement="top"
-                                                                title="Alasan: {{ $proposal->keterangan ?? 'Tidak ada keterangan' }}">
-                                                                <i class="bi bi-info-circle"></i>
-                                                            </button>
-                                                        @else
-                                                            <button class="action-btn btn btn-sm btn-secondary" disabled
-                                                                data-bs-toggle="tooltip" title="Sedang Diproses">
-                                                                <i class="bi bi-clock-history"></i>
-                                                            </button>
-                                                        @endif
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        @empty
-                                            <tr>
-                                                <td colspan="5" class="empty-state">
-                                                    <p><i class="bi bi-emoji-frown" style="font-size: 2rem;"></i></p>
-                                                    <h5>Belum Ada Pengajuan Komisi Proposal</h5>
-                                                    <p>Anda belum pernah membuat pengajuan komisi proposal.</p>
-                                                    @if ($canCreateStatus['can_create'])
-                                                        <a href="{{ route('user.komisi-proposal.create') }}"
-                                                            class="btn btn-primary">
-                                                            <i class="bi bi-plus-circle me-2"></i> Buat Pengajuan Pertama
-                                                        </a>
-                                                    @endif
-                                                </td>
-                                            </tr>
-                                        @endforelse
-                                    </tbody>
-                                </table>
                             </div>
                         </div>
                     </div>
                 </div>
+            @else
+                {{-- Info untuk mahasiswa baru --}}
+                @if (!$latestProposal)
+                    <div class="mb-6 animate-fade-in" data-aos="fade-up" x-data="{ show: true }" x-show="show">
+                        <div class="bg-gradient-to-r from-orange-50 to-amber-50 border-l-4 border-orange-500 rounded-xl p-5 shadow-lg">
+                            <div class="flex items-start gap-4">
+                                <div class="flex-shrink-0">
+                                    <div class="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center shadow-md">
+                                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="flex-1">
+                                    <h5 class="text-lg font-bold text-gray-900 mb-2">
+                                        💡 Informasi Penting
+                                    </h5>
+                                    <p class="text-gray-700 mb-3 text-sm leading-relaxed">
+                                        Anda belum memiliki pengajuan komisi proposal. Silakan klik tombol
+                                        <span class="font-bold text-orange-600">"Buat Pengajuan Baru"</span> 
+                                        untuk membuat pengajuan pertama Anda.
+                                    </p>
+                                    <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-3">
+                                        <div class="flex items-start gap-2">
+                                            <svg class="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                            </svg>
+                                            <p class="text-xs text-amber-800 font-medium leading-relaxed">
+                                                <span class="font-bold">Catatan:</span> Anda hanya dapat mengajukan komisi proposal 
+                                                <span class="font-bold">sekali</span>. Pastikan semua data yang Anda isi sudah benar sebelum mengirim.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button @click="show = false" class="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+            @endif
+
+            {{-- Main Card Table --}}
+            <div class="bg-white rounded-2xl shadow-xl overflow-hidden card-hover" data-aos="fade-up" data-aos-delay="100">
+                <!-- Card Header -->
+                <div class="gradient-primary px-6 py-4">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                        <div class="text-white">
+                            <h2 class="text-2xl font-bold mb-1 text-white">Riwayat Pengajuan</h2>
+                            <p class="text-orange-100 text-sm font-medium">
+                                <svg class="w-4 h-4 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+                                    <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/>
+                                </svg>
+                                Total: <span class="font-bold">{{ $komisiProposals->count() }}</span>
+                            </p>
+                        </div>
+                        @if ($canCreateStatus['can_create'])
+                            <a href="{{ route('user.komisi-proposal.create') }}" 
+                               class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-white text-orange-600 text-sm font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 hover:bg-orange-50">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"/>
+                                </svg>
+                                Buat Pengajuan
+                            </a>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Card Body - Table -->
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gradient-to-r from-gray-50 to-orange-50">
+                            <tr>
+                                <th scope="col" class="px-5 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">No</th>
+                                <th scope="col" class="px-5 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Tanggal</th>
+                                <th scope="col" class="px-5 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Judul & Pembimbing</th>
+                                <th scope="col" class="px-5 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Status</th>
+                                <th scope="col" class="px-5 py-3 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            @forelse ($komisiProposals as $proposal)
+                                <tr class="hover:bg-orange-50 transition-colors duration-200">
+                                    <td class="px-5 py-4 whitespace-nowrap">
+                                        <div class="flex items-center justify-center w-8 h-8 gradient-secondary text-white rounded-lg font-bold text-sm shadow-sm">
+                                            {{ $loop->iteration }}
+                                        </div>
+                                    </td>
+                                    <td class="px-5 py-4 whitespace-nowrap">
+                                        <div class="flex items-center gap-2">
+                                            <svg class="w-5 h-5 text-orange-400" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                                            </svg>
+                                            <div>
+                                                <div class="text-sm font-bold text-gray-900">
+                                                    {{ $proposal->created_at->translatedFormat('d M Y') }}
+                                                </div>
+                                                <div class="text-xs text-gray-500 font-medium">
+                                                    {{ $proposal->created_at->format('H:i') }} WITA
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-5 py-4">
+                                        <div class="space-y-2">
+                                            <div class="text-sm font-semibold text-gray-900 hover:text-orange-600 transition-colors cursor-pointer line-clamp-2" 
+                                                 title="{{ strip_tags($proposal->judul_skripsi) }}">
+                                                {!! Str::limit(strip_tags($proposal->judul_skripsi), 60) !!}
+                                            </div>
+                                            <div class="space-y-1 text-xs text-gray-600">
+                                                <div class="flex items-center gap-1.5">
+                                                    <svg class="w-4 h-4 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                                                    </svg>
+                                                    <span class="font-bold">PA:</span>
+                                                    <span class="font-medium">{{ $proposal->pembimbing->name ?? 'N/A' }}</span>
+                                                    @if ($proposal->status !== 'pending')
+                                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                                                            ✓
+                                                        </span>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-5 py-4 whitespace-nowrap">
+                                        <div class="space-y-1">
+                                            @if ($proposal->status == 'pending')
+                                                <span class="status-badge pending">
+                                                    <svg class="w-3 h-3 mr-1 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                                                    </svg>
+                                                    Menunggu PA
+                                                </span>
+                                                <div class="text-[10px] text-gray-500 font-medium">Sedang diproses</div>
+                                            @elseif($proposal->status == 'approved_pa')
+                                                <span class="status-badge processing">
+                                                    <svg class="w-3 h-3 mr-1 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                                                    </svg>
+                                                    Menunggu Korprodi
+                                                </span>
+                                                <div class="text-[10px] text-gray-500 font-medium">Disetujui PA</div>
+                                            @elseif($proposal->status == 'approved')
+                                                <span class="status-badge approved">
+                                                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                                    </svg>
+                                                    Disetujui Lengkap
+                                                </span>
+                                                <div class="text-[10px] text-gray-500 font-medium">
+                                                    {{ $proposal->tanggal_persetujuan_korprodi ? $proposal->tanggal_persetujuan_korprodi->translatedFormat('d M Y') : '-' }}
+                                                </div>
+                                            @else
+                                                <span class="status-badge rejected">
+                                                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                                                    </svg>
+                                                    Ditolak
+                                                </span>
+                                                <div class="text-[10px] text-gray-500 font-medium">
+                                                    {{ $proposal->updated_at->translatedFormat('d M Y') }}
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </td>
+                                    <td class="px-5 py-4 whitespace-nowrap text-center">
+                                        <div class="flex items-center justify-center gap-2">
+                                            @if ($proposal->status == 'approved' && $proposal->file_komisi)
+                                                <a href="{{ route('user.komisi-proposal.download', $proposal->id) }}" 
+                                                   target="_blank"
+                                                   class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-md hover:shadow-lg transition-all duration-200"
+                                                   data-bs-toggle="tooltip" 
+                                                   title="Download Dokumen Final">
+                                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                                                    </svg>
+                                                </a>
+                                            @elseif ($proposal->status == 'rejected')
+                                                <button type="button"
+                                                        class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-br from-red-500 to-red-600 text-white shadow-md hover:shadow-lg transition-all duration-200"
+                                                        data-bs-toggle="tooltip" 
+                                                        data-bs-placement="top"
+                                                        title="Alasan: {{ $proposal->keterangan ?? 'Tidak ada keterangan' }}">
+                                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                                                    </svg>
+                                                </button>
+                                            @else
+                                                <button class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-gray-200 text-gray-400 cursor-not-allowed"
+                                                        disabled 
+                                                        data-bs-toggle="tooltip" 
+                                                        title="Sedang Diproses">
+                                                    <svg class="w-4 h-4 animate-spin" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                                                    </svg>
+                                                </button>
+                                            @endif
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="px-5 py-16">
+                                        <div class="text-center space-y-4">
+                                            <div class="flex justify-center">
+                                                <div class="w-20 h-20 bg-gradient-to-br from-orange-100 to-orange-200 rounded-2xl flex items-center justify-center shadow-md">
+                                                    <svg class="w-10 h-10 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <h3 class="text-xl font-bold text-gray-900 mb-2">Belum Ada Pengajuan</h3>
+                                                <p class="text-gray-600 text-sm max-w-sm mx-auto mb-6 leading-relaxed">
+                                                    Anda belum pernah membuat pengajuan komisi proposal. Mulai pengajuan pertama Anda sekarang!
+                                                </p>
+                                                @if ($canCreateStatus['can_create'])
+                                                    <a href="{{ route('user.komisi-proposal.create') }}"
+                                                       class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"/>
+                                                        </svg>
+                                                        Buat Pengajuan Pertama
+                                                    </a>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
-    </section><!-- End Daftar Pengajuan Section -->
+    </section>
 @endsection
 
 @push('scripts')
     <script>
-        $(document).ready(function() {
-            // Initialize tooltips
-            $('[data-bs-toggle="tooltip"]').tooltip();
-
-            // AOS init
-            AOS.init({
-                duration: 400,
-                once: true
+        // Menggunakan vanilla JavaScript untuk menghindari error jQuery
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Bootstrap tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
             });
 
-            // Auto-hide alerts after 5 seconds
-            setTimeout(function() {
-                $('.alert:not(.alert-info)').fadeOut('slow');
-            }, 5000);
+            // Initialize AOS
+            if (typeof AOS !== 'undefined') {
+                AOS.init({
+                    duration: 400,
+                    once: true,
+                    offset: 50
+                });
+            }
         });
     </script>
 @endpush
