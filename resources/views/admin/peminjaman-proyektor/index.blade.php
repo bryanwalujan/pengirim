@@ -1,40 +1,62 @@
+{{-- filepath: /c:/laragon/www/eservice-app/resources/views/admin/peminjaman-proyektor/index.blade.php --}}
 @extends('layouts.admin.app')
 
 @section('title', 'Peminjaman Proyektor')
 
+@push('styles')
+    <style>
+        /* Modal styling */
+        .modal {
+            display: block;
+            pointer-events: none;
+        }
+
+        .modal.show {
+            pointer-events: auto;
+        }
+
+        /* Alpine transition classes */
+        [x-cloak] {
+            display: none !important;
+        }
+    </style>
+@endpush
+
 @section('content')
-    <div class="container-xxl flex-grow-1 container-p-y">
+    <div class="container-xxl flex-grow-1 container-p-y" x-data="peminjamanProyektorIndex()">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb breadcrumb-custom-icon">
                 <li class="breadcrumb-item">
                     <a href="{{ route('admin.dashboard.index') }}">Dashboard</a>
                     <i class="breadcrumb-icon icon-base bx bx-chevron-right align-middle"></i>
                 </li>
-                <li class="breadcrumb-item breadcrumb-custom-icon active" aria-current="page">
-                    Manajemen Peminjaman Proyektor
+                <li class="breadcrumb-item breadcrumb-custom-icon active" aria-current="page">Peminjaman Proyektor
                 </li>
             </ol>
         </nav>
-
-        <h4 class="fw-bold py-3 mb-4" style="margin-top: -1.2rem">
+        <h4 class="fw-bold py-3 mb-2" style="margin-top: -1.2rem">
             <span class="text-muted">Data Peminjaman Proyektor</span>
         </h4>
 
+        {{-- Header Actions --}}
+        <div class="d-flex justify-content-end mb-4">
+            <a href="{{ route('admin.peminjaman-proyektor.proyektor-management') }}" class="btn btn-primary">
+                <i class='bx bx-cog me-1'></i> Kelola Proyektor
+            </a>
+        </div>
+
         {{-- Statistics Cards --}}
         <div class="row mb-4">
-            <div class="col-lg-4 col-md-6 col-sm-6 mb-4">
+            <div class="col-md-3 col-6 mb-3">
                 <div class="card">
                     <div class="card-body">
-                        <div class="d-flex justify-content-between">
-                            <div class="card-info">
-                                <p class="card-text mb-1">Total Peminjaman</p>
-                                <div class="d-flex align-items-end mb-2">
-                                    <h4 class="mb-0 me-2">{{ $stats['total'] }}</h4>
-                                </div>
-                                <small class="text-muted">Semua data</small>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title mb-0 text-muted">Total Peminjaman</h6>
+                                <h3 class="mb-0">{{ $statistics['total'] ?? 0 }}</h3>
                             </div>
-                            <div class="card-icon">
-                                <span class="badge bg-label-primary rounded p-2">
+                            <div class="avatar">
+                                <span class="avatar-initial rounded bg-label-primary">
                                     <i class="bx bx-list-ul bx-sm"></i>
                                 </span>
                             </div>
@@ -42,20 +64,16 @@
                     </div>
                 </div>
             </div>
-
-            <div class="col-lg-4 col-md-6 col-sm-6 mb-4">
+            <div class="col-md-3 col-6 mb-3">
                 <div class="card">
                     <div class="card-body">
-                        <div class="d-flex justify-content-between">
-                            <div class="card-info">
-                                <p class="card-text mb-1">Sedang Dipinjam</p>
-                                <div class="d-flex align-items-end mb-2">
-                                    <h4 class="mb-0 me-2 text-warning">{{ $stats['sedang_dipinjam'] }}</h4>
-                                </div>
-                                <small class="text-muted">Aktif saat ini</small>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title mb-0 text-muted">Sedang Dipinjam</h6>
+                                <h3 class="mb-0">{{ $statistics['dipinjam'] ?? 0 }}</h3>
                             </div>
-                            <div class="card-icon">
-                                <span class="badge bg-label-warning rounded p-2">
+                            <div class="avatar">
+                                <span class="avatar-initial rounded bg-label-warning">
                                     <i class="bx bx-time-five bx-sm"></i>
                                 </span>
                             </div>
@@ -63,21 +81,34 @@
                     </div>
                 </div>
             </div>
-
-            <div class="col-lg-4 col-md-6 col-sm-6 mb-4">
+            <div class="col-md-3 col-6 mb-3">
                 <div class="card">
                     <div class="card-body">
-                        <div class="d-flex justify-content-between">
-                            <div class="card-info">
-                                <p class="card-text mb-1">Sudah Dikembalikan</p>
-                                <div class="d-flex align-items-end mb-2">
-                                    <h4 class="mb-0 me-2 text-success">{{ $stats['dikembalikan'] }}</h4>
-                                </div>
-                                <small class="text-muted">Total dikembalikan</small>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title mb-0 text-muted">Sudah Dikembalikan</h6>
+                                <h3 class="mb-0">{{ $statistics['dikembalikan'] ?? 0 }}</h3>
                             </div>
-                            <div class="card-icon">
-                                <span class="badge bg-label-success rounded p-2">
+                            <div class="avatar">
+                                <span class="avatar-initial rounded bg-label-success">
                                     <i class="bx bx-check-circle bx-sm"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-3">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title mb-0 text-muted">Proyektor Tersedia</h6>
+                                <h3 class="mb-0">{{ $statistics['proyektor_tersedia'] ?? 0 }}</h3>
+                            </div>
+                            <div class="avatar">
+                                <span class="avatar-initial rounded bg-label-info">
+                                    <i class="bx bx-video bx-sm"></i>
                                 </span>
                             </div>
                         </div>
@@ -86,11 +117,9 @@
             </div>
         </div>
 
-        {{-- Main Table Card --}}
         <div class="card">
             <div class="card-header border-bottom">
-                <div class="row align-items-center g-3">
-                    {{-- Search --}}
+                <div class="row align-items-center justify-content-between g-2">
                     <div class="col-12 col-md-3">
                         <form action="{{ route('admin.peminjaman-proyektor.index') }}" method="GET">
                             <div class="input-group">
@@ -102,270 +131,148 @@
                             </div>
                         </form>
                     </div>
-
-                    {{-- Filter Status --}}
                     <div class="col-12 col-md-3">
                         <form action="{{ route('admin.peminjaman-proyektor.index') }}" method="GET">
                             <select name="status" class="form-select" onchange="this.form.submit()">
                                 <option value="">Semua Status</option>
                                 <option value="dipinjam" {{ request('status') == 'dipinjam' ? 'selected' : '' }}>
-                                    Dipinjam
+                                    Sedang Dipinjam
                                 </option>
                                 <option value="dikembalikan" {{ request('status') == 'dikembalikan' ? 'selected' : '' }}>
-                                    Dikembalikan
+                                    Sudah Dikembalikan
                                 </option>
                             </select>
+                            @if (request('search'))
+                                <input type="hidden" name="search" value="{{ request('search') }}">
+                            @endif
                         </form>
                     </div>
-
-                    {{-- Filter Proyektor --}}
                     <div class="col-12 col-md-3">
                         <form action="{{ route('admin.peminjaman-proyektor.index') }}" method="GET">
-                            <input type="text" class="form-control" name="proyektor"
-                                placeholder="Filter kode proyektor..." value="{{ request('proyektor') }}">
+                            <select name="proyektor" class="form-select" onchange="this.form.submit()">
+                                <option value="">Semua Proyektor</option>
+                                @foreach ($proyektorList as $code)
+                                    <option value="{{ $code }}"
+                                        {{ request('proyektor') == $code ? 'selected' : '' }}>
+                                        {{ $code }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @if (request('search'))
+                                <input type="hidden" name="search" value="{{ request('search') }}">
+                            @endif
+                            @if (request('status'))
+                                <input type="hidden" name="status" value="{{ request('status') }}">
+                            @endif
                         </form>
                     </div>
-
-                    {{-- Reset Filter --}}
-                    <div class="col-12 col-md-3 text-end">
-                        <a href="{{ route('admin.peminjaman-proyektor.index') }}" class="btn btn-secondary">
-                            <i class="bx bx-reset"></i> Reset Filter
+                    <div class="col-12 col-md-3">
+                        <a href="{{ route('admin.peminjaman-proyektor.index') }}" class="btn btn-label-secondary w-100">
+                            <i class='bx bx-reset me-1'></i> Reset Filter
                         </a>
                     </div>
                 </div>
             </div>
 
             <div class="card-body">
+                {{-- Success Alert --}}
                 @if (session('success'))
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        <i class="bx bx-check-circle me-2"></i>{{ session('success') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                @endif
-                @if (session('error'))
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <i class="bx bx-error me-2"></i>{{ session('error') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)"
+                        x-transition:enter="transition ease-out duration-300"
+                        x-transition:enter-start="opacity-0 transform scale-90"
+                        x-transition:enter-end="opacity-100 transform scale-100"
+                        x-transition:leave="transition ease-in duration-200"
+                        x-transition:leave-start="opacity-100 transform scale-100"
+                        x-transition:leave-end="opacity-0 transform scale-90"
+                        class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="bx bx-check-circle me-1"></i>
+                        {{ session('success') }}
+                        <button type="button" class="btn-close" @click="show = false" aria-label="Close"></button>
                     </div>
                 @endif
 
-                <div class="table-responsive">
+                {{-- Error Alert --}}
+                @if (session('error'))
+                    <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)"
+                        x-transition:enter="transition ease-out duration-300"
+                        x-transition:enter-start="opacity-0 transform scale-90"
+                        x-transition:enter-end="opacity-100 transform scale-100"
+                        x-transition:leave="transition ease-in duration-200"
+                        x-transition:leave-start="opacity-100 transform scale-100"
+                        x-transition:leave-end="opacity-0 transform scale-90"
+                        class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="bx bx-x-circle me-1"></i>
+                        {{ session('error') }}
+                        <button type="button" class="btn-close" @click="show = false" aria-label="Close"></button>
+                    </div>
+                @endif
+
+                <div class="table-responsive text-nowrap">
                     <table class="table table-striped table-hover">
                         <thead>
                             <tr>
-                                <th>No</th>
+                                <th width="50">No</th>
                                 <th>Nama Peminjam</th>
                                 <th>NIM</th>
                                 <th>Kode Proyektor</th>
                                 <th>Keperluan</th>
                                 <th>Tanggal Pinjam</th>
-                                <th>Tanggal Kembali</th>
                                 <th>Status</th>
-                                <th class="text-center">Aksi</th>
+                                <th width="100">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="table-border-bottom-0">
                             @forelse ($peminjaman as $item)
                                 <tr>
                                     <td>{{ $loop->iteration + $peminjaman->firstItem() - 1 }}</td>
                                     <td>
-                                        <strong>{{ $item->user->name ?? 'N/A' }}</strong>
+                                        <strong>{{ $item->user->name }}</strong>
+                                        @if ($item->user->email)
+                                            <br><small class="text-muted">{{ $item->user->email }}</small>
+                                        @endif
                                     </td>
-                                    <td>{{ $item->user->nim ?? 'N/A' }}</td>
+                                    <td>
+                                        <span class="badge bg-label-primary">{{ $item->user->nim }}</span>
+                                    </td>
                                     <td>
                                         <span class="badge bg-label-info">
-                                            {{ $item->formatted_proyektor_code }}
+                                            <i class='bx bx-video me-1'></i>{{ $item->proyektor_code }}
                                         </span>
                                     </td>
                                     <td>
-                                        <span class="text-truncate d-inline-block" style="max-width: 200px;"
-                                            title="{{ $item->keperluan ?? 'Tidak disebutkan' }}">
-                                            {{ $item->formatted_keperluan }}
-                                        </span>
+                                        <small>{{ Str::limit($item->keperluan, 40, '...') }}</small>
                                     </td>
                                     <td>
-                                        {{ $item->tanggal_pinjam->format('d M Y') }}<br>
-                                        <small class="text-muted">{{ $item->tanggal_pinjam->format('H:i') }}</small>
-                                    </td>
-                                    <td>
-                                        @if ($item->tanggal_kembali)
-                                            {{ $item->tanggal_kembali->format('d M Y') }}<br>
-                                            <small class="text-muted">{{ $item->tanggal_kembali->format('H:i') }}</small>
-                                        @else
-                                            <span class="text-muted">-</span>
-                                        @endif
+                                        <small>{{ $item->tanggal_pinjam->translatedFormat('d M Y') }}<br>
+                                            <span class="text-muted">{{ $item->tanggal_pinjam->format('H:i') }}
+                                                WIB</span>
+                                        </small>
                                     </td>
                                     <td>
                                         @if ($item->status == 'dipinjam')
-                                            <span class="badge bg-warning">
-                                                <i class="bx bx-time-five"></i> Dipinjam
+                                            <span class="badge bg-label-warning">
+                                                <i class="bx bx-time-five me-1"></i> Sedang Dipinjam
                                             </span>
                                         @else
-                                            <span class="badge bg-success">
-                                                <i class="bx bx-check"></i> Dikembalikan
+                                            <span class="badge bg-label-success">
+                                                <i class="bx bx-check-circle me-1"></i> Dikembalikan
                                             </span>
                                         @endif
                                     </td>
-                                    <td class="text-center">
-                                        <div class="dropdown">
-                                            <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
-                                                data-bs-toggle="dropdown">
-                                                <i class="bx bx-dots-vertical-rounded"></i>
-                                            </button>
-                                            <div class="dropdown-menu">
-                                                <a class="dropdown-item" href="javascript:void(0);"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#detailModal{{ $item->id }}">
-                                                    <i class="bx bx-show me-1"></i> Detail
-                                                </a>
-                                                @if ($item->status == 'dipinjam')
-                                                    <a class="dropdown-item" href="javascript:void(0);"
-                                                        data-bs-toggle="modal"
-                                                        data-bs-target="#returnModal{{ $item->id }}">
-                                                        <i class="bx bx-check me-1"></i> Proses Pengembalian
-                                                    </a>
-                                                @endif
-                                                <div class="dropdown-divider"></div>
-                                                <form
-                                                    action="{{ route('admin.peminjaman-proyektor.destroy', $item->id) }}"
-                                                    method="POST" class="d-inline"
-                                                    onsubmit="return confirm('Yakin ingin menghapus data ini?')">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="dropdown-item text-danger">
-                                                        <i class="bx bx-trash me-1"></i> Hapus
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        </div>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-info"
+                                            @click="openModal({{ $item->id }})">
+                                            <i class="bx bx-show-alt me-1"></i> Detail
+                                        </button>
                                     </td>
                                 </tr>
-
-                                {{-- Detail Modal --}}
-                                <div class="modal fade" id="detailModal{{ $item->id }}" tabindex="-1"
-                                    aria-hidden="true">
-                                    <div class="modal-dialog modal-dialog-centered">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title">
-                                                    <i class="bx bx-info-circle me-2"></i>Detail Peminjaman
-                                                </h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                                    aria-label="Close"></button>
-                                            </div>
-                                            <div class="modal-body">
-                                                <table class="table table-sm table-borderless">
-                                                    <tr>
-                                                        <th style="width: 40%">Nama Peminjam:</th>
-                                                        <td>{{ $item->user->name ?? 'N/A' }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th>NIM:</th>
-                                                        <td>{{ $item->user->nim ?? 'N/A' }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th>Email:</th>
-                                                        <td>{{ $item->user->email ?? 'N/A' }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th>Kode Proyektor:</th>
-                                                        <td>
-                                                            <span class="badge bg-label-info">
-                                                                {{ $item->formatted_proyektor_code }}
-                                                            </span>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th>Keperluan:</th>
-                                                        <td>{{ $item->formatted_keperluan }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th>Tanggal Pinjam:</th>
-                                                        <td>{{ $item->tanggal_pinjam->format('d M Y, H:i') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th>Tanggal Kembali:</th>
-                                                        <td>
-                                                            @if ($item->tanggal_kembali)
-                                                                {{ $item->tanggal_kembali->format('d M Y, H:i') }}
-                                                            @else
-                                                                <span class="text-muted">Belum dikembalikan</span>
-                                                            @endif
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th>Status:</th>
-                                                        <td>
-                                                            @if ($item->status == 'dipinjam')
-                                                                <span class="badge bg-warning">Dipinjam</span>
-                                                            @else
-                                                                <span class="badge bg-success">Dikembalikan</span>
-                                                            @endif
-                                                        </td>
-                                                    </tr>
-                                                    @if ($item->keterangan)
-                                                        <tr>
-                                                            <th>Keterangan:</th>
-                                                            <td>{{ $item->keterangan }}</td>
-                                                        </tr>
-                                                    @endif
-                                                </table>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary"
-                                                    data-bs-dismiss="modal">Tutup</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {{-- Return Modal --}}
-                                @if ($item->status == 'dipinjam')
-                                    <div class="modal fade" id="returnModal{{ $item->id }}" tabindex="-1"
-                                        aria-hidden="true">
-                                        <div class="modal-dialog modal-dialog-centered">
-                                            <form
-                                                action="{{ route('admin.peminjaman-proyektor.update-status', $item->id) }}"
-                                                method="POST">
-                                                @csrf
-                                                @method('PUT')
-                                                <div class="modal-content">
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title">
-                                                            <i class="bx bx-check-circle me-2"></i>Proses Pengembalian
-                                                        </h5>
-                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                                            aria-label="Close"></button>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        <input type="hidden" name="status" value="dikembalikan">
-                                                        <div class="alert alert-info">
-                                                            <strong>Peminjam:</strong> {{ $item->user->name }}<br>
-                                                            <strong>Proyektor:</strong>
-                                                            {{ $item->formatted_proyektor_code }}
-                                                        </div>
-                                                        <div class="mb-3">
-                                                            <label class="form-label">Keterangan</label>
-                                                            <textarea name="keterangan" class="form-control" rows="3" placeholder="Tambahkan catatan (opsional)"></textarea>
-                                                        </div>
-                                                    </div>
-                                                    <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary"
-                                                            data-bs-dismiss="modal">Batal</button>
-                                                        <button type="submit" class="btn btn-primary">
-                                                            <i class="bx bx-check me-1"></i>Konfirmasi Pengembalian
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                @endif
                             @empty
                                 <tr>
-                                    <td colspan="9" class="text-center py-5">
-                                        <i class="bx bx-data fs-1 text-muted"></i>
-                                        <p class="text-muted mt-2">Tidak ada data untuk ditampilkan.</p>
+                                    <td colspan="8" class="text-center py-4">
+                                        <div class="text-muted">
+                                            <i class="bx bx-video bx-lg mb-2"></i>
+                                            <p class="mb-0">Tidak ada data peminjaman proyektor.</p>
+                                        </div>
                                     </td>
                                 </tr>
                             @endforelse
@@ -374,53 +281,60 @@
                 </div>
             </div>
 
-            {{-- Pagination --}}
             @if ($peminjaman->hasPages())
-                <div class="card-footer border-top py-3">
+                <div class="card-footer d-flex justify-content-between align-items-center">
+                    <div class="text-muted">
+                        Menampilkan {{ $peminjaman->firstItem() }} - {{ $peminjaman->lastItem() }} dari
+                        {{ $peminjaman->total() }} data
+                    </div>
                     <nav aria-label="Page navigation">
-                        <ul class="pagination justify-content-end mb-0">
-                            {{-- Previous --}}
+                        <ul class="pagination mb-0">
+                            {{-- Previous Page Link --}}
                             <li class="page-item {{ $peminjaman->onFirstPage() ? 'disabled' : '' }}">
-                                <a class="page-link" href="{{ $peminjaman->previousPageUrl() ?? '#' }}" tabindex="-1">
+                                <a class="page-link" href="{{ $peminjaman->previousPageUrl() }}" aria-label="Previous">
                                     <i class="bx bx-chevrons-left icon-sm"></i>
                                 </a>
                             </li>
 
-                            {{-- First Page --}}
-                            @if ($peminjaman->currentPage() > 2)
+                            {{-- Page Numbers --}}
+                            @php
+                                $start = max($peminjaman->currentPage() - 2, 1);
+                                $end = min($start + 4, $peminjaman->lastPage());
+                                $start = max($end - 4, 1);
+                            @endphp
+
+                            @if ($start > 1)
                                 <li class="page-item">
                                     <a class="page-link" href="{{ $peminjaman->url(1) }}">1</a>
                                 </li>
+                                @if ($start > 2)
+                                    <li class="page-item disabled">
+                                        <span class="page-link">...</span>
+                                    </li>
+                                @endif
                             @endif
 
-                            {{-- Dots if needed --}}
-                            @if ($peminjaman->currentPage() > 3)
-                                <li class="page-item disabled"><span class="page-link">...</span></li>
-                            @endif
-
-                            {{-- Current + 1 Before & After --}}
-                            @for ($i = max(1, $peminjaman->currentPage() - 1); $i <= min($peminjaman->lastPage(), $peminjaman->currentPage() + 1); $i++)
-                                <li class="page-item {{ $i == $peminjaman->currentPage() ? 'active' : '' }}">
-                                    <a class="page-link" href="{{ $peminjaman->url($i) }}">{{ $i }}</a>
+                            @for ($page = $start; $page <= $end; $page++)
+                                <li class="page-item {{ $page == $peminjaman->currentPage() ? 'active' : '' }}">
+                                    <a class="page-link" href="{{ $peminjaman->url($page) }}">{{ $page }}</a>
                                 </li>
                             @endfor
 
-                            {{-- Dots if needed --}}
-                            @if ($peminjaman->currentPage() < $peminjaman->lastPage() - 2)
-                                <li class="page-item disabled"><span class="page-link">...</span></li>
-                            @endif
-
-                            {{-- Last Page --}}
-                            @if ($peminjaman->currentPage() < $peminjaman->lastPage() - 1)
+                            @if ($end < $peminjaman->lastPage())
+                                @if ($end < $peminjaman->lastPage() - 1)
+                                    <li class="page-item disabled">
+                                        <span class="page-link">...</span>
+                                    </li>
+                                @endif
                                 <li class="page-item">
                                     <a class="page-link"
                                         href="{{ $peminjaman->url($peminjaman->lastPage()) }}">{{ $peminjaman->lastPage() }}</a>
                                 </li>
                             @endif
 
-                            {{-- Next --}}
-                            <li class="page-item {{ !$peminjaman->hasMorePages() ? 'disabled' : '' }}">
-                                <a class="page-link" href="{{ $peminjaman->nextPageUrl() ?? '#' }}">
+                            {{-- Next Page Link --}}
+                            <li class="page-item {{ $peminjaman->hasMorePages() ? '' : 'disabled' }}">
+                                <a class="page-link" href="{{ $peminjaman->nextPageUrl() }}" aria-label="Next">
                                     <i class="bx bx-chevrons-right icon-sm"></i>
                                 </a>
                             </li>
@@ -429,19 +343,264 @@
                 </div>
             @endif
         </div>
+
+        <!-- Detail Modal -->
+        <div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true" x-show="modalOpen"
+            x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform scale-90"
+            x-transition:enter-end="opacity-100 transform scale-100" x-transition:leave="transition ease-in duration-200"
+            x-transition:leave-start="opacity-100 transform scale-100"
+            x-transition:leave-end="opacity-0 transform scale-90" @click.away="closeModal()"
+            @keydown.escape.window="closeModal()">
+            <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document" @click.stop>
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="bx bx-video me-2"></i>Detail Peminjaman Proyektor
+                        </h5>
+                        <button type="button" class="btn-close" @click="closeModal()" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body" x-html="modalContent">
+                        <!-- Content will be loaded via Alpine.js -->
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="text-muted mt-2">Memuat data...</p>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" @click="closeModal()">
+                            <i class="bx bx-x me-1"></i>Tutup
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 @endsection
 
 @push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        // Auto dismiss alerts
-        setTimeout(function() {
-            var alerts = document.querySelectorAll('.alert');
-            alerts.forEach(function(alert) {
-                var bsAlert = new bootstrap.Alert(alert);
-                bsAlert.close();
-            });
-        }, 5000);
+        // GLOBAL Alpine Component
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('peminjamanProyektorDetail', () => ({
+                swalConfig: {
+                    customClass: {
+                        container: 'swal-high-zindex',
+                        popup: 'swal-popup-custom',
+                        confirmButton: 'btn btn-danger btn-lg px-4 me-3',
+                        cancelButton: 'btn btn-secondary btn-lg px-4'
+                    },
+                    buttonsStyling: false,
+                    reverseButtons: true,
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    backdrop: 'rgba(0, 0, 0, 0.6)',
+                    heightAuto: false
+                },
+
+                async handleDelete(peminjamanId, nama, nim, proyektor, status) {
+                    const statusBadge = {
+                        'dipinjam': '<span class="badge bg-warning">Sedang Dipinjam</span>',
+                        'dikembalikan': '<span class="badge bg-success">Sudah Dikembalikan</span>'
+                    };
+
+                    const result = await Swal.fire({
+                        ...this.swalConfig,
+                        title: '<strong>Hapus Data Peminjaman?</strong>',
+                        html: `
+                            <div class="text-start">
+                                <div class="alert alert-danger mb-3">
+                                    <i class="bx bx-error-circle me-2"></i>
+                                    <strong>PERINGATAN!</strong> Data peminjaman akan dihapus permanen.
+                                </div>
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <strong>Detail Peminjaman:</strong><br>
+                                        <small>
+                                            Nama: <strong>${nama}</strong><br>
+                                            NIM: <strong>${nim}</strong><br>
+                                            Proyektor: <strong>${proyektor}</strong><br>
+                                            Status: ${statusBadge[status] || status}
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        `,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: '<i class="bx bx-trash me-2"></i>Ya, Hapus',
+                        cancelButtonText: '<i class="bx bx-x me-2"></i>Batal',
+                        didOpen: () => this.setHighZIndex()
+                    });
+
+                    if (result.isConfirmed) {
+                        this.showLoading('Menghapus data...');
+
+                        try {
+                            const response = await fetch(
+                                `/admin/peminjaman-proyektor/${peminjamanId}`, {
+                                    method: 'DELETE',
+                                    headers: {
+                                        'X-CSRF-TOKEN': document.querySelector(
+                                            'meta[name="csrf-token"]').getAttribute(
+                                            'content'),
+                                        'Accept': 'application/json',
+                                        'X-Requested-With': 'XMLHttpRequest'
+                                    }
+                                });
+
+                            const data = await response.json();
+
+                            if (response.ok) {
+                                await Swal.fire({
+                                    ...this.swalConfig,
+                                    icon: 'success',
+                                    title: 'Berhasil Dihapus!',
+                                    html: `<p>${data.message}</p><small class="text-muted">Halaman akan dimuat ulang...</small>`,
+                                    showConfirmButton: false,
+                                    timer: 2000,
+                                    didOpen: () => this.setHighZIndex()
+                                });
+
+                                const modalEl = document.getElementById('detailModal');
+                                const modal = bootstrap.Modal.getInstance(modalEl);
+                                if (modal) modal.hide();
+
+                                window.location.reload();
+                            } else {
+                                throw new Error(data.message || 'Gagal menghapus data');
+                            }
+                        } catch (error) {
+                            await Swal.fire({
+                                ...this.swalConfig,
+                                icon: 'error',
+                                title: 'Gagal Menghapus!',
+                                html: `<p>${error.message}</p>`,
+                                confirmButtonText: '<i class="bx bx-check me-2"></i>OK',
+                                customClass: {
+                                    ...this.swalConfig.customClass,
+                                    confirmButton: 'btn btn-primary btn-lg px-4'
+                                },
+                                didOpen: () => this.setHighZIndex()
+                            });
+                        }
+                    }
+                },
+
+                showLoading(message) {
+                    Swal.fire({
+                        ...this.swalConfig,
+                        title: 'Memproses...',
+                        html: `<p class="mb-0">${message}</p>`,
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        showConfirmButton: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                            this.setHighZIndex();
+                        }
+                    });
+                },
+
+                setHighZIndex() {
+                    const swalContainer = document.querySelector('.swal2-container');
+                    if (swalContainer) {
+                        swalContainer.style.zIndex = '99999';
+                    }
+                }
+            }));
+        });
+
+        function peminjamanProyektorIndex() {
+            return {
+                modalOpen: false,
+                modalContent: `
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="text-muted mt-2">Memuat data...</p>
+                    </div>
+                `,
+
+                init() {
+                    @if (request()->has('open'))
+                        const peminjamanId = {{ request('open') }};
+                        console.log('Auto-opening modal for peminjaman ID:', peminjamanId);
+                        setTimeout(() => {
+                            this.openModal(peminjamanId);
+                        }, 500);
+                    @endif
+                },
+
+                async openModal(id) {
+                    console.log('Loading modal for peminjaman ID:', id);
+
+                    this.modalOpen = true;
+                    this.modalContent = `
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="text-muted mt-2">Memuat data...</p>
+                        </div>
+                    `;
+
+                    const modalEl = document.getElementById('detailModal');
+                    const modal = new bootstrap.Modal(modalEl);
+                    modal.show();
+
+                    try {
+                        const response = await fetch(`/admin/peminjaman-proyektor/${id}`, {
+                            method: 'GET',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'text/html'
+                            }
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('Failed to load modal content');
+                        }
+
+                        const data = await response.text();
+                        console.log('Modal content loaded successfully');
+                        this.modalContent = data;
+
+                        await this.$nextTick();
+
+                    } catch (error) {
+                        console.error('Error loading modal:', error);
+                        this.modalContent = `
+                            <div class="alert alert-danger">
+                                <i class="bx bx-error-circle me-1"></i>
+                                <strong>Error!</strong> Gagal memuat data. Silakan coba lagi.
+                            </div>
+                        `;
+                    }
+                },
+
+                closeModal() {
+                    this.modalOpen = false;
+                    const modalEl = document.getElementById('detailModal');
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    if (modal) {
+                        modal.hide();
+                    }
+
+                    setTimeout(() => {
+                        this.modalContent = `
+                            <div class="text-center py-5">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="text-muted mt-2">Memuat data...</p>
+                            </div>
+                        `;
+                    }, 300);
+                }
+            }
+        }
     </script>
 @endpush

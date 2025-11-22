@@ -478,9 +478,17 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     // Peminjaman Proyektor
     Route::prefix('peminjaman-proyektor')->name('peminjaman-proyektor.')->group(function () {
         Route::get('/', [AdminPeminjamanProyektorController::class, 'index'])->name('index');
+
+        // Proyektor Management routes - MUST come before dynamic {peminjamanProyektor} route
+        Route::get('/proyektor-management', [AdminPeminjamanProyektorController::class, 'proyektorManagement'])
+            ->name('proyektor-management');
+        Route::put('/proyektor-list', [AdminPeminjamanProyektorController::class, 'updateProyektorList'])
+            ->name('update-proyektor-list');
+
+        // Show specific peminjaman - Add this missing route
         Route::get('/{peminjamanProyektor}', [AdminPeminjamanProyektorController::class, 'show'])->name('show');
-        Route::put('/{peminjamanProyektor}/update-status', [AdminPeminjamanProyektorController::class, 'updateStatus'])
-            ->name('update-status');
+
+        // Delete peminjaman
         Route::delete('/{peminjamanProyektor}', [AdminPeminjamanProyektorController::class, 'destroy'])->name('destroy');
     });
 
