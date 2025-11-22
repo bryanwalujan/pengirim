@@ -171,4 +171,67 @@ class AdminPeminjamanProyektorController extends Controller
                 ->withInput();
         }
     }
+
+    /**
+     * Override return peminjaman (for staff/admin)
+     */
+    public function overrideReturn(Request $request, PeminjamanProyektor $peminjamanProyektor)
+    {
+        // Check if already returned
+        if ($peminjamanProyektor->status === 'dikembalikan') {
+            if (request()->wantsJson() || request()->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Peminjaman ini sudah dikembalikan.'
+                ], 400);
+            }
+
+            return redirect()->back()->with('error', 'Peminjaman ini sudah dikembalikan.');
+        }
+
+        $validated = $request->validate([
+            'catatan_override' => 'nullable|string|max:500',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $peminjamanProyektor->update([
+                'status' => 'dikembalikan',
+                'tanggal_kembali' => now(),
+                'catatan' => $validated['catatan_override']
+                    ? 'OVERRIDE oleh staff: ' . $validated['catatan_override']
+                    : 'OVERRIDE oleh staff pada ' . now()->translatedFormat('d M Y H:i'),
+            ]);
+
+            DB::commit();
+
+            if (request()->wantsJson() || request()->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Peminjaman berhasil dikembalikan (override).',
+                    'data' => [
+                        'tanggal_kembali' => $peminjamanProyektor->tanggal_kembali->translatedFormat('l, d M Y H:i'),
+                        'catatan' => $peminjamanProyektor->catatan,
+                    ]
+                ]);
+            }
+
+            return redirect()->route('admin.peminjaman-proyektor.index')
+                ->with('success', 'Peminjaman berhasil dikembalikan (override).');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            if (request()->wantsJson() || request()->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal override pengembalian: ' . $e->getMessage()
+                ], 500);
+            }
+
+            return redirect()->back()
+                ->with('error', 'Gagal override pengembalian: ' . $e->getMessage());
+        }
+    }
 }

@@ -488,6 +488,112 @@
                     }
                 },
 
+                async handleOverrideReturn(peminjamanId, nama, proyektorCode) {
+                    const catatanInput = document.getElementById('catatanOverride');
+                    const catatan = catatanInput ? catatanInput.value.trim() : '';
+
+                    const result = await Swal.fire({
+                        ...this.swalConfig,
+                        title: '<strong>Override Pengembalian?</strong>',
+                        html: `
+            <div class="text-start">
+                <div class="alert alert-warning mb-3">
+                    <i class="bx bx-info-circle me-2"></i>
+                    <strong>Konfirmasi Override</strong>
+                </div>
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <strong>Detail Peminjaman:</strong><br>
+                        <small>
+                            Peminjam: <strong>${nama}</strong><br>
+                            Proyektor: <strong>${proyektorCode}</strong><br>
+                            ${catatan ? `Catatan: <strong>${catatan}</strong><br>` : ''}
+                        </small>
+                    </div>
+                </div>
+                <p class="text-muted mb-0">
+                    <small>Proyektor akan tersedia kembali setelah dikembalikan.</small>
+                </p>
+            </div>
+        `,
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonText: '<i class="bx bx-check me-2"></i>Ya, Kembalikan',
+                        cancelButtonText: '<i class="bx bx-x me-2"></i>Batal',
+                        customClass: {
+                            ...this.swalConfig.customClass,
+                            confirmButton: 'btn btn-warning btn-lg px-4 ms-3'
+                        },
+                        didOpen: () => this.setHighZIndex()
+                    });
+
+                    if (result.isConfirmed) {
+                        this.showLoading('Memproses override pengembalian...');
+
+                        try {
+                            const formData = new FormData();
+                            formData.append('catatan_override', catatan);
+
+                            const response = await fetch(
+                                `/admin/peminjaman-proyektor/${peminjamanId}/override-return`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'X-CSRF-TOKEN': document.querySelector(
+                                            'meta[name="csrf-token"]').getAttribute(
+                                            'content'),
+                                        'Accept': 'application/json',
+                                        'X-Requested-With': 'XMLHttpRequest'
+                                    },
+                                    body: formData
+                                });
+
+                            const data = await response.json();
+
+                            if (response.ok) {
+                                await Swal.fire({
+                                    ...this.swalConfig,
+                                    icon: 'success',
+                                    title: 'Berhasil Dikembalikan!',
+                                    html: `
+                        <p>${data.message}</p>
+                        <div class="alert alert-success mt-3">
+                            <small>
+                                <i class="bx bx-time me-1"></i>
+                                Tanggal Kembali: ${data.data.tanggal_kembali} WIB
+                            </small>
+                        </div>
+                        <small class="text-muted">Halaman akan dimuat ulang...</small>
+                    `,
+                                    showConfirmButton: false,
+                                    timer: 3000,
+                                    didOpen: () => this.setHighZIndex()
+                                });
+
+                                const modalEl = document.getElementById('detailModal');
+                                const modal = bootstrap.Modal.getInstance(modalEl);
+                                if (modal) modal.hide();
+
+                                window.location.reload();
+                            } else {
+                                throw new Error(data.message || 'Gagal override pengembalian');
+                            }
+                        } catch (error) {
+                            await Swal.fire({
+                                ...this.swalConfig,
+                                icon: 'error',
+                                title: 'Gagal Override!',
+                                html: `<p>${error.message}</p>`,
+                                confirmButtonText: '<i class="bx bx-check me-2"></i>OK',
+                                customClass: {
+                                    ...this.swalConfig.customClass,
+                                    confirmButton: 'btn btn-primary btn-lg px-4'
+                                },
+                                didOpen: () => this.setHighZIndex()
+                            });
+                        }
+                    }
+                },
+
                 showLoading(message) {
                     Swal.fire({
                         ...this.swalConfig,

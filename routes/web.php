@@ -485,6 +485,9 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::put('/proyektor-list', [AdminPeminjamanProyektorController::class, 'updateProyektorList'])
             ->name('update-proyektor-list');
 
+        Route::post('/{peminjamanProyektor}/override-return', [AdminPeminjamanProyektorController::class, 'overrideReturn'])
+            ->name('admin.peminjaman-proyektor.override-return');
+
         // Show specific peminjaman - Add this missing route
         Route::get('/{peminjamanProyektor}', [AdminPeminjamanProyektorController::class, 'show'])->name('show');
 

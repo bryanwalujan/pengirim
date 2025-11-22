@@ -1,4 +1,3 @@
-{{-- filepath: /c:/laragon/www/eservice-app/resources/views/admin/peminjaman-proyektor/detail-modal.blade.php --}}
 <div class="modal-body" x-data="peminjamanProyektorDetail()">
     <div class="row">
         <div class="col-12">
@@ -18,7 +17,6 @@
                             <td>{{ $peminjaman->user->email }}</td>
                         </tr>
                     @endif
-                    {{-- Hapus section phone karena kolom tidak ada --}}
                     <tr>
                         <th>Kode Proyektor</th>
                         <td>
@@ -73,16 +71,6 @@
                             </td>
                         </tr>
                     @endif
-                    @if ($peminjaman->catatan)
-                        <tr>
-                            <th style="vertical-align: top">Catatan</th>
-                            <td style="vertical-align: top">
-                                <div class="alert alert-info mb-0">
-                                    <i class='bx bx-info-circle me-1'></i>{{ $peminjaman->catatan }}
-                                </div>
-                            </td>
-                        </tr>
-                    @endif
                 </tbody>
             </table>
         </div>
@@ -92,10 +80,39 @@
         <div class="col-12">
             @php
                 $user = Auth::user();
-                $canDelete = $user->hasRole(['admin', 'staff']);
+                $canManage = $user->hasRole(['admin', 'staff']);
             @endphp
 
-            @if ($canDelete)
+            @if ($canManage && $peminjaman->status == 'dipinjam')
+                {{-- Override Return Section --}}
+                <div class="card border-warning mb-3">
+                    <div class="card-body">
+                        <h6 class="card-title text-warning mb-3">
+                            <i class="bx bx-check-shield me-1"></i> Override Pengembalian
+                        </h6>
+
+                        <div class="alert alert-info mb-3">
+                            <i class="bx bx-info-circle me-1"></i>
+                            <strong>Informasi:</strong>
+                            <ul class="mb-0 mt-2">
+                                <li>Gunakan fitur ini jika mahasiswa lupa mengembalikan proyektor</li>
+                                <li>Proyektor akan otomatis tersedia kembali setelah override</li>
+                                <li>Tindakan ini akan tercatat dalam sistem</li>
+                            </ul>
+                        </div>
+
+
+                        <div class="d-grid">
+                            <button type="button" class="btn btn-warning"
+                                @click="handleOverrideReturn({{ $peminjaman->id }}, '{{ $peminjaman->user->name }}', '{{ $peminjaman->proyektor_code }}')">
+                                <i class="bx bx-check-circle me-1"></i> Override Kembalikan Proyektor
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            @if ($canManage)
                 {{-- Delete Section --}}
                 <div class="card border-danger">
                     <div class="card-body">
@@ -148,7 +165,12 @@
         z-index: 9998;
     }
 
-    .card.border-danger {
+    .card.border-danger,
+    .card.border-warning {
         border-width: 2px;
+    }
+
+    .card.border-warning {
+        box-shadow: 0 0 0 0.1rem rgba(255, 193, 7, 0.25);
     }
 </style>
