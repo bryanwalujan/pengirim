@@ -20,8 +20,13 @@ class AdminPeminjamanProyektorController extends Controller
             $query->where('status', $request->status);
         }
 
+        // Filter berdasarkan kode proyektor
+        if ($request->has('proyektor') && $request->proyektor) {
+            $query->where('proyektor_code', 'like', '%' . $request->proyektor . '%');
+        }
+
         // Search by name or NIM
-        if ($request->has('search')) {
+        if ($request->has('search') && $request->search) {
             $search = $request->search;
             $query->whereHas('user', function ($q) use ($search) {
                 $q->where('name', 'like', '%' . $search . '%')
@@ -29,11 +34,60 @@ class AdminPeminjamanProyektorController extends Controller
             });
         }
 
-        $peminjaman = $query->paginate(10);
-        return view('admin.peminjaman-proyektor.index', compact('peminjaman'));
+        $peminjaman = $query->paginate(20)->withQueryString();
+
+        // Statistik untuk dashboard
+        $stats = [
+            'total' => PeminjamanProyektor::count(),
+            'sedang_dipinjam' => PeminjamanProyektor::where('status', 'dipinjam')->count(),
+            'dikembalikan' => PeminjamanProyektor::where('status', 'dikembalikan')->count(),
+        ];
+
+        return view('admin.peminjaman-proyektor.index', compact('peminjaman', 'stats'));
     }
 
     /**
-     * Mark a projector as returned.
+     * Show detail peminjaman
      */
+    public function show(PeminjamanProyektor $peminjamanProyektor)
+    {
+        $peminjamanProyektor->load('user');
+        return view('admin.peminjaman-proyektor.show', compact('peminjamanProyektor'));
+    }
+
+    /**
+     * Update status peminjaman (untuk proses pengembalian)
+     */
+    public function updateStatus(Request $request, PeminjamanProyektor $peminjamanProyektor)
+    {
+        $validated = $request->validate([
+            'status' => 'required|in:dipinjam,dikembalikan',
+            'keterangan' => 'nullable|string|max:500',
+        ]);
+
+        // Jika status dikembalikan, set tanggal kembali
+        if ($validated['status'] === 'dikembalikan') {
+            $peminjamanProyektor->update([
+                'status' => $validated['status'],
+                'tanggal_kembali' => now(),
+                'keterangan' => $validated['keterangan'] ?? null,
+            ]);
+        } else {
+            $peminjamanProyektor->update($validated);
+        }
+
+        return redirect()->route('admin.peminjaman-proyektor.index')
+            ->with('success', 'Status peminjaman berhasil diperbarui.');
+    }
+
+    /**
+     * Delete peminjaman record
+     */
+    public function destroy(PeminjamanProyektor $peminjamanProyektor)
+    {
+        $peminjamanProyektor->delete();
+
+        return redirect()->route('admin.peminjaman-proyektor.index')
+            ->with('success', 'Data peminjaman berhasil dihapus.');
+    }
 }

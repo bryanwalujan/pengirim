@@ -478,6 +478,10 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     // Peminjaman Proyektor
     Route::prefix('peminjaman-proyektor')->name('peminjaman-proyektor.')->group(function () {
         Route::get('/', [AdminPeminjamanProyektorController::class, 'index'])->name('index');
+        Route::get('/{peminjamanProyektor}', [AdminPeminjamanProyektorController::class, 'show'])->name('show');
+        Route::put('/{peminjamanProyektor}/update-status', [AdminPeminjamanProyektorController::class, 'updateStatus'])
+            ->name('update-status');
+        Route::delete('/{peminjamanProyektor}', [AdminPeminjamanProyektorController::class, 'destroy'])->name('destroy');
     });
 
     // Peminjaman Laboratorium
