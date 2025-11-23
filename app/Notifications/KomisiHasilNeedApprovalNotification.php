@@ -1,5 +1,4 @@
 <?php
-// filepath: /c:/laragon/www/eservice-app/app/Notifications/KomisiHasilNeedApprovalNotification.php
 
 namespace App\Notifications;
 
@@ -44,7 +43,7 @@ class KomisiHasilNeedApprovalNotification extends Notification
         $approvalTypeText = match ($this->approvalType) {
             'pembimbing1' => 'Pembimbing 1',
             'pembimbing2' => 'Pembimbing 2',
-            'korprodi' => 'Koordinator Prodi',
+            'korprodi' => 'Koordinator Program Studi',
             default => 'Unknown'
         };
 
@@ -65,31 +64,16 @@ class KomisiHasilNeedApprovalNotification extends Notification
         };
 
         return [
-            // Data Komisi Hasil
+            'message' => "Komisi Hasil membutuhkan persetujuan Anda sebagai {$approvalTypeText}",
+            'type' => $this->approvalType,
             'komisi_hasil_id' => $this->komisiHasil->id,
             'mahasiswa_name' => $this->komisiHasil->user->name,
             'mahasiswa_nim' => $this->komisiHasil->user->nim,
             'judul_skripsi' => $this->komisiHasil->judul_skripsi,
-
-            // Approval Info
-            'type' => $this->approvalType,
-            'approval_type_text' => $approvalTypeText,
-            'status' => $this->komisiHasil->status,
-
-            // Timestamps
-            'created_at' => $this->komisiHasil->created_at->format('d M Y H:i'),
-
-            // URL untuk redirect ke detail (dengan auto-open modal)
-            'url' => route('admin.komisi-hasil.index', ['open' => $this->komisiHasil->id]),
-
-            // UI Elements
+            'url' => route('admin.komisi-hasil.show', $this->komisiHasil->id),
             'icon' => $icon,
             'badge_class' => $badgeClass,
-            'message' => "Komisi Hasil membutuhkan persetujuan Anda sebagai {$approvalTypeText}",
-
-            // Additional Info
-            'pembimbing1_name' => $this->komisiHasil->pembimbing1->name ?? '-',
-            'pembimbing2_name' => $this->komisiHasil->pembimbing2->name ?? '-',
+            'created_at' => now()->translatedFormat('l, d M Y H:i'),
         ];
     }
 
@@ -99,42 +83,26 @@ class KomisiHasilNeedApprovalNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         $subject = match ($this->approvalType) {
-            'pembimbing1' => 'Persetujuan Komisi Hasil sebagai Pembimbing 1',
-            'pembimbing2' => 'Persetujuan Komisi Hasil sebagai Pembimbing 2',
-            'korprodi' => 'Persetujuan Komisi Hasil sebagai Koordinator Prodi',
+            'pembimbing1' => 'Persetujuan Komisi Hasil - Pembimbing 1',
+            'pembimbing2' => 'Persetujuan Komisi Hasil - Pembimbing 2',
+            'korprodi' => 'Persetujuan Komisi Hasil - Koordinator Program Studi',
             default => 'Persetujuan Komisi Hasil'
         };
 
         $approvalTypeText = match ($this->approvalType) {
             'pembimbing1' => 'Pembimbing 1',
             'pembimbing2' => 'Pembimbing 2',
-            'korprodi' => 'Koordinator Prodi',
-            default => 'Pihak Terkait'
+            'korprodi' => 'Koordinator Program Studi',
+            default => 'Unknown'
         };
 
         return (new MailMessage)
             ->subject($subject)
-            ->greeting("Halo, {$notifiable->name}!")
-            ->line("Anda mendapat pengajuan komisi hasil yang perlu disetujui sebagai **{$approvalTypeText}**.")
-            ->line('**Detail Mahasiswa:**')
-            ->line('Nama: ' . $this->komisiHasil->user->name)
-            ->line('NIM: ' . $this->komisiHasil->user->nim)
-            ->line('**Judul Skripsi:**')
-            ->line($this->komisiHasil->judul_skripsi)
-            ->line('**Pembimbing:**')
-            ->line('Pembimbing 1: ' . ($this->komisiHasil->pembimbing1->name ?? '-'))
-            ->line('Pembimbing 2: ' . ($this->komisiHasil->pembimbing2->name ?? '-'))
-            ->action('Lihat Detail & Setujui', route('admin.komisi-hasil.index', ['open' => $this->komisiHasil->id]))
-            ->line('Silakan login ke sistem untuk memproses persetujuan.')
-            ->line('Terima kasih!')
-            ->salutation('Salam, ' . config('app.name'));
+            ->line("Mahasiswa {$this->komisiHasil->user->name} ({$this->komisiHasil->user->nim}) telah mengajukan Komisi Hasil.")
+            ->line("Judul: {$this->komisiHasil->judul_skripsi}")
+            ->line("Diperlukan persetujuan Anda sebagai {$approvalTypeText}.")
+            ->action('Lihat Detail', route('admin.komisi-hasil.index', ['open' => $this->komisiHasil->id]))
+            ->line('Terima kasih!');
     }
 
-    /**
-     * Get the notification's database type (untuk filtering di UI).
-     */
-    public function databaseType(object $notifiable): string
-    {
-        return 'komisi_hasil_approval';
-    }
 }

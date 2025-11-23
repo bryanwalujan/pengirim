@@ -28,27 +28,38 @@ class NotificationController extends Controller
             $query->whereNotNull('read_at');
         }
 
+        // PERBAIKAN: Filter berdasarkan type notification yang benar
         if ($type === 'surat') {
             $query->whereIn('type', [
                 'App\Notifications\SuratTakenNotification',
                 'App\Notifications\SuratNeedApprovalNotification',
             ]);
         } elseif ($type === 'komisi') {
-            $query->where('type', 'App\Notifications\KomisiProposalNeedApprovalNotification');
+            // PERBAIKAN: Gunakan namespace lengkap yang benar
+            $query->whereIn('type', [
+                'App\Notifications\KomisiProposalNeedApprovalNotification',
+                'App\Notifications\KomisiHasilNeedApprovalNotification', // ✅ PERBAIKI INI
+            ]);
         }
 
         $notifications = $query->paginate(15);
 
         $unreadCount = $user->unreadNotifications()->count();
         $totalCount = $user->notifications()->count();
+
         $unreadSuratCount = $user->unreadNotifications()
             ->whereIn('type', [
                 'App\Notifications\SuratTakenNotification',
                 'App\Notifications\SuratNeedApprovalNotification',
             ])
             ->count();
+
+        // PERBAIKAN: Hitung Komisi Proposal DAN Komisi Hasil dengan namespace yang benar
         $unreadKomisiCount = $user->unreadNotifications()
-            ->where('type', 'App\Notifications\KomisiProposalNeedApprovalNotification')
+            ->whereIn('type', [
+                'App\Notifications\KomisiProposalNeedApprovalNotification',
+                'App\Notifications\KomisiHasilNeedApprovalNotification', // ✅ PERBAIKI INI
+            ])
             ->count();
 
         return view('admin.notifications.index', compact(
@@ -119,27 +130,32 @@ class NotificationController extends Controller
             // Default URL
             $url = route('admin.dashboard.index');
 
-            // Determine URL based on notification type
+            // Determine URL based on notification type - PERBAIKAN
             switch ($notificationType) {
                 case 'App\Notifications\KomisiProposalNeedApprovalNotification':
                     $komisiId = $data['komisi_proposal_id'] ?? null;
                     if ($komisiId) {
-                        $url = route('admin.komisi-proposal.index', ['open' => $komisiId]);
-                    } else {
-                        $url = route('admin.komisi-proposal.index');
+                        $url = route('admin.komisi-proposal.show', $komisiId);
+                    }
+                    break;
+
+                case 'App\Notifications\KomisiHasilNeedApprovalNotification':
+                    // PERBAIKAN: Handler untuk Komisi Hasil
+                    $komisiHasilId = $data['komisi_hasil_id'] ?? null;
+                    if ($komisiHasilId) {
+                        $url = route('admin.komisi-hasil.show', $komisiHasilId);
                     }
                     break;
 
                 case 'App\Notifications\SuratNeedApprovalNotification':
-                    $url = $data['url'] ?? route('admin.dashboard.index');
-                    break;
-
                 case 'App\Notifications\SuratTakenNotification':
                     $url = $data['url'] ?? route('admin.dashboard.index');
                     break;
 
                 default:
-                    $url = $data['url'] ?? route('admin.dashboard.index');
+                    Log::warning('Unknown notification type for redirect', [
+                        'type' => $notificationType
+                    ]);
                     break;
             }
 
@@ -151,6 +167,7 @@ class NotificationController extends Controller
             Log::error('Error in readAndRedirect', [
                 'notification_id' => $notificationId,
                 'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return redirect()->route('admin.notifications.index')
@@ -299,8 +316,13 @@ class NotificationController extends Controller
                     'App\Notifications\SuratNeedApprovalNotification',
                 ])
                 ->count();
+
+            // PERBAIKI INI - Hitung kedua tipe komisi
             $komisiUnread = $user->unreadNotifications()
-                ->where('type', 'App\Notifications\KomisiProposalNeedApprovalNotification')
+                ->whereIn('type', [
+                    'App\Notifications\KomisiProposalNeedApprovalNotification',
+                    'App\Notifications\KomisiHasilNeedApprovalNotification',
+                ])
                 ->count();
 
             return response()->json([

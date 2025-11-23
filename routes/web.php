@@ -220,20 +220,21 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa'])->get('/payment-alert',
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
 
-    // Notification Routes - PERBARUI SECTION INI
+    // Notification Routes - PERBAIKAN ROUTE NAMES
     Route::prefix('notifications')->name('notifications.')->group(function () {
         // Display notifications
         Route::get('/', [NotificationController::class, 'index'])->name('index');
 
-        // Mark as read
-        Route::post('/{notification}/mark-as-read', [NotificationController::class, 'markAsRead'])
+        // Mark as read (AJAX) - PERBAIKI NAMA ROUTE INI
+        Route::post('/{notificationId}/mark-as-read', [NotificationController::class, 'markAsRead'])
             ->name('mark-as-read');
 
-        Route::post('/{notification}/read', [NotificationController::class, 'markAsReadAndStay'])
+        // Mark as read and stay (form POST)
+        Route::post('/{notificationId}/read', [NotificationController::class, 'markAsReadAndStay'])
             ->name('read');
 
         // Read and redirect
-        Route::post('/{notification}/read-and-redirect', [NotificationController::class, 'readAndRedirect'])
+        Route::post('/{notificationId}/read-and-redirect', [NotificationController::class, 'readAndRedirect'])
             ->name('read-and-redirect');
 
         // Mark all as read
@@ -241,7 +242,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             ->name('mark-all-read');
 
         // Delete notification
-        Route::delete('/{notification}', [NotificationController::class, 'delete'])
+        Route::delete('/{notificationId}', [NotificationController::class, 'delete'])
             ->name('delete');
 
         // Get unread count (AJAX)

@@ -11,7 +11,7 @@
     <div class="navbar-nav-right d-flex align-items-center justify-content-end" id="navbar-collapse">
 
         <ul class="navbar-nav flex-row align-items-center ms-md-auto">
-            {{-- Notification Dropdown - OPTIMIZED --}}
+            {{-- Notification Dropdown - OPTIMIZED & FIXED --}}
             <li class="nav-item dropdown me-4">
                 <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
                     <i class="icon-base bx bx-bell icon-md"></i>
@@ -22,21 +22,16 @@
                         // Base query untuk unread notifications
                         $notificationQuery = $user->unreadNotifications();
 
-                        // Filter berdasarkan role
+                        // Filter berdasarkan role - PERBAIKAN UNTUK KOMISI HASIL
                         if ($userRole === 'staff') {
                             // Staff hanya melihat SuratTakenNotification
                             $notificationQuery->where('type', 'App\Notifications\SuratTakenNotification');
                         } elseif ($userRole === 'dosen') {
-                            // Dosen melihat SuratNeedApprovalNotification dan KomisiProposalNeedApprovalNotification
+                            // Dosen melihat: Surat, Komisi Proposal, dan Komisi Hasil
                             $notificationQuery->where(function ($q) {
-                                // Surat yang memerlukan approval dosen
-                                $q->where(function ($subQ) {
-                                    $subQ->where('type', 'App\Notifications\SuratNeedApprovalNotification');
-                                    // Filter hanya surat-surat tertentu yang butuh approval dosen
-                                    // Sesuaikan dengan surat mana yang butuh approval dosen
-                                })
-                                    // Atau Komisi Proposal
-                                    ->orWhere('type', 'App\Notifications\KomisiProposalNeedApprovalNotification');
+                                $q->where('type', 'App\Notifications\SuratNeedApprovalNotification')
+                                    ->orWhere('type', 'App\Notifications\KomisiProposalNeedApprovalNotification')
+                                    ->orWhere('type', 'App\Notifications\KomisiHasilNeedApprovalNotification');
                             });
                         }
 
@@ -69,16 +64,16 @@
                     </li>
 
                     @php
-                        // Fetch notifications dengan filter yang sama
+                        // Fetch notifications dengan filter yang sama - PERBAIKAN
                         $notificationsQuery = $user->unreadNotifications();
 
                         if ($userRole === 'staff') {
                             $notificationsQuery->where('type', 'App\Notifications\SuratTakenNotification');
                         } elseif ($userRole === 'dosen') {
                             $notificationsQuery->where(function ($q) {
-                                $q->where(function ($subQ) {
-                                    $subQ->where('type', 'App\Notifications\SuratNeedApprovalNotification');
-                                })->orWhere('type', 'App\Notifications\KomisiProposalNeedApprovalNotification');
+                                $q->where('type', 'App\Notifications\SuratNeedApprovalNotification')
+                                    ->orWhere('type', 'App\Notifications\KomisiProposalNeedApprovalNotification')
+                                    ->orWhere('type', 'App\Notifications\KomisiHasilNeedApprovalNotification');
                             });
                         }
 
@@ -97,8 +92,10 @@
                                 $data = $notification->data;
                                 $type = $notification->type;
 
-                                // Tentukan tipe notifikasi
-                                $isKomisi = $type === 'App\Notifications\KomisiProposalNeedApprovalNotification';
+                                // Tentukan tipe notifikasi - PERBAIKAN UNTUK KOMISI HASIL
+                                $isKomisiProposal =
+                                    $type === 'App\Notifications\KomisiProposalNeedApprovalNotification';
+                                $isKomisiHasil = $type === 'App\Notifications\KomisiHasilNeedApprovalNotification';
                                 $isSuratApproval = $type === 'App\Notifications\SuratNeedApprovalNotification';
                                 $isSuratTaken = $type === 'App\Notifications\SuratTakenNotification';
 
@@ -111,9 +108,9 @@
                                 $actionUrl = '#';
 
                                 // Konfigurasi berdasarkan tipe notifikasi
-                                if ($isKomisi) {
+                                if ($isKomisiProposal) {
                                     $approvalType = $data['type'] ?? 'unknown';
-                                    $iconClass = $approvalType === 'pa' ? 'bx-user-check' : 'bx-crown';
+                                    $iconClass = $approvalType === 'pa' ? 'bx-user-check' : 'bxs-user-check';
                                     $badgeClass = $approvalType === 'pa' ? 'bg-warning' : 'bg-info';
                                     $title = 'Komisi Proposal';
                                     $message =
@@ -126,6 +123,36 @@
                                         ($data['mahasiswa_nim'] ?? '-') .
                                         ')';
                                     $actionUrl = $data['url'] ?? route('admin.komisi-proposal.index');
+                                } elseif ($isKomisiHasil) {
+                                    // HANDLER UNTUK KOMISI HASIL - DIPERBAIKI
+                                    $approvalType = $data['type'] ?? 'unknown';
+
+                                    // Tentukan icon dan badge berdasarkan approval type
+                                    if ($approvalType === 'pembimbing1') {
+                                        $iconClass = 'bx-user-check';
+                                        $badgeClass = 'bg-warning';
+                                        $message = 'Perlu persetujuan sebagai Pembimbing 1';
+                                    } elseif ($approvalType === 'pembimbing2') {
+                                        $iconClass = 'bx-user-circle';
+                                        $badgeClass = 'bg-info';
+                                        $message = 'Perlu persetujuan sebagai Pembimbing 2';
+                                    } elseif ($approvalType === 'korprodi') {
+                                        $iconClass = 'bxs-user-check';
+                                        $badgeClass = 'bg-primary';
+                                        $message = 'Perlu persetujuan sebagai Korprodi';
+                                    } else {
+                                        $iconClass = 'bx-book-content';
+                                        $badgeClass = 'bg-success';
+                                        $message = 'Komisi Hasil membutuhkan persetujuan';
+                                    }
+
+                                    $title = 'Komisi Hasil';
+                                    $detailInfo =
+                                        ($data['mahasiswa_name'] ?? 'Mahasiswa') .
+                                        ' (' .
+                                        ($data['mahasiswa_nim'] ?? '-') .
+                                        ')';
+                                    $actionUrl = $data['url'] ?? route('admin.komisi-hasil.index');
                                 } elseif ($isSuratApproval) {
                                     $iconClass = $data['icon'] ?? 'bx-file';
                                     $badgeClass = 'bg-primary';
@@ -174,12 +201,12 @@
                                                 method="POST" class="d-inline">
                                                 @csrf
                                                 <button type="submit" class="btn btn-sm btn-primary">
-                                                    <i class="bx bx-show me-1"></i>Lihat
+                                                    <i class='bx bx-show me-1'></i>Lihat
                                                 </button>
                                             </form>
                                             <button type="button" class="btn btn-sm btn-outline-secondary"
                                                 onclick="markAsRead('{{ $notification->id }}', this)">
-                                                <i class="bx bx-check me-1"></i>Tandai Dibaca
+                                                <i class='bx bx-check me-1'></i>Baca
                                             </button>
                                         </div>
                                     </div>
