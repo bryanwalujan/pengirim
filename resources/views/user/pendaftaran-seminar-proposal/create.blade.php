@@ -1,342 +1,331 @@
+<!-- filepath: resources/views/user/pendaftaran-seminar-proposal/create.blade.php -->
 @extends('layouts.user.form')
 
 @section('title', 'Form Pendaftaran Seminar Proposal')
 
 @push('styles')
     <style>
-        :root {
-            --primary-color: #4361ee;
-            --secondary-color: #3f37c9;
-            --accent-color: #4895ef;
-            --light-gray: #f8f9fa;
-            --dark-gray: #343a40;
-            --border-radius: 15px;
-            --box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-            --transition: all 0.3s ease;
+        /* Penyesuaian Select2 agar mirip Input Tailwind */
+        .select2-container--bootstrap-5 .select2-selection {
+            border-color: #e2e8f0 !important;
+            padding: 0.75rem 1rem !important;
+            height: auto !important;
+            border-radius: 0.75rem !important;
+            font-size: 1rem;
         }
 
-        .form-container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 2.5rem 1rem;
+        .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
+            color: #334155 !important;
+            padding: 0 !important;
         }
 
-        .form-card {
-            border: none;
-            border-radius: var(--border-radius);
-            box-shadow: var(--box-shadow);
-            background: linear-gradient(145deg, #ffffff, #f9f9f9);
-            overflow: hidden;
+        .select2-container--bootstrap-5 .select2-dropdown {
+            border-color: #e2e8f0 !important;
+            border-radius: 0.75rem !important;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1) !important;
         }
 
-        .form-header {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        /* Textarea Readonly Styling */
+        textarea[readonly] {
+            resize: none;
+            cursor: not-allowed;
+            background-color: #f1f5f9 !important;
+            /* slate-100 */
+            opacity: 0.8;
+        }
+
+        /* File Input Styling */
+        input[type="file"]::-webkit-file-upload-button {
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
             color: white;
-            padding: 2rem;
-            text-align: center;
-            border-bottom: 4px solid var(--accent-color);
-        }
-
-        .form-header h4 {
-            font-weight: 700;
-            margin: 0;
-            font-size: 1.75rem;
-            letter-spacing: 0.5px;
-        }
-
-        .form-section {
-            padding: 1rem 2.5rem 2rem;
-            margin-bottom: 1.5rem;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: 10px;
-        }
-
-        .section-title {
-            display: flex;
-            align-items: center;
-            color: var(--dark-gray);
-            font-weight: 700;
-            margin-bottom: 1.5rem;
-            font-size: 1.2rem;
-            text-transform: uppercase;
-        }
-
-        .section-title i {
-            margin-right: 0.75rem;
-            color: var(--accent-color);
-            font-size: 1.5rem;
-        }
-
-        .form-label {
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: var(--dark-gray);
-            font-size: 0.95rem;
-        }
-
-        .form-control,
-        .form-select {
-            border-radius: 10px;
-            padding: 0.85rem 1.25rem;
-            border: 1px solid #e0e0e0;
-            transition: var(--transition);
-            background: #fff;
-            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.03);
-        }
-
-        .form-control:focus,
-        .form-select:focus {
-            border-color: var(--accent-color);
-            box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.2);
-        }
-
-        .btn-submit {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            padding: 0.5rem 1rem;
             border: none;
-            padding: 0.85rem 2.5rem;
+            border-radius: 0.5rem;
             font-weight: 600;
-            border-radius: 50px;
-            transition: var(--transition);
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
 
-        .btn-submit:hover {
-            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+        input[type="file"]::-webkit-file-upload-button:hover {
+            background: linear-gradient(135deg, #2563eb, #4f46e5);
+            transform: scale(1.02);
         }
 
-        .btn-back {
-            background: #fff;
-            border: 2px solid #e0e0e0;
-            color: var(--dark-gray);
-            padding: 0.85rem 2.5rem;
-            border-radius: 50px;
-            transition: var(--transition);
-        }
-
-        .btn-back:hover {
-            background: var(--light-gray);
-            border-color: var(--accent-color);
-            color: var(--dark-gray);
-            transform: translateY(-3px);
-        }
-
-        .file-upload-wrapper {
+        /* Readonly Input dengan Icon Lock */
+        .readonly-field-wrapper {
             position: relative;
-            margin-bottom: 1.5rem;
         }
 
-        .file-upload-label {
-            display: block;
-            padding: 2rem;
-            border: 2px dashed var(--accent-color);
-            border-radius: var(--border-radius);
-            text-align: center;
-            cursor: pointer;
-            background: rgba(72, 149, 239, 0.05);
-            transition: var(--transition);
-        }
-
-        .file-upload-label:hover {
-            background: rgba(72, 149, 239, 0.1);
-            border-color: var(--primary-color);
-            transform: scale(1.01);
-        }
-
-        .file-upload-input {
+        .readonly-field-wrapper::before {
+            content: '\f023';
+            font-family: 'bootstrap-icons';
             position: absolute;
-            left: 0;
-            top: 0;
-            opacity: 0;
-            width: 100%;
-            height: 100%;
-            cursor: pointer;
-        }
-
-        .file-info {
-            font-size: 0.9rem;
-            color: #6c757d;
-            margin-top: 0.5rem;
-            display: block;
-        }
-
-        @media (max-width: 768px) {
-            .form-container {
-                padding: 1.5rem 0.5rem;
-            }
-
-            .form-section {
-                padding: 1rem 1.5rem 1.5rem;
-            }
-
-            .form-header {
-                padding: 1.5rem;
-            }
-
-            .btn-submit,
-            .btn-back {
-                padding: 0.75rem 1.5rem;
-            }
-        }
-
-        .alert-info {
-            background-color: #e7f5ff;
-            border-color: #d0ebff;
-            color: #1864ab;
-            border-radius: 10px;
-            padding: 1rem 1.5rem;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+            font-size: 1rem;
+            pointer-events: none;
+            z-index: 10;
         }
     </style>
 @endpush
 
 @section('form-content')
-    <div class="form-container" data-aos="fade-up" data-aos-delay="100">
-        <div class="form-card">
-            <div class="form-header">
-                <h4>Formulir Pendaftaran Seminar Proposal</h4>
+    <div class="max-w-4xl mx-auto pb-10" data-aos="fade-up" data-aos-delay="100">
+
+        {{-- ========== ALERT KOMISI PROPOSAL STATUS ========== --}}
+        @if (isset($komisiProposal) && $komisiProposal)
+            <div class="mb-6 bg-emerald-50 border-l-4 border-emerald-500 p-5 rounded-r-xl shadow-sm" role="alert"
+                data-aos="fade-down" data-aos-delay="150">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="bi bi-check-circle-fill text-3xl text-emerald-500"></i>
+                    </div>
+                    <div class="ml-4 flex-1">
+                        <h3 class="text-base font-bold text-emerald-800 mb-2">✅ Komisi Proposal Telah Disetujui</h3>
+                        <div class="text-sm text-emerald-700 space-y-2">
+                            <div class="bg-white/60 p-3 rounded-lg border border-emerald-200">
+                                <p class="font-semibold text-emerald-900">Judul Proposal:</p>
+                                <p class="mt-1 text-slate-700">{!! $komisiProposal->judul_skripsi !!}</p>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div class="bg-white/60 p-3 rounded-lg border border-emerald-200">
+                                    <p class="font-semibold text-emerald-900">Pembimbing Akademik:</p>
+                                    <p class="mt-1 text-slate-700">{{ $komisiProposal->pembimbing->name ?? '-' }}</p>
+                                </div>
+                                <div class="bg-white/60 p-3 rounded-lg border border-emerald-200">
+                                    <p class="font-semibold text-emerald-900">Tanggal Persetujuan:</p>
+                                    <p class="mt-1 text-slate-700">
+                                        {{ $komisiProposal->tanggal_persetujuan_korprodi?->format('d F Y, H:i') ?? '-' }}
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="mt-3 pt-3 border-t border-emerald-300 flex items-center">
+                                <i class="bi bi-lock-fill text-emerald-600 mr-2"></i>
+                                <span class="text-xs text-emerald-700 font-medium">
+                                    Data Judul dan Pembimbing akan otomatis terisi dari Komisi Proposal yang sudah disetujui
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        {{-- Alert Error Session --}}
+        @if (session('error'))
+            <div class="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg flex items-center shadow-sm"
+                data-aos="fade-down">
+                <i class="bi bi-exclamation-triangle-fill text-red-500 text-xl mr-3"></i>
+                <span class="text-red-700 font-medium">{{ session('error') }}</span>
+            </div>
+        @endif
+
+        {{-- Main Card --}}
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-100">
+
+            {{-- Header --}}
+            <div class="bg-gradient-to-r from-blue-600 to-indigo-700 p-8 text-center text-white relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-full bg-white/10 opacity-20"></div>
+                <h4 class="text-2xl md:text-3xl font-bold tracking-tight relative z-10">
+                    Formulir Pendaftaran Seminar Proposal
+                </h4>
+                <p class="mt-2 text-blue-100 text-sm md:text-base relative z-10 opacity-90">
+                    Lengkapi data dan upload dokumen persyaratan di bawah ini
+                </p>
             </div>
 
-            <form action="{{ route('user.pendaftaran-seminar-proposal.store') }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('user.pendaftaran-seminar-proposal.store') }}" method="POST"
+                enctype="multipart/form-data" id="seminar-proposal-form" class="p-6 md:p-10 space-y-8">
                 @csrf
 
-                <!-- Informasi Mahasiswa Section -->
-                <div class="form-section" data-aos="fade-up" data-aos-delay="200">
-                    <h5 class="section-title">
-                        <i class="bi bi-person-circle"></i>
-                        Informasi Mahasiswa
-                    </h5>
-
-                    <div class="row g-4">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="nama" class="form-label">Nama Lengkap</label>
-                                <input type="text" class="form-control" id="nama" value="{{ Auth::user()->name }}"
-                                    readonly>
-                            </div>
+                {{-- ========== INFORMASI MAHASISWA SECTION ========== --}}
+                <div class="bg-slate-50 p-6 rounded-xl border border-slate-200" data-aos="fade-up" data-aos-delay="200">
+                    <div class="flex items-center mb-5 pb-3 border-b border-slate-200">
+                        <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3">
+                            <i class="bi bi-person-circle text-xl"></i>
                         </div>
+                        <h5 class="text-lg font-bold text-slate-800">Informasi Mahasiswa</h5>
+                    </div>
 
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="nim" class="form-label">Nomor Induk Mahasiswa</label>
-                                <input type="text" class="form-control" id="nim" value="{{ Auth::user()->nim }}"
-                                    readonly>
-                            </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-600 mb-2">Nama Lengkap</label>
+                            <input type="text" value="{{ Auth::user()->name }}" readonly
+                                class="w-full px-4 py-3 rounded-xl bg-slate-200 border-transparent text-slate-600 font-medium focus:ring-0 cursor-not-allowed">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-600 mb-2">Nomor Induk Mahasiswa</label>
+                            <input type="text" value="{{ Auth::user()->nim }}" readonly
+                                class="w-full px-4 py-3 rounded-xl bg-slate-200 border-transparent text-slate-600 font-medium focus:ring-0 cursor-not-allowed">
                         </div>
                     </div>
                 </div>
 
-                <!-- Informasi Proposal Section -->
-                <div class="form-section" data-aos="fade-up" data-aos-delay="300">
-                    <h5 class="section-title">
-                        <i class="bi bi-journal-text"></i>
-                        Informasi Proposal
-                    </h5>
+                {{-- ========== INFORMASI PROPOSAL SECTION (READONLY) ========== --}}
+                <div data-aos="fade-up" data-aos-delay="300">
+                    <div class="flex items-center mb-5">
+                        <div
+                            class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 mr-3">
+                            <i class="bi bi-journal-text text-xl"></i>
+                        </div>
+                        <h5 class="text-lg font-bold text-slate-800">Informasi Proposal</h5>
+                        <span class="ml-auto text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-semibold">
+                            <i class="bi bi-lock-fill mr-1"></i> Data dari Komisi Proposal
+                        </span>
+                    </div>
 
-                    <div class="mb-4">
-                        <label for="judul_skripsi" class="form-label">Judul Skripsi</label>
-                        <textarea class="form-control @error('judul_skripsi') is-invalid @enderror" id="judul_skripsi" name="judul_skripsi"
-                            rows="3" placeholder="Masukkan judul lengkap proposal skripsi Anda" required>{{ old('judul_skripsi') }}</textarea>
-                        @error('judul_skripsi')
-                            <div class="invalid-feedback">
-                                {{ $message }}
-                            </div>
+                    {{-- Judul Skripsi (READONLY - GANTI DENGAN TEXTAREA) --}}
+                    <div class="mb-6">
+                        <label for="judul_skripsi_display" class="block text-sm font-semibold text-slate-700 mb-2">
+                            Judul Skripsi
+                            <i class="bi bi-lock-fill text-slate-400 ml-1"></i>
+                        </label>
+                        <textarea id="judul_skripsi_display" rows="4" readonly
+                            class="w-full px-4 py-3 rounded-xl bg-slate-100 border border-slate-200 text-slate-700 font-medium focus:ring-0 cursor-not-allowed">{{ strip_tags($komisiProposal->judul_skripsi ?? '') }}</textarea>
+                        <p class="mt-2 text-xs text-slate-500 flex items-center">
+                            <i class="bi bi-info-circle mr-1"></i>
+                            Judul otomatis terisi dari Komisi Proposal yang sudah disetujui (tidak dapat diubah)
+                        </p>
+                    </div>
+
+                    {{-- Dosen Pembimbing (READONLY) --}}
+                    <div class="mb-6 readonly-field-wrapper">
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">
+                            Dosen Pembimbing
+                            <i class="bi bi-lock-fill text-slate-400 ml-1"></i>
+                        </label>
+                        <input type="text"
+                            value="{{ $komisiProposal->pembimbing->name ?? 'Tidak ada data' }}"
+                            readonly
+                            class="w-full px-4 py-3 pr-12 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 font-medium focus:ring-0 cursor-not-allowed">
+                        <p class="mt-2 text-xs text-slate-500 flex items-center">
+                            <i class="bi bi-info-circle mr-1"></i>
+                            Dosen pembimbing otomatis terisi dari Komisi Proposal (tidak dapat diubah)
+                        </p>
+                    </div>
+
+                    {{-- IPK (TETAP EDITABLE) --}}
+                    <div>
+                        <label for="ipk" class="block text-sm font-semibold text-slate-700 mb-2">
+                            IPK Terakhir <span class="text-red-500">*</span>
+                        </label>
+                        <input type="number"
+                            class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all @error('ipk') border-red-500 ring-1 ring-red-500 @enderror"
+                            id="ipk" name="ipk" value="{{ old('ipk') }}" placeholder="Contoh: 3.51"
+                            step="0.01" min="0" max="4.00" required>
+                        @error('ipk')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
-
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="ipk" class="form-label">IPK Terakhir</label>
-                            <input type="number" class="form-control @error('ipk') is-invalid @enderror" id="ipk"
-                                name="ipk" value="{{ old('ipk') }}" placeholder="Contoh: 3.51" step="0.01"
-                                min="0" max="4.00" required>
-                            @error('ipk')
-                                <div class="invalid-feedback">
-                                    {{ $message }}
-                                </div>
-                            @enderror
-                        </div>
-                        <div class="col-md-6">
-                            <label for="dosen_pembimbing_id" class="form-label">Dosen Pembimbing</label>
-                            <select class="form-select @error('dosen_pembimbing_id') is-invalid @enderror"
-                                id="dosen_pembimbing_id" name="dosen_pembimbing_id" required>
-                                <option value="" disabled selected>-- Pilih Dosen Pembimbing --</option>
-                                @foreach ($dosen as $item)
-                                    <option value="{{ $item->id }}"
-                                        {{ old('dosen_pembimbing_id') == $item->id ? 'selected' : '' }}>
-                                        {{ $item->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('dosen_pembimbing_id')
-                                <div class="invalid-feedback">
-                                    {{ $message }}
-                                </div>
-                            @enderror
-                        </div>
-                    </div>
                 </div>
 
-                <!-- Dokumen Pendukung Section -->
-                <div class="form-section" data-aos="fade-up" data-aos-delay="400">
-                    <h5 class="section-title">
-                        <i class="bi bi-cloud-arrow-up"></i>
-                        Upload Dokumen
-                    </h5>
+                {{-- ========== UPLOAD DOKUMEN SECTION ========== --}}
+                <div data-aos="fade-up" data-aos-delay="400">
+                    <div class="flex items-center mb-5">
+                        <div
+                            class="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center text-violet-600 mr-3">
+                            <i class="bi bi-cloud-arrow-up text-xl"></i>
+                        </div>
+                        <h5 class="text-lg font-bold text-slate-800">Upload Dokumen</h5>
+                    </div>
 
-                    <div class="alert alert-info mb-4">
-                        <h6 class="alert-heading fw-bold"><i class="bi bi-info-circle-fill me-2"></i>Persyaratan Dokumen
+                    {{-- Info Box --}}
+                    <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-6">
+                        <h6 class="text-blue-800 font-bold text-sm mb-2 flex items-center">
+                            <i class="bi bi-info-circle-fill mr-2"></i> Persyaratan Dokumen
                         </h6>
-                        <p>Silakan upload dokumen-dokumen berikut dalam format PDF (maks. 2MB):</p>
-                        <ol>
-                            <li>Transkrip Nilai</li>
-                            <li>Proposal Penelitian</li>
-                            <li>Surat Permohonan Seminar Proposal</li>
+                        <ol class="list-decimal list-inside text-sm text-blue-700 space-y-1 ml-1">
+                            <li>Transkrip Nilai (PDF, maks. 2MB)</li>
+                            <li>Proposal Penelitian (PDF, maks. 5MB)</li>
+                            <li>Surat Permohonan Seminar Proposal (PDF, maks. 2MB)</li>
+                            <li>Slip Pembayaran UKT (PDF/JPG/PNG, maks. 2MB)</li>
                         </ol>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="file_transkrip_nilai" class="form-label">1. Transkrip Nilai</label>
-                        <input class="form-control @error('file_transkrip_nilai') is-invalid @enderror" type="file"
-                            id="file_transkrip_nilai" name="file_transkrip_nilai" accept=".pdf" required>
-                        @error('file_transkrip_nilai')
-                            <div class="invalid-feedback">
-                                {{ $message }}
-                            </div>
-                        @enderror
-                    </div>
+                    <div class="space-y-5">
+                        {{-- File Transkrip Nilai --}}
+                        <div class="relative">
+                            <label for="file_transkrip_nilai" class="block text-sm font-semibold text-slate-700 mb-2">
+                                1. Transkrip Nilai <span class="text-red-500">*</span>
+                            </label>
+                            <input
+                                class="w-full px-4 py-3 rounded-xl border border-slate-200 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gradient-to-r file:from-blue-50 file:to-indigo-50 file:text-blue-700 hover:file:bg-gradient-to-r hover:file:from-blue-100 hover:file:to-indigo-100 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all @error('file_transkrip_nilai') border-red-500 ring-1 ring-red-500 @enderror"
+                                type="file" id="file_transkrip_nilai" name="file_transkrip_nilai" accept=".pdf"
+                                required>
+                            <p class="mt-1 text-xs text-slate-500">Format: PDF | Ukuran maksimal: 2MB</p>
+                            @error('file_transkrip_nilai')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
 
-                    <div class="mb-3">
-                        <label for="file_proposal_penelitian" class="form-label">2. Proposal Penelitian</label>
-                        <input class="form-control @error('file_proposal_penelitian') is-invalid @enderror" type="file"
-                            id="file_proposal_penelitian" name="file_proposal_penelitian" accept=".pdf" required>
-                        @error('file_proposal_penelitian')
-                            <div class="invalid-feedback">
-                                {{ $message }}
-                            </div>
-                        @enderror
-                    </div>
+                        {{-- File Proposal Penelitian --}}
+                        <div class="relative">
+                            <label for="file_proposal_penelitian" class="block text-sm font-semibold text-slate-700 mb-2">
+                                2. Proposal Penelitian <span class="text-red-500">*</span>
+                            </label>
+                            <input
+                                class="w-full px-4 py-3 rounded-xl border border-slate-200 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gradient-to-r file:from-blue-50 file:to-indigo-50 file:text-blue-700 hover:file:bg-gradient-to-r hover:file:from-blue-100 hover:file:to-indigo-100 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all @error('file_proposal_penelitian') border-red-500 ring-1 ring-red-500 @enderror"
+                                type="file" id="file_proposal_penelitian" name="file_proposal_penelitian"
+                                accept=".pdf" required>
+                            <p class="mt-1 text-xs text-slate-500">Format: PDF | Ukuran maksimal: 5MB</p>
+                            @error('file_proposal_penelitian')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
 
-                    <div class="mb-3">
-                        <label for="file_surat_permohonan" class="form-label">3. Surat Permohonan Sempro</label>
-                        <input class="form-control @error('file_surat_permohonan') is-invalid @enderror" type="file"
-                            id="file_surat_permohonan" name="file_surat_permohonan" accept=".pdf" required>
-                        @error('file_surat_permohonan')
-                            <div class="invalid-feedback">
-                                {{ $message }}
-                            </div>
-                        @enderror
+                        {{-- File Surat Permohonan --}}
+                        <div class="relative">
+                            <label for="file_surat_permohonan" class="block text-sm font-semibold text-slate-700 mb-2">
+                                3. Surat Permohonan Sempro <span class="text-red-500">*</span>
+                            </label>
+                            <input
+                                class="w-full px-4 py-3 rounded-xl border border-slate-200 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gradient-to-r file:from-blue-50 file:to-indigo-50 file:text-blue-700 hover:file:bg-gradient-to-r hover:file:from-blue-100 hover:file:to-indigo-100 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all @error('file_surat_permohonan') border-red-500 ring-1 ring-red-500 @enderror"
+                                type="file" id="file_surat_permohonan" name="file_surat_permohonan" accept=".pdf"
+                                required>
+                            <p class="mt-1 text-xs text-slate-500">Format: PDF | Ukuran maksimal: 2MB</p>
+                            @error('file_surat_permohonan')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        {{-- File Slip UKT --}}
+                        <div class="relative">
+                            <label for="file_slip_ukt" class="block text-sm font-semibold text-slate-700 mb-2">
+                                4. Slip Pembayaran UKT <span class="text-red-500">*</span>
+                            </label>
+                            <input
+                                class="w-full px-4 py-3 rounded-xl border border-slate-200 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gradient-to-r file:from-blue-50 file:to-indigo-50 file:text-blue-700 hover:file:bg-gradient-to-r hover:file:from-blue-100 hover:file:to-indigo-100 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all @error('file_slip_ukt') border-red-500 ring-1 ring-red-500 @enderror"
+                                type="file" id="file_slip_ukt" name="file_slip_ukt" accept=".pdf,.jpg,.jpeg,.png"
+                                required>
+                            <p class="mt-1 text-xs text-slate-500">Format: PDF, JPG, JPEG, PNG | Ukuran maksimal: 2MB</p>
+                            @error('file_slip_ukt')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
                     </div>
                 </div>
 
-                <!-- Form Actions -->
-                <div class="form-section pt-0" data-aos="fade-up" data-aos-delay="500">
-                    <div class="d-flex justify-content-between gap-3">
-                        <a href="{{ route('user.services.index') }}" class="btn btn-back">
-                            <i class="bi bi-arrow-left me-2"></i> Batal
+                {{-- ========== FORM ACTIONS ========== --}}
+                <div class="pt-6 border-t border-slate-100" data-aos="fade-up" data-aos-delay="500">
+                    <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 flex items-start">
+                        <i class="bi bi-shield-exclamation text-amber-600 text-xl mr-3 mt-0.5"></i>
+                        <div class="text-sm text-amber-800">
+                            <strong>Perhatian:</strong> Pastikan semua data dan dokumen sudah benar sebelum mengirim.
+                            Setelah pengajuan dibuat, Anda tidak dapat mengubahnya.
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col-reverse md:flex-row justify-between gap-4">
+                        <a href="{{ route('user.pendaftaran-seminar-proposal.index') }}"
+                            class="px-6 py-3 rounded-full border-2 border-slate-200 text-slate-600 font-semibold hover:bg-slate-50 hover:border-slate-300 hover:text-slate-800 transition-all duration-300 text-center flex items-center justify-center">
+                            <i class="bi bi-arrow-left mr-2"></i> Kembali
                         </a>
-                        <button type="submit" class="btn btn-submit text-white">
-                            <i class="bi bi-send-check me-2"></i> Ajukan Pendaftaran
+
+                        <button type="submit" id="submit-btn"
+                            class="px-8 py-3 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:-translate-y-1 hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 flex items-center justify-center">
+                            <i class="bi bi-send-check mr-2"></i> Ajukan Pendaftaran
                         </button>
                     </div>
                 </div>
@@ -347,10 +336,138 @@
 
 @push('scripts')
     <script>
-        AOS.init({
-            duration: 400,
-            once: true,
-            offset: 100
+        $(document).ready(function() {
+            // Initialize AOS
+            if (typeof AOS !== 'undefined') {
+                AOS.init({
+                    duration: 400,
+                    once: true,
+                    offset: 50
+                });
+            }
+
+            // Auto-hide alerts
+            setTimeout(() => {
+                $('[role="alert"]').not('.bg-amber-50').fadeOut('slow');
+            }, 8000);
         });
+
+        // ========== FILE UPLOAD VALIDATION & PREVIEW ==========
+        document.querySelectorAll('input[type="file"]').forEach(input => {
+            input.addEventListener('change', function(e) {
+                const fileName = e.target.files[0]?.name;
+                const fileSize = e.target.files[0]?.size;
+                const maxSize = this.id === 'file_proposal_penelitian' ? 5 * 1024 * 1024 : 2 * 1024 * 1024;
+
+                if (fileName) {
+                    if (fileSize > maxSize) {
+                        const maxSizeMB = maxSize / (1024 * 1024);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'File Terlalu Besar',
+                            text: `Ukuran file maksimal ${maxSizeMB}MB`,
+                            confirmButtonColor: '#4f46e5'
+                        });
+                        this.value = '';
+                        this.classList.add('border-red-500', 'ring-1', 'ring-red-500');
+                        return;
+                    }
+
+                    this.classList.remove('border-red-500', 'ring-1', 'ring-red-500');
+                    this.classList.add('border-emerald-500', 'ring-1', 'ring-emerald-200');
+
+                    console.log(`✅ File selected: ${fileName} (${(fileSize / 1024).toFixed(2)} KB)`);
+                }
+            });
+        });
+
+        // ========== FORM SUBMISSION WITH SWEETALERT CONFIRMATION ==========
+        document.getElementById('seminar-proposal-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const requiredFiles = [
+                'file_transkrip_nilai',
+                'file_proposal_penelitian',
+                'file_surat_permohonan',
+                'file_slip_ukt'
+            ];
+
+            let allFilesUploaded = true;
+            let missingFiles = [];
+
+            requiredFiles.forEach(fieldName => {
+                const fileInput = document.getElementById(fieldName);
+                if (!fileInput.files || fileInput.files.length === 0) {
+                    allFilesUploaded = false;
+                    fileInput.classList.add('border-red-500', 'ring-1', 'ring-red-500');
+
+                    const label = fileInput.previousElementSibling;
+                    if (label && label.tagName === 'LABEL') {
+                        missingFiles.push(label.textContent.replace('*', '').trim());
+                    }
+                }
+            });
+
+            if (!allFilesUploaded) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Dokumen Belum Lengkap',
+                    html: `
+                        <div class="text-left">
+                            <p class="mb-3 text-slate-700">Harap lengkapi dokumen berikut:</p>
+                            <ul class="list-disc list-inside space-y-1 text-slate-600">
+                                ${missingFiles.map(file => `<li class="text-sm">${file}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `,
+                    confirmButtonColor: '#4f46e5',
+                    confirmButtonText: 'OK, Saya Mengerti'
+                });
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+                return;
+            }
+
+            Swal.fire({
+                title: '<strong>Konfirmasi Pengajuan</strong>',
+                html: `
+                    <div class="text-left">
+                        <p class="mb-3 text-slate-700">Apakah Anda yakin data dan dokumen yang diupload sudah benar?</p>
+                        <div class="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                            <div class="flex items-start">
+                                <i class="bi bi-exclamation-triangle text-amber-600 text-lg mr-2 mt-0.5"></i>
+                                <small class="text-amber-800">
+                                    <strong>Perhatian:</strong> Setelah pengajuan dibuat, Anda tidak dapat mengubahnya.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                `,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: '<i class="bi bi-send me-1"></i>Ya, Kirim Sekarang',
+                cancelButtonText: '<i class="bi bi-x me-1"></i>Batal',
+                confirmButtonColor: '#4f46e5',
+                cancelButtonColor: '#94a3b8',
+                reverseButtons: true,
+                customClass: {
+                    popup: 'rounded-2xl',
+                    confirmButton: 'px-6 py-2.5 rounded-full font-semibold',
+                    cancelButton: 'px-6 py-2.5 rounded-full font-semibold'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const btn = document.getElementById('submit-btn');
+                    btn.disabled = true;
+                    btn.innerHTML =
+                        '<span class="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span>Mengirim...';
+                    this.submit();
+                }
+            });
+        });
+
+        // ========== TIDAK PERLU LAGI - TRIX HANDLER DIHAPUS ==========
     </script>
 @endpush
