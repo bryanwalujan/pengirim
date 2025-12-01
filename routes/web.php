@@ -154,6 +154,21 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa', 'check.ukt'])->group(fu
         Route::get('/', [PendaftaranSeminarProposalController::class, 'index'])->name('index');
         Route::get('/create', [PendaftaranSeminarProposalController::class, 'create'])->name('create');
         Route::post('/', [PendaftaranSeminarProposalController::class, 'store'])->name('store');
+        Route::get('/{pendaftaranSeminarProposal}', [PendaftaranSeminarProposalController::class, 'show'])->name('show');
+
+        // Download Files
+        Route::get('/{pendaftaranSeminarProposal}/download/transkrip', [PendaftaranSeminarProposalController::class, 'downloadTranskrip'])
+            ->name('download.transkrip');
+        Route::get('/{pendaftaranSeminarProposal}/download/proposal', [PendaftaranSeminarProposalController::class, 'downloadProposal'])
+            ->name('download.proposal');
+        Route::get('/{pendaftaranSeminarProposal}/download/permohonan', [PendaftaranSeminarProposalController::class, 'downloadPermohonan'])
+            ->name('download.permohonan');
+        Route::get('/{pendaftaranSeminarProposal}/download/slip-ukt', [PendaftaranSeminarProposalController::class, 'downloadSlipUkt'])
+            ->name('download.slip-ukt');
+
+        // Download Surat Usulan (jika sudah digenerate)
+        Route::get('/{pendaftaranSeminarProposal}/download-surat', [PendaftaranSeminarProposalController::class, 'downloadSuratUsulan'])
+            ->name('download-surat');
     });
 
     // Layanan Pendaftaran Ujian Hasil
@@ -502,9 +517,83 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     });
 
     // Pendaftaran Seminar Proposal
+    // Pendaftaran Seminar Proposal
     Route::prefix('pendaftaran-seminar-proposal')->name('pendaftaran-seminar-proposal.')->group(function () {
-        Route::get('/', [AdminPendaftaranSeminarProposalController::class, 'index'])->name('index');
-        Route::get('/{pendaftaranSeminarProposal}', [AdminPendaftaranSeminarProposalController::class, 'show'])->name('show');
+
+        // ========== STAFF & DOSEN ROUTES ==========
+        // ========== STAFF & DOSEN ROUTES ==========
+        Route::middleware(['role:staff|dosen'])->group(function () {
+            // Index & Show
+            Route::get('/', [AdminPendaftaranSeminarProposalController::class, 'index'])
+                ->name('index');
+
+            Route::get('/{pendaftaranSeminarProposal}', [AdminPendaftaranSeminarProposalController::class, 'show'])
+                ->name('show');
+
+            // VIEW Dokumen Pendukung (Inline Preview) - NEW ROUTES
+            Route::get('/{pendaftaranSeminarProposal}/view/transkrip', [AdminPendaftaranSeminarProposalController::class, 'viewTranskrip'])
+                ->name('view.transkrip');
+
+            Route::get('/{pendaftaranSeminarProposal}/view/proposal', [AdminPendaftaranSeminarProposalController::class, 'viewProposal'])
+                ->name('view.proposal');
+
+            Route::get('/{pendaftaranSeminarProposal}/view/permohonan', [AdminPendaftaranSeminarProposalController::class, 'viewPermohonan'])
+                ->name('view.permohonan');
+
+            Route::get('/{pendaftaranSeminarProposal}/view/slip-ukt', [AdminPendaftaranSeminarProposalController::class, 'viewSlipUkt'])
+                ->name('view.slip-ukt');
+
+            // DOWNLOAD Dokumen Pendukung (existing)
+            Route::get('/{pendaftaranSeminarProposal}/download/transkrip', [AdminPendaftaranSeminarProposalController::class, 'downloadTranskrip'])
+                ->name('download.transkrip');
+
+            Route::get('/{pendaftaranSeminarProposal}/download/proposal', [AdminPendaftaranSeminarProposalController::class, 'downloadProposal'])
+                ->name('download.proposal');
+
+            Route::get('/{pendaftaranSeminarProposal}/download/permohonan', [AdminPendaftaranSeminarProposalController::class, 'downloadPermohonan'])
+                ->name('download.permohonan');
+
+            Route::get('/{pendaftaranSeminarProposal}/download/slip-ukt', [AdminPendaftaranSeminarProposalController::class, 'downloadSlipUkt'])
+                ->name('download.slip-ukt');
+
+            // Download Surat Usulan (setelah digenerate)
+            Route::get('/{pendaftaranSeminarProposal}/download-surat', [AdminPendaftaranSeminarProposalController::class, 'downloadSuratUsulan'])
+                ->name('download-surat');
+        });
+
+        // ========== STAFF ONLY ROUTES ==========
+        Route::middleware(['role:staff'])->group(function () {
+            // Assign Pembahas - GET untuk form
+            Route::get('/{pendaftaranSeminarProposal}/assign-pembahas', [AdminPendaftaranSeminarProposalController::class, 'showAssignPembahasForm'])
+                ->name('assign-pembahas');
+
+            // Assign Pembahas - POST untuk simpan
+            Route::post('/{pendaftaranSeminarProposal}/assign-pembahas', [AdminPendaftaranSeminarProposalController::class, 'assignPembahas'])
+                ->name('store-pembahas');
+
+            // Reset Pembahas
+            Route::post('/{pendaftaranSeminarProposal}/reset-pembahas', [AdminPendaftaranSeminarProposalController::class, 'resetPembahas'])
+                ->name('reset-pembahas');
+
+            // Generate Surat Usulan
+            Route::post('/{pendaftaranSeminarProposal}/generate-surat', [AdminPendaftaranSeminarProposalController::class, 'generateSuratUsulan'])
+                ->name('generate-surat');
+
+            // Delete Pendaftaran
+            Route::delete('/{pendaftaranSeminarProposal}', [AdminPendaftaranSeminarProposalController::class, 'destroy'])
+                ->name('destroy');
+        });
+
+        // ========== TTD ROUTES - DOSEN WITH JABATAN CHECK + STAFF OVERRIDE ==========
+        Route::middleware(['role:dosen|staff'])->group(function () {
+            // Tanda Tangan Kaprodi
+            Route::post('/{pendaftaranSeminarProposal}/ttd-kaprodi', [AdminPendaftaranSeminarProposalController::class, 'ttdKaprodi'])
+                ->name('ttd-kaprodi');
+
+            // Tanda Tangan Kajur
+            Route::post('/{pendaftaranSeminarProposal}/ttd-kajur', [AdminPendaftaranSeminarProposalController::class, 'ttdKajur'])
+                ->name('ttd-kajur');
+        });
     });
 
     // Pendaftaran Ujian Hasil

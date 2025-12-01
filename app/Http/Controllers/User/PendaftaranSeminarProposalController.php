@@ -17,7 +17,12 @@ class PendaftaranSeminarProposalController extends Controller
         $userId = Auth::id();
 
         $pendaftaran = PendaftaranSeminarProposal::where('user_id', $userId)
-            ->with('komisiProposal')
+            ->with([
+                'komisiProposal',
+                'proposalPembahas.dosen',
+                'dosenPembimbing',
+                'suratUsulan'
+            ])
             ->latest()
             ->get();
 
@@ -30,11 +35,11 @@ class PendaftaranSeminarProposalController extends Controller
     {
         $userId = Auth::id();
 
-        // Validasi eligibility
+        // Validasi eligibility - MUST HAVE APPROVED KOMISI PROPOSAL
         $eligibility = PendaftaranSeminarProposal::checkKomisiEligibility($userId);
 
         if (!$eligibility['eligible']) {
-            Log::warning('User blocked from seminar registration', [
+            Log::warning('User blocked from seminar registration - Komisi not approved', [
                 'user_id' => $userId,
                 'reason' => $eligibility['message'],
                 'has_komisi' => $eligibility['komisi'] ? true : false,
@@ -45,7 +50,6 @@ class PendaftaranSeminarProposalController extends Controller
                 ->with('error', $eligibility['message']);
         }
 
-        // ========== TIDAK PERLU LIST DOSEN LAGI (SUDAH AUTO-FILL) ==========
         $komisiProposal = $eligibility['komisi'];
 
         return view('user.pendaftaran-seminar-proposal.create', compact('komisiProposal'));
@@ -55,11 +59,11 @@ class PendaftaranSeminarProposalController extends Controller
     {
         $userId = Auth::id();
 
-        // Validasi eligibility
+        // CRITICAL: Re-validate eligibility on submission
         $eligibility = PendaftaranSeminarProposal::checkKomisiEligibility($userId);
 
         if (!$eligibility['eligible']) {
-            Log::error('Unauthorized seminar registration attempt', [
+            Log::error('Unauthorized seminar registration attempt - Komisi not approved', [
                 'user_id' => $userId,
                 'ip' => $request->ip(),
                 'reason' => $eligibility['message'],
@@ -70,7 +74,7 @@ class PendaftaranSeminarProposalController extends Controller
                 ->with('error', $eligibility['message']);
         }
 
-        // ========== VALIDASI INPUT (UPDATED - HAPUS VALIDASI JUDUL & DOSEN) ==========
+        // Validate input
         $validated = $request->validate([
             'ipk' => 'required|numeric|between:0,4.00',
             'file_transkrip_nilai' => 'required|file|mimes:pdf|max:2048',
@@ -99,7 +103,7 @@ class PendaftaranSeminarProposalController extends Controller
         $angkatan = '20' . substr($user->nim, 0, 2);
         $komisiProposal = $eligibility['komisi'];
 
-        // ========== VALIDASI TAMBAHAN: Cek Komisi Proposal ==========
+        // Additional validation: Check Komisi Proposal data completeness
         if (!$komisiProposal->judul_skripsi || !$komisiProposal->dosen_pembimbing_id) {
             Log::error('Komisi Proposal incomplete data', [
                 'komisi_id' => $komisiProposal->id,
@@ -112,25 +116,26 @@ class PendaftaranSeminarProposalController extends Controller
                 ->withInput();
         }
 
-        // ========== PROSES UPLOAD FILE ==========
+        // Process file uploads
         try {
             $pathTranskrip = $request->file('file_transkrip_nilai')->store('sempro/transkrip', 'public');
             $pathProposal = $request->file('file_proposal_penelitian')->store('sempro/proposal', 'public');
             $pathPermohonan = $request->file('file_surat_permohonan')->store('sempro/permohonan', 'public');
             $pathSlipUkt = $request->file('file_slip_ukt')->store('sempro/slip-ukt', 'public');
 
-            // ========== SIMPAN DATA (AUTO-FILL JUDUL & DOSEN DARI KOMISI) ==========
+            // Create pendaftaran - AUTO-FILL from Komisi Proposal
             $pendaftaran = PendaftaranSeminarProposal::create([
                 'user_id' => $user->id,
                 'komisi_proposal_id' => $komisiProposal->id,
                 'angkatan' => $angkatan,
-                'judul_skripsi' => $komisiProposal->judul_skripsi, // ← AUTO-FILL
+                'judul_skripsi' => $komisiProposal->judul_skripsi, // AUTO-FILL
                 'ipk' => $request->ipk,
-                'dosen_pembimbing_id' => $komisiProposal->dosen_pembimbing_id, // ← AUTO-FILL
+                'dosen_pembimbing_id' => $komisiProposal->dosen_pembimbing_id, // AUTO-FILL
                 'file_transkrip_nilai' => $pathTranskrip,
                 'file_proposal_penelitian' => $pathProposal,
                 'file_surat_permohonan' => $pathPermohonan,
                 'file_slip_ukt' => $pathSlipUkt,
+                'status' => 'pending', // Initial status
             ]);
 
             Log::info('Seminar proposal registered successfully', [
@@ -146,7 +151,7 @@ class PendaftaranSeminarProposalController extends Controller
                 ->with('success', 'Pendaftaran seminar proposal berhasil diajukan.');
 
         } catch (\Exception $e) {
-            // Rollback: hapus file yang sudah terupload
+            // Rollback: delete uploaded files
             if (isset($pathTranskrip))
                 Storage::disk('public')->delete($pathTranskrip);
             if (isset($pathProposal))
@@ -166,5 +171,127 @@ class PendaftaranSeminarProposalController extends Controller
                 ->withInput()
                 ->with('error', 'Terjadi kesalahan saat menyimpan data. Silakan coba lagi.');
         }
+    }
+
+    /**
+     * Show detail pendaftaran seminar proposal
+     */
+    public function show(PendaftaranSeminarProposal $pendaftaranSeminarProposal)
+    {
+        // Authorization: hanya user yang bersangkutan
+        if ($pendaftaranSeminarProposal->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $pendaftaranSeminarProposal->load([
+            'user',
+            'komisiProposal',
+            'dosenPembimbing',
+            'proposalPembahas.dosen',
+            'suratUsulan.ttdKaprodiBy',
+            'suratUsulan.ttdKajurBy',
+            'penentuPembahas'
+        ]);
+
+        return view('user.pendaftaran-seminar-proposal.show', [
+            'pendaftaran' => $pendaftaranSeminarProposal
+        ]);
+    }
+
+    /**
+     * Download files methods
+     */
+    public function downloadTranskrip(PendaftaranSeminarProposal $pendaftaranSeminarProposal)
+    {
+        // Authorization
+        if ($pendaftaranSeminarProposal->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        return $this->downloadFile(
+            $pendaftaranSeminarProposal->file_transkrip_nilai,
+            'Transkrip_Nilai_' . Auth::user()->nim . '.pdf'
+        );
+    }
+
+    public function downloadProposal(PendaftaranSeminarProposal $pendaftaranSeminarProposal)
+    {
+        // Authorization
+        if ($pendaftaranSeminarProposal->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        return $this->downloadFile(
+            $pendaftaranSeminarProposal->file_proposal_penelitian,
+            'Proposal_Penelitian_' . Auth::user()->nim . '.pdf'
+        );
+    }
+
+    public function downloadPermohonan(PendaftaranSeminarProposal $pendaftaranSeminarProposal)
+    {
+        // Authorization
+        if ($pendaftaranSeminarProposal->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        return $this->downloadFile(
+            $pendaftaranSeminarProposal->file_surat_permohonan,
+            'Surat_Permohonan_' . Auth::user()->nim . '.pdf'
+        );
+    }
+
+    public function downloadSlipUkt(PendaftaranSeminarProposal $pendaftaranSeminarProposal)
+    {
+        // Authorization
+        if ($pendaftaranSeminarProposal->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        return $this->downloadFile(
+            $pendaftaranSeminarProposal->file_slip_ukt,
+            'Slip_UKT_' . Auth::user()->nim . '.pdf'
+        );
+    }
+
+    public function downloadSuratUsulan(PendaftaranSeminarProposal $pendaftaranSeminarProposal)
+    {
+        // Authorization
+        if ($pendaftaranSeminarProposal->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $surat = $pendaftaranSeminarProposal->suratUsulan;
+
+        if (!$surat || !$surat->file_surat) {
+            return redirect()->back()->with('error', 'Surat usulan belum digenerate atau file tidak ditemukan.');
+        }
+
+        $filePath = storage_path('app/public/' . $surat->file_surat);
+
+        if (!file_exists($filePath)) {
+            return redirect()->back()->with('error', 'File surat tidak ditemukan di server.');
+        }
+
+        $fileName = 'Surat_Usulan_Proposal_' . Auth::user()->nim . '.pdf';
+
+        return response()->download($filePath, $fileName);
+    }
+
+    /**
+     * Private helper method for downloading files
+     */
+    private function downloadFile($filePath, $downloadName)
+    {
+        if (!$filePath) {
+            return redirect()->back()->with('error', 'File tidak ditemukan.');
+        }
+
+        $fullPath = storage_path('app/public/' . $filePath);
+
+        if (!file_exists($fullPath)) {
+            return redirect()->back()->with('error', 'File tidak ditemukan di server.');
+        }
+
+        return response()->download($fullPath, $downloadName);
     }
 }

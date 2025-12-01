@@ -169,6 +169,24 @@ class KomisiProposal extends Model
     }
 
     /**
+     * Get seminar proposal registrations using this komisi
+     */
+    public function pendaftaranSeminarProposals()
+    {
+        return $this->hasMany(PendaftaranSeminarProposal::class, 'komisi_proposal_id');
+    }
+
+    /**
+     * Check if this komisi has been used for seminar registration
+     */
+    public function hasActiveRegistration(): bool
+    {
+        return $this->pendaftaranSeminarProposals()
+            ->whereIn('status', ['pending', 'pembahas_ditentukan', 'menunggu_ttd_kaprodi', 'menunggu_ttd_kajur', 'selesai'])
+            ->exists();
+    }
+
+    /**
      * Boot method untuk handle events
      */
     protected static function boot()

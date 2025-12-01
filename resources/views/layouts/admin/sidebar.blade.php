@@ -797,10 +797,19 @@
         @endcan
 
         @can('manage pendaftaran sempro')
-            <li class="menu-item {{ request()->routeIs('admin.pendaftaran-seminar-proposal.*') ? 'active' : '' }}">
+            @php
+                $pendaftaranSempropActiveStates = [
+                    'admin.pendaftaran-seminar-proposal.index',
+                    'admin.pendaftaran-seminar-proposal.show',
+                    'admin.pendaftaran-seminar-proposal.assign-pembahas',
+                ];
+                $isPendaftaranSempropActive = request()->routeIs($pendaftaranSempropActiveStates);
+            @endphp
+
+            <li class="menu-item {{ $isPendaftaranSempropActive ? 'active' : '' }}">
                 <a href="{{ route('admin.pendaftaran-seminar-proposal.index') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-book-open"></i>
-                    <div>Seminar Proposal</div>
+                    <i class="menu-icon tf-icons bx bx-clipboard"></i>
+                    <div data-i18n="Pendaftaran Sempro">Pendaftaran Sempro</div>
                 </a>
             </li>
         @endcan

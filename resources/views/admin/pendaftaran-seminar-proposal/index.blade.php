@@ -1,100 +1,243 @@
+{{-- filepath: /c:/laragon/www/eservice-app/resources/views/admin/pendaftaran-seminar-proposal/index.blade.php --}}
 @extends('layouts.admin.app')
 
 @section('title', 'Pendaftaran Seminar Proposal')
 
 @section('content')
     <div class="container-xxl flex-grow-1 container-p-y">
+        {{-- Breadcrumb --}}
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb breadcrumb-custom-icon">
                 <li class="breadcrumb-item">
                     <a href="{{ route('admin.dashboard.index') }}">Dashboard</a>
                     <i class="breadcrumb-icon icon-base bx bx-chevron-right align-middle"></i>
                 </li>
-                <li class="breadcrumb-item breadcrumb-custom-icon active" aria-current="page">Manajemen Pendaftaran Seminar
-                    Proposal
-                </li>
+                <li class="breadcrumb-item active" aria-current="page">Pendaftaran Seminar Proposal</li>
             </ol>
         </nav>
+
         <h4 class="fw-bold py-3 mb-2" style="margin-top: -1.2rem">
-            <span class="text-muted">Data Pendaftaran Seminar Proposal</span>
+            <span class="text-muted fw-light">Manajemen /</span> Pendaftaran Seminar Proposal
         </h4>
 
+        {{-- Statistics Cards --}}
+        <div class="row mb-4">
+            <div class="col-lg-2 col-md-4 col-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="card-title d-flex align-items-start justify-content-between">
+                            <div class="avatar flex-shrink-0">
+                                <i class="bx bx-list-ul rounded p-2 bg-primary" style="font-size: 2rem;"></i>
+                            </div>
+                        </div>
+                        <span class="fw-semibold d-block mb-1">Total</span>
+                        <h3 class="card-title mb-2">{{ $statistics['total'] }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-4 col-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="card-title d-flex align-items-start justify-content-between">
+                            <div class="avatar flex-shrink-0">
+                                <i class="bx bx-time-five rounded p-2 bg-warning" style="font-size: 2rem;"></i>
+                            </div>
+                        </div>
+                        <span class="fw-semibold d-block mb-1">Pending</span>
+                        <h3 class="card-title mb-2">{{ $statistics['pending'] }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-4 col-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="card-title d-flex align-items-start justify-content-between">
+                            <div class="avatar flex-shrink-0">
+                                <i class="bx bx-user-check rounded p-2 bg-info" style="font-size: 2rem;"></i>
+                            </div>
+                        </div>
+                        <span class="fw-semibold d-block mb-1">Pembahas OK</span>
+                        <h3 class="card-title mb-2">{{ $statistics['pembahas_ditentukan'] }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-4 col-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="card-title d-flex align-items-start justify-content-between">
+                            <div class="avatar flex-shrink-0">
+                                <i class="bx bx-hourglass rounded p-2 bg-primary" style="font-size: 2rem;"></i>
+                            </div>
+                        </div>
+                        <span class="fw-semibold d-block mb-1">TTD Kaprodi</span>
+                        <h3 class="card-title mb-2">{{ $statistics['menunggu_ttd_kaprodi'] }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-4 col-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="card-title d-flex align-items-start justify-content-between">
+                            <div class="avatar flex-shrink-0">
+                                <i class="bx bx-hourglass rounded p-2 bg-secondary" style="font-size: 2rem;"></i>
+                            </div>
+                        </div>
+                        <span class="fw-semibold d-block mb-1">TTD Kajur</span>
+                        <h3 class="card-title mb-2">{{ $statistics['menunggu_ttd_kajur'] }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-4 col-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="card-title d-flex align-items-start justify-content-between">
+                            <div class="avatar flex-shrink-0">
+                                <i class="bx bx-check-circle rounded p-2 bg-success" style="font-size: 2rem;"></i>
+                            </div>
+                        </div>
+                        <span class="fw-semibold d-block mb-1">Selesai</span>
+                        <h3 class="card-title mb-2">{{ $statistics['selesai'] }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Main Card --}}
         <div class="card">
+            {{-- Card Header with Filters --}}
             <div class="card-header border-bottom">
-                <div class="row align-items-center justify-content-between g-2">
-                    <div class="col-12 col-md-4">
+                <div class="row align-items-center g-3">
+                    {{-- Search --}}
+                    <div class="col-md-4">
                         <form action="{{ route('admin.pendaftaran-seminar-proposal.index') }}" method="GET">
                             <div class="input-group">
+                                <span class="input-group-text"><i class="bx bx-search"></i></span>
                                 <input type="text" class="form-control" name="search"
                                     placeholder="Cari nama atau NIM..." value="{{ request('search') }}">
-                                <button class="btn btn-outline-primary" type="submit">
-                                    <i class="bx bx-search"></i>
-                                </button>
+                                <button class="btn btn-outline-primary" type="submit">Cari</button>
                             </div>
                         </form>
                     </div>
-                    <div class="col-12 col-md-4">
-                        <form action="{{ route('admin.pendaftaran-seminar-proposal.index') }}" method="GET">
-                            <div class="input-group">
-                                <select name="angkatan" id="angkatan" class="form-select" onchange="this.form.submit()">
-                                    <option value="">Semua Angkatan</option>
-                                    @foreach ($uniqueAngkatan as $year)
-                                        <option value="{{ $year }}"
-                                            {{ request('angkatan') == $year ? 'selected' : '' }}>
-                                            {{ $year }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
+
+                    {{-- Filter Angkatan --}}
+                    <div class="col-md-3">
+                        <form action="{{ route('admin.pendaftaran-seminar-proposal.index') }}" method="GET"
+                            id="filterAngkatanForm">
+                            <select name="angkatan" class="form-select" onchange="this.form.submit()">
+                                <option value="">Semua Angkatan</option>
+                                @foreach ($uniqueAngkatan as $year)
+                                    <option value="{{ $year }}"
+                                        {{ request('angkatan') == $year ? 'selected' : '' }}>
+                                        Angkatan {{ $year }}
+                                    </option>
+                                @endforeach
+                            </select>
                         </form>
+                    </div>
+
+                    {{-- Filter Status --}}
+                    <div class="col-md-3">
+                        <form action="{{ route('admin.pendaftaran-seminar-proposal.index') }}" method="GET"
+                            id="filterStatusForm">
+                            <select name="status" class="form-select" onchange="this.form.submit()">
+                                <option value="">Semua Status</option>
+                                <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending
+                                </option>
+                                <option value="pembahas_ditentukan"
+                                    {{ request('status') == 'pembahas_ditentukan' ? 'selected' : '' }}>Pembahas Ditentukan
+                                </option>
+                                <option value="menunggu_ttd_kaprodi"
+                                    {{ request('status') == 'menunggu_ttd_kaprodi' ? 'selected' : '' }}>Menunggu TTD
+                                    Kaprodi</option>
+                                <option value="menunggu_ttd_kajur"
+                                    {{ request('status') == 'menunggu_ttd_kajur' ? 'selected' : '' }}>Menunggu TTD Kajur
+                                </option>
+                                <option value="selesai" {{ request('status') == 'selesai' ? 'selected' : '' }}>Selesai
+                                </option>
+                            </select>
+                        </form>
+                    </div>
+
+                    {{-- Reset Filter --}}
+                    <div class="col-md-2">
+                        <a href="{{ route('admin.pendaftaran-seminar-proposal.index') }}"
+                            class="btn btn-outline-secondary w-100">
+                            <i class="bx bx-reset me-1"></i> Reset
+                        </a>
                     </div>
                 </div>
             </div>
 
+            {{-- Card Body --}}
             <div class="card-body">
+                {{-- Alert Messages --}}
                 @if (session('success'))
-                    <div class="alert alert-success mb-2">
+                    <div class="alert alert-success alert-dismissible" role="alert">
                         {{ session('success') }}
-                    </div>
-                @endif
-                @if (session('error'))
-                    <div class="alert alert-danger mb-2">
-                        {{ session('error') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 @endif
 
+                @if (session('error'))
+                    <div class="alert alert-danger alert-dismissible" role="alert">
+                        {{ session('error') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                @endif
+
+                {{-- Table --}}
                 <div class="table-responsive text-nowrap">
-                    <table class="table table-striped">
-                        <thead>
+                    <table class="table table-hover">
+                        <thead class="table-light">
                             <tr>
-                                <th>No</th>
-                                <th>Nama Mahasiswa</th>
-                                <th>NIM</th>
-                                <th>Angkatan</th>
-                                <th>Judul Proposal</th>
-                                <th>Tanggal Pengajuan</th>
-                                <th>Aksi</th>
+                                <th width="5%">No</th>
+                                <th width="20%">Mahasiswa</th>
+                                <th width="10%">Angkatan</th>
+                                <th width="25%">Judul Skripsi</th>
+                                <th width="15%">Status</th>
+                                <th width="15%">Tanggal Pengajuan</th>
+                                <th width="10%" class="text-center">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody class="table-border-bottom-0">
+                        <tbody>
                             @forelse ($pendaftaran as $item)
                                 <tr>
                                     <td>{{ $loop->iteration + $pendaftaran->firstItem() - 1 }}</td>
-                                    <td>{{ $item->user->name }}</td>
-                                    <td><span class="btn btn-sm btn-outline-primary">{{ $item->user->nim }}</span></td>
-                                    <td><span class="badge bg-label-danger me-1">{{ $item->angkatan }}</span></td>
-                                    <td>{{ Str::limit($item->judul_skripsi, 40, '...') }}</td>
-                                    <td>{{ $item->created_at->format('d M Y, H:i') }}</td>
                                     <td>
-                                        <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal"
-                                            data-bs-target="#detailModal" data-id="{{ $item->id }}">
-                                            <i class="bx bx-show-alt me-1"></i> Detail
-                                        </button>
+                                        <div class="d-flex flex-column">
+                                            <span class="fw-semibold">{{ $item->user->name }}</span>
+                                            <small class="text-muted">NIM: {{ $item->user->nim }}</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-label-primary">{{ $item->angkatan }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="text-truncate d-inline-block" style="max-width: 300px;"
+                                            data-bs-toggle="tooltip" title="{{ strip_tags($item->judul_skripsi) }}">
+                                            {!! Str::limit($item->judul_skripsi, 50, '...') !!}
+                                        </span>
+                                    </td>
+                                    <td>{!! $item->status_badge !!}</td>
+                                    <td>
+                                        <small>{{ $item->created_at->format('d M Y') }}</small><br>
+                                        <small class="text-muted">{{ $item->created_at->format('H:i') }}</small>
+                                    </td>
+                                    <td class="text-center">
+                                        <a href="{{ route('admin.pendaftaran-seminar-proposal.show', $item) }}"
+                                            class="btn btn-sm btn-info">
+                                            <i class="bx bx-show me-1"></i> Detail
+                                        </a>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="text-center">Tidak ada data untuk ditampilkan.</td>
+                                    <td colspan="7" class="text-center py-5">
+                                        <div class="mb-3">
+                                            <i class="bx bx-search-alt" style="font-size: 3rem; opacity: 0.3;"></i>
+                                        </div>
+                                        <p class="text-muted">Tidak ada data pendaftaran seminar proposal</p>
+                                    </td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -102,67 +245,29 @@
                 </div>
             </div>
 
+            {{-- Pagination --}}
             @if ($pendaftaran->hasPages())
-                <div class="card-footer d-flex justify-content-end">
-                    <nav aria-label="Page navigation">
-                        <ul class="pagination mb-0">
-                            <li class="page-item {{ $pendaftaran->onFirstPage() ? 'disabled' : '' }}">
-                                <a class="page-link" href="{{ $pendaftaran->previousPageUrl() }}" aria-label="Previous">
-                                    <i class="bx bx-chevrons-left icon-sm"></i>
-                                </a>
-                            </li>
-                            @foreach ($pendaftaran->getUrlRange(1, $pendaftaran->lastPage()) as $page => $url)
-                                <li class="page-item {{ $page == $pendaftaran->currentPage() ? 'active' : '' }}">
-                                    <a class="page-link" href="{{ $url }}">{{ $page }}</a>
-                                </li>
-                            @endforeach
-                            <li class="page-item {{ $pendaftaran->hasMorePages() ? '' : 'disabled' }}">
-                                <a class="page-link" href="{{ $pendaftaran->nextPageUrl() }}" aria-label="Next">
-                                    <i class="bx bx-chevrons-right icon-sm"></i>
-                                </a>
-                            </li>
-                        </ul>
-                    </nav>
-                </div>
-            @endif
-        </div>
-    </div>
-
-    <!-- Detail Modal -->
-    <div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalTitle">Detail Pendaftaran</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body" id="modalBody">
-                    <!-- Content will be loaded via AJAX -->
-                    <div class="text-center">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Loading...</span>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="text-muted small">
+                            Menampilkan {{ $pendaftaran->firstItem() }} - {{ $pendaftaran->lastItem() }}
+                            dari {{ $pendaftaran->total() }} data
                         </div>
+                        {{ $pendaftaran->links() }}
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-                        Tutup
-                    </button>
-                </div>
-            </div>
+            @endif
         </div>
     </div>
 @endsection
 
 @push('scripts')
     <script>
-        $('#detailModal').on('show.bs.modal', function(event) {
-            var button = $(event.relatedTarget);
-            var id = button.data('id');
-            var modal = $(this);
-
-            $.get('/admin/pendaftaran-seminar-proposal/' + id, function(data) {
-                modal.find('#modalBody').html(data);
+        // Initialize tooltips
+        document.addEventListener('DOMContentLoaded', function() {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
             });
         });
     </script>
