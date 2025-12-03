@@ -8,53 +8,6 @@
             display: none !important;
         }
 
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
-        }
-
-        .animate-slide-down {
-            animation: slideDown 0.3s ease-out;
-        }
-
-        .animate-fade-in {
-            animation: fadeIn 0.5s ease-out;
-        }
-
-        .status-badge {
-            @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold transition-all duration-200;
-        }
-
-        .status-badge.pending {
-            @apply bg-amber-100 text-amber-800 border border-amber-200;
-        }
-
-        .status-badge.approved {
-            @apply bg-emerald-100 text-emerald-800 border border-emerald-200;
-        }
-
-        .status-badge.rejected {
-            @apply bg-red-100 text-red-800 border border-red-200;
-        }
-
-        .status-badge.processing {
-            @apply bg-orange-100 text-orange-800 border border-orange-200;
-        }
 
         .card-hover {
             @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
@@ -416,7 +369,7 @@
                                     <td class="px-5 py-4 whitespace-nowrap">
                                         <div class="space-y-1">
                                             @if ($proposal->status == 'pending')
-                                                <span class="status-badge pending">
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
                                                     <svg class="w-3 h-3 mr-1 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
                                                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
                                                     </svg>
@@ -424,7 +377,7 @@
                                                 </span>
                                                 <div class="text-[10px] text-gray-500 font-medium">Sedang diproses</div>
                                             @elseif($proposal->status == 'approved_pa')
-                                                <span class="status-badge processing">
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-800 border border-orange-200">
                                                     <svg class="w-3 h-3 mr-1 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
                                                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
                                                     </svg>
@@ -432,7 +385,7 @@
                                                 </span>
                                                 <div class="text-[10px] text-gray-500 font-medium">Disetujui PA</div>
                                             @elseif($proposal->status == 'approved')
-                                                <span class="status-badge approved">
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
                                                     <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                                                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                                                     </svg>
@@ -442,7 +395,7 @@
                                                     {{ $proposal->tanggal_persetujuan_korprodi ? $proposal->tanggal_persetujuan_korprodi->translatedFormat('d M Y') : '-' }}
                                                 </div>
                                             @else
-                                                <span class="status-badge rejected">
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800 border border-red-200">
                                                     <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                                                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
                                                     </svg>

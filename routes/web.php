@@ -53,6 +53,10 @@ Route::get('/preview-komisi-hasil-pdf', [AdminKomisiHasilController::class, 'pre
     ->name('preview.komisi-hasil.pdf')
     ->middleware('auth');
 
+Route::get('/preview-surat-usulan-sempro-pdf', [AdminPendaftaranSeminarProposalController::class, 'previewPdf'])
+    ->name('preview.surat-usulan-sempro.pdf')
+    ->middleware('auth');
+
 // Untuk User (Mahasiswa)
 Route::get('/', [HomeController::class, 'index'])->name('user.home.index');
 

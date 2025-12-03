@@ -17,6 +17,8 @@ use App\Services\PendaftaranSeminarProposal\{
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class AdminPendaftaranSeminarProposalController extends Controller
 {
@@ -647,5 +649,95 @@ class AdminPendaftaranSeminarProposalController extends Controller
             Log::error('Error rejecting pendaftaran', ['error' => $e->getMessage()]);
             return back()->with('error', 'Gagal menolak pendaftaran: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Preview PDF dengan data dummy untuk testing template
+     */
+    public function previewPdf()
+    {
+        // Data pembahas dummy
+        $pembahas1 = (object) [
+            'dosen' => (object) [
+                'name' => 'Dr. ALICIA SINSUW, ST., MT.',
+                'nip' => '197706102008122001'
+            ]
+        ];
+
+        $pembahas2 = (object) [
+            'dosen' => (object) [
+                'name' => 'KRISTOFEL SANTA, S.ST, M.MT',
+                'nip' => '198705312015041003'
+            ]
+        ];
+
+        $pembahas3 = (object) [
+            'dosen' => (object) [
+                'name' => 'YAULIE DEO YOGA RINDENGAN, S.Kom., M.Cs',
+                'nip' => '199001132019031007'
+            ]
+        ];
+
+        // Data dummy untuk preview - PERBAIKAN: langsung assign pembahas sebagai properties
+        $pendaftaran = (object) [
+            'id' => 999,
+            'user' => (object) [
+                'name' => 'JOHN DOE',
+                'nim' => '20210047'
+            ],
+            'angkatan' => '2021',
+            'ipk' => '3.75',
+            'judul_skripsi' => 'Sistem Informasi Manajemen Berbasis Web untuk Meningkatkan Efisiensi Pelayanan Administrasi Akademik di Universitas Negeri Manado',
+            'dosenPembimbing' => (object) [
+                'name' => 'SUNDYANTO KUMAJAS, S.T, M.T',
+                'nip' => '19870753122010121006'
+            ],
+            // PERBAIKAN: Assign pembahas langsung sebagai properties
+            'pembahas_1' => $pembahas1,
+            'pembahas_2' => $pembahas2,
+            'pembahas_3' => $pembahas3,
+        ];
+
+        // Surat dummy
+        $surat = (object) [
+            'qr_code_kaprodi' => base64_encode(QrCode::format('png')
+                ->size(200)
+                ->margin(1)
+                ->errorCorrection('H')
+                ->generate('https://example.com/verify/PREVIEW-' . strtoupper(uniqid()))),
+            'qr_code_kajur' => base64_encode(QrCode::format('png')
+                ->size(200)
+                ->margin(1)
+                ->errorCorrection('H')
+                ->generate('https://example.com/verify/PREVIEW-' . strtoupper(uniqid()))),
+            'ttdKaprodiBy' => (object) [
+                'name' => 'KRISTOFEL SANTA, S.ST, M.MT',
+                'nip' => '198705312015041003'
+            ],
+            'ttdKajurBy' => (object) [
+                'name' => 'Dr. ALICIA SINSUW, ST., MT.',
+                'nip' => '197706102008122001'
+            ],
+            'verification_code' => 'PREVIEW-' . strtoupper(uniqid()),
+            'nomor_surat' => '001/UN41.2/TI/2025',
+            'is_kaprodi_signed' => true,
+        ];
+
+        $nomorSurat = $surat->nomor_surat;
+        $tanggalSurat = now();
+
+        $pdf = Pdf::loadView('admin.pendaftaran-seminar-proposal.surat-usulan-pdf', compact(
+            'pendaftaran',
+            'surat',
+            'nomorSurat',
+            'tanggalSurat'
+        ))
+            ->setPaper('a4', 'portrait')
+            ->setOption('margin-top', '0.39in')
+            ->setOption('margin-bottom', '1in')
+            ->setOption('margin-left', '1in')
+            ->setOption('margin-right', '1in');
+
+        return $pdf->stream('preview-surat-usulan-sempro.pdf');
     }
 }

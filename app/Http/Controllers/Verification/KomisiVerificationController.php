@@ -32,8 +32,9 @@ class KomisiVerificationController extends Controller
      */
     protected function verifyKomisiProposal($code)
     {
+        // PERBAIKAN: Hapus 'pembimbingAkademik', gunakan 'pembimbing' yang benar
         $komisi = KomisiProposal::where('verification_code', $code)
-            ->with(['user', 'pembimbingAkademik', 'penandatanganPA', 'penandatanganKorprodi'])
+            ->with(['user', 'pembimbing', 'penandatanganPA', 'penandatanganKorprodi'])
             ->first();
 
         if (!$komisi) {
@@ -106,6 +107,7 @@ class KomisiVerificationController extends Controller
 
     /**
      * Prepare data untuk Komisi Proposal
+     * PERBAIKAN: Gunakan relationship yang benar
      */
     protected function prepareKomisiProposalData(KomisiProposal $komisi): array
     {
@@ -121,7 +123,8 @@ class KomisiVerificationController extends Controller
             'created_at' => $komisi->created_at->format('d F Y'),
         ];
 
-        // Data Pembimbing Akademik
+        // PERBAIKAN: Data Pembimbing Akademik (PA)
+        // Prioritas: penandatanganPA > pembimbing
         if ($komisi->penandatanganPA) {
             $data['dosen_pa'] = [
                 'name' => $komisi->penandatanganPA->name,
@@ -129,10 +132,18 @@ class KomisiVerificationController extends Controller
                 'jabatan' => $komisi->penandatanganPA->jabatan ?? 'Pembimbing Akademik',
                 'tanggal_persetujuan' => $komisi->tanggal_persetujuan_pa?->format('d F Y H:i'),
             ];
+        } elseif ($komisi->pembimbing) {
+            // Fallback jika penandatanganPA null
+            $data['dosen_pa'] = [
+                'name' => $komisi->pembimbing->name,
+                'nip' => $komisi->pembimbing->nip,
+                'jabatan' => $komisi->pembimbing->jabatan ?? 'Pembimbing Akademik',
+                'tanggal_persetujuan' => null,
+            ];
         }
 
-        // Data Koordinator Prodi
-        if ($komisi->penandatanganKorprodi) {
+        // Data Koordinator Prodi (hanya jika sudah approved)
+        if ($komisi->status === 'approved' && $komisi->penandatanganKorprodi) {
             $data['korprodi'] = [
                 'name' => $komisi->penandatanganKorprodi->name,
                 'nip' => $komisi->penandatanganKorprodi->nip,
@@ -141,12 +152,17 @@ class KomisiVerificationController extends Controller
             ];
         }
 
-        // Data Pembimbing (jika berbeda dengan PA)
-        if ($komisi->pembimbingAkademik && $komisi->pembimbingAkademik->id !== $komisi->penandatanganPA?->id) {
+        // PERBAIKAN: Data Dosen Pembimbing (jika berbeda dengan penandatanganPA)
+        // Ini untuk kasus override signature oleh staff
+        if (
+            $komisi->pembimbing &&
+            $komisi->penandatanganPA &&
+            $komisi->pembimbing->id !== $komisi->penandatanganPA->id
+        ) {
             $data['dosen_pembimbing'] = [
-                'name' => $komisi->pembimbingAkademik->name,
-                'nip' => $komisi->pembimbingAkademik->nip,
-                'jabatan' => $komisi->pembimbingAkademik->jabatan ?? 'Dosen Pembimbing',
+                'name' => $komisi->pembimbing->name,
+                'nip' => $komisi->pembimbing->nip,
+                'jabatan' => $komisi->pembimbing->jabatan ?? 'Dosen Pembimbing',
             ];
         }
 

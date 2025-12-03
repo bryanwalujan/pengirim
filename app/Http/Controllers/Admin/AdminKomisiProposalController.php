@@ -278,285 +278,288 @@ class AdminKomisiProposalController extends Controller
         return $user->hasRole(['staff']);
     }
 
-   /**
- * Approve by PA - WITH STAFF OVERRIDE (TANPA WAJIB OVERRIDE REASON)
- */
-public function approveByPA(Request $request, KomisiProposal $komisiProposal)
-{
-    $user = User::find(Auth::id());
+    /**
+     * Approve by PA - WITH STAFF OVERRIDE (TANPA WAJIB OVERRIDE REASON)
+     */
+    public function approveByPA(Request $request, KomisiProposal $komisiProposal)
+    {
+        $user = User::find(Auth::id());
 
-    Log::info('=== APPROVE BY PA - START ===', [
-        'komisi_id' => $komisiProposal->id,
-        'komisi_status' => $komisiProposal->status,
-        'user_id' => $user->id,
-        'user_name' => $user->name,
-        'user_role' => $user->getRoleNames()->first(),
-        'user_jabatan' => $user->jabatan,
-        'dosen_pembimbing_id' => $komisiProposal->dosen_pembimbing_id,
-    ]);
-
-    // VALIDASI 1: Check status
-    if (!$komisiProposal->canBeApprovedByPA()) {
-        Log::warning('Status tidak bisa diapprove PA', ['status' => $komisiProposal->status]);
-        return back()->with('error', 'Komisi proposal ini tidak dapat disetujui pada tahap ini. Status saat ini: ' . $komisiProposal->status);
-    }
-
-    // VALIDASI 2: Check permission
-    $isPA = $user->hasRole('dosen') && $komisiProposal->dosen_pembimbing_id == $user->id;
-    $canOverride = $this->canOverrideApproval($user);
-
-    if (!$isPA && !$canOverride) {
-        Log::warning('User tidak memiliki izin untuk approve', [
-            'user_id' => $user->id,
-            'is_pa' => $isPA,
-            'can_override' => $canOverride,
-        ]);
-        return back()->with('error', 'Anda tidak memiliki izin untuk menyetujui proposal ini.');
-    }
-
-    // VALIDASI 3: Jika dosen, pastikan jabatan valid sebagai PA
-    if ($user->hasRole('dosen') && !$this->isPembimbingAkademik($user)) {
-        Log::warning('Jabatan tidak valid sebagai PA', ['jabatan' => $user->jabatan]);
-        return back()->with('error', 'Jabatan Anda tidak memiliki wewenang sebagai Pembimbing Akademik.');
-    }
-
-    // PERBAIKAN: Validasi sederhana tanpa wajib override_reason
-    $validationRules = [
-        'action' => 'required|in:approve,reject',
-        'keterangan' => 'required_if:action,reject|string|max:500',
-    ];
-
-    $request->validate($validationRules, [
-        'keterangan.required_if' => 'Alasan penolakan wajib diisi.',
-        'keterangan.max' => 'Alasan penolakan maksimal 500 karakter.',
-    ]);
-
-    DB::beginTransaction();
-    try {
-        if ($request->action === 'approve') {
-            // Generate verification code untuk PA
-            $verificationCode = 'KP-' . strtoupper(uniqid());
-
-            // Determine penandatangan (PA asli atau staff override)
-            $penandatanganId = $isPA ? $user->id : $komisiProposal->dosen_pembimbing_id;
-
-            // Simpan informasi override jika dilakukan oleh staff (TANPA WAJIB REASON)
-            $overrideInfo = null;
-            if ($canOverride && !$isPA) {
-                $overrideInfo = [
-                    'override_by' => $user->id,
-                    'override_name' => $user->name,
-                    'override_role' => $user->getRoleNames()->first(),
-                    'override_at' => now()->toDateTimeString(),
-                    'approval_type' => 'PA Override by Staff',
-                    'original_pa_id' => $komisiProposal->dosen_pembimbing_id,
-                    'original_pa_name' => $komisiProposal->pembimbing->name,
-                ];
-            }
-
-            // Update status dan verification code
-            $komisiProposal->update([
-                'status' => 'approved_pa',
-                'penandatangan_pa_id' => $penandatanganId,
-                'tanggal_persetujuan_pa' => now(),
-                'verification_code' => $verificationCode,
-                'keterangan' => $overrideInfo ? json_encode($overrideInfo) : null,
-            ]);
-
-            // Generate PDF dengan QR PA
-            $filePath = $this->generatePdfWithPA($komisiProposal);
-
-            // Update file path
-            $komisiProposal->update(['file_komisi_pa' => $filePath]);
-
-            DB::commit();
-
-            Log::info('Komisi proposal approved by PA - SUCCESS', [
-                'komisi_id' => $komisiProposal->id,
-                'verification_code' => $verificationCode,
-                'pa_id' => $penandatanganId,
-                'approved_by' => $user->id,
-                'is_override' => $canOverride && !$isPA,
-                'override_info' => $overrideInfo,
-            ]);
-
-            $successMessage = $canOverride && !$isPA
-                ? 'Komisi proposal berhasil disetujui (Administrative Override oleh Staff). Menunggu persetujuan Koordinator Program Studi.'
-                : 'Komisi proposal berhasil disetujui. Menunggu persetujuan Koordinator Program Studi.';
-
-            return redirect()->route('admin.komisi-proposal.index')
-                ->with('success', $successMessage);
-
-        } else {
-            // Reject logic
-            $komisiProposal->update([
-                'status' => 'rejected',
-                'keterangan' => $request->keterangan,
-            ]);
-
-            DB::commit();
-
-            Log::info('Komisi proposal rejected by PA', [
-                'komisi_id' => $komisiProposal->id,
-                'keterangan' => $request->keterangan,
-                'rejected_by' => $user->id,
-            ]);
-
-            return redirect()->route('admin.komisi-proposal.index')
-                ->with('success', 'Komisi proposal ditolak.');
-        }
-    } catch (\Exception $e) {
-        DB::rollBack();
-
-        Log::error('Error approving by PA - FAILED', [
+        Log::info('=== APPROVE BY PA - START ===', [
             'komisi_id' => $komisiProposal->id,
-            'error' => $e->getMessage(),
-            'trace' => $e->getTraceAsString()
-        ]);
-
-        return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
-    }
-}
-
-/**
- * Approve by Korprodi - WITH STAFF OVERRIDE (TANPA WAJIB OVERRIDE REASON)
- */
-public function approveByKorprodi(Request $request, KomisiProposal $komisiProposal)
-{
-    $user = User::find(Auth::id());
-
-    Log::info('=== APPROVE BY KORPRODI - START ===', [
-        'komisi_id' => $komisiProposal->id,
-        'user_id' => $user->id,
-        'user_name' => $user->name,
-        'user_role' => $user->getRoleNames()->first(),
-    ]);
-
-    // VALIDASI 1: Check status
-    if (!$komisiProposal->canBeApprovedByKorprodi()) {
-        return back()->with('error', 'Komisi proposal ini tidak dapat disetujui pada tahap ini.');
-    }
-
-    // VALIDASI 2: Check permission
-    $isKorprodi = $user->hasRole('dosen') && $this->isKoordinatorProdi($user);
-    $canOverride = $this->canOverrideApproval($user);
-
-    if (!$isKorprodi && !$canOverride) {
-        Log::warning('User tidak memiliki izin untuk approve korprodi', [
+            'komisi_status' => $komisiProposal->status,
             'user_id' => $user->id,
-            'is_korprodi' => $isKorprodi,
-            'can_override' => $canOverride,
+            'user_name' => $user->name,
+            'user_role' => $user->getRoleNames()->first(),
+            'user_jabatan' => $user->jabatan,
+            'dosen_pembimbing_id' => $komisiProposal->dosen_pembimbing_id,
+            'existing_verification_code' => $komisiProposal->verification_code, // ✅ Log existing code
         ]);
-        return back()->with('error', 'Hanya Koordinator Program Studi atau Staff yang dapat menyetujui pada tahap ini.');
-    }
 
-    // PERBAIKAN: Validasi sederhana tanpa wajib override_reason
-    $validationRules = [
-        'action' => 'required|in:approve,reject',
-        'keterangan' => 'required_if:action,reject|string|max:500',
-    ];
+        // VALIDASI 1: Check status
+        if (!$komisiProposal->canBeApprovedByPA()) {
+            Log::warning('Status tidak bisa diapprove PA', ['status' => $komisiProposal->status]);
+            return back()->with('error', 'Komisi proposal ini tidak dapat disetujui pada tahap ini. Status saat ini: ' . $komisiProposal->status);
+        }
 
-    $request->validate($validationRules, [
-        'keterangan.required_if' => 'Alasan penolakan wajib diisi.',
-        'keterangan.max' => 'Alasan penolakan maksimal 500 karakter.',
-    ]);
+        // VALIDASI 2: Check permission
+        $isPA = $user->hasRole('dosen') && $komisiProposal->dosen_pembimbing_id == $user->id;
+        $canOverride = $this->canOverrideApproval($user);
 
-    DB::beginTransaction();
-    try {
-        if ($request->action === 'approve') {
-            // Generate verification code baru untuk final
-            $verificationCode = 'KP-' . strtoupper(uniqid());
+        if (!$isPA && !$canOverride) {
+            Log::warning('User tidak memiliki izin untuk approve', [
+                'user_id' => $user->id,
+                'is_pa' => $isPA,
+                'can_override' => $canOverride,
+            ]);
+            return back()->with('error', 'Anda tidak memiliki izin untuk menyetujui proposal ini.');
+        }
 
-            // Determine penandatangan
-            $penandatanganId = $isKorprodi ? $user->id : $this->getDefaultKorprodiId();
+        // VALIDASI 3: Jika dosen, pastikan jabatan valid sebagai PA
+        if ($user->hasRole('dosen') && !$this->isPembimbingAkademik($user)) {
+            Log::warning('Jabatan tidak valid sebagai PA', ['jabatan' => $user->jabatan]);
+            return back()->with('error', 'Jabatan Anda tidak memiliki wewenang sebagai Pembimbing Akademik.');
+        }
 
-            // Simpan informasi override (TANPA WAJIB REASON)
-            $overrideInfo = null;
-            if ($canOverride && !$isKorprodi) {
-                $overrideInfo = [
-                    'override_by' => $user->id,
-                    'override_name' => $user->name,
-                    'override_role' => $user->getRoleNames()->first(),
-                    'override_at' => now()->toDateTimeString(),
-                    'approval_type' => 'Korprodi Override by Staff',
-                    'default_korprodi_id' => $penandatanganId,
-                ];
-            }
+        // PERBAIKAN: Validasi sederhana tanpa wajib override_reason
+        $validationRules = [
+            'action' => 'required|in:approve,reject',
+            'keterangan' => 'required_if:action,reject|string|max:500',
+        ];
 
-            // Update status dan verification code
-            $updateData = [
-                'status' => 'approved',
-                'penandatangan_korprodi_id' => $penandatanganId,
-                'tanggal_persetujuan_korprodi' => now(),
-                'verification_code' => $verificationCode,
-            ];
+        $request->validate($validationRules, [
+            'keterangan.required_if' => 'Alasan penolakan wajib diisi.',
+            'keterangan.max' => 'Alasan penolakan maksimal 500 karakter.',
+        ]);
 
-            // Update keterangan jika ada override
-            if ($overrideInfo) {
-                $existingKeterangan = $komisiProposal->keterangan
-                    ? json_decode($komisiProposal->keterangan, true)
-                    : [];
+        DB::beginTransaction();
+        try {
+            if ($request->action === 'approve') {
+                // ✅ PERBAIKAN: JANGAN generate verification_code baru
+                // Verification code sudah di-generate saat create (via model boot)
 
-                // Preserve PA override info if exists
-                if (isset($existingKeterangan['override_by'])) {
-                    $existingKeterangan['pa_override'] = $existingKeterangan;
+                // Determine penandatangan (PA asli atau staff override)
+                $penandatanganId = $isPA ? $user->id : $komisiProposal->dosen_pembimbing_id;
+
+                // Simpan informasi override jika dilakukan oleh staff (TANPA WAJIB REASON)
+                $overrideInfo = null;
+                if ($canOverride && !$isPA) {
+                    $overrideInfo = [
+                        'override_by' => $user->id,
+                        'override_name' => $user->name,
+                        'override_role' => $user->getRoleNames()->first(),
+                        'override_at' => now()->toDateTimeString(),
+                        'approval_type' => 'PA Override by Staff',
+                        'original_pa_id' => $komisiProposal->dosen_pembimbing_id,
+                        'original_pa_name' => $komisiProposal->pembimbing->name,
+                    ];
                 }
 
-                $existingKeterangan['korprodi_override'] = $overrideInfo;
-                $updateData['keterangan'] = json_encode($existingKeterangan);
+                // ✅ Update status TANPA mengubah verification_code
+                $komisiProposal->update([
+                    'status' => 'approved_pa',
+                    'penandatangan_pa_id' => $penandatanganId,
+                    'tanggal_persetujuan_pa' => now(),
+                    // ❌ HAPUS: 'verification_code' => $verificationCode,
+                    'keterangan' => $overrideInfo ? json_encode($overrideInfo) : null,
+                ]);
+
+                // Generate PDF dengan QR PA (menggunakan verification_code yang SAMA)
+                $filePath = $this->generatePdfWithPA($komisiProposal);
+
+                // Update file path
+                $komisiProposal->update(['file_komisi_pa' => $filePath]);
+
+                DB::commit();
+
+                Log::info('Komisi proposal approved by PA - SUCCESS', [
+                    'komisi_id' => $komisiProposal->id,
+                    'verification_code' => $komisiProposal->verification_code, // ✅ Code TETAP SAMA
+                    'pa_id' => $penandatanganId,
+                    'approved_by' => $user->id,
+                    'is_override' => $canOverride && !$isPA,
+                    'override_info' => $overrideInfo,
+                ]);
+
+                $successMessage = $canOverride && !$isPA
+                    ? 'Komisi proposal berhasil disetujui (Administrative Override oleh Staff). Menunggu persetujuan Koordinator Program Studi.'
+                    : 'Komisi proposal berhasil disetujui. Menunggu persetujuan Koordinator Program Studi.';
+
+                return redirect()->route('admin.komisi-proposal.index')
+                    ->with('success', $successMessage);
+
             } else {
-                $updateData['keterangan'] = null;
+                // Reject logic
+                $komisiProposal->update([
+                    'status' => 'rejected',
+                    'keterangan' => $request->keterangan,
+                ]);
+
+                DB::commit();
+
+                Log::info('Komisi proposal rejected by PA', [
+                    'komisi_id' => $komisiProposal->id,
+                    'keterangan' => $request->keterangan,
+                    'rejected_by' => $user->id,
+                ]);
+
+                return redirect()->route('admin.komisi-proposal.index')
+                    ->with('success', 'Komisi proposal ditolak.');
             }
+        } catch (\Exception $e) {
+            DB::rollBack();
 
-            $komisiProposal->update($updateData);
-
-            // Generate final PDF dengan kedua signature
-            $filePath = $this->generateFinalPdf($komisiProposal);
-
-            // Update file path
-            $komisiProposal->update(['file_komisi' => $filePath]);
-
-            DB::commit();
-
-            Log::info('Komisi proposal approved by Korprodi - SUCCESS', [
+            Log::error('Error approving by PA - FAILED', [
                 'komisi_id' => $komisiProposal->id,
-                'verification_code' => $verificationCode,
-                'korprodi_id' => $penandatanganId,
-                'approved_by' => $user->id,
-                'is_override' => $canOverride && !$isKorprodi,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
 
-            $successMessage = $canOverride && !$isKorprodi
-                ? 'Komisi proposal berhasil disetujui (Administrative Override oleh Staff). Mahasiswa dapat mengunduh dokumen.'
-                : 'Komisi proposal berhasil disetujui lengkap. Mahasiswa dapat mengunduh dokumen.';
-
-            return redirect()->route('admin.komisi-proposal.index')
-                ->with('success', $successMessage);
-
-        } else {
-            // Reject logic
-            $komisiProposal->update([
-                'status' => 'rejected',
-                'keterangan' => $request->keterangan,
-            ]);
-
-            DB::commit();
-
-            Log::info('Komisi proposal rejected by Korprodi', [
-                'komisi_id' => $komisiProposal->id,
-                'keterangan' => $request->keterangan,
-                'rejected_by' => $user->id,
-            ]);
-
-            return redirect()->route('admin.komisi-proposal.index')
-                ->with('success', 'Komisi proposal ditolak.');
+            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
-    } catch (\Exception $e) {
-        DB::rollBack();
-        Log::error('Error approving by Korprodi: ' . $e->getMessage());
-        return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
     }
-}
+
+    /**
+     * Approve by Korprodi - WITH STAFF OVERRIDE (TANPA WAJIB OVERRIDE REASON)
+     */
+    public function approveByKorprodi(Request $request, KomisiProposal $komisiProposal)
+    {
+        $user = User::find(Auth::id());
+
+        Log::info('=== APPROVE BY KORPRODI - START ===', [
+            'komisi_id' => $komisiProposal->id,
+            'user_id' => $user->id,
+            'user_name' => $user->name,
+            'user_role' => $user->getRoleNames()->first(),
+            'existing_verification_code' => $komisiProposal->verification_code, // ✅ Log existing code
+        ]);
+
+        // VALIDASI 1: Check status
+        if (!$komisiProposal->canBeApprovedByKorprodi()) {
+            return back()->with('error', 'Komisi proposal ini tidak dapat disetujui pada tahap ini.');
+        }
+
+        // VALIDASI 2: Check permission
+        $isKorprodi = $user->hasRole('dosen') && $this->isKoordinatorProdi($user);
+        $canOverride = $this->canOverrideApproval($user);
+
+        if (!$isKorprodi && !$canOverride) {
+            Log::warning('User tidak memiliki izin untuk approve korprodi', [
+                'user_id' => $user->id,
+                'is_korprodi' => $isKorprodi,
+                'can_override' => $canOverride,
+            ]);
+            return back()->with('error', 'Hanya Koordinator Program Studi atau Staff yang dapat menyetujui pada tahap ini.');
+        }
+
+        // PERBAIKAN: Validasi sederhana tanpa wajib override_reason
+        $validationRules = [
+            'action' => 'required|in:approve,reject',
+            'keterangan' => 'required_if:action,reject|string|max:500',
+        ];
+
+        $request->validate($validationRules, [
+            'keterangan.required_if' => 'Alasan penolakan wajib diisi.',
+            'keterangan.max' => 'Alasan penolakan maksimal 500 karakter.',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            if ($request->action === 'approve') {
+                // ✅ PERBAIKAN: JANGAN generate verification_code baru
+                // Gunakan verification_code yang sudah ada sejak awal
+
+                // Determine penandatangan
+                $penandatanganId = $isKorprodi ? $user->id : $this->getDefaultKorprodiId();
+
+                // Simpan informasi override (TANPA WAJIB REASON)
+                $overrideInfo = null;
+                if ($canOverride && !$isKorprodi) {
+                    $overrideInfo = [
+                        'override_by' => $user->id,
+                        'override_name' => $user->name,
+                        'override_role' => $user->getRoleNames()->first(),
+                        'override_at' => now()->toDateTimeString(),
+                        'approval_type' => 'Korprodi Override by Staff',
+                        'default_korprodi_id' => $penandatanganId,
+                    ];
+                }
+
+                // ✅ Update status TANPA mengubah verification_code
+                $updateData = [
+                    'status' => 'approved',
+                    'penandatangan_korprodi_id' => $penandatanganId,
+                    'tanggal_persetujuan_korprodi' => now(),
+                    // ❌ HAPUS: 'verification_code' => $verificationCode,
+                ];
+
+                // Update keterangan jika ada override (preserve PA override info)
+                if ($overrideInfo) {
+                    $existingKeterangan = $komisiProposal->keterangan
+                        ? json_decode($komisiProposal->keterangan, true)
+                        : [];
+
+                    // Preserve PA override info if exists
+                    if (isset($existingKeterangan['override_by'])) {
+                        $existingKeterangan['pa_override'] = $existingKeterangan;
+                    }
+
+                    $existingKeterangan['korprodi_override'] = $overrideInfo;
+                    $updateData['keterangan'] = json_encode($existingKeterangan);
+                } else {
+                    // ✅ Preserve existing keterangan (PA override) jika tidak ada Korprodi override
+                    // Jangan set null, biarkan existing data
+                }
+
+                $komisiProposal->update($updateData);
+
+                // Generate final PDF dengan kedua signature (menggunakan verification_code yang SAMA)
+                $filePath = $this->generateFinalPdf($komisiProposal);
+
+                // Update file path
+                $komisiProposal->update(['file_komisi' => $filePath]);
+
+                DB::commit();
+
+                Log::info('Komisi proposal approved by Korprodi - SUCCESS', [
+                    'komisi_id' => $komisiProposal->id,
+                    'verification_code' => $komisiProposal->verification_code, // ✅ Code TETAP SAMA
+                    'korprodi_id' => $penandatanganId,
+                    'approved_by' => $user->id,
+                    'is_override' => $canOverride && !$isKorprodi,
+                ]);
+
+                $successMessage = $canOverride && !$isKorprodi
+                    ? 'Komisi proposal berhasil disetujui (Administrative Override oleh Staff). Mahasiswa dapat mengunduh dokumen.'
+                    : 'Komisi proposal berhasil disetujui lengkap. Mahasiswa dapat mengunduh dokumen.';
+
+                return redirect()->route('admin.komisi-proposal.index')
+                    ->with('success', $successMessage);
+
+            } else {
+                // Reject logic
+                $komisiProposal->update([
+                    'status' => 'rejected',
+                    'keterangan' => $request->keterangan,
+                ]);
+
+                DB::commit();
+
+                Log::info('Komisi proposal rejected by Korprodi', [
+                    'komisi_id' => $komisiProposal->id,
+                    'keterangan' => $request->keterangan,
+                    'rejected_by' => $user->id,
+                ]);
+
+                return redirect()->route('admin.komisi-proposal.index')
+                    ->with('success', 'Komisi proposal ditolak.');
+            }
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error approving by Korprodi: ' . $e->getMessage());
+            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
+    }
 
     /**
      * Get default Korprodi ID (ambil yang pertama)
