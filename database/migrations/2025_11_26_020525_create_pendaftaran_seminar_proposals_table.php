@@ -44,12 +44,17 @@ return new class extends Migration {
                 'ditolak'
             ])->default('pending');
 
+            // Catatan/Keterangan (opsional)
+            $table->text('catatan')->nullable();
+            $table->text('alasan_penolakan')->nullable();
+
             $table->timestamps();
 
             // Index
             $table->index('status');
             $table->index('angkatan');
             $table->index('ditentukan_oleh_id');
+
         });
     }
 

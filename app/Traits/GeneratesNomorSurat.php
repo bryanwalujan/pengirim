@@ -7,6 +7,7 @@ use App\Models\TahunAjaran;
 use App\Models\SuratIjinSurvey;
 use App\Models\SuratAktifKuliah;
 use App\Models\SuratCutiAkademik;
+use App\Models\SuratUsulanProposal;
 use Illuminate\Support\Facades\Log;
 
 trait GeneratesNomorSurat
@@ -38,6 +39,7 @@ trait GeneratesNomorSurat
             SuratIjinSurvey::class,
             SuratCutiAkademik::class,
             SuratPindah::class,
+            SuratUsulanProposal::class, // Tambahkan model surat usulan proposal
         ];
 
         $latestNumbers = [];
@@ -71,8 +73,7 @@ trait GeneratesNomorSurat
             SuratIjinSurvey::class,
             SuratCutiAkademik::class,
             SuratPindah::class,
-            // Tambahkan model lain di sini, misalnya:
-            // SuratLainnya::class,
+            SuratUsulanProposal::class, // Tambahkan model surat usulan proposal
         ];
 
         foreach ($suratModels as $model) {
@@ -101,8 +102,7 @@ trait GeneratesNomorSurat
             SuratIjinSurvey::class,
             SuratCutiAkademik::class,
             SuratPindah::class,
-            // Tambahkan model lain di sini, misalnya:
-            // SuratLainnya::class,
+            SuratUsulanProposal::class, // Tambahkan model surat usulan proposal
         ];
 
         $latestSurat = null;
@@ -137,11 +137,9 @@ trait GeneratesNomorSurat
 
     /**
      * Reset nomor surat counter untuk tahun ajaran baru
-     * Method ini bisa dipanggil ketika tahun ajaran diganti
      */
     public function resetNomorSuratCounter()
     {
-        // Ambil tahun ajaran aktif yang baru
         $activeTahunAjaran = TahunAjaran::where('status_aktif', true)->first();
 
         if (!$activeTahunAjaran) {
@@ -151,7 +149,6 @@ trait GeneratesNomorSurat
         $tahunParts = explode('/', $activeTahunAjaran->tahun);
         $newAcademicYear = $tahunParts[0];
 
-        // Log reset untuk audit
         Log::info("Nomor surat counter reset untuk tahun ajaran: {$activeTahunAjaran->tahun}");
 
         return "Nomor surat akan dimulai dari 0001 untuk tahun ajaran {$activeTahunAjaran->tahun}";

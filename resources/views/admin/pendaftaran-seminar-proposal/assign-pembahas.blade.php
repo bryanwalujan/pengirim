@@ -106,45 +106,118 @@
                     </div>
                 </div>
 
-                {{-- Quick Stats Card --}}
-                <div class="card">
-                    <div class="card-body">
-                        <h6 class="card-title mb-3">
-                            <i class="bx bx-bar-chart-alt-2 me-1"></i>Statistik Beban
+                {{-- Guidelines Card - REPLACED STATISTICS --}}
+                <div class="card mb-4 border-primary">
+                    <div class="card-header mb-3 bg-label-primary">
+                        <h6 class="card-title mb-0 text-primary">
+                            <i class="bx bx-info-circle me-1"></i>Panduan Pemilihan
                         </h6>
-
+                    </div>
+                    <div class="card-body">
                         <div class="mb-3">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <small class="text-muted">Total Dosen</small>
-                                <span class="badge bg-label-dark">{{ $dosenList->count() }}</span>
-                            </div>
-                            <div class="progress" style="height: 4px;">
-                                <div class="progress-bar bg-dark" style="width: 100%"></div>
+                            <div class="d-flex align-items-start">
+                                <div class="flex-shrink-0">
+                                    <span
+                                        class="badge badge-center rounded-pill bg-label-primary w-px-30 h-px-30 me-2">1</span>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">Pilih 3 Dosen Berbeda</h6>
+                                    <p class="small text-muted mb-0">Pastikan semua pembahas adalah dosen yang berbeda</p>
+                                </div>
                             </div>
                         </div>
 
                         <div class="mb-3">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <small class="text-muted">Beban Terendah</small>
-                                <span class="badge bg-label-success">
-                                    {{ collect($pembahasStatistics)->min('total_beban') ?? 0 }}
-                                </span>
+                            <div class="d-flex align-items-start">
+                                <div class="flex-shrink-0">
+                                    <span
+                                        class="badge badge-center rounded-pill bg-label-success w-px-30 h-px-30 me-2">2</span>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">Perhatikan Beban Kerja</h6>
+                                    <p class="small text-muted mb-0">Pilih dosen dengan beban kerja yang seimbang</p>
+                                </div>
                             </div>
-                            <div class="progress" style="height: 4px;">
-                                <div class="progress-bar bg-success" style="width: 33%"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="d-flex align-items-start">
+                                <div class="flex-shrink-0">
+                                    <span
+                                        class="badge badge-center rounded-pill bg-label-info w-px-30 h-px-30 me-2">3</span>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">Gunakan Rekomendasi</h6>
+                                    <p class="small text-muted mb-0">Sistem akan merekomendasikan dosen dengan beban
+                                        terendah</p>
+                                </div>
                             </div>
                         </div>
 
                         <div class="mb-0">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <small class="text-muted">Beban Tertinggi</small>
-                                <span class="badge bg-label-danger">
-                                    {{ collect($pembahasStatistics)->max('total_beban') ?? 0 }}
-                                </span>
+                            <div class="d-flex align-items-start">
+                                <div class="flex-shrink-0">
+                                    <span
+                                        class="badge badge-center rounded-pill bg-label-warning w-px-30 h-px-30 me-2">4</span>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">Tidak Boleh Pembimbing</h6>
+                                    <p class="small text-muted mb-0">Dosen pembimbing tidak dapat menjadi pembahas</p>
+                                </div>
                             </div>
-                            <div class="progress" style="height: 4px;">
-                                <div class="progress-bar bg-danger" style="width: 100%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Current Selection Summary - NEW --}}
+                <div class="card" id="selectionSummary" style="display: none;">
+                    <div class="card-header">
+                        <h6 class="card-title mb-0">
+                            <i class="bx bx-check-square me-1"></i>Pembahas Terpilih
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-2" id="summary-pembahas-1" style="display: none;">
+                            <div class="d-flex align-items-center">
+                                <span class="badge bg-primary me-2">1</span>
+                                <div class="flex-grow-1">
+                                    <small class="text-muted d-block">Pembahas 1</small>
+                                    <strong class="pembahas-name"></strong>
+                                </div>
+                                <span class="badge bg-label-primary pembahas-beban"></span>
                             </div>
+                        </div>
+
+                        <div class="mb-2" id="summary-pembahas-2" style="display: none;">
+                            <div class="d-flex align-items-center">
+                                <span class="badge bg-info me-2">2</span>
+                                <div class="flex-grow-1">
+                                    <small class="text-muted d-block">Pembahas 2</small>
+                                    <strong class="pembahas-name"></strong>
+                                </div>
+                                <span class="badge bg-label-info pembahas-beban"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-0" id="summary-pembahas-3" style="display: none;">
+                            <div class="d-flex align-items-center">
+                                <span class="badge bg-success me-2">3</span>
+                                <div class="flex-grow-1">
+                                    <small class="text-muted d-block">Pembahas 3</small>
+                                    <strong class="pembahas-name"></strong>
+                                </div>
+                                <span class="badge bg-label-success pembahas-beban"></span>
+                            </div>
+                        </div>
+
+                        <hr class="my-3" id="summary-divider" style="display: none;">
+
+                        <div class="d-flex justify-content-between align-items-center" id="summary-total"
+                            style="display: none;">
+                            <span class="text-muted">Total Beban Gabungan</span>
+                            <h5 class="mb-0">
+                                <span class="badge bg-label-dark" id="total-beban-selected">0</span>
+                            </h5>
                         </div>
                     </div>
                 </div>
@@ -359,6 +432,46 @@
                 dropdownAutoWidth: true
             });
 
+            // Update selection summary
+            function updateSelectionSummary() {
+                let selectedCount = 0;
+                let totalBeban = 0;
+
+                for (let i = 1; i <= 3; i++) {
+                    const $select = $(`#pembahas_${i}_id`);
+                    const selectedOption = $select.find(':selected');
+                    const $summary = $(`#summary-pembahas-${i}`);
+
+                    if (selectedOption.val()) {
+                        const dosenName = selectedOption.text().split(' - ')[0];
+                        const beban = parseInt(selectedOption.data('beban')) || 0;
+
+                        $summary.find('.pembahas-name').text(dosenName);
+                        $summary.find('.pembahas-beban').text(`Beban: ${beban}`);
+                        $summary.fadeIn();
+
+                        selectedCount++;
+                        totalBeban += beban;
+                    } else {
+                        $summary.fadeOut();
+                    }
+                }
+
+                // Show/hide summary card
+                if (selectedCount > 0) {
+                    $('#selectionSummary').fadeIn();
+
+                    if (selectedCount === 3) {
+                        $('#summary-divider, #summary-total').fadeIn();
+                        $('#total-beban-selected').text(totalBeban);
+                    } else {
+                        $('#summary-divider, #summary-total').fadeOut();
+                    }
+                } else {
+                    $('#selectionSummary').fadeOut();
+                }
+            }
+
             // Update dosen info when selected
             function updateDosenInfo(selectId, infoId, posisi) {
                 const $select = $(`#${selectId}`);
@@ -368,15 +481,16 @@
                 if (selectedOption.val()) {
                     const dosenName = selectedOption.text().split(' - ')[0];
                     const totalBeban = selectedOption.data('beban');
-                    const initial = dosenName.substring(0, 1).toUpperCase();
 
-                    $info.find('.dosen-initial').text(initial);
                     $info.find('.dosen-name').text(dosenName);
                     $info.find('.total-beban').text(totalBeban);
                     $info.slideDown(300);
                 } else {
                     $info.slideUp(300);
                 }
+
+                // Update summary
+                updateSelectionSummary();
             }
 
             // Bind events
@@ -415,13 +529,19 @@
                     $list.empty();
                     recommended.forEach((dosen, idx) => {
                         $list.append(`
-                            <li class="mb-1">
-                                <strong>Pembahas ${idx + 1}:</strong> ${dosen.name} 
-                                <span class="badge bg-success">Beban: ${dosen.beban}</span>
-                            </li>
-                        `);
+                        <li class="mb-1">
+                            <strong>Pembahas ${idx + 1}:</strong> ${dosen.name} 
+                            <span class="badge bg-success">Beban: ${dosen.beban}</span>
+                        </li>
+                    `);
                     });
                     $('#autoSuggestionResult').slideDown(400);
+
+                    // Highlight selection summary
+                    $('#selectionSummary').addClass('border-success');
+                    setTimeout(() => {
+                        $('#selectionSummary').removeClass('border-success');
+                    }, 3000);
 
                     Swal.fire({
                         icon: 'success',
@@ -429,8 +549,6 @@
                         text: 'Rekomendasi otomatis telah diterapkan',
                         timer: 2000,
                         showConfirmButton: false,
-                        toast: true,
-                        position: 'top-end'
                     });
                 } else {
                     Swal.fire({
@@ -440,7 +558,7 @@
                     });
                 }
 
-                $btn.prop('disabled', false).html('<i class="bx bx-magic-wand me-1"></i> Terapkan');
+                $btn.prop('disabled', false).html('<i class="bx bx-check-circle me-1"></i> Terapkan');
             });
 
             // Form validation
@@ -476,29 +594,29 @@
                 Swal.fire({
                     title: 'Konfirmasi Penentuan Pembahas',
                     html: `
-                        <div class="text-start">
-                            <p class="mb-3"><strong>Pembahas yang dipilih:</strong></p>
-                            <ul class="list-unstyled mb-0">
-                                <li class="mb-2">
-                                    <span class="badge bg-label-primary me-2">1</span>
-                                    ${pembahas1Name}
-                                </li>
-                                <li class="mb-2">
-                                    <span class="badge bg-label-info me-2">2</span>
-                                    ${pembahas2Name}
-                                </li>
-                                <li class="mb-2">
-                                    <span class="badge bg-label-success me-2">3</span>
-                                    ${pembahas3Name}
-                                </li>
-                            </ul>
-                            @if ($hasSurat && !$isSigned)
-                                <div class="alert alert-warning mt-3 mb-0">
-                                    <small><i class="bx bx-info-circle me-1"></i>Surat akan dihapus dan perlu digenerate ulang!</small>
-                                </div>
-                            @endif
-                        </div>
-                    `,
+                    <div class="text-start">
+                        <p class="mb-3"><strong>Pembahas yang dipilih:</strong></p>
+                        <ul class="list-unstyled mb-0">
+                            <li class="mb-2">
+                                <span class="badge bg-label-primary me-2">1</span>
+                                ${pembahas1Name}
+                            </li>
+                            <li class="mb-2">
+                                <span class="badge bg-label-info me-2">2</span>
+                                ${pembahas2Name}
+                            </li>
+                            <li class="mb-2">
+                                <span class="badge bg-label-success me-2">3</span>
+                                ${pembahas3Name}
+                            </li>
+                        </ul>
+                        @if ($hasSurat && !$isSigned)
+                            <div class="alert alert-warning mt-3 mb-0">
+                                <small><i class="bx bx-info-circle me-1"></i>Surat akan dihapus dan perlu digenerate ulang!</small>
+                            </div>
+                        @endif
+                    </div>
+                `,
                     icon: 'question',
                     showCancelButton: true,
                     confirmButtonText: '<i class="bx bx-save me-1"></i> Ya, Simpan',
@@ -540,10 +658,10 @@
                             $(this).addClass('is-invalid');
                             if (!$(this).next('.invalid-feedback-duplicate').length) {
                                 $(this).after(`
-                                    <div class="invalid-feedback invalid-feedback-duplicate d-block">
-                                        <i class="bx bx-error me-1"></i>Dosen ini sudah dipilih!
-                                    </div>
-                                `);
+                                <div class="invalid-feedback invalid-feedback-duplicate d-block">
+                                    <i class="bx bx-error me-1"></i>Dosen ini sudah dipilih!
+                                </div>
+                            `);
                             }
                         }
                     });
@@ -616,6 +734,11 @@
             box-shadow: 0 4px 12px 0 rgba(67, 89, 113, 0.16);
         }
 
+        .card.border-success {
+            border: 2px solid #71dd37 !important;
+            transition: all 0.3s;
+        }
+
         .alert {
             border: none;
             border-radius: 0.5rem;
@@ -626,9 +749,42 @@
             font-weight: 500;
         }
 
+        .badge-center {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .w-px-30 {
+            width: 30px !important;
+        }
+
+        .h-px-30 {
+            height: 30px !important;
+        }
+
         .invalid-feedback-duplicate {
             font-size: 0.875rem;
             margin-top: 0.25rem;
+        }
+
+        /* Smooth fade animations */
+        #selectionSummary,
+        #summary-pembahas-1,
+        #summary-pembahas-2,
+        #summary-pembahas-3,
+        #summary-divider,
+        #summary-total {
+            transition: all 0.3s ease-in-out;
+        }
+
+        /* Guidelines card styling */
+        .card.border-primary {
+            border-width: 1px !important;
+        }
+
+        .bg-label-primary {
+            background-color: rgba(105, 108, 255, 0.12) !important;
         }
     </style>
 @endpush

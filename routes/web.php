@@ -517,10 +517,8 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     });
 
     // Pendaftaran Seminar Proposal
-    // Pendaftaran Seminar Proposal
     Route::prefix('pendaftaran-seminar-proposal')->name('pendaftaran-seminar-proposal.')->group(function () {
 
-        // ========== STAFF & DOSEN ROUTES ==========
         // ========== STAFF & DOSEN ROUTES ==========
         Route::middleware(['role:staff|dosen'])->group(function () {
             // Index & Show
@@ -530,7 +528,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             Route::get('/{pendaftaranSeminarProposal}', [AdminPendaftaranSeminarProposalController::class, 'show'])
                 ->name('show');
 
-            // VIEW Dokumen Pendukung (Inline Preview) - NEW ROUTES
+            // VIEW Dokumen Pendukung (Inline Preview)
             Route::get('/{pendaftaranSeminarProposal}/view/transkrip', [AdminPendaftaranSeminarProposalController::class, 'viewTranskrip'])
                 ->name('view.transkrip');
 
@@ -543,7 +541,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             Route::get('/{pendaftaranSeminarProposal}/view/slip-ukt', [AdminPendaftaranSeminarProposalController::class, 'viewSlipUkt'])
                 ->name('view.slip-ukt');
 
-            // DOWNLOAD Dokumen Pendukung (existing)
+            // DOWNLOAD Dokumen Pendukung
             Route::get('/{pendaftaranSeminarProposal}/download/transkrip', [AdminPendaftaranSeminarProposalController::class, 'downloadTranskrip'])
                 ->name('download.transkrip');
 
@@ -556,18 +554,17 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             Route::get('/{pendaftaranSeminarProposal}/download/slip-ukt', [AdminPendaftaranSeminarProposalController::class, 'downloadSlipUkt'])
                 ->name('download.slip-ukt');
 
-            // Download Surat Usulan (setelah digenerate)
+            // Download Surat Usulan
             Route::get('/{pendaftaranSeminarProposal}/download-surat', [AdminPendaftaranSeminarProposalController::class, 'downloadSuratUsulan'])
                 ->name('download-surat');
         });
 
         // ========== STAFF ONLY ROUTES ==========
         Route::middleware(['role:staff'])->group(function () {
-            // Assign Pembahas - GET untuk form
+            // Assign Pembahas
             Route::get('/{pendaftaranSeminarProposal}/assign-pembahas', [AdminPendaftaranSeminarProposalController::class, 'showAssignPembahasForm'])
                 ->name('assign-pembahas');
 
-            // Assign Pembahas - POST untuk simpan
             Route::post('/{pendaftaranSeminarProposal}/assign-pembahas', [AdminPendaftaranSeminarProposalController::class, 'assignPembahas'])
                 ->name('store-pembahas');
 
@@ -575,22 +572,28 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             Route::post('/{pendaftaranSeminarProposal}/reset-pembahas', [AdminPendaftaranSeminarProposalController::class, 'resetPembahas'])
                 ->name('reset-pembahas');
 
+            // Reject Pendaftaran
+            Route::post('/{pendaftaranSeminarProposal}/reject', [AdminPendaftaranSeminarProposalController::class, 'reject'])
+                ->name('reject');
+
             // Generate Surat Usulan
             Route::post('/{pendaftaranSeminarProposal}/generate-surat', [AdminPendaftaranSeminarProposalController::class, 'generateSuratUsulan'])
                 ->name('generate-surat');
+
+            // Get Next Nomor Surat & Validate Nomor Surat
+            Route::get('get-next-nomor-surat', [AdminPendaftaranSeminarProposalController::class, 'getNextNomorSurat'])->name('get-next-nomor-surat');
+            Route::post('validate-nomor-surat', [AdminPendaftaranSeminarProposalController::class, 'validateNomorSurat'])->name('validate-nomor-surat');
 
             // Delete Pendaftaran
             Route::delete('/{pendaftaranSeminarProposal}', [AdminPendaftaranSeminarProposalController::class, 'destroy'])
                 ->name('destroy');
         });
 
-        // ========== TTD ROUTES - DOSEN WITH JABATAN CHECK + STAFF OVERRIDE ==========
+        // ========== TTD ROUTES ==========
         Route::middleware(['role:dosen|staff'])->group(function () {
-            // Tanda Tangan Kaprodi
             Route::post('/{pendaftaranSeminarProposal}/ttd-kaprodi', [AdminPendaftaranSeminarProposalController::class, 'ttdKaprodi'])
                 ->name('ttd-kaprodi');
 
-            // Tanda Tangan Kajur
             Route::post('/{pendaftaranSeminarProposal}/ttd-kajur', [AdminPendaftaranSeminarProposalController::class, 'ttdKajur'])
                 ->name('ttd-kajur');
         });

@@ -5,26 +5,6 @@
 
 @push('styles')
     <style>
-        /* Penyesuaian Select2 agar mirip Input Tailwind */
-        .select2-container--bootstrap-5 .select2-selection {
-            border-color: #e2e8f0 !important;
-            padding: 0.75rem 1rem !important;
-            height: auto !important;
-            border-radius: 0.75rem !important;
-            font-size: 1rem;
-        }
-
-        .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
-            color: #334155 !important;
-            padding: 0 !important;
-        }
-
-        .select2-container--bootstrap-5 .select2-dropdown {
-            border-color: #e2e8f0 !important;
-            border-radius: 0.75rem !important;
-            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1) !important;
-        }
-
         /* Textarea Readonly Styling */
         textarea[readonly] {
             resize: none;
@@ -196,9 +176,7 @@
                             Dosen Pembimbing
                             <i class="bi bi-lock-fill text-slate-400 ml-1"></i>
                         </label>
-                        <input type="text"
-                            value="{{ $komisiProposal->pembimbing->name ?? 'Tidak ada data' }}"
-                            readonly
+                        <input type="text" value="{{ $komisiProposal->pembimbing->name ?? 'Tidak ada data' }}" readonly
                             class="w-full px-4 py-3 pr-12 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 font-medium focus:ring-0 cursor-not-allowed">
                         <p class="mt-2 text-xs text-slate-500 flex items-center">
                             <i class="bi bi-info-circle mr-1"></i>
@@ -308,7 +286,7 @@
                 </div>
 
                 {{-- ========== FORM ACTIONS ========== --}}
-                <div class="pt-6 border-t border-slate-100" data-aos="fade-up" data-aos-delay="500">
+                <div class="pt-6 border-t border-slate-100">
                     <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 flex items-start">
                         <i class="bi bi-shield-exclamation text-amber-600 text-xl mr-3 mt-0.5"></i>
                         <div class="text-sm text-amber-800">
@@ -467,6 +445,5 @@
                 }
             });
         });
-
     </script>
 @endpush

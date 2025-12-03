@@ -52,6 +52,9 @@ return new class extends Migration {
 
             $table->timestamps();
 
+            $table->softDeletes();
+
+
             // Index
             $table->index('nomor_surat');
             $table->index('verification_code');

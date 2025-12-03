@@ -1,26 +1,30 @@
 <?php
-// filepath: /c:/laragon/www/eservice-app/app/Models/SuratUsulanProposal.php
 
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class SuratUsulanProposal extends Model
 {
+    use SoftDeletes;
+
+    protected $table = 'surat_usulan_proposals';
+
     protected $fillable = [
         'pendaftaran_seminar_proposal_id',
         'nomor_surat',
-        'file_surat',
         'tanggal_surat',
+        'file_surat',
         'verification_code',
         'qr_code_kaprodi',
         'qr_code_kajur',
-        'ttd_kaprodi_at',
-        'ttd_kajur_at',
         'ttd_kaprodi_by',
+        'ttd_kaprodi_at',
         'ttd_kajur_by',
-        'override_info',
+        'ttd_kajur_at',
         'status',
     ];
 
@@ -33,7 +37,7 @@ class SuratUsulanProposal extends Model
     // ========== RELATIONS ==========
     public function pendaftaranSeminarProposal()
     {
-        return $this->belongsTo(PendaftaranSeminarProposal::class, 'pendaftaran_seminar_proposal_id');
+        return $this->belongsTo(PendaftaranSeminarProposal::class);
     }
 
     public function ttdKaprodiBy()
@@ -47,24 +51,14 @@ class SuratUsulanProposal extends Model
     }
 
     // ========== STATUS CHECKS ==========
-    public function canBeSignedByKaprodi(): bool
-    {
-        return $this->status === 'menunggu_ttd_kaprodi';
-    }
-
-    public function canBeSignedByKajur(): bool
-    {
-        return $this->status === 'menunggu_ttd_kajur' && $this->isKaprodiSigned();
-    }
-
     public function isKaprodiSigned(): bool
     {
-        return !empty($this->ttd_kaprodi_at) && !empty($this->qr_code_kaprodi);
+        return !is_null($this->ttd_kaprodi_at) && !is_null($this->ttd_kaprodi_by);
     }
 
     public function isKajurSigned(): bool
     {
-        return !empty($this->ttd_kajur_at) && !empty($this->qr_code_kajur);
+        return !is_null($this->ttd_kajur_at) && !is_null($this->ttd_kajur_by);
     }
 
     public function isFullySigned(): bool
@@ -72,64 +66,59 @@ class SuratUsulanProposal extends Model
         return $this->isKaprodiSigned() && $this->isKajurSigned();
     }
 
-    // ========== HELPER METHODS ==========
-    public function generateQrCode(string $type): string
+    public function canBeSignedByKaprodi(): bool
     {
-        $data = [
-            'nomor_surat' => $this->nomor_surat,
-            'verification_code' => $this->verification_code,
-            'mahasiswa' => $this->pendaftaranSeminarProposal->user->name,
-            'nim' => $this->pendaftaranSeminarProposal->user->nim,
-            'judul' => $this->pendaftaranSeminarProposal->judul_skripsi,
-            'type' => $type,
-            'signed_at' => now()->toIso8601String(),
-            'verification_url' => route('verify.surat-usulan', ['code' => $this->verification_code])
-        ];
-
-        return json_encode($data);
+        return $this->status === 'menunggu_ttd_kaprodi' && !$this->isKaprodiSigned();
     }
 
-    public static function generateNomorSurat(): string
+    public function canBeSignedByKajur(): bool
     {
-        $tahun = date('Y');
-
-        $lastSurat = self::whereYear('created_at', $tahun)
-            ->orderBy('id', 'desc')
-            ->first();
-
-        $nomorUrut = $lastSurat ? (int) explode('/', $lastSurat->nomor_surat)[0] + 1 : 1;
-
-        return sprintf('%03d/UN41.1.17/SP/%d', $nomorUrut, $tahun);
+        return $this->status === 'menunggu_ttd_kajur' &&
+            $this->isKaprodiSigned() &&
+            !$this->isKajurSigned();
     }
 
+    // ========== STATIC HELPERS ==========
+
+    /**
+     * Generate verification code
+     */
     public static function generateVerificationCode(): string
     {
-        return 'SP-' . strtoupper(uniqid());
+        do {
+            $code = strtoupper(Str::random(10));
+        } while (self::where('verification_code', $code)->exists());
+
+        return $code;
     }
 
-    public function getFileSuratUrlAttribute()
-    {
-        return $this->file_surat ? asset('storage/' . $this->file_surat) : null;
-    }
-
+    /**
+     * Get verification URL
+     */
     public function getVerificationUrlAttribute(): string
     {
-        return route('verify.surat-usulan', ['code' => $this->verification_code ?? '']);
+        return route('document.verify', ['code' => $this->verification_code]);
     }
 
-    // ========== BOOT METHOD ==========
+    // ========== STATUS BADGE ==========
+    public function getStatusBadgeAttribute(): string
+    {
+        $badges = [
+            'menunggu_ttd_kaprodi' => '<span class="badge bg-label-warning">Menunggu TTD Kaprodi</span>',
+            'menunggu_ttd_kajur' => '<span class="badge bg-label-info">Menunggu TTD Kajur</span>',
+            'selesai' => '<span class="badge bg-label-success">Selesai</span>',
+        ];
+
+        return $badges[$this->status] ?? '<span class="badge bg-label-secondary">Unknown</span>';
+    }
+
+    // ========== BOOT ==========
     protected static function boot()
     {
         parent::boot();
 
-        static::creating(function ($model) {
-            if (empty($model->verification_code)) {
-                $model->verification_code = self::generateVerificationCode();
-            }
-        });
-
         static::deleting(function ($model) {
-            // Delete PDF file
+            // Delete file surat if exists
             if ($model->file_surat && Storage::disk('public')->exists($model->file_surat)) {
                 Storage::disk('public')->delete($model->file_surat);
             }

@@ -39,26 +39,6 @@
             animation: fadeIn 0.5s ease-out;
         }
 
-        .status-badge {
-            @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold transition-all duration-200;
-        }
-
-        .status-badge.pending {
-            @apply bg-amber-100 text-amber-800 border border-amber-200;
-        }
-
-        .status-badge.approved {
-            @apply bg-emerald-100 text-emerald-800 border border-emerald-200;
-        }
-
-        .status-badge.rejected {
-            @apply bg-red-100 text-red-800 border border-red-200;
-        }
-
-        .status-badge.processing {
-            @apply bg-orange-100 text-orange-800 border border-orange-200;
-        }
-
         .card-hover {
             @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
         }
@@ -70,7 +50,6 @@
         .gradient-secondary {
             background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
         }
-
     </style>
 @endpush
 
@@ -282,7 +261,7 @@
                                     Tanggal</th>
                                 <th scope="col"
                                     class="px-5 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                                    Judul & Pembimbing</th>
+                                    Judul Skripsi</th>
                                 <th scope="col"
                                     class="px-5 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                                     IPK</th>
@@ -326,26 +305,6 @@
                                                 title="{{ strip_tags($item->judul_skripsi) }}">
                                                 {!! Str::limit(strip_tags($item->judul_skripsi), 60) !!}
                                             </div>
-                                            <div class="space-y-1 text-xs text-gray-600">
-                                                <div class="flex items-center gap-1.5">
-                                                    <svg class="w-4 h-4 text-orange-500" fill="currentColor"
-                                                        viewBox="0 0 20 20">
-                                                        <path fill-rule="evenodd"
-                                                            d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
-                                                            clip-rule="evenodd" />
-                                                    </svg>
-                                                    <span class="font-bold">Pembimbing:</span>
-                                                    <span
-                                                        class="font-medium">{{ $item->dosenPembimbing->name ?? 'N/A' }}</span>
-                                                </div>
-                                                @if ($item->dosenPembimbing)
-                                                    <div class="flex items-center gap-1.5 ml-5">
-                                                        <span class="text-gray-500">NIDN:</span>
-                                                        <span
-                                                            class="font-medium">{{ $item->dosenPembimbing->nidn ?? '-' }}</span>
-                                                    </div>
-                                                @endif
-                                            </div>
                                         </div>
                                     </td>
                                     <td class="px-5 py-4 whitespace-nowrap">
@@ -362,7 +321,7 @@
                                     <td class="px-5 py-4 whitespace-nowrap">
                                         <div class="space-y-1">
                                             @if ($item->status == 'pending')
-                                                <span class="status-badge pending">
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
                                                     <svg class="w-3 h-3 mr-1 animate-pulse" fill="currentColor"
                                                         viewBox="0 0 20 20">
                                                         <path fill-rule="evenodd"
@@ -373,7 +332,8 @@
                                                 </span>
                                                 <div class="text-[10px] text-gray-500 font-medium">Sedang diproses</div>
                                             @elseif($item->status == 'approved')
-                                                <span class="status-badge approved">
+                                                <span
+                                                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800 border border-green-200">
                                                     <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                                                         <path fill-rule="evenodd"
                                                             d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
@@ -385,7 +345,8 @@
                                                     {{ $item->updated_at->translatedFormat('d M Y') }}
                                                 </div>
                                             @else
-                                                <span class="status-badge rejected">
+                                                <span
+                                                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800 border border-red-200">
                                                     <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                                                         <path fill-rule="evenodd"
                                                             d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"

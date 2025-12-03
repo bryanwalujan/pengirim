@@ -1,4 +1,5 @@
 <?php
+// filepath: /c:/laragon/www/eservice-app/app/Models/PendaftaranSeminarProposal.php
 
 namespace App\Models;
 
@@ -22,6 +23,8 @@ class PendaftaranSeminarProposal extends Model
         'tanggal_penentuan_pembahas',
         'ditentukan_oleh_id',
         'status',
+        'catatan',
+        'alasan_penolakan', // Added for rejection
     ];
 
     protected $casts = [
@@ -49,7 +52,6 @@ class PendaftaranSeminarProposal extends Model
         return $this->hasMany(ProposalPembahas::class, 'pendaftaran_seminar_proposal_id');
     }
 
-    // RELASI KE SURAT USULAN (One-to-One)
     public function suratUsulan()
     {
         return $this->hasOne(SuratUsulanProposal::class, 'pendaftaran_seminar_proposal_id');
@@ -97,13 +99,16 @@ class PendaftaranSeminarProposal extends Model
 
     public function isKaprodiSigned(): bool
     {
-        return !is_null($this->ttd_kaprodi_at) && !is_null($this->ttd_kaprodi_by);
+        return $this->suratUsulan
+            && !is_null($this->suratUsulan->ttd_kaprodi_at)
+            && !is_null($this->suratUsulan->ttd_kaprodi_by);
     }
-
 
     public function isKajurSigned(): bool
     {
-        return !is_null($this->ttd_kajur_at) && !is_null($this->ttd_kajur_by);
+        return $this->suratUsulan
+            && !is_null($this->suratUsulan->ttd_kajur_at)
+            && !is_null($this->suratUsulan->ttd_kajur_by);
     }
 
     public function isFullySigned(): bool
@@ -118,22 +123,62 @@ class PendaftaranSeminarProposal extends Model
 
     public function canBeSignedByKajur(): bool
     {
-        return $this->status === 'menunggu_ttd_kajur' &&
-            $this->isKaprodiSigned() &&
-            !$this->isKajurSigned();
+        return $this->status === 'menunggu_ttd_kajur'
+            && $this->isKaprodiSigned()
+            && !$this->isKajurSigned();
+    }
+
+    // ========== REJECTION STATUS CHECKS ==========
+    public function isDitolak(): bool
+    {
+        return $this->status === 'ditolak';
+    }
+
+    public function canBeRejected(): bool
+    {
+        return in_array($this->status, ['pending', 'pembahas_ditentukan']);
+    }
+
+    public function canBeResubmitted(): bool
+    {
+        return $this->isDitolak();
+    }
+
+    public function hasAlasanPenolakan(): bool
+    {
+        return !empty($this->alasan_penolakan);
+    }
+
+    // ========== WORKFLOW STATUS CHECKS ==========
+    public function isInProgress(): bool
+    {
+        return in_array($this->status, [
+            'pending',
+            'pembahas_ditentukan',
+            'surat_diproses',
+            'menunggu_ttd_kaprodi',
+            'menunggu_ttd_kajur'
+        ]);
+    }
+
+    public function isCompleted(): bool
+    {
+        return $this->status === 'selesai';
+    }
+
+    public function canBeDeleted(): bool
+    {
+        // Tidak bisa dihapus jika sudah ada tanda tangan
+        return !$this->isKaprodiSigned() && !$this->isKajurSigned();
     }
 
     // ========== HELPER - PEMBAHAS STATISTICS ==========
     public static function getPembahasStatistics()
     {
-        $dosenList = User::role('dosen')
-            ->orderBy('name')
-            ->get();
-
+        $dosenList = User::role('dosen')->orderBy('name')->get();
         $statistics = [];
 
         foreach ($dosenList as $dosen) {
-            // Hanya hitung total, tidak perlu per posisi
             $totalBeban = ProposalPembahas::where('dosen_id', $dosen->id)
                 ->whereHas('pendaftaranSeminarProposal', function ($query) {
                     $query->whereIn('status', [
@@ -152,10 +197,7 @@ class PendaftaranSeminarProposal extends Model
             ];
         }
 
-        // Sort by total beban ascending (beban terendah di atas)
-        uasort($statistics, function ($a, $b) {
-            return $a['total_beban'] <=> $b['total_beban'];
-        });
+        uasort($statistics, fn($a, $b) => $a['total_beban'] <=> $b['total_beban']);
 
         return $statistics;
     }
@@ -185,9 +227,17 @@ class PendaftaranSeminarProposal extends Model
             ];
         }
 
+        // Check for existing active registration (exclude rejected)
         $existingRegistration = self::where('user_id', $userId)
             ->where('komisi_proposal_id', $komisiProposal->id)
-            ->whereIn('status', ['pending', 'pembahas_ditentukan', 'surat_diproses', 'menunggu_ttd_kaprodi', 'menunggu_ttd_kajur', 'selesai'])
+            ->whereIn('status', [
+                'pending',
+                'pembahas_ditentukan',
+                'surat_diproses',
+                'menunggu_ttd_kaprodi',
+                'menunggu_ttd_kajur',
+                'selesai'
+            ])
             ->exists();
 
         if ($existingRegistration) {
@@ -216,6 +266,10 @@ class PendaftaranSeminarProposal extends Model
 
             // Delete surat usulan if exists
             if ($model->suratUsulan) {
+                // Delete surat file if exists
+                if ($model->suratUsulan->file_surat && Storage::disk('local')->exists($model->suratUsulan->file_surat)) {
+                    Storage::disk('local')->delete($model->suratUsulan->file_surat);
+                }
                 $model->suratUsulan->delete();
             }
 
@@ -230,6 +284,16 @@ class PendaftaranSeminarProposal extends Model
             foreach ($files as $file) {
                 if ($file && Storage::disk('public')->exists($file)) {
                     Storage::disk('public')->delete($file);
+                }
+            }
+        });
+
+        // Auto-update timestamp when rejected
+        static::updating(function ($model) {
+            if ($model->isDirty('status') && $model->status === 'ditolak') {
+                // Ensure alasan_penolakan is filled when status changed to ditolak
+                if (empty($model->alasan_penolakan)) {
+                    throw new \Exception('Alasan penolakan harus diisi saat menolak pendaftaran.');
                 }
             }
         });
@@ -270,5 +334,63 @@ class PendaftaranSeminarProposal extends Model
         ];
 
         return $badges[$this->status] ?? '<span class="badge bg-label-secondary">Unknown</span>';
+    }
+
+    // ========== SCOPE QUERIES ==========
+    public function scopePending($query)
+    {
+        return $query->where('status', 'pending');
+    }
+
+    public function scopeDitolak($query)
+    {
+        return $query->where('status', 'ditolak');
+    }
+
+    public function scopeSelesai($query)
+    {
+        return $query->where('status', 'selesai');
+    }
+
+    public function scopeInProgress($query)
+    {
+        return $query->whereIn('status', [
+            'pending',
+            'pembahas_ditentukan',
+            'surat_diproses',
+            'menunggu_ttd_kaprodi',
+            'menunggu_ttd_kajur'
+        ]);
+    }
+
+    public function scopeByAngkatan($query, $angkatan)
+    {
+        return $query->where('angkatan', $angkatan);
+    }
+
+    public function scopeByStatus($query, $status)
+    {
+        return $query->where('status', $status);
+    }
+
+    // ========== ACCESSOR - FORMATTED DATES ==========
+    public function getTanggalPenolakanAttribute(): ?string
+    {
+        if ($this->status === 'ditolak' && $this->updated_at) {
+            return $this->updated_at->translatedFormat('d F Y, H:i') . ' WITA';
+        }
+        return null;
+    }
+
+    public function getTanggalPengajuanAttribute(): string
+    {
+        return $this->created_at->translatedFormat('d F Y, H:i') . ' WITA';
+    }
+
+    public function getTanggalPenentuanPembahasFormattedAttribute(): ?string
+    {
+        return $this->tanggal_penentuan_pembahas
+            ? $this->tanggal_penentuan_pembahas->translatedFormat('d F Y, H:i') . ' WITA'
+            : null;
     }
 }

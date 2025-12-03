@@ -127,8 +127,7 @@
                                             <small
                                                 class="text-muted">{{ $pendaftaran->tanggal_penentuan_pembahas->format('d M Y, H:i') }}</small>
                                         </div>
-                                        <p class="mb-0 small">
-                                            Oleh {{ $pendaftaran->penentuPembahas->name ?? 'System' }}
+                                        <p class="mb-0 small">Oleh {{ $pendaftaran->penentuPembahas->name ?? 'System' }}
                                         </p>
                                     </div>
                                 </li>
@@ -156,9 +155,8 @@
                                                 <small
                                                     class="text-muted">{{ $pendaftaran->suratUsulan->ttd_kaprodi_at->format('d M Y, H:i') }}</small>
                                             </div>
-                                            <p class="mb-0 small">
-                                                Oleh {{ $pendaftaran->suratUsulan->kaprodi->name ?? 'N/A' }}
-                                            </p>
+                                            <p class="mb-0 small">Oleh
+                                                {{ $pendaftaran->suratUsulan->ttdKaprodiBy->name ?? '-' }}</p>
                                         </div>
                                     </li>
                                 @endif
@@ -172,9 +170,8 @@
                                                 <small
                                                     class="text-muted">{{ $pendaftaran->suratUsulan->ttd_kajur_at->format('d M Y, H:i') }}</small>
                                             </div>
-                                            <p class="mb-0 small">
-                                                Oleh {{ $pendaftaran->suratUsulan->kajur->name ?? 'N/A' }}
-                                            </p>
+                                            <p class="mb-0 small">Oleh
+                                                {{ $pendaftaran->suratUsulan->ttdKajurBy->name ?? '-' }}</p>
                                         </div>
                                     </li>
                                 @endif
@@ -185,11 +182,9 @@
                                     <span class="timeline-point timeline-point-success"></span>
                                     <div class="timeline-event">
                                         <div class="timeline-header mb-1">
-                                            <h6 class="mb-0 text-success">
-                                                <i class="bx bx-check-circle me-1"></i>Proses Selesai
-                                            </h6>
+                                            <h6 class="mb-0">Proses Selesai</h6>
                                         </div>
-                                        <p class="mb-0 small">Surat siap digunakan</p>
+                                        <p class="mb-0 small">Pendaftaran telah selesai diproses</p>
                                     </div>
                                 </li>
                             @endif
@@ -197,7 +192,7 @@
                     </div>
                 </div>
 
-                {{-- Card: Quick Actions --}}
+                {{-- Di bagian Quick Actions Card, ubah kondisi tombol hapus --}}
                 @can('manage pendaftaran sempro')
                     <div class="card">
                         <div class="card-header">
@@ -214,15 +209,11 @@
                             @elseif ($pendaftaran->status === 'pembahas_ditentukan' && !$pendaftaran->suratUsulan)
                                 <button type="button" class="btn btn-success w-100 mb-2" data-bs-toggle="modal"
                                     data-bs-target="#generateSuratModal">
-                                    <i class="bx bx-file-blank me-1"></i> Generate Surat
+                                    <i class="bx bx-file me-1"></i> Generate Surat
                                 </button>
                             @endif
 
-                            @if (
-                                $pendaftaran->isPembahasDitentukan() &&
-                                    auth()->user()->hasRole('staff') &&
-                                    !$pendaftaran->isKaprodiSigned() &&
-                                    !$pendaftaran->isKajurSigned())
+                            @if ($pendaftaran->isPembahasDitentukan() && !$pendaftaran->isKajurSigned())
                                 <button type="button" class="btn btn-warning w-100 mb-2" data-bs-toggle="modal"
                                     data-bs-target="#resetPembahasModal">
                                     <i class="bx bx-reset me-1"></i> Reset Pembahas
@@ -230,36 +221,22 @@
                             @endif
 
                             @if ($pendaftaran->suratUsulan)
-                                @php
-                                    $user = auth()->user();
-                                    $canSign =
-                                        $user->hasRole('staff') ||
-                                        ($user->hasRole('dosen') &&
-                                            (str_contains(strtolower($user->jabatan ?? ''), 'koordinator') ||
-                                                str_contains(strtolower($user->jabatan ?? ''), 'ketua') ||
-                                                str_contains(strtolower($user->jabatan ?? ''), 'pimpinan')));
-                                @endphp
-
-                                @if ($canSign && $pendaftaran->suratUsulan->canBeSignedByKaprodi())
-                                    <button type="button" class="btn btn-success w-100 mb-2" data-bs-toggle="modal"
-                                        data-bs-target="#ttdKaprodiModal">
-                                        <i class="bx bx-pen me-1"></i> TTD Kaprodi
-                                    </button>
-                                @elseif ($canSign && $pendaftaran->suratUsulan->canBeSignedByKajur())
-                                    <button type="button" class="btn btn-primary w-100 mb-2" data-bs-toggle="modal"
-                                        data-bs-target="#ttdKajurModal">
-                                        <i class="bx bx-pen me-1"></i> TTD Kajur
-                                    </button>
-                                @endif
-
                                 <a href="{{ route('admin.pendaftaran-seminar-proposal.download-surat', $pendaftaran) }}"
-                                    class="btn btn-label-primary w-100 mb-2" target="_blank">
+                                    class="btn btn-outline-primary w-100 mb-2">
                                     <i class="bx bx-download me-1"></i> Download Surat
                                 </a>
                             @endif
 
-                            @if (auth()->user()->hasRole('staff'))
-                                <button type="button" class="btn btn-danger w-100" data-bs-toggle="modal"
+                            {{-- Tombol Reject - Hanya tampil jika status pending atau pembahas_ditentukan --}}
+                            @if (auth()->user()->hasRole('staff') && in_array($pendaftaran->status, ['pending', 'pembahas_ditentukan']))
+                                <button type="button" class="btn btn-danger w-100 mb-2" data-bs-toggle="modal"
+                                    data-bs-target="#rejectModal">
+                                    <i class="bx bx-x-circle me-1"></i> Tolak Pendaftaran
+                                </button>
+                            @endif
+
+                            @if (auth()->user()->hasRole('staff') && $pendaftaran->status !== 'selesai')
+                                <button type="button" class="btn btn-outline-danger w-100" data-bs-toggle="modal"
                                     data-bs-target="#deleteModal">
                                     <i class="bx bx-trash me-1"></i> Hapus Pendaftaran
                                 </button>
@@ -271,6 +248,42 @@
 
             {{-- Right Column --}}
             <div class="col-xl-8 col-lg-7">
+                {{-- Card: Alasan Penolakan (Tampil pertama jika ditolak) --}}
+                @if ($pendaftaran->status === 'ditolak' && $pendaftaran->alasan_penolakan)
+                    <div class="card mb-4 border-danger">
+                        <div class="card-header bg-danger">
+                            <h5 class="card-title mb-0 text-white">
+                                <i class="bx bx-x-circle me-2"></i>Pendaftaran Ditolak
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-danger bg-danger bg-opacity-10 border-0 my-3">
+                                <div class="d-flex">
+                                    <i class="bx bx-error-circle fs-4 me-2 text-danger"></i>
+                                    <div>
+                                        <strong class="text-danger">Pendaftaran ini telah ditolak</strong>
+                                        <p class="mb-0 text-muted small">Mahasiswa perlu mengajukan ulang pendaftaran
+                                            dengan dokumen yang sesuai.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label text-muted small mb-1">
+                                    <i class="bx bx-message-alt-error me-1"></i>Alasan Penolakan
+                                </label>
+                                <div class="p-3 bg-lighter rounded border-start border-danger border-3">
+                                    <p class="mb-0">{{ $pendaftaran->alasan_penolakan }}</p>
+                                </div>
+                            </div>
+
+                            <div class="d-flex align-items-center text-muted small">
+                                <i class="bx bx-time me-1"></i>
+                                <span>Ditolak pada {{ $pendaftaran->updated_at->format('d F Y, H:i') }} WIB</span>
+                            </div>
+                        </div>
+                    </div>
+                @endif
                 {{-- Card: Informasi Proposal --}}
                 <div class="card mb-4">
                     <div class="card-header">
@@ -330,7 +343,7 @@
                     </div>
                 </div>
 
-                {{-- Card: Dokumen Pendukung --}}
+                {{-- Card: Dokumen Pendukung dengan Preview --}}
                 <div class="card mb-4">
                     <div class="card-header">
                         <h5 class="card-title mb-0">
@@ -338,127 +351,221 @@
                         </h5>
                     </div>
                     <div class="card-body">
-                        <div class="row g-3">
-                            {{-- Transkrip Nilai --}}
-                            <div class="col-md-6">
-                                <div class="card border hover-shadow h-100">
-                                    <div class="card-body p-3">
-                                        <div class="d-flex align-items-center mb-3">
-                                            <div class="avatar avatar-sm me-3">
-                                                <span class="avatar-initial rounded-circle bg-label-primary">
-                                                    <i class="bx bx-file"></i>
+                        {{-- Document Selector Tabs --}}
+                        <div class="document-selector mb-3">
+                            <div class="row g-2">
+                                {{-- Transkrip Nilai --}}
+                                <div class="col-md-6 col-lg-3">
+                                    <div class="document-item {{ $pendaftaran->file_transkrip_nilai ? 'has-file' : 'no-file' }}"
+                                        data-document-type="transkrip"
+                                        data-document-url="{{ $pendaftaran->file_transkrip_nilai ? route('admin.pendaftaran-seminar-proposal.view.transkrip', $pendaftaran) : '' }}"
+                                        data-document-name="Transkrip Nilai">
+                                        <div class="document-icon">
+                                            <i class="bx bx-file-blank text-primary"></i>
+                                        </div>
+                                        <div class="document-info">
+                                            <span class="document-title">Transkrip Nilai</span>
+                                            @if ($pendaftaran->file_transkrip_nilai)
+                                                <span class="document-status text-success">
+                                                    <i class="bx bx-check-circle"></i> Tersedia
                                                 </span>
-                                            </div>
-                                            <div class="flex-grow-1">
-                                                <h6 class="mb-0">Transkrip Nilai</h6>
-                                                <small class="text-muted">PDF Document</small>
-                                            </div>
+                                            @else
+                                                <span class="document-status text-muted">
+                                                    <i class="bx bx-x-circle"></i> Tidak ada
+                                                </span>
+                                            @endif
                                         </div>
-                                        <div class="d-flex gap-2">
-                                            <a href="{{ route('admin.pendaftaran-seminar-proposal.view.transkrip', $pendaftaran) }}"
-                                                class="btn btn-sm btn-primary flex-fill" target="_blank">
-                                                <i class="bx bx-show me-1"></i> Lihat
-                                            </a>
-                                            <a href="{{ route('admin.pendaftaran-seminar-proposal.download.transkrip', $pendaftaran) }}"
-                                                class="btn btn-sm btn-outline-primary flex-fill" download>
-                                                <i class="bx bx-download me-1"></i> Download
-                                            </a>
-                                        </div>
+                                        @if ($pendaftaran->file_transkrip_nilai)
+                                            <div class="document-actions">
+                                                <button type="button" class="btn btn-sm btn-icon btn-preview"
+                                                    title="Preview">
+                                                    <i class="bx bx-show"></i>
+                                                </button>
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
-                            </div>
 
-                            {{-- Proposal Penelitian --}}
-                            <div class="col-md-6">
-                                <div class="card border hover-shadow h-100">
-                                    <div class="card-body p-3">
-                                        <div class="d-flex align-items-center mb-3">
-                                            <div class="avatar avatar-sm me-3">
-                                                <span class="avatar-initial rounded-circle bg-label-info">
-                                                    <i class="bx bx-file"></i>
+                                {{-- Proposal Penelitian --}}
+                                <div class="col-md-6 col-lg-3">
+                                    <div class="document-item {{ $pendaftaran->file_proposal_penelitian ? 'has-file' : 'no-file' }}"
+                                        data-document-type="proposal"
+                                        data-document-url="{{ $pendaftaran->file_proposal_penelitian ? route('admin.pendaftaran-seminar-proposal.view.proposal', $pendaftaran) : '' }}"
+                                        data-document-name="Proposal Penelitian">
+                                        <div class="document-icon">
+                                            <i class="bx bx-book-content text-info"></i>
+                                        </div>
+                                        <div class="document-info">
+                                            <span class="document-title">Proposal Penelitian</span>
+                                            @if ($pendaftaran->file_proposal_penelitian)
+                                                <span class="document-status text-success">
+                                                    <i class="bx bx-check-circle"></i> Tersedia
                                                 </span>
-                                            </div>
-                                            <div class="flex-grow-1">
-                                                <h6 class="mb-0">Proposal Penelitian</h6>
-                                                <small class="text-muted">PDF Document</small>
-                                            </div>
+                                            @else
+                                                <span class="document-status text-muted">
+                                                    <i class="bx bx-x-circle"></i> Tidak ada
+                                                </span>
+                                            @endif
                                         </div>
-                                        <div class="d-flex gap-2">
-                                            <a href="{{ route('admin.pendaftaran-seminar-proposal.view.proposal', $pendaftaran) }}"
-                                                class="btn btn-sm btn-info flex-fill" target="_blank">
-                                                <i class="bx bx-show me-1"></i> Lihat
-                                            </a>
-                                            <a href="{{ route('admin.pendaftaran-seminar-proposal.download.proposal', $pendaftaran) }}"
-                                                class="btn btn-sm btn-outline-info flex-fill" download>
-                                                <i class="bx bx-download me-1"></i> Download
-                                            </a>
-                                        </div>
+                                        @if ($pendaftaran->file_proposal_penelitian)
+                                            <div class="document-actions">
+                                                <button type="button" class="btn btn-sm btn-icon btn-preview"
+                                                    title="Preview">
+                                                    <i class="bx bx-show"></i>
+                                                </button>
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
-                            </div>
 
-                            {{-- Surat Permohonan --}}
-                            <div class="col-md-6">
-                                <div class="card border hover-shadow h-100">
-                                    <div class="card-body p-3">
-                                        <div class="d-flex align-items-center mb-3">
-                                            <div class="avatar avatar-sm me-3">
-                                                <span class="avatar-initial rounded-circle bg-label-success">
-                                                    <i class="bx bx-file"></i>
+                                {{-- Surat Permohonan --}}
+                                <div class="col-md-6 col-lg-3">
+                                    <div class="document-item {{ $pendaftaran->file_surat_permohonan ? 'has-file' : 'no-file' }}"
+                                        data-document-type="permohonan"
+                                        data-document-url="{{ $pendaftaran->file_surat_permohonan ? route('admin.pendaftaran-seminar-proposal.view.permohonan', $pendaftaran) : '' }}"
+                                        data-document-name="Surat Permohonan">
+                                        <div class="document-icon">
+                                            <i class="bx bx-envelope text-warning"></i>
+                                        </div>
+                                        <div class="document-info">
+                                            <span class="document-title">Surat Permohonan</span>
+                                            @if ($pendaftaran->file_surat_permohonan)
+                                                <span class="document-status text-success">
+                                                    <i class="bx bx-check-circle"></i> Tersedia
                                                 </span>
-                                            </div>
-                                            <div class="flex-grow-1">
-                                                <h6 class="mb-0">Surat Permohonan</h6>
-                                                <small class="text-muted">PDF Document</small>
-                                            </div>
+                                            @else
+                                                <span class="document-status text-muted">
+                                                    <i class="bx bx-x-circle"></i> Tidak ada
+                                                </span>
+                                            @endif
                                         </div>
-                                        <div class="d-flex gap-2">
-                                            <a href="{{ route('admin.pendaftaran-seminar-proposal.view.permohonan', $pendaftaran) }}"
-                                                class="btn btn-sm btn-success flex-fill" target="_blank">
-                                                <i class="bx bx-show me-1"></i> Lihat
-                                            </a>
-                                            <a href="{{ route('admin.pendaftaran-seminar-proposal.download.permohonan', $pendaftaran) }}"
-                                                class="btn btn-sm btn-outline-success flex-fill" download>
-                                                <i class="bx bx-download me-1"></i> Download
-                                            </a>
-                                        </div>
+                                        @if ($pendaftaran->file_surat_permohonan)
+                                            <div class="document-actions">
+                                                <button type="button" class="btn btn-sm btn-icon btn-preview"
+                                                    title="Preview">
+                                                    <i class="bx bx-show"></i>
+                                                </button>
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
-                            </div>
 
-                            {{-- Slip UKT --}}
-                            <div class="col-md-6">
-                                <div class="card border hover-shadow h-100">
-                                    <div class="card-body p-3">
-                                        <div class="d-flex align-items-center mb-3">
-                                            <div class="avatar avatar-sm me-3">
-                                                <span class="avatar-initial rounded-circle bg-label-warning">
-                                                    <i class="bx bx-file"></i>
+                                {{-- Slip UKT --}}
+                                <div class="col-md-6 col-lg-3">
+                                    <div class="document-item {{ $pendaftaran->file_slip_ukt ? 'has-file' : 'no-file' }}"
+                                        data-document-type="slip_ukt"
+                                        data-document-url="{{ $pendaftaran->file_slip_ukt ? route('admin.pendaftaran-seminar-proposal.view.slip-ukt', $pendaftaran) : '' }}"
+                                        data-document-name="Slip UKT">
+                                        <div class="document-icon">
+                                            <i class="bx bx-receipt text-success"></i>
+                                        </div>
+                                        <div class="document-info">
+                                            <span class="document-title">Slip UKT</span>
+                                            @if ($pendaftaran->file_slip_ukt)
+                                                <span class="document-status text-success">
+                                                    <i class="bx bx-check-circle"></i> Tersedia
                                                 </span>
-                                            </div>
-                                            <div class="flex-grow-1">
-                                                <h6 class="mb-0">Slip UKT</h6>
-                                                <small class="text-muted">
-                                                    {{ strtoupper(pathinfo($pendaftaran->file_slip_ukt, PATHINFO_EXTENSION)) }}
-                                                    Document
-                                                </small>
-                                            </div>
+                                            @else
+                                                <span class="document-status text-muted">
+                                                    <i class="bx bx-x-circle"></i> Tidak ada
+                                                </span>
+                                            @endif
                                         </div>
-                                        <div class="d-flex gap-2">
-                                            <a href="{{ route('admin.pendaftaran-seminar-proposal.view.slip-ukt', $pendaftaran) }}"
-                                                class="btn btn-sm btn-warning flex-fill" target="_blank">
-                                                <i class="bx bx-show me-1"></i> Lihat
-                                            </a>
-                                            <a href="{{ route('admin.pendaftaran-seminar-proposal.download.slip-ukt', $pendaftaran) }}"
-                                                class="btn btn-sm btn-outline-warning flex-fill" download>
-                                                <i class="bx bx-download me-1"></i> Download
-                                            </a>
-                                        </div>
+                                        @if ($pendaftaran->file_slip_ukt)
+                                            <div class="document-actions">
+                                                <button type="button" class="btn btn-sm btn-icon btn-preview"
+                                                    title="Preview">
+                                                    <i class="bx bx-show"></i>
+                                                </button>
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
                         </div>
 
+                        {{-- Document Preview Container --}}
+                        <div id="documentPreviewContainer" class="document-preview-container" style="display: none;">
+                            <div class="preview-header">
+                                <div class="d-flex align-items-center">
+                                    <i class="bx bx-file-blank me-2 fs-4"></i>
+                                    <div>
+                                        <h6 class="mb-0" id="previewDocumentTitle">Dokumen</h6>
+                                        <small class="text-muted" id="previewDocumentInfo">Klik dokumen di atas untuk
+                                            preview</small>
+                                    </div>
+                                </div>
+                                <div class="preview-actions">
+                                    <a href="#" id="previewDownloadBtn" class="btn btn-sm btn-outline-primary me-2"
+                                        target="_blank">
+                                        <i class="bx bx-download me-1"></i> Download
+                                    </a>
+                                    <a href="#" id="previewNewTabBtn" class="btn btn-sm btn-outline-secondary me-2"
+                                        target="_blank">
+                                        <i class="bx bx-link-external me-1"></i> Buka Tab Baru
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-icon btn-outline-danger"
+                                        id="closePreviewBtn">
+                                        <i class="bx bx-x"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="preview-body">
+                                <div id="previewLoading" class="preview-loading">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <p class="mt-2 mb-0 text-muted">Memuat dokumen...</p>
+                                </div>
+                                <div id="previewError" class="preview-error" style="display: none;">
+                                    <i class="bx bx-error-circle text-danger fs-1"></i>
+                                    <p class="mt-2 mb-0">Gagal memuat dokumen</p>
+                                    <button type="button" class="btn btn-sm btn-outline-primary mt-2"
+                                        id="retryPreviewBtn">
+                                        <i class="bx bx-refresh me-1"></i> Coba Lagi
+                                    </button>
+                                </div>
+                                <iframe id="previewFrame" class="preview-frame" style="display: none;"></iframe>
+                            </div>
+                        </div>
+
+                        {{-- Empty State when no preview selected --}}
+                        <div id="noPreviewState" class="no-preview-state">
+                            <div class="text-center py-4">
+                                <i class="bx bx-file-find text-muted" style="font-size: 3rem;"></i>
+                                <p class="text-muted mt-2 mb-0">Klik salah satu dokumen di atas untuk melihat preview</p>
+                            </div>
+                        </div>
+
+                        {{-- Download All Documents --}}
+                        <div class="mt-3 pt-3 border-top">
+                            <div class="d-flex flex-wrap gap-2">
+                                @if ($pendaftaran->file_transkrip_nilai)
+                                    <a href="{{ route('admin.pendaftaran-seminar-proposal.download.transkrip', $pendaftaran) }}"
+                                        class="btn btn-sm btn-outline-primary">
+                                        <i class="bx bx-download me-1"></i> Transkrip
+                                    </a>
+                                @endif
+                                @if ($pendaftaran->file_proposal_penelitian)
+                                    <a href="{{ route('admin.pendaftaran-seminar-proposal.download.proposal', $pendaftaran) }}"
+                                        class="btn btn-sm btn-outline-info">
+                                        <i class="bx bx-download me-1"></i> Proposal
+                                    </a>
+                                @endif
+                                @if ($pendaftaran->file_surat_permohonan)
+                                    <a href="{{ route('admin.pendaftaran-seminar-proposal.download.permohonan', $pendaftaran) }}"
+                                        class="btn btn-sm btn-outline-warning">
+                                        <i class="bx bx-download me-1"></i> Permohonan
+                                    </a>
+                                @endif
+                                @if ($pendaftaran->file_slip_ukt)
+                                    <a href="{{ route('admin.pendaftaran-seminar-proposal.download.slip-ukt', $pendaftaran) }}"
+                                        class="btn btn-sm btn-outline-success">
+                                        <i class="bx bx-download me-1"></i> Slip UKT
+                                    </a>
+                                @endif
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -467,56 +574,37 @@
                     <div class="card mb-4">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <h5 class="card-title mb-0">
-                                <i class="bx bx-group me-2"></i>Dosen Pembahas
+                                <i class="bx bx-user-check me-2"></i>Dosen Pembahas
                             </h5>
                             @if ($pendaftaran->tanggal_penentuan_pembahas)
                                 <small class="text-muted">
-                                    <i class="bx bx-time me-1"></i>
-                                    {{ $pendaftaran->tanggal_penentuan_pembahas->format('d M Y, H:i') }}
+                                    Ditentukan: {{ $pendaftaran->tanggal_penentuan_pembahas->format('d M Y') }}
                                 </small>
                             @endif
                         </div>
                         <div class="card-body">
                             <div class="row g-3">
-                                @foreach ([1 => 'primary', 2 => 'info', 3 => 'success'] as $posisi => $color)
-                                    @php
-                                        $pembahas = $pendaftaran->{'getPembahas' . $posisi}();
-                                    @endphp
+                                @foreach ($pendaftaran->getPembahasWithDosen() as $pembahas)
                                     <div class="col-md-4">
-                                        <div class="card border-{{ $color }} h-100">
-                                            <div class="card-body text-center">
-                                                <div class="avatar avatar-lg mx-auto mb-2">
-                                                    <span
-                                                        class="avatar-initial rounded-circle bg-label-{{ $color }}">
-                                                        {{ $posisi }}
-                                                    </span>
-                                                </div>
-                                                <h6 class="mb-1">Pembahas {{ $posisi }}</h6>
-                                                @if ($pembahas)
-                                                    <p class="mb-1 fw-semibold">{{ $pembahas->dosen->name }}</p>
-                                                    <small class="text-muted">{{ $pembahas->dosen->nip ?? '-' }}</small>
-                                                @else
-                                                    <span class="badge bg-label-secondary">Belum Ditentukan</span>
-                                                @endif
+                                        <div class="border rounded p-3 text-center">
+                                            <div class="avatar avatar-md mx-auto mb-2">
+                                                <span class="avatar-initial rounded-circle bg-label-primary">
+                                                    {{ $pembahas->posisi }}
+                                                </span>
                                             </div>
+                                            <h6 class="mb-1">{{ $pembahas->dosen->name }}</h6>
+                                            <small class="text-muted">Pembahas {{ $pembahas->posisi }}</small>
                                         </div>
                                     </div>
                                 @endforeach
                             </div>
 
                             @if ($pendaftaran->penentuPembahas)
-                                <div class="alert alert-info mt-3 mb-0">
-                                    <div class="d-flex align-items-start">
-                                        <i class="bx bx-info-circle fs-5 me-2"></i>
-                                        <div class="flex-grow-1">
-                                            <h6 class="alert-heading mb-1">Informasi Penentuan</h6>
-                                            <p class="mb-0 small">
-                                                Ditentukan oleh <strong>{{ $pendaftaran->penentuPembahas->name }}</strong>
-                                                pada {{ $pendaftaran->tanggal_penentuan_pembahas->format('d F Y, H:i') }}
-                                                WIB
-                                            </p>
-                                        </div>
-                                    </div>
+                                <div class="mt-3 pt-3 border-top">
+                                    <small class="text-muted">
+                                        <i class="bx bx-user me-1"></i>
+                                        Ditentukan oleh: {{ $pendaftaran->penentuPembahas->name }}
+                                    </small>
                                 </div>
                             @endif
                         </div>
@@ -528,64 +616,60 @@
                     <div class="card mb-4">
                         <div class="card-header">
                             <h5 class="card-title mb-0">
-                                <i class="bx bx-envelope me-2"></i>Surat Usulan Pembahas
+                                <i class="bx bx-file-blank me-2"></i>Surat Usulan
                             </h5>
                         </div>
                         <div class="card-body">
                             <div class="row g-3 mb-3">
                                 <div class="col-md-6">
-                                    <label class="form-label text-muted mb-1">Nomor Surat</label>
-                                    <div class="p-2 bg-lighter rounded">
-                                        <code class="text-dark">{{ $pendaftaran->suratUsulan->nomor_surat }}</code>
-                                    </div>
+                                    <label class="form-label text-muted small mb-1">Nomor Surat</label>
+                                    <p class="fw-medium mb-0">{{ $pendaftaran->suratUsulan->nomor_surat }}</p>
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label text-muted mb-1">Tanggal Surat</label>
-                                    <div class="p-2 bg-lighter rounded">
-                                        <i class="bx bx-calendar me-1"></i>
-                                        {{ $pendaftaran->suratUsulan->tanggal_surat->format('d F Y') }}
-                                    </div>
+                                    <label class="form-label text-muted small mb-1">Tanggal Surat</label>
+                                    <p class="fw-medium mb-0">
+                                        {{ $pendaftaran->suratUsulan->tanggal_surat->format('d F Y') }}</p>
                                 </div>
                             </div>
 
                             {{-- Progress TTD --}}
                             <div class="mb-3">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <label class="form-label text-muted mb-0">Progress Tanda Tangan</label>
-                                    @php
-                                        $progress = 0;
-                                        if ($pendaftaran->suratUsulan->isKaprodiSigned()) {
-                                            $progress += 50;
-                                        }
-                                        if ($pendaftaran->suratUsulan->isKajurSigned()) {
-                                            $progress += 50;
-                                        }
-                                    @endphp
-                                    <span class="badge bg-label-primary">{{ $progress }}%</span>
-                                </div>
+                                <label class="form-label text-muted small mb-2">Progress Tanda Tangan</label>
+                                @php
+                                    $progress = 0;
+                                    if ($pendaftaran->suratUsulan->ttd_kaprodi_at) {
+                                        $progress += 50;
+                                    }
+                                    if ($pendaftaran->suratUsulan->ttd_kajur_at) {
+                                        $progress += 50;
+                                    }
+                                @endphp
                                 <div class="progress" style="height: 8px;">
-                                    <div class="progress-bar bg-gradient-primary" role="progressbar"
-                                        style="width: {{ $progress }}%;" aria-valuenow="{{ $progress }}"
-                                        aria-valuemin="0" aria-valuemax="100"></div>
+                                    <div class="progress-bar bg-success" role="progressbar"
+                                        style="width: {{ $progress }}%"></div>
                                 </div>
+                                <small class="text-muted">{{ $progress }}% selesai</small>
                             </div>
 
                             {{-- TTD Status Cards --}}
                             <div class="row g-2 mb-3">
                                 <div class="col-md-6">
                                     <div
-                                        class="p-3 rounded {{ $pendaftaran->suratUsulan->isKaprodiSigned() ? 'bg-label-success' : 'bg-lighter' }}">
+                                        class="border rounded p-3 {{ $pendaftaran->suratUsulan->ttd_kaprodi_at ? 'border-success bg-success bg-opacity-10' : '' }}">
                                         <div class="d-flex align-items-center">
-                                            <i
-                                                class="bx {{ $pendaftaran->suratUsulan->isKaprodiSigned() ? 'bx-check-circle text-success' : 'bx-time text-secondary' }} fs-4 me-2"></i>
-                                            <div class="flex-grow-1">
-                                                <h6 class="mb-0">Kaprodi</h6>
-                                                @if ($pendaftaran->suratUsulan->isKaprodiSigned())
+                                            @if ($pendaftaran->suratUsulan->ttd_kaprodi_at)
+                                                <i class="bx bx-check-circle text-success fs-4 me-2"></i>
+                                            @else
+                                                <i class="bx bx-time-five text-warning fs-4 me-2"></i>
+                                            @endif
+                                            <div>
+                                                <h6 class="mb-0">TTD Kaprodi</h6>
+                                                @if ($pendaftaran->suratUsulan->ttd_kaprodi_at)
                                                     <small class="text-success">
-                                                        {{ $pendaftaran->suratUsulan->ttd_kaprodi_at->format('d/m/Y H:i') }}
+                                                        {{ $pendaftaran->suratUsulan->ttd_kaprodi_at->format('d M Y, H:i') }}
                                                     </small>
                                                 @else
-                                                    <small class="text-muted">Menunggu tanda tangan</small>
+                                                    <small class="text-muted">Menunggu</small>
                                                 @endif
                                             </div>
                                         </div>
@@ -593,20 +677,21 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div
-                                        class="p-3 rounded {{ $pendaftaran->suratUsulan->isKajurSigned() ? 'bg-label-success' : 'bg-lighter' }}">
+                                        class="border rounded p-3 {{ $pendaftaran->suratUsulan->ttd_kajur_at ? 'border-success bg-success bg-opacity-10' : '' }}">
                                         <div class="d-flex align-items-center">
-                                            <i
-                                                class="bx {{ $pendaftaran->suratUsulan->isKajurSigned() ? 'bx-check-circle text-success' : 'bx-time text-secondary' }} fs-4 me-2"></i>
-                                            <div class="flex-grow-1">
-                                                <h6 class="mb-0">Kajur</h6>
-                                                @if ($pendaftaran->suratUsulan->isKajurSigned())
+                                            @if ($pendaftaran->suratUsulan->ttd_kajur_at)
+                                                <i class="bx bx-check-circle text-success fs-4 me-2"></i>
+                                            @else
+                                                <i class="bx bx-time-five text-warning fs-4 me-2"></i>
+                                            @endif
+                                            <div>
+                                                <h6 class="mb-0">TTD Kajur</h6>
+                                                @if ($pendaftaran->suratUsulan->ttd_kajur_at)
                                                     <small class="text-success">
-                                                        {{ $pendaftaran->suratUsulan->ttd_kajur_at->format('d/m/Y H:i') }}
+                                                        {{ $pendaftaran->suratUsulan->ttd_kajur_at->format('d M Y, H:i') }}
                                                     </small>
                                                 @else
-                                                    <small class="text-muted">
-                                                        {{ $pendaftaran->suratUsulan->isKaprodiSigned() ? 'Menunggu tanda tangan' : 'Pending' }}
-                                                    </small>
+                                                    <small class="text-muted">Menunggu TTD Kaprodi</small>
                                                 @endif
                                             </div>
                                         </div>
@@ -616,16 +701,13 @@
 
                             {{-- Verification Code --}}
                             @if ($pendaftaran->suratUsulan->verification_code)
-                                <div class="alert alert-primary mb-0">
-                                    <div class="d-flex align-items-center justify-content-between">
-                                        <div class="flex-grow-1">
-                                            <h6 class="alert-heading mb-1">
-                                                <i class="bx bx-qr me-1"></i>Kode Verifikasi
-                                            </h6>
-                                            <code
-                                                class="text-primary fs-5">{{ $pendaftaran->suratUsulan->verification_code }}</code>
+                                <div class="bg-lighter rounded p-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <small class="text-muted d-block">Kode Verifikasi</small>
+                                            <code class="fs-6">{{ $pendaftaran->suratUsulan->verification_code }}</code>
                                         </div>
-                                        <button type="button" class="btn btn-sm btn-primary"
+                                        <button type="button" class="btn btn-sm btn-outline-primary"
                                             onclick="copyToClipboard('{{ $pendaftaran->suratUsulan->verification_code }}')">
                                             <i class="bx bx-copy"></i>
                                         </button>
@@ -641,53 +723,52 @@
                     <div class="card border-primary">
                         <div class="card-body">
                             @if ($pendaftaran->status === 'pending')
-                                <div class="text-center py-3">
-                                    <div class="avatar avatar-xl mx-auto mb-3">
-                                        <span class="avatar-initial rounded-circle bg-label-primary">
-                                            <i class="bx bx-user-check fs-1"></i>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar avatar-md me-3">
+                                        <span class="avatar-initial rounded-circle bg-label-warning">
+                                            <i class="bx bx-time-five"></i>
                                         </span>
                                     </div>
-                                    <h5 class="mb-2">Langkah Selanjutnya</h5>
-                                    <p class="text-muted mb-3">Tentukan 3 dosen pembahas untuk melanjutkan proses</p>
-                                    @can('manage pendaftaran sempro')
-                                        <a href="{{ route('admin.pendaftaran-seminar-proposal.assign-pembahas', $pendaftaran) }}"
-                                            class="btn btn-primary">
-                                            <i class="bx bx-user-check me-1"></i> Tentukan Pembahas
-                                        </a>
-                                    @endcan
-                                </div>
-                            @elseif ($pendaftaran->status === 'pembahas_ditentukan' && !$pendaftaran->suratUsulan)
-                                <div class="text-center py-3">
-                                    <div class="avatar avatar-xl mx-auto mb-3">
-                                        <span class="avatar-initial rounded-circle bg-label-success">
-                                            <i class="bx bx-file-blank fs-1"></i>
-                                        </span>
+                                    <div>
+                                        <h6 class="mb-1">Langkah Selanjutnya</h6>
+                                        <p class="mb-0 text-muted">Tentukan dosen pembahas untuk melanjutkan proses</p>
                                     </div>
-                                    <h5 class="mb-2">Siap Generate Surat</h5>
-                                    <p class="text-muted mb-3">Pembahas sudah ditentukan, lanjutkan untuk generate surat
-                                        usulan</p>
-                                    @can('manage pendaftaran sempro')
-                                        <button type="button" class="btn btn-success" data-bs-toggle="modal"
-                                            data-bs-target="#generateSuratModal">
-                                            <i class="bx bx-file-blank me-1"></i> Generate Surat Usulan
-                                        </button>
-                                    @endcan
                                 </div>
-                            @elseif($pendaftaran->suratUsulan && !$pendaftaran->suratUsulan->isFullySigned())
-                                <div class="text-center py-3">
-                                    <div class="avatar avatar-xl mx-auto mb-3">
+                            @elseif ($pendaftaran->status === 'pembahas_ditentukan')
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar avatar-md me-3">
                                         <span class="avatar-initial rounded-circle bg-label-info">
-                                            <i class="bx bx-pen fs-1"></i>
+                                            <i class="bx bx-file"></i>
                                         </span>
                                     </div>
-                                    <h5 class="mb-2">Menunggu Tanda Tangan</h5>
-                                    <p class="text-muted mb-0">
-                                        @if (!$pendaftaran->suratUsulan->isKaprodiSigned())
-                                            Menunggu tanda tangan dari Koordinator Program Studi
-                                        @else
-                                            Menunggu tanda tangan dari Ketua Jurusan
-                                        @endif
-                                    </p>
+                                    <div>
+                                        <h6 class="mb-1">Langkah Selanjutnya</h6>
+                                        <p class="mb-0 text-muted">Generate surat usulan untuk melanjutkan</p>
+                                    </div>
+                                </div>
+                            @elseif ($pendaftaran->status === 'menunggu_ttd_kaprodi')
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar avatar-md me-3">
+                                        <span class="avatar-initial rounded-circle bg-label-primary">
+                                            <i class="bx bx-pen"></i>
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1">Menunggu Tanda Tangan</h6>
+                                        <p class="mb-0 text-muted">Surat menunggu tanda tangan dari Kaprodi</p>
+                                    </div>
+                                </div>
+                            @elseif ($pendaftaran->status === 'menunggu_ttd_kajur')
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar avatar-md me-3">
+                                        <span class="avatar-initial rounded-circle bg-label-primary">
+                                            <i class="bx bx-pen"></i>
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1">Menunggu Tanda Tangan</h6>
+                                        <p class="mb-0 text-muted">Surat menunggu tanda tangan dari Kajur</p>
+                                    </div>
                                 </div>
                             @endif
                         </div>
@@ -695,15 +776,9 @@
                 @else
                     <div class="card bg-success text-white">
                         <div class="card-body text-center py-4">
-                            <div class="avatar avatar-xl mx-auto mb-3">
-                                <span class="avatar-initial rounded-circle bg-white text-success">
-                                    <i class="bx bx-check-circle fs-1"></i>
-                                </span>
-                            </div>
-                            <h4 class="text-white mb-2">Proses Selesai!</h4>
-                            <p class="text-white mb-0">
-                                Surat usulan telah ditandatangani lengkap dan siap digunakan
-                            </p>
+                            <i class="bx bx-check-circle fs-1 mb-2"></i>
+                            <h5 class="mb-1">Proses Selesai</h5>
+                            <p class="mb-0 opacity-75">Pendaftaran seminar proposal telah selesai diproses</p>
                         </div>
                     </div>
                 @endif
@@ -717,35 +792,322 @@
     @include('admin.pendaftaran-seminar-proposal.modals.ttd-kajur')
     @include('admin.pendaftaran-seminar-proposal.modals.reset-pembahas')
     @include('admin.pendaftaran-seminar-proposal.modals.delete')
+    @if (in_array($pendaftaran->status, ['pending', 'pembahas_ditentukan']))
+        @include('admin.pendaftaran-seminar-proposal.modals.reject')
+    @endif
 @endsection
 
 @push('scripts')
     <script>
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(function() {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Tersalin!',
-                    text: 'Kode verifikasi berhasil disalin ke clipboard',
-                    timer: 2000,
-                    showConfirmButton: false,
-                    toast: true,
-                    position: 'top-end'
-                });
-            }, function(err) {
-                console.error('Could not copy text: ', err);
-            });
-        }
+        document.addEventListener('DOMContentLoaded', function() {
+            // Document Preview Variables
+            const documentItems = document.querySelectorAll('.document-item.has-file');
+            const previewContainer = document.getElementById('documentPreviewContainer');
+            const noPreviewState = document.getElementById('noPreviewState');
+            const previewFrame = document.getElementById('previewFrame');
+            const previewLoading = document.getElementById('previewLoading');
+            const previewError = document.getElementById('previewError');
+            const previewTitle = document.getElementById('previewDocumentTitle');
+            const previewInfo = document.getElementById('previewDocumentInfo');
+            const previewDownloadBtn = document.getElementById('previewDownloadBtn');
+            const previewNewTabBtn = document.getElementById('previewNewTabBtn');
+            const closePreviewBtn = document.getElementById('closePreviewBtn');
+            const retryPreviewBtn = document.getElementById('retryPreviewBtn');
 
-        // Auto dismiss alerts
-        setTimeout(() => {
-            $('.alert-dismissible').fadeOut('slow');
-        }, 5000);
+            let currentDocumentUrl = '';
+            let currentDocumentType = '';
+
+            // Document Item Click Handler
+            documentItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+
+                    const url = this.dataset.documentUrl;
+                    const name = this.dataset.documentName;
+                    const type = this.dataset.documentType;
+
+                    if (!url) return;
+
+                    // Update active state
+                    documentItems.forEach(i => i.classList.remove('active'));
+                    this.classList.add('active');
+
+                    // Load preview
+                    loadPreview(url, name, type);
+                });
+            });
+
+            // Load Preview Function
+            function loadPreview(url, name, type) {
+                currentDocumentUrl = url;
+                currentDocumentType = type;
+
+                // Show container, hide no preview state
+                noPreviewState.style.display = 'none';
+                previewContainer.style.display = 'block';
+
+                // Show loading
+                previewLoading.style.display = 'flex';
+                previewError.style.display = 'none';
+                previewFrame.style.display = 'none';
+
+                // Update header
+                previewTitle.textContent = name;
+                previewInfo.textContent = 'Memuat dokumen...';
+
+                // Set download and new tab URLs
+                const downloadUrl = url.replace('/view-', '/download-');
+                previewDownloadBtn.href = downloadUrl;
+                previewNewTabBtn.href = url;
+
+                // Load iframe
+                previewFrame.onload = function() {
+                    previewLoading.style.display = 'none';
+                    previewFrame.style.display = 'block';
+                    previewInfo.textContent = 'Dokumen berhasil dimuat';
+                };
+
+                previewFrame.onerror = function() {
+                    showPreviewError();
+                };
+
+                // Set timeout for loading
+                setTimeout(() => {
+                    if (previewLoading.style.display !== 'none') {
+                        // Still loading after 10 seconds, might be an issue
+                        // But let's not show error, just update info
+                        previewInfo.textContent = 'Dokumen sedang dimuat, mohon tunggu...';
+                    }
+                }, 10000);
+
+                previewFrame.src = url;
+            }
+
+            // Show Preview Error
+            function showPreviewError() {
+                previewLoading.style.display = 'none';
+                previewFrame.style.display = 'none';
+                previewError.style.display = 'flex';
+                previewInfo.textContent = 'Gagal memuat dokumen';
+            }
+
+            // Close Preview
+            closePreviewBtn.addEventListener('click', function() {
+                previewContainer.style.display = 'none';
+                noPreviewState.style.display = 'block';
+                previewFrame.src = '';
+                documentItems.forEach(i => i.classList.remove('active'));
+            });
+
+            // Retry Preview
+            retryPreviewBtn.addEventListener('click', function() {
+                if (currentDocumentUrl) {
+                    const activeItem = document.querySelector('.document-item.active');
+                    if (activeItem) {
+                        loadPreview(currentDocumentUrl, activeItem.dataset.documentName,
+                            currentDocumentType);
+                    }
+                }
+            });
+
+            // Copy to Clipboard Function
+            window.copyToClipboard = function(text) {
+                navigator.clipboard.writeText(text).then(function() {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Tersalin!',
+                        text: 'Kode verifikasi berhasil disalin ke clipboard',
+                        timer: 2000,
+                        showConfirmButton: false,
+                        toast: true,
+                        position: 'top-end'
+                    });
+                }, function(err) {
+                    console.error('Could not copy text: ', err);
+                });
+            };
+
+            // Auto dismiss alerts
+            setTimeout(() => {
+                const alerts = document.querySelectorAll('.alert-dismissible');
+                alerts.forEach(alert => {
+                    alert.style.transition = 'opacity 0.5s ease';
+                    alert.style.opacity = '0';
+                    setTimeout(() => alert.remove(), 500);
+                });
+            }, 5000);
+        });
     </script>
 @endpush
 
 @push('styles')
     <style>
+        /* Document Selector Styles */
+        .document-selector {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 1rem;
+        }
+
+        .document-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            border: 2px solid #e9ecef;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #fff;
+            min-height: 70px;
+        }
+
+        .document-item.has-file:hover {
+            border-color: #696cff;
+            background: rgba(105, 108, 255, 0.04);
+            transform: translateY(-1px);
+        }
+
+        .document-item.has-file.active {
+            border-color: #696cff;
+            background: rgba(105, 108, 255, 0.08);
+            box-shadow: 0 2px 8px rgba(105, 108, 255, 0.15);
+        }
+
+        .document-item.no-file {
+            cursor: default;
+            opacity: 0.6;
+            background: #f8f9fa;
+        }
+
+        .document-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(105, 108, 255, 0.1);
+            border-radius: 0.5rem;
+            margin-right: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .document-icon i {
+            font-size: 1.25rem;
+        }
+
+        .document-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .document-title {
+            display: block;
+            font-weight: 500;
+            font-size: 0.8125rem;
+            color: #566a7f;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .document-status {
+            display: flex;
+            align-items: center;
+            font-size: 0.7rem;
+            margin-top: 2px;
+        }
+
+        .document-status i {
+            font-size: 0.75rem;
+            margin-right: 2px;
+        }
+
+        .document-actions {
+            margin-left: 0.5rem;
+        }
+
+        .document-actions .btn-preview {
+            background: rgba(105, 108, 255, 0.1);
+            border: none;
+            color: #696cff;
+            width: 28px;
+            height: 28px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.375rem;
+        }
+
+        .document-actions .btn-preview:hover {
+            background: #696cff;
+            color: #fff;
+        }
+
+        /* Document Preview Container Styles */
+        .document-preview-container {
+            border: 1px solid #e9ecef;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            background: #fff;
+            margin-top: 1rem;
+        }
+
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .preview-header h6 {
+            font-size: 0.875rem;
+        }
+
+        .preview-actions {
+            display: flex;
+            align-items: center;
+        }
+
+        .preview-body {
+            position: relative;
+            height: 500px;
+            background: #f0f0f0;
+        }
+
+        .preview-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .preview-loading,
+        .preview-error {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #fff;
+        }
+
+        .no-preview-state {
+            background: #f8f9fa;
+            border: 2px dashed #e9ecef;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .no-preview-state i {
+            opacity: 0.5;
+        }
+
+        /* Additional Styles */
         .bg-lighter {
             background-color: rgba(67, 89, 113, 0.04);
         }
@@ -823,6 +1185,38 @@
 
         .bg-gradient-primary {
             background: linear-gradient(45deg, #696cff, #9395ff);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .document-item {
+                padding: 0.5rem;
+                min-height: 60px;
+            }
+
+            .document-icon {
+                width: 32px;
+                height: 32px;
+                margin-right: 0.5rem;
+            }
+
+            .document-title {
+                font-size: 0.75rem;
+            }
+
+            .preview-body {
+                height: 350px;
+            }
+
+            .preview-header {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .preview-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
         }
     </style>
 @endpush
