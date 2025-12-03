@@ -1,5 +1,4 @@
 <?php
-// filepath: /c:/laragon/www/eservice-app/app/Models/PendaftaranSeminarProposal.php
 
 namespace App\Models;
 

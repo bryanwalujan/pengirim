@@ -1,14 +1,9 @@
 <?php
 
-use App\Models\User;
 use App\Models\TahunAjaran;
-use Barryvdh\DomPDF\Facade\Pdf;
-use App\Models\SuratAktifKuliah;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use App\Http\Controllers\User\HomeController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
@@ -36,7 +31,6 @@ use App\Http\Controllers\Admin\AdminKomisiProposalController;
 use App\Http\Controllers\Admin\AdminSuratIjinSurveyController;
 use App\Http\Controllers\User\PendaftaranUjianHasilController;
 use App\Http\Controllers\Admin\AdminSuratAktifKuliahController;
-use App\Http\Controllers\Admin\DosenSuratAktifKuliahController;
 use App\Http\Controllers\User\PeminjamanLaboratoriumController;
 use App\Http\Controllers\Admin\AdminSuratCutiAkademikController;
 use App\Http\Controllers\Admin\AdminPeminjamanProyektorController;
@@ -79,17 +73,16 @@ Route::get('/verify/{code}', [DocumentVerificationController::class, 'verify'])
     ->name('document.verify');
 
 
-Route::get('/preview-komisi-pdf', [AdminKomisiHasilController::class, 'previewPdf'])
-    ->name('preview.komisi.pdf')
-    ->middleware('auth');
-
 // Route untuk role mahasiswa
 Route::middleware(['auth', 'verified', 'role:mahasiswa', 'check.ukt'])->group(function () {
+
+    // Layanan-layanan E-Service 
     Route::prefix('layanan')->name('user.services.')->group(function () {
         Route::get('/', [UserServiceController::class, 'index'])->name('index');
         Route::get('/{service}/ajukan', [UserServiceController::class, 'create'])->name('create');
     });
 
+    // Fitur Tracking Surat untuk Tracking surat aktif kuliah, ijin survey, cuti akademik dan pindah
     Route::prefix('tracking-surat')->name('user.tracking-surat.')->group(function () {
         Route::get('/', [TrackingSuratController::class, 'index'])->name('index');
         // Route::get('/{surat}', [TrackingSuratController::class, 'show'])->name('show');
@@ -204,7 +197,7 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa', 'check.ukt'])->group(fu
 
 });
 
-// Routes submission dengan middleware no-multi-surat
+// Routes submission dengan middleware no-multi-surat (Surat Aktif Kuliah, Ijin Survey, Cuti Akademik dan Pindah)
 Route::middleware(['auth', 'verified', 'role:mahasiswa', 'check.ukt', 'no-multi-surat'])->group(function () {
     // Hanya routes create dan store yang perlu dibatasi
     Route::prefix('surat-aktif-kuliah')->name('user.surat-aktif-kuliah.')->group(function () {
@@ -452,13 +445,6 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
                 ->name('download-pendukung');
         });
     });
-
-    // Dosen routes untuk Surat Aktif Kuliah
-    // Route::prefix('dosen/surat-aktif-kuliah')->name('dosen.surat-aktif-kuliah.')->group(function () {
-    //     Route::get('/', [DosenSuratAktifKuliahController::class, 'index'])->name('index');
-    //     Route::get('/{surat}', [DosenSuratAktifKuliahController::class, 'show'])->name('show');
-    //     Route::post('/{surat}/approve', [DosenSuratAktifKuliahController::class, 'approve'])->name('approve');
-    // });
 
     // Tahun Ajaran
     Route::prefix('tahun-ajaran')->name('tahun-ajaran.')->group(function () {

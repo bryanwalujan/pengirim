@@ -56,20 +56,21 @@ class SuratUsulanService
                 $nomorSurat = $this->generateNomorSuratUniversal($this->getNomorSuratPrefix());
             }
 
+            // ✅ Verification code akan di-generate otomatis oleh model boot
             $verificationCode = SuratUsulanProposal::generateVerificationCode();
 
             // Create surat record
             $surat = SuratUsulanProposal::create([
                 'pendaftaran_seminar_proposal_id' => $pendaftaran->id,
                 'nomor_surat' => $nomorSurat,
-                'file_surat' => '',
+                'file_surat' => '', // Temporary, akan diupdate setelah PDF dibuat
                 'tanggal_surat' => now(),
                 'verification_code' => $verificationCode,
                 'status' => 'menunggu_ttd_kaprodi',
             ]);
 
-            // Generate PDF
-            $filePath = $this->generatePdf($pendaftaran, $surat);
+            // ✅ Generate initial PDF (tanpa signature)
+            $filePath = $this->generateInitialPdf($pendaftaran, $surat);
 
             // Update surat with file path
             $surat->update(['file_surat' => $filePath]);
@@ -79,9 +80,11 @@ class SuratUsulanService
 
             DB::commit();
 
-            Log::info('Surat usulan generated', [
+            Log::info('Surat usulan generated - SUCCESS', [
                 'pendaftaran_id' => $pendaftaran->id,
+                'surat_id' => $surat->id,
                 'nomor_surat' => $nomorSurat,
+                'verification_code' => $verificationCode,
                 'is_custom' => !is_null($customNomorSurat),
             ]);
 
@@ -90,11 +93,16 @@ class SuratUsulanService
         } catch (\Exception $e) {
             DB::rollBack();
 
+            // Cleanup jika ada file yang sudah dibuat
             if (isset($filePath) && Storage::disk('public')->exists($filePath)) {
                 Storage::disk('public')->delete($filePath);
             }
 
-            Log::error('Error generating surat', ['error' => $e->getMessage()]);
+            Log::error('Error generating surat - FAILED', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
             throw $e;
         }
     }
@@ -162,25 +170,46 @@ class SuratUsulanService
     }
 
     /**
-     * Generate PDF file
+     * ✅ NEW: Generate Initial PDF (Draft - Tanpa Signature)
      */
-    private function generatePdf(
+    private function generateInitialPdf(
         PendaftaranSeminarProposal $pendaftaran,
         SuratUsulanProposal $surat
     ): string {
+        Log::info('Generating initial PDF (draft)', [
+            'surat_id' => $surat->id,
+            'pendaftaran_id' => $pendaftaran->id,
+        ]);
+
+        // Prepare data untuk PDF
         $data = [
-            'pendaftaran' => $pendaftaran,
             'surat' => $surat,
-            'nomor_surat' => $surat->nomor_surat,
-            'tanggal_surat' => now()->translatedFormat('d F Y'),
+            'pendaftaran' => $pendaftaran,
+            'mahasiswa' => $pendaftaran->user,
+            'komisi' => $pendaftaran->komisiProposal,
+            'pembimbing' => $pendaftaran->dosenPembimbing,
+            'pembahas' => $pendaftaran->proposalPembahas,
+
+            // ✅ Signature flags - Semua false untuk draft
+            'show_kaprodi_signature' => false,
+            'show_kajur_signature' => false,
+            'qr_kaprodi' => null,
+            'qr_kajur' => null,
+
             'verification_code' => $surat->verification_code,
         ];
 
-        $pdf = Pdf::loadView('admin.pendaftaran-seminar-proposal.pdf.surat-usulan', $data);
-        $pdf->setPaper('a4', 'portrait');
+        // Generate PDF
+        $pdf = Pdf::loadView('admin.pendaftaran-seminar-proposal.surat-usulan-pdf', $data)
+            ->setPaper('a4', 'portrait');
 
-        $fileName = 'surat-usulan-' . $pendaftaran->user->nim . '-' . now()->format('YmdHis') . '.pdf';
-        $filePath = 'surat-usulan/' . now()->format('Y/m') . '/' . $fileName;
+        // Generate file path
+        $nimSanitized = preg_replace('/[^a-zA-Z0-9]/', '', $pendaftaran->user->nim ?? 'unknown');
+        $timestamp = now()->format('Ymd_His');
+        $fileName = sprintf('surat_usulan_%s_%s_draft.pdf', $nimSanitized, $timestamp);
+
+        $yearMonth = now()->format('Y/m');
+        $filePath = "surat_usulan_proposal/{$yearMonth}/{$fileName}";
 
         // Ensure directory exists
         $directory = dirname($filePath);
@@ -188,16 +217,24 @@ class SuratUsulanService
             Storage::disk('public')->makeDirectory($directory);
         }
 
+        // Save PDF
         Storage::disk('public')->put($filePath, $pdf->output());
+
+        Log::info('Initial PDF generated - SUCCESS', [
+            'surat_id' => $surat->id,
+            'path' => $filePath,
+            'size' => Storage::disk('public')->size($filePath),
+        ]);
 
         return $filePath;
     }
 
     /**
-     * Regenerate PDF with QR codes
+     * ✅ UPDATED: Regenerate PDF dengan QR codes (dipanggil dari SignatureService)
      */
     public function regeneratePdfWithQr(SuratUsulanProposal $surat): void
     {
+        // Load all required relations
         $surat->load([
             'pendaftaranSeminarProposal.user',
             'pendaftaranSeminarProposal.dosenPembimbing',
@@ -207,23 +244,93 @@ class SuratUsulanService
             'ttdKajurBy'
         ]);
 
+        $pendaftaran = $surat->pendaftaranSeminarProposal;
+
+        Log::info('Regenerating PDF with QR codes', [
+            'surat_id' => $surat->id,
+            'kaprodi_signed' => $surat->isKaprodiSigned(),
+            'kajur_signed' => $surat->isKajurSigned(),
+        ]);
+
+        // ✅ Prepare QR codes (data URL format untuk DomPDF)
+        $qrKaprodi = $surat->qr_code_kaprodi
+            ? 'data:image/png;base64,' . $surat->qr_code_kaprodi
+            : null;
+
+        $qrKajur = $surat->qr_code_kajur
+            ? 'data:image/png;base64,' . $surat->qr_code_kajur
+            : null;
+
+        // Prepare data untuk PDF
         $data = [
-            'pendaftaran' => $surat->pendaftaranSeminarProposal,
             'surat' => $surat,
-            'nomor_surat' => $surat->nomor_surat,
-            'tanggal_surat' => $surat->tanggal_surat->translatedFormat('d F Y'),
+            'pendaftaran' => $pendaftaran,
+            'mahasiswa' => $pendaftaran->user,
+            'komisi' => $pendaftaran->komisiProposal,
+            'pembimbing' => $pendaftaran->dosenPembimbing,
+            'pembahas' => $pendaftaran->proposalPembahas,
+
+            // ✅ QR Codes
+            'qr_kaprodi' => $qrKaprodi,
+            'qr_kajur' => $qrKajur,
+
+            // ✅ Signature visibility flags
+            'show_kaprodi_signature' => $surat->isKaprodiSigned(),
+            'show_kajur_signature' => $surat->isKajurSigned(),
+
             'verification_code' => $surat->verification_code,
         ];
 
-        $pdf = Pdf::loadView('admin.pendaftaran-seminar-proposal.pdf.surat-usulan', $data);
-        $pdf->setPaper('a4', 'portrait');
+        // Generate PDF
+        $pdf = Pdf::loadView('admin.pendaftaran-seminar-proposal.surat-usulan-pdf', $data)
+            ->setPaper('a4', 'portrait');
 
-        Storage::disk('public')->put($surat->file_surat, $pdf->output());
+        // ✅ Save dengan nama file yang berbeda berdasarkan status
+        $oldFilePath = $surat->file_surat;
 
-        Log::info('PDF regenerated with QR', [
+        $nimSanitized = preg_replace('/[^a-zA-Z0-9]/', '', $pendaftaran->user->nim ?? 'unknown');
+        $timestamp = now()->format('Ymd_His');
+
+        // Tentukan suffix berdasarkan status signature
+        if ($surat->isFullySigned()) {
+            $statusSuffix = 'final';
+        } elseif ($surat->isKaprodiSigned()) {
+            $statusSuffix = 'kaprodi_signed';
+        } else {
+            $statusSuffix = 'draft';
+        }
+
+        $fileName = sprintf('surat_usulan_%s_%s_%s.pdf', $nimSanitized, $timestamp, $statusSuffix);
+
+        $yearMonth = now()->format('Y/m');
+        $filePath = "surat_usulan_proposal/{$yearMonth}/{$fileName}";
+
+        // Ensure directory exists
+        $directory = dirname($filePath);
+        if (!Storage::disk('public')->exists($directory)) {
+            Storage::disk('public')->makeDirectory($directory);
+        }
+
+        // Save new PDF
+        Storage::disk('public')->put($filePath, $pdf->output());
+
+        // Update file path di database
+        $surat->update(['file_surat' => $filePath]);
+
+        // ✅ Delete old file (jika berbeda)
+        if ($oldFilePath && $oldFilePath !== $filePath && Storage::disk('public')->exists($oldFilePath)) {
+            Storage::disk('public')->delete($oldFilePath);
+            Log::info('Old PDF deleted', ['path' => $oldFilePath]);
+        }
+
+        Log::info('PDF regenerated with QR - SUCCESS', [
             'surat_id' => $surat->id,
+            'new_path' => $filePath,
+            'old_path' => $oldFilePath,
+            'status' => $statusSuffix,
             'has_kaprodi_qr' => !empty($surat->qr_code_kaprodi),
             'has_kajur_qr' => !empty($surat->qr_code_kajur),
+            'file_size' => Storage::disk('public')->size($filePath),
         ]);
     }
 

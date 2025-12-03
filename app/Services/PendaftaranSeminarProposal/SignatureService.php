@@ -3,10 +3,13 @@
 namespace App\Services\PendaftaranSeminarProposal;
 
 use App\Models\User;
-use App\Models\SuratUsulanProposal;
-use App\Models\PendaftaranSeminarProposal;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
+use App\Models\SuratUsulanProposal;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use App\Models\PendaftaranSeminarProposal;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class SignatureService
@@ -17,151 +20,320 @@ class SignatureService
     }
 
     /**
-     * Sign as Kaprodi
+     * Sign as Kaprodi dengan QR Code
+     * 
+     * @param PendaftaranSeminarProposal $pendaftaran
+     * @param User|null $kaprodi User yang melakukan TTD (untuk override)
+     * @param int|null $defaultKaprodiId Default Kaprodi ID jika staff override
+     * @return bool
      */
     public function signAsKaprodi(
-        SuratUsulanProposal $surat,
-        User $user,
-        bool $isActualKaprodi,
+        PendaftaranSeminarProposal $pendaftaran,
+        ?User $kaprodi = null,
         ?int $defaultKaprodiId = null
     ): bool {
         DB::beginTransaction();
         try {
-            $penandatanganId = $isActualKaprodi ? $user->id : $defaultKaprodiId;
+            $surat = $pendaftaran->suratUsulan;
 
-            // Generate override info if staff override
-            $overrideInfo = null;
-            if (!$isActualKaprodi) {
-                $overrideInfo = $this->generateOverrideInfo($user, 'kaprodi', $penandatanganId);
+            if (!$surat) {
+                throw new \Exception('Surat usulan belum dibuat');
             }
 
-            // Generate QR Code
-            $qrData = $surat->generateQrCode('kaprodi');
-            $qrCode = base64_encode(QrCode::format('png')->size(200)->generate($qrData));
+            if (!$surat->canBeSignedByKaprodi()) {
+                throw new \Exception('Surat tidak dapat ditandatangani oleh Kaprodi saat ini');
+            }
 
-            // Update surat
-            $updateData = [
-                'qr_code_kaprodi' => $qrCode,
-                'ttd_kaprodi_at' => now(),
+            $currentUser = Auth::user();
+            $isKaprodi = $this->isKaprodi($currentUser);
+            $canOverride = $this->canOverrideSignature($currentUser);
+
+            // Determine penandatangan
+            if ($isKaprodi) {
+                $penandatanganId = $currentUser->id;
+                $jabatan = $currentUser->jabatan ?? 'Koordinator Program Studi';
+            } elseif ($canOverride && $defaultKaprodiId) {
+                // Staff override
+                $penandatanganId = $defaultKaprodiId;
+                $defaultKaprodi = User::find($defaultKaprodiId);
+                $jabatan = $defaultKaprodi->jabatan ?? 'Koordinator Program Studi';
+
+                // Save override info
+                $surat->setOverrideInfo('kaprodi', [
+                    'override_by' => $currentUser->id,
+                    'override_name' => $currentUser->name,
+                    'override_role' => $currentUser->roles->pluck('name')->first(),
+                    'original_kaprodi_id' => $defaultKaprodiId,
+                    'original_kaprodi_name' => $defaultKaprodi->name,
+                ]);
+            } else {
+                throw new \Exception('Anda tidak memiliki izin untuk menandatangani surat ini');
+            }
+
+            // Generate QR Code untuk Kaprodi
+            $verificationUrl = $surat->verification_url;
+            $qrCodeKaprodi = base64_encode(
+                QrCode::format('png')
+                    ->size(200)
+                    ->errorCorrection('H')
+                    ->generate($verificationUrl)
+            );
+
+            // Update surat dengan TTD Kaprodi
+            $surat->update([
                 'ttd_kaprodi_by' => $penandatanganId,
+                'ttd_kaprodi_at' => now(),
+                'qr_code_kaprodi' => $qrCodeKaprodi,
                 'status' => 'menunggu_ttd_kajur',
-            ];
+            ]);
 
-            if ($overrideInfo) {
-                $updateData['override_info'] = json_encode($overrideInfo);
-            }
+            // Regenerate PDF dengan QR Kaprodi
+            $this->regeneratePdfWithSignature($surat);
 
-            $surat->update($updateData);
-
-            // Update pendaftaran status
-            $surat->pendaftaranSeminarProposal->update(['status' => 'menunggu_ttd_kajur']);
-
-            // Regenerate PDF
-            $this->suratService->regeneratePdfWithQr($surat);
+            // Update status pendaftaran
+            $pendaftaran->update([
+                'status' => 'menunggu_ttd_kajur',
+            ]);
 
             DB::commit();
 
-            Log::info('TTD Kaprodi SUCCESS', [
+            Log::info('Surat usulan signed by Kaprodi', [
                 'surat_id' => $surat->id,
+                'pendaftaran_id' => $pendaftaran->id,
                 'signed_by' => $penandatanganId,
-                'is_override' => !$isActualKaprodi,
+                'is_override' => $canOverride && !$isKaprodi,
             ]);
 
             return true;
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error TTD Kaprodi', ['error' => $e->getMessage()]);
+            Log::error('Error signing as Kaprodi: ' . $e->getMessage(), [
+                'pendaftaran_id' => $pendaftaran->id,
+                'trace' => $e->getTraceAsString(),
+            ]);
             throw $e;
         }
     }
 
     /**
-     * Sign as Kajur
+     * Sign as Kajur dengan QR Code
+     * 
+     * @param PendaftaranSeminarProposal $pendaftaran
+     * @param User|null $kajur User yang melakukan TTD (untuk override)
+     * @param int|null $defaultKajurId Default Kajur ID jika staff override
+     * @return bool
      */
     public function signAsKajur(
-        SuratUsulanProposal $surat,
-        User $user,
-        bool $isActualKajur,
+        PendaftaranSeminarProposal $pendaftaran,
+        ?User $kajur = null,
         ?int $defaultKajurId = null
     ): bool {
         DB::beginTransaction();
         try {
-            $penandatanganId = $isActualKajur ? $user->id : $defaultKajurId;
+            $surat = $pendaftaran->suratUsulan;
 
-            // Generate override info if staff override
-            $overrideInfo = null;
-            if (!$isActualKajur) {
-                $existingOverride = $surat->override_info
-                    ? json_decode($surat->override_info, true)
-                    : [];
-
-                $existingOverride['kajur_override'] = $this->generateOverrideInfo(
-                    $user,
-                    'kajur',
-                    $penandatanganId
-                )['kajur_override'];
-
-                $overrideInfo = $existingOverride;
+            if (!$surat) {
+                throw new \Exception('Surat usulan belum dibuat');
             }
 
-            // Generate QR Code
-            $qrData = $surat->generateQrCode('kajur');
-            $qrCode = base64_encode(QrCode::format('png')->size(200)->generate($qrData));
+            if (!$surat->canBeSignedByKajur()) {
+                throw new \Exception('Surat tidak dapat ditandatangani oleh Kajur saat ini. Pastikan Kaprodi sudah TTD.');
+            }
 
-            // Update surat
-            $updateData = [
-                'qr_code_kajur' => $qrCode,
-                'ttd_kajur_at' => now(),
-                'ttd_kajur_by' => $penandatanganId,
-                'status' => 'selesai',
-            ];
+            $currentUser = Auth::user();
+            $isKajur = $this->isKajur($currentUser);
+            $canOverride = $this->canOverrideSignature($currentUser);
 
-            if ($overrideInfo) {
-                $updateData['override_info'] = json_encode($overrideInfo);
+            // Determine penandatangan
+            if ($isKajur) {
+                $penandatanganId = $currentUser->id;
+                $jabatan = $currentUser->jabatan ?? 'Ketua Jurusan';
+            } elseif ($canOverride && $defaultKajurId) {
+                // Staff override
+                $penandatanganId = $defaultKajurId;
+                $defaultKajur = User::find($defaultKajurId);
+                $jabatan = $defaultKajur->jabatan ?? 'Ketua Jurusan';
+
+                // Save override info
+                $surat->setOverrideInfo('kajur', [
+                    'override_by' => $currentUser->id,
+                    'override_name' => $currentUser->name,
+                    'override_role' => $currentUser->roles->pluck('name')->first(),
+                    'original_kajur_id' => $defaultKajurId,
+                    'original_kajur_name' => $defaultKajur->name,
+                ]);
             } else {
-                $updateData['override_info'] = null;
+                throw new \Exception('Anda tidak memiliki izin untuk menandatangani surat ini');
             }
 
-            $surat->update($updateData);
+            // Generate QR Code untuk Kajur (GUNAKAN VERIFICATION CODE YANG SAMA)
+            $verificationUrl = $surat->verification_url;
+            $qrCodeKajur = base64_encode(
+                QrCode::format('png')
+                    ->size(200)
+                    ->errorCorrection('H')
+                    ->generate($verificationUrl)
+            );
 
-            // Update pendaftaran status
-            $surat->pendaftaranSeminarProposal->update(['status' => 'selesai']);
+            // Update surat dengan TTD Kajur
+            $surat->update([
+                'ttd_kajur_by' => $penandatanganId,
+                'ttd_kajur_at' => now(),
+                'qr_code_kajur' => $qrCodeKajur,
+                'status' => 'selesai',
+            ]);
 
-            // Regenerate PDF final
-            $this->suratService->regeneratePdfWithQr($surat);
+            // Regenerate PDF dengan kedua QR
+            $this->regeneratePdfWithSignature($surat);
+
+            // Update status pendaftaran
+            $pendaftaran->update([
+                'status' => 'selesai',
+            ]);
 
             DB::commit();
 
-            Log::info('TTD Kajur SUCCESS', [
+            Log::info('Surat usulan signed by Kajur - COMPLETED', [
                 'surat_id' => $surat->id,
+                'pendaftaran_id' => $pendaftaran->id,
                 'signed_by' => $penandatanganId,
-                'is_override' => !$isActualKajur,
+                'is_override' => $canOverride && !$isKajur,
             ]);
 
             return true;
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error TTD Kajur', ['error' => $e->getMessage()]);
+            Log::error('Error signing as Kajur: ' . $e->getMessage(), [
+                'pendaftaran_id' => $pendaftaran->id,
+                'trace' => $e->getTraceAsString(),
+            ]);
             throw $e;
         }
     }
 
     /**
-     * Generate override information
+     * Regenerate PDF dengan signature QR codes
      */
-    private function generateOverrideInfo(User $user, string $type, ?int $defaultId): array
+    protected function regeneratePdfWithSignature(SuratUsulanProposal $surat): void
     {
-        return [
-            "{$type}_override" => [
-                'override_by' => $user->id,
-                'override_name' => $user->name,
-                'override_role' => $user->getRoleNames()->first(),
-                'override_at' => now()->toDateTimeString(),
-                'approval_type' => ucfirst($type) . ' Override by Staff',
-                "default_{$type}_id" => $defaultId,
-            ]
-        ];
+        $surat->load([
+            'pendaftaranSeminarProposal.user',
+            'pendaftaranSeminarProposal.komisiProposal',
+            'pendaftaranSeminarProposal.dosenPembimbing',
+            'pendaftaranSeminarProposal.proposalPembahas.dosen',
+            'ttdKaprodiBy',
+            'ttdKajurBy',
+        ]);
+
+        $pendaftaran = $surat->pendaftaranSeminarProposal;
+
+        // Prepare QR codes (data URL format)
+        $qrKaprodi = $surat->qr_code_kaprodi
+            ? 'data:image/png;base64,' . $surat->qr_code_kaprodi
+            : null;
+
+        $qrKajur = $surat->qr_code_kajur
+            ? 'data:image/png;base64,' . $surat->qr_code_kajur
+            : null;
+
+        // Generate PDF
+        $pdf = Pdf::loadView('admin.pendaftaran-seminar-proposal.surat-usulan-pdf', [
+            'surat' => $surat,
+            'pendaftaran' => $pendaftaran,
+            'mahasiswa' => $pendaftaran->user,
+            'komisi' => $pendaftaran->komisiProposal,
+            'pembimbing' => $pendaftaran->dosenPembimbing,
+            'pembahas' => $pendaftaran->proposalPembahas,
+            'qr_kaprodi' => $qrKaprodi,
+            'qr_kajur' => $qrKajur,
+            'verification_code' => $surat->verification_code,
+            'show_kaprodi_signature' => $surat->isKaprodiSigned(),
+            'show_kajur_signature' => $surat->isKajurSigned(),
+        ])->setPaper('a4', 'portrait');
+
+        // Save PDF
+        $oldFilePath = $surat->file_surat;
+
+        $nimSanitized = preg_replace('/[^a-zA-Z0-9]/', '', $pendaftaran->user->nim ?? 'unknown');
+        $timestamp = now()->format('Ymd_His');
+        $statusSuffix = $surat->isFullySigned() ? 'final' : ($surat->isKaprodiSigned() ? 'kaprodi' : 'draft');
+        $filename = sprintf('surat_usulan_%s_%s_%s.pdf', $nimSanitized, $timestamp, $statusSuffix);
+
+        $yearMonth = now()->format('Y/m');
+        $path = "surat_usulan_proposal/{$yearMonth}/{$filename}";
+        $directory = dirname($path);
+
+        if (!Storage::disk('public')->exists($directory)) {
+            Storage::disk('public')->makeDirectory($directory);
+        }
+
+        Storage::disk('public')->put($path, $pdf->output());
+
+        // Update file path
+        $surat->update(['file_surat' => $path]);
+
+        // Delete old file
+        if ($oldFilePath && $oldFilePath !== $path && Storage::disk('public')->exists($oldFilePath)) {
+            Storage::disk('public')->delete($oldFilePath);
+        }
+
+        Log::info('PDF regenerated with signature', [
+            'surat_id' => $surat->id,
+            'new_path' => $path,
+            'old_path' => $oldFilePath,
+            'status' => $statusSuffix,
+        ]);
+    }
+
+    /**
+     * Check if user is Kaprodi
+     */
+    protected function isKaprodi(User $user): bool
+    {
+        if (!$user->hasRole('dosen')) {
+            return false;
+        }
+
+        $jabatan = strtolower($user->jabatan ?? '');
+        $keywords = ['koordinator', 'kaprodi', 'korprodi'];
+
+        foreach ($keywords as $keyword) {
+            if (str_contains($jabatan, $keyword)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if user is Kajur
+     */
+    protected function isKajur(User $user): bool
+    {
+        if (!$user->hasRole('dosen')) {
+            return false;
+        }
+
+        $jabatan = strtolower($user->jabatan ?? '');
+        $keywords = ['ketua jurusan', 'kajur', 'kepala jurusan'];
+
+        foreach ($keywords as $keyword) {
+            if (str_contains($jabatan, $keyword)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if user can override signature
+     */
+    protected function canOverrideSignature(User $user): bool
+    {
+        return $user->hasAnyRole(['super-admin', 'admin', 'staff-tu']);
     }
 }

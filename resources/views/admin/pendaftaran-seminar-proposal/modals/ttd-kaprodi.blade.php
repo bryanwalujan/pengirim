@@ -1,5 +1,6 @@
 {{-- filepath: /c:/laragon/www/eservice-app/resources/views/admin/pendaftaran-seminar-proposal/modals/ttd-kaprodi.blade.php --}}
-@if ($pendaftaran->suratUsulan)
+
+@if ($pendaftaran->suratUsulan && $pendaftaran->status === 'menunggu_ttd_kaprodi')
     <div class="modal fade" id="ttdKaprodiModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -14,33 +15,50 @@
                     method="POST">
                     @csrf
                     <div class="modal-body">
-                        <div class="alert alert-warning mb-3">
+                        <div class="alert alert-info mb-3">
                             <i class="bx bx-info-circle me-2"></i>
-                            <strong>Perhatian:</strong>
+                            <strong>Informasi:</strong><br>
+                            Dengan menandatangani surat ini, Anda menyetujui usulan seminar proposal untuk mahasiswa
+                            <strong>{{ $pendaftaran->user->name }}</strong>.
+                        </div>
+
+                        <div class="alert alert-warning mb-3">
+                            <i class="bx bx-shield-quarter me-2"></i>
+                            <strong>Keamanan:</strong>
                             <ul class="mb-0 mt-2">
-                                <li>Tanda tangan akan dibubuhkan pada surat</li>
-                                <li>QR Code akan digenerate untuk verifikasi</li>
-                                <li>Proses tidak dapat dibatalkan setelah ditandatangani</li>
+                                <li>QR Code akan di-generate untuk verifikasi</li>
+                                <li>Tanda tangan digital tidak dapat dibatalkan</li>
+                                <li>Dokumen akan tersimpan secara permanen</li>
                             </ul>
                         </div>
 
+                        <!-- Surat Info -->
                         <div class="mb-3">
-                            <label class="form-label">Nomor Surat</label>
+                            <label class="form-label fw-semibold">Nomor Surat</label>
                             <input type="text" class="form-control"
                                 value="{{ $pendaftaran->suratUsulan->nomor_surat }}" readonly>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Nama Mahasiswa</label>
-                            <input type="text" class="form-control" value="{{ $pendaftaran->user->name }}" readonly>
+                            <label class="form-label fw-semibold">Nama Mahasiswa</label>
+                            <input type="text" class="form-control"
+                                value="{{ $pendaftaran->user->name }} ({{ $pendaftaran->user->nim }})" readonly>
                         </div>
 
-                        <p class="mb-0">Apakah Anda yakin ingin menandatangani surat ini sebagai
-                            <strong>Kaprodi</strong>?
-                        </p>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Judul Skripsi</label>
+                            <textarea class="form-control" rows="3" readonly>{{ $pendaftaran->judul_skripsi }}</textarea>
+                        </div>
+
+                        <div class="alert alert-success mb-0">
+                            <i class="bx bx-check-circle me-2"></i>
+                            Setelah TTD, surat akan diteruskan ke <strong>Kajur</strong> untuk persetujuan final.
+                        </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                            <i class="bx bx-x me-1"></i> Batal
+                        </button>
                         <button type="submit" class="btn btn-success">
                             <i class="bx bx-pen me-1"></i> Ya, Tanda Tangani
                         </button>

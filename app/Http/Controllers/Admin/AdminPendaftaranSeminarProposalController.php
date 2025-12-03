@@ -416,88 +416,227 @@ class AdminPendaftaranSeminarProposalController extends Controller
 
     /**
      * ========================================
-     * SIGNATURE OPERATIONS
+     * SIGNATURE OPERATIONS (UPDATED)
      * ========================================
      */
 
+    /**
+     * TTD Kaprodi - PERBAIKAN
+     */
     public function ttdKaprodi(Request $request, PendaftaranSeminarProposal $pendaftaranSeminarProposal)
     {
         $user = User::find(Auth::id());
 
+        Log::info('=== TTD KAPRODI - START ===', [
+            'pendaftaran_id' => $pendaftaranSeminarProposal->id,
+            'user_id' => $user->id,
+            'user_name' => $user->name,
+            'current_status' => $pendaftaranSeminarProposal->status,
+        ]);
+
+        // VALIDASI 1: Check surat usulan exists
         if (!$pendaftaranSeminarProposal->suratUsulan) {
             return back()->with('error', 'Surat usulan belum digenerate.');
         }
 
         $surat = $pendaftaranSeminarProposal->suratUsulan;
 
+        // VALIDASI 2: Check status pendaftaran
+        if ($pendaftaranSeminarProposal->status !== 'menunggu_ttd_kaprodi') {
+            return back()->with('error', 'Pendaftaran tidak dalam tahap TTD Kaprodi. Status saat ini: ' . $pendaftaranSeminarProposal->status);
+        }
+
+        // VALIDASI 3: Check surat dapat ditandatangani
         if (!$surat->canBeSignedByKaprodi()) {
             return back()->with('error', 'Surat tidak dapat ditandatangani pada tahap ini.');
         }
 
+        // VALIDASI 4: Check permission
         $isKaprodi = $user->hasRole('dosen') && $this->isKoordinatorProdi($user);
         $canOverride = $this->canOverrideApproval($user);
 
         if (!$isKaprodi && !$canOverride) {
+            Log::warning('User tidak memiliki izin TTD Kaprodi', [
+                'user_id' => $user->id,
+                'is_kaprodi' => $isKaprodi,
+                'can_override' => $canOverride,
+            ]);
             return back()->with('error', 'Hanya Kaprodi atau Staff yang dapat menandatangani.');
         }
 
         try {
+            // Get default Kaprodi ID untuk staff override
+            $defaultKaprodiId = null;
+            if ($canOverride && !$isKaprodi) {
+                $defaultKaprodiId = $this->getDefaultKorprodiId();
+
+                if (!$defaultKaprodiId) {
+                    return back()->with('error', 'Default Kaprodi tidak ditemukan. Hubungi administrator.');
+                }
+            }
+
+            // Call signature service
             $this->signatureService->signAsKaprodi(
-                $surat,
+                $pendaftaranSeminarProposal,
                 $user,
-                $isKaprodi,
-                $this->getDefaultKorprodiId()
+                $defaultKaprodiId
             );
 
-            $message = $canOverride && !$isKaprodi
-                ? 'Surat berhasil ditandatangani (Staff Override).'
-                : 'Surat berhasil ditandatangani sebagai Kaprodi.';
+            Log::info('TTD Kaprodi - SUCCESS', [
+                'pendaftaran_id' => $pendaftaranSeminarProposal->id,
+                'surat_id' => $surat->id,
+                'signed_by' => $user->id,
+                'is_override' => $canOverride && !$isKaprodi,
+            ]);
 
-            return back()->with('success', $message);
+            $message = $canOverride && !$isKaprodi
+                ? 'Surat berhasil ditandatangani (Staff Override). Menunggu tanda tangan Kajur.'
+                : 'Surat berhasil ditandatangani sebagai Kaprodi. Menunggu tanda tangan Kajur.';
+
+            return redirect()
+                ->route('admin.pendaftaran-seminar-proposal.show', $pendaftaranSeminarProposal)
+                ->with('success', $message);
 
         } catch (\Exception $e) {
+            Log::error('TTD Kaprodi - FAILED', [
+                'pendaftaran_id' => $pendaftaranSeminarProposal->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
             return back()->with('error', 'Gagal menandatangani: ' . $e->getMessage());
         }
     }
 
+    /**
+     * TTD Kajur - PERBAIKAN
+     */
     public function ttdKajur(Request $request, PendaftaranSeminarProposal $pendaftaranSeminarProposal)
     {
         $user = User::find(Auth::id());
 
+        Log::info('=== TTD KAJUR - START ===', [
+            'pendaftaran_id' => $pendaftaranSeminarProposal->id,
+            'user_id' => $user->id,
+            'user_name' => $user->name,
+            'current_status' => $pendaftaranSeminarProposal->status,
+        ]);
+
+        // VALIDASI 1: Check surat usulan exists
         if (!$pendaftaranSeminarProposal->suratUsulan) {
             return back()->with('error', 'Surat usulan belum digenerate.');
         }
 
         $surat = $pendaftaranSeminarProposal->suratUsulan;
 
-        if (!$surat->canBeSignedByKajur()) {
-            return back()->with('error', 'Kaprodi belum menandatangani surat.');
+        // VALIDASI 2: Check status pendaftaran
+        if ($pendaftaranSeminarProposal->status !== 'menunggu_ttd_kajur') {
+            return back()->with('error', 'Pendaftaran tidak dalam tahap TTD Kajur. Status saat ini: ' . $pendaftaranSeminarProposal->status);
         }
 
+        // VALIDASI 3: Check Kaprodi sudah TTD
+        if (!$surat->isKaprodiSigned()) {
+            return back()->with('error', 'Kaprodi belum menandatangani surat. TTD Kaprodi terlebih dahulu.');
+        }
+
+        // VALIDASI 4: Check surat dapat ditandatangani
+        if (!$surat->canBeSignedByKajur()) {
+            return back()->with('error', 'Surat tidak dapat ditandatangani oleh Kajur saat ini.');
+        }
+
+        // VALIDASI 5: Check permission
         $isKajur = $user->hasRole('dosen') && $this->isKetuaJurusan($user);
         $canOverride = $this->canOverrideApproval($user);
 
         if (!$isKajur && !$canOverride) {
+            Log::warning('User tidak memiliki izin TTD Kajur', [
+                'user_id' => $user->id,
+                'is_kajur' => $isKajur,
+                'can_override' => $canOverride,
+            ]);
             return back()->with('error', 'Hanya Kajur atau Staff yang dapat menandatangani.');
         }
 
         try {
+            // Get default Kajur ID untuk staff override
+            $defaultKajurId = null;
+            if ($canOverride && !$isKajur) {
+                $defaultKajurId = $this->getDefaultKajurId();
+
+                if (!$defaultKajurId) {
+                    return back()->with('error', 'Default Kajur tidak ditemukan. Hubungi administrator.');
+                }
+            }
+
+            // Call signature service
             $this->signatureService->signAsKajur(
-                $surat,
+                $pendaftaranSeminarProposal,
                 $user,
-                $isKajur,
-                $this->getDefaultKajurId()
+                $defaultKajurId
             );
 
-            $message = $canOverride && !$isKajur
-                ? 'Surat berhasil ditandatangani (Staff Override). Proses selesai.'
-                : 'Surat berhasil ditandatangani sebagai Kajur. Proses selesai.';
+            Log::info('TTD Kajur - SUCCESS (COMPLETED)', [
+                'pendaftaran_id' => $pendaftaranSeminarProposal->id,
+                'surat_id' => $surat->id,
+                'signed_by' => $user->id,
+                'is_override' => $canOverride && !$isKajur,
+            ]);
 
-            return back()->with('success', $message);
+            $message = $canOverride && !$isKajur
+                ? 'Surat berhasil ditandatangani lengkap (Staff Override). Mahasiswa dapat mengunduh surat.'
+                : 'Surat berhasil ditandatangani lengkap sebagai Kajur. Mahasiswa dapat mengunduh surat.';
+
+            return redirect()
+                ->route('admin.pendaftaran-seminar-proposal.show', $pendaftaranSeminarProposal)
+                ->with('success', $message);
 
         } catch (\Exception $e) {
+            Log::error('TTD Kajur - FAILED', [
+                'pendaftaran_id' => $pendaftaranSeminarProposal->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
             return back()->with('error', 'Gagal menandatangani: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Get default Kaprodi ID
+     */
+    private function getDefaultKorprodiId(): ?int
+    {
+        // Cari dosen dengan jabatan Kaprodi
+        $kaprodi = User::whereHas('roles', function ($q) {
+            $q->where('name', 'dosen');
+        })
+            ->where(function ($q) {
+                $q->whereRaw('LOWER(jabatan) LIKE ?', ['%koordinator%'])
+                    ->orWhereRaw('LOWER(jabatan) LIKE ?', ['%kaprodi%'])
+                    ->orWhereRaw('LOWER(jabatan) LIKE ?', ['%korprodi%']);
+            })
+            ->first();
+
+        return $kaprodi?->id;
+    }
+
+    /**
+     * Get default Kajur ID
+     */
+    private function getDefaultKajurId(): ?int
+    {
+        // Cari dosen dengan jabatan Kajur
+        $kajur = User::whereHas('roles', function ($q) {
+            $q->where('name', 'dosen');
+        })
+            ->where(function ($q) {
+                $q->whereRaw('LOWER(jabatan) LIKE ?', ['%ketua jurusan%'])
+                    ->orWhereRaw('LOWER(jabatan) LIKE ?', ['%kajur%'])
+                    ->orWhereRaw('LOWER(jabatan) LIKE ?', ['%kepala jurusan%']);
+            })
+            ->first();
+
+        return $kajur?->id;
     }
 
     /**
