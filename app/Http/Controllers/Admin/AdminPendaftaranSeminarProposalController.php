@@ -862,48 +862,52 @@ class AdminPendaftaranSeminarProposalController extends Controller
     /**
      * Preview PDF dengan data dummy untuk testing template
      */
+    /**
+     * Preview PDF dengan data dummy untuk testing template
+     */
     public function previewPdf()
     {
-        // Data pembahas dummy
-        $pembahas1 = (object) [
-            'dosen' => (object) [
-                'name' => 'Dr. ALICIA SINSUW, ST., MT.',
-                'nip' => '197706102008122001'
+        // PERBAIKAN: Gunakan 'collect' untuk mensimulasikan relation hasMany
+        $proposalPembahas = collect([
+            (object) [
+                'posisi' => 1,
+                'dosen' => (object) [
+                    'name' => 'Dr. Irene Realyta Halldy Trosi Tangkawarow, ST., MISD',
+                    'nip' => '1985xxxx'
+                ]
+            ],
+            (object) [
+                'posisi' => 2,
+                'dosen' => (object) [
+                    'name' => 'Dr. Glenn David Paulus Maramis, M.Compsc',
+                    'nip' => '1980xxxx'
+                ]
+            ],
+            (object) [
+                'posisi' => 3,
+                'dosen' => (object) [
+                    'name' => 'Alfiansyah Hasibuan, S.Kom, M.Kom.',
+                    'nip' => '1990xxxx'
+                ]
             ]
-        ];
+        ]);
 
-        $pembahas2 = (object) [
-            'dosen' => (object) [
-                'name' => 'KRISTOFEL SANTA, S.ST, M.MT',
-                'nip' => '198705312015041003'
-            ]
-        ];
-
-        $pembahas3 = (object) [
-            'dosen' => (object) [
-                'name' => 'YAULIE DEO YOGA RINDENGAN, S.Kom., M.Cs',
-                'nip' => '199001132019031007'
-            ]
-        ];
-
-        // Data dummy untuk preview - PERBAIKAN: langsung assign pembahas sebagai properties
+        // Data dummy untuk preview
         $pendaftaran = (object) [
             'id' => 999,
             'user' => (object) [
-                'name' => 'JOHN DOE',
-                'nim' => '20210047'
+                'name' => 'JUAN IMANUEL KAMASI',
+                'nim' => '22210076'
             ],
-            'angkatan' => '2021',
+            'angkatan' => '2022',
             'ipk' => '3.75',
-            'judul_skripsi' => 'Sistem Informasi Manajemen Berbasis Web untuk Meningkatkan Efisiensi Pelayanan Administrasi Akademik di Universitas Negeri Manado',
+            'judul_skripsi' => 'Analisis Tren dan Visualisasi Data Kasus Narkotika Berbasis Statistik Deskriptif Pada Badan Narkotika Nasional Provinsi Sulawesi Utara',
             'dosenPembimbing' => (object) [
-                'name' => 'SUNDYANTO KUMAJAS, S.T, M.T',
-                'nip' => '19870753122010121006'
+                'name' => 'Dr. Quido C Kainde, ST.,MM.,MT',
+                'nip' => '1980xxxx'
             ],
-            // PERBAIKAN: Assign pembahas langsung sebagai properties
-            'pembahas_1' => $pembahas1,
-            'pembahas_2' => $pembahas2,
-            'pembahas_3' => $pembahas3,
+            // PERBAIKAN: Masukkan collection yang sudah dibuat di atas
+            'proposalPembahas' => $proposalPembahas,
         ];
 
         // Surat dummy
@@ -912,33 +916,40 @@ class AdminPendaftaranSeminarProposalController extends Controller
                 ->size(200)
                 ->margin(1)
                 ->errorCorrection('H')
-                ->generate('https://example.com/verify/PREVIEW-' . strtoupper(uniqid()))),
+                ->generate('https://example.com/verify/PREVIEW-KAPRODI')),
             'qr_code_kajur' => base64_encode(QrCode::format('png')
                 ->size(200)
                 ->margin(1)
                 ->errorCorrection('H')
-                ->generate('https://example.com/verify/PREVIEW-' . strtoupper(uniqid()))),
+                ->generate('https://example.com/verify/PREVIEW-KAJUR')),
             'ttdKaprodiBy' => (object) [
-                'name' => 'KRISTOFEL SANTA, S.ST, M.MT',
-                'nip' => '198705312015041003'
+                'name' => 'Kristofel Santa, S.ST, M.MT',
+                'nip' => '19870531 201504 1 003'
             ],
             'ttdKajurBy' => (object) [
-                'name' => 'Dr. ALICIA SINSUW, ST., MT.',
-                'nip' => '197706102008122001'
+                'name' => 'Dr. Arje C. Djamen. ST, MT',
+                'nip' => '19870712 201012 1 006'
             ],
             'verification_code' => 'PREVIEW-' . strtoupper(uniqid()),
-            'nomor_surat' => '001/UN41.2/TI/2025',
+            'nomor_surat' => '2869/UN41.2/TI/2025',
+            'tanggal_surat' => now(), // Tambahkan tanggal surat
             'is_kaprodi_signed' => true,
+            'is_kajur_signed' => true,
         ];
 
+        // Variabel pendukung view
         $nomorSurat = $surat->nomor_surat;
-        $tanggalSurat = now();
+        $tanggalSurat = $surat->tanggal_surat;
+        $show_kajur_signature = true; // Agar watermark DRAFT hilang saat preview
+        $show_kaprodi_signature = true;
 
         $pdf = Pdf::loadView('admin.pendaftaran-seminar-proposal.surat-usulan-pdf', compact(
             'pendaftaran',
             'surat',
             'nomorSurat',
-            'tanggalSurat'
+            'tanggalSurat',
+            'show_kajur_signature',
+            'show_kaprodi_signature'
         ))
             ->setPaper('a4', 'portrait')
             ->setOption('margin-top', '0.39in')

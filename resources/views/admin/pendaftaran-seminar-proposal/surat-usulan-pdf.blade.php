@@ -1,4 +1,5 @@
 {{-- filepath: /c:/laragon/www/eservice-app/resources/views/admin/pendaftaran-seminar-proposal/surat-usulan-pdf.blade.php --}}
+
 <!DOCTYPE html>
 <html>
 
@@ -23,12 +24,12 @@
             text-align: center;
         }
 
-        .text-justify {
-            text-align: justify;
+        .text-right {
+            text-align: right;
         }
 
-        .font-bold {
-            font-weight: bold;
+        .text-justify {
+            text-align: justify;
         }
 
         .uppercase {
@@ -37,14 +38,14 @@
 
         .underline {
             text-decoration: underline;
+            margin-bottom: -10px;
         }
 
-        /* Header Info Section */
         table.header-info {
             width: 100%;
             border-collapse: collapse;
             margin-top: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 5px;
         }
 
         table.header-info td {
@@ -52,74 +53,49 @@
             padding: 0;
         }
 
-        /* Main Content Table */
         table.main-table {
             width: 100%;
             border-collapse: collapse;
-            margin: 20px 0;
-            font-size: 11pt;
+            margin: 15px 0;
+            line-height: 1.25;
+            font-size: 12pt;
         }
 
         table.main-table th,
         table.main-table td {
             border: 1px solid black;
-            padding: 5px 8px;
+            padding: 4px 6px;
             vertical-align: top;
             text-align: left;
         }
 
         table.main-table th {
             text-align: center;
-            background-color: #f0f0f0;
+            font-weight: bold;
         }
 
-        /* Signature Section */
-        table.signature-table {
-            width: 100%;
-            margin-top: 30px;
-            border-collapse: collapse;
-            page-break-inside: avoid;
-        }
-
-        table.signature-table td {
-            vertical-align: top;
-            text-align: center;
-            padding: 0;
-            width: 50%;
+        /* ✅ SIGNATURE SECTION - SAMA SEPERTI SURAT AKTIF KULIAH */
+        .signature-image {
+            width: 120px;
+            height: auto;
+            background: white;
         }
 
         .signature-space {
-            height: 80px;
+            height: 100px;
+            padding-bottom: .4rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 10px 0;
         }
 
-        .signature-image {
-            max-width: 100px;
-            max-height: 100px;
-            width: auto;
-            height: auto;
-        }
-
-        .verification-footer {
-            margin-top: 30px;
-            text-align: center;
-            font-size: 9pt;
-            color: #666;
-            border-top: 1px dashed #ccc;
-            padding-top: 10px;
-        }
-
-        /* ✅ TAMBAHAN: Status Badge untuk Draft/Pending */
         .draft-watermark {
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%) rotate(-45deg);
-            font-size: 120pt;
-            color: rgba(255, 0, 0, 0.1);
+            font-size: 100pt;
+            color: rgba(200, 200, 200, 0.3);
             font-weight: bold;
             z-index: -1;
             pointer-events: none;
@@ -128,7 +104,7 @@
 </head>
 
 <body>
-    {{-- ✅ WATERMARK untuk Draft/Pending --}}
+    {{-- Watermark jika belum ditandatangani --}}
     @if (!isset($show_kajur_signature) || !$show_kajur_signature)
         <div class="draft-watermark">DRAFT</div>
     @endif
@@ -139,42 +115,37 @@
     {{-- 2. HEADER: NOMOR, LAMPIRAN, PERIHAL & TANGGAL --}}
     <table class="header-info">
         <tr>
-            <td style="width: 10%;">No</td>
+            <td style="width: 15%;">No</td>
             <td style="width: 2%;">:</td>
-            <td style="width: 48%;">{{ $surat->nomor_surat ?? 'DRAFT' }}</td>
-            <td style="width: 40%; text-align: right;">
+            <td style="width: 48%;">{{ $surat->nomor_surat ?? '......./UN41.2/TI/.......' }}</td>
+            <td style="width: 40%;" class="text-right">
                 Tondano, {{ ($surat->tanggal_surat ?? now())->locale('id')->isoFormat('D MMMM Y') }}
             </td>
         </tr>
         <tr>
             <td>Lampiran</td>
             <td>:</td>
-            <td>1 Berkas</td>
-            <td></td>
+            <td colspan="2">1 Berkas</td>
         </tr>
         <tr>
             <td>Perihal</td>
             <td>:</td>
-            <td class="font-bold">Permohonan Penerbitan SK Ujian Proposal</td>
-            <td></td>
+            <td colspan="2">Permohonan Penerbitan SK Ujian Proposal</td>
         </tr>
     </table>
 
     {{-- 3. TUJUAN SURAT --}}
-    <div style="margin-bottom: 15px;">
+    <div style="margin-top: 15px; margin-bottom: 15px;">
         <p style="margin: 0;">Kepada Yth;</p>
-        <p style="margin: 0;" class="font-bold">Dekan Fakultas Teknik Universitas Negeri Manado</p>
-        <p style="margin: 0;">di Tondano</p>
+        <p style="margin: 0;">Dekan Fakultas Teknik Universitas Negeri Manado</p>
     </div>
 
     {{-- 4. ISI SURAT --}}
     <div class="content text-justify">
-        <p style="text-indent: 0;">Dengan hormat,</p>
-
-        <p style="text-indent: 0;">
-            Pimpinan Program Studi S1 Pendidikan Teknik Informatika dan Komputer Fakultas Teknik
-            Universitas Negeri Manado mengusulkan kepada Bapak Dekan untuk menerbitkan
-            SK Ujian Proposal mahasiswa atas nama :
+        <p style="text-indent: 0; line-height: 1.5;">
+            Dengan Hormat, <br>
+            Pimpinan Program Studi S1 Teknik Informatika Fakultas Teknik Universitas Negeri Manado mengusulkan kepada
+            Bapak Dekan untuk menerbitkan SK Ujian Proposal mahasiswa atas nama :
         </p>
 
         {{-- TABEL DATA MAHASISWA --}}
@@ -182,121 +153,86 @@
             <thead>
                 <tr>
                     <th style="width: 5%;">NO</th>
-                    <th style="width: 25%;">NAMA / NIM</th>
-                    <th style="width: 35%;">JUDUL SKRIPSI</th>
-                    <th style="width: 35%;">PEMBAHAS</th>
+                    <th style="width: 20%;">NAMA / NIM</th>
+                    <th style="width: 30%;">JUDUL SKRIPSI</th>
+                    <th style="width: 45%;">PEMBAHAS</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
-                    <td class="text-center">1</td>
-                    <td>
-                        <span class="uppercase font-bold">{{ $pendaftaran->user->name }}</span><br>
+                    <td style="text-align: center;">1</td>
+                    <td style="text-align: center;">
+                        <span class="uppercase">{{ $pendaftaran->user->name }}</span><br>
                         {{ $pendaftaran->user->nim }}
                     </td>
-                    <td>{{ $pendaftaran->judul_skripsi }}</td>
                     <td>
-                        {{-- Pembimbing sebagai Pembahas 1 --}}
+                        {!! $pendaftaran->judul_skripsi !!}
+                    </td>
+                    <td>
+                        {{-- Format Pembahas: 1. Nama (P1) --}}
                         <div style="margin-bottom: 4px;">
-                            1. {{ $pendaftaran->dosenPembimbing->name ?? '-' }} (Pembimbing)
+                            1. {{ $pendaftaran->dosenPembimbing->name ?? '.....................' }} (P1)
                         </div>
 
-                        {{-- Pembahas 2, 3, 4 dari proposal_pembahas --}}
-                        @foreach ($pendaftaran->proposalPembahas->sortBy('posisi') as $index => $pembahas)
-                            <div style="margin-bottom: 4px;">
-                                {{ $index + 2 }}. {{ $pembahas->dosen->name }}
-                            </div>
-                        @endforeach
+                        {{-- Loop Pembahas 2, 3, 4 --}}
+                        @if ($pendaftaran->proposalPembahas && $pendaftaran->proposalPembahas->count() > 0)
+                            @foreach ($pendaftaran->proposalPembahas->sortBy('posisi') as $index => $pembahas)
+                                <div style="margin-bottom: 4px;">
+                                    {{ $index + 2 }}. {{ $pembahas->dosen->name }}
+                                </div>
+                            @endforeach
+                        @else
+                            {{-- Placeholder jika belum ada data pembahas --}}
+                            <div>2. ........................................</div>
+                            <div>3. ........................................</div>
+                            <div>4. ........................................</div>
+                        @endif
                     </td>
                 </tr>
             </tbody>
         </table>
 
         <p style="margin-top: 10px;">
-            Demikian permohonan ini, atas perhatiannya diucapkan terima kasih.
+            Demikian permohonan ini, atasnya diucapkan terima kasih.
         </p>
     </div>
 
-    {{-- 5. TANDA TANGAN (SIDE BY SIDE) --}}
-    <table class="signature-table">
+    {{-- ✅ 5. TANDA TANGAN - SAMA PERSIS SEPERTI SURAT AKTIF KULIAH --}}
+    <table style="vertical-align: top; width: 100%; line-height: 0.8;">
         <tr>
-            {{-- KIRI: KAJUR --}}
+            {{-- KIRI: Kajur/Pimpinan Jurusan --}}
             <td>
-                Mengetahui,<br>
-                Ketua Jurusan Teknik Elektro,
-                <br><br>
-
-                {{-- ✅ QR Code Kajur --}}
+                <p>Mengetahui,</p>
+                <p>Pimpinan Jurusan PTIK,</p>
                 <div class="signature-space">
-                    @if (isset($show_kajur_signature) && $show_kajur_signature && isset($qr_kajur))
-                        {{-- Sudah TTD Kajur - Tampilkan QR --}}
-                        <img src="{{ $qr_kajur }}" class="signature-image" alt="QR Code Kajur">
-                    @else
-                        {{-- Belum TTD - Placeholder --}}
-                        <div
-                            style="height: 80px; border: 1px dashed #ccc; display: flex; align-items: center; justify-content: center; color: #999;">
-                            <i>Menunggu Tanda Tangan</i>
-                        </div>
+                    @if (isset($show_kajur_signature) && $show_kajur_signature && isset($surat->qr_code_kajur))
+                        <img src="data:image/png;base64,{{ $surat->qr_code_kajur }}" alt="QR Code Kajur"
+                            class="signature-image">
                     @endif
                 </div>
-
-                <div class="font-bold {{ isset($show_kajur_signature) && $show_kajur_signature ? 'underline' : '' }}">
-                    {{ $surat->ttdKajurBy->name ?? '( ........................... )' }}
-                </div>
-                <div>
-                    NIP. {{ $surat->ttdKajurBy->nip ?? '........................' }}
-                </div>
+                <p class="underline">
+                    <strong>{{ $surat->ttdKajurBy->name ?? '[Nama Penandatangan]' }}</strong>
+                </p>
+                <p>NIP. {{ $surat->ttdKajurBy->nip ?? '[NIP]' }}</p>
             </td>
 
-            {{-- KANAN: KAPRODI --}}
-            <td>
-                <br>
-                Koordinator Program Studi<br>
-                Pendidikan Teknik Informatika dan Komputer,
-                <br><br>
-
-                {{-- ✅ QR Code Kaprodi --}}
+            {{-- KANAN: Kaprodi --}}
+            <td style="padding-left: 8rem;">
+                <p>Koordinator Program Studi</p>
+                <p>Teknik Informatika,</p>
                 <div class="signature-space">
-                    @if (isset($show_kaprodi_signature) && $show_kaprodi_signature && isset($qr_kaprodi))
-                        {{-- Sudah TTD Kaprodi - Tampilkan QR --}}
-                        <img src="{{ $qr_kaprodi }}" class="signature-image" alt="QR Code Kaprodi">
-                    @else
-                        {{-- Belum TTD - Placeholder --}}
-                        <div
-                            style="height: 80px; border: 1px dashed #ccc; display: flex; align-items: center; justify-content: center; color: #999;">
-                            <i>Menunggu Tanda Tangan</i>
-                        </div>
+                    @if (isset($show_kaprodi_signature) && $show_kaprodi_signature && isset($surat->qr_code_kaprodi))
+                        <img src="data:image/png;base64,{{ $surat->qr_code_kaprodi }}" class="signature-image"
+                            alt="QR Kaprodi">
                     @endif
                 </div>
-
-                <div
-                    class="font-bold {{ isset($show_kaprodi_signature) && $show_kaprodi_signature ? 'underline' : '' }}">
-                    {{ $surat->ttdKaprodiBy->name ?? '( ........................... )' }}
-                </div>
-                <div>
-                    NIP. {{ $surat->ttdKaprodiBy->nip ?? '........................' }}
-                </div>
+                <p class="underline">
+                    <strong>{{ $surat->ttdKaprodiBy->name ?? '[Nama Penandatangan]' }}</strong>
+                </p>
+                <p>NIP. {{ $surat->ttdKaprodiBy->nip ?? '[NIP]' }}</p>
             </td>
         </tr>
     </table>
-
-    {{-- 6. FOOTER VERIFIKASI --}}
-    @if ($surat->verification_code)
-        <div class="verification-footer">
-            <p style="margin: 5px 0;">
-                <strong>Kode Verifikasi:</strong> {{ $surat->verification_code }}
-            </p>
-            <p style="margin: 5px 0; font-size: 8pt; font-style: italic;">
-                Dokumen ini telah ditandatangani secara elektronik.
-                Scan QR Code di atas untuk memverifikasi keaslian dokumen.
-            </p>
-            @if (isset($show_kajur_signature) && $show_kajur_signature)
-                <p style="margin: 5px 0; font-size: 8pt; color: green;">
-                    ✓ Dokumen telah disetujui lengkap pada: {{ $surat->ttd_kajur_at->format('d M Y H:i') }} WIB
-                </p>
-            @endif
-        </div>
-    @endif
 
 </body>
 
