@@ -26,7 +26,7 @@
             {{-- DOSEN VIEW: Simplified Statistics --}}
             <div class="row mb-4">
                 @if (auth()->user()->isKoordinatorProdi())
-                    {{-- Kaprodi Statistics --}}
+                    {{-- Korprodi Statistics --}}
                     <div class="col-lg-6 col-md-6 mb-4">
                         <div class="card">
                             <div class="card-body">
@@ -35,7 +35,7 @@
                                         <i class="bx bx-hourglass rounded p-2 bg-warning" style="font-size: 2rem;"></i>
                                     </div>
                                 </div>
-                                <span class="fw-semibold d-block mb-1">Menunggu TTD Kaprodi</span>
+                                <span class="fw-semibold d-block mb-1">Menunggu TTD Korprodi</span>
                                 <h3 class="card-title mb-2">{{ $statistics['menunggu_ttd_kaprodi'] ?? 0 }}</h3>
                             </div>
                         </div>
@@ -122,7 +122,7 @@
                                     <i class="bx bx-hourglass rounded p-2 bg-primary" style="font-size: 2rem;"></i>
                                 </div>
                             </div>
-                            <span class="fw-semibold d-block mb-1">TTD Kaprodi</span>
+                            <span class="fw-semibold d-block mb-1">TTD Korprodi</span>
                             <h3 class="card-title mb-2">{{ $statistics['menunggu_ttd_kaprodi'] ?? 0 }}</h3>
                         </div>
                     </div>
@@ -209,7 +209,7 @@
                                     </option>
                                     <option value="menunggu_ttd_kaprodi"
                                         {{ request('status') == 'menunggu_ttd_kaprodi' ? 'selected' : '' }}>
-                                        Menunggu TTD Kaprodi
+                                        Menunggu TTD Korprodi
                                     </option>
                                     <option value="menunggu_ttd_kajur"
                                         {{ request('status') == 'menunggu_ttd_kajur' ? 'selected' : '' }}>
@@ -256,7 +256,7 @@
                         <i class="bx bx-info-circle me-2"></i>
                         <strong>Info:</strong>
                         @if (auth()->user()->isKoordinatorProdi())
-                            Anda melihat daftar pendaftaran yang memerlukan tanda tangan Kaprodi atau sudah selesai.
+                            Anda melihat daftar pendaftaran yang memerlukan tanda tangan Korprodi atau sudah selesai.
                         @elseif(auth()->user()->isKetuaJurusan())
                             Anda melihat daftar pendaftaran yang memerlukan tanda tangan Kajur atau sudah selesai.
                         @endif

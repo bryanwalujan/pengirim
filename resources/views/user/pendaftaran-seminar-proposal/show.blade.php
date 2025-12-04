@@ -1,3 +1,5 @@
+{{-- filepath: /c:/laragon/www/eservice-app/resources/views/user/pendaftaran-seminar-proposal/show.blade.php --}}
+
 @extends('layouts.user.app')
 
 @section('title', 'Detail Pendaftaran Seminar Proposal')
@@ -8,12 +10,11 @@
             display: none !important;
         }
 
-
         /* Gradient text */
         .gradient-text {
             background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            --webkit-background-clip: text;
+            --webkit-text-fill-color: transparent;
             background-clip: text;
         }
 
@@ -21,26 +22,22 @@
         .glass-effect {
             background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            --webkit-backdrop-filter: blur(10px);
         }
     </style>
 @endpush
 
 @section('main')
     <!-- Page Title -->
-    <div class="page-title light-background border-b border-gray-200">
+    <div class="page-title light-background">
         <div class="container">
-            <h1 class="text-2xl md:text-3xl font-bold text-gray-900">Detail Pendaftaran Seminar Proposal</h1>
-            <nav class="breadcrumbs mt-2">
-                <ol class="flex items-center space-x-2 text-sm text-gray-500">
-                    <li><a href="{{ route('user.home.index') }}" class="hover:text-orange-600 transition-colors">Beranda</a>
-                    </li>
-                    <li class="before:content-['/'] before:mx-2">Layanan</li>
-                    <li class="before:content-['/'] before:mx-2">
-                        <a href="{{ route('user.pendaftaran-seminar-proposal.index') }}"
-                            class="hover:text-orange-600 transition-colors">Seminar Proposal</a>
-                    </li>
-                    <li class="current before:content-['/'] before:mx-2 text-gray-800 font-medium">Detail</li>
+            <h1 data-aos="fade-up" class="text-2xl md:text-3xl">Detail Pendfataran Seminar Proposal</h1>
+            <nav class="breadcrumbs" data-aos="fade-up" data-aos-delay="100">
+                <ol>
+                    <li><a href="{{ route('user.home.index') }}">Beranda</a></li>
+                    <li><a href="{{ route('user.services.index') }}">Layanan</a></li>
+                    <li><a href="{{ route('user.pendaftaran-seminar-proposal.index') }}">Seminar Proposal</a></li>
+                    <li class="current">Detail</li>
                 </ol>
             </nav>
         </div>
@@ -168,11 +165,11 @@
             {{-- Main Grid Layout --}}
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
 
-                {{-- LEFT SIDEBAR - Student Info --}}
+                {{-- ✅ LEFT SIDEBAR - Student Info & Surat Usulan --}}
                 <div class="lg:col-span-1 space-y-6">
 
                     {{-- Student Card --}}
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden sticky top-24">
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                         <!-- Header -->
                         <div class="bg-gradient-to-r from-orange-500 to-amber-500 px-6 py-4">
                             <div class="flex items-center gap-3 text-white">
@@ -211,7 +208,8 @@
                                         </svg>
                                         <span class="text-xs font-medium text-gray-600">Angkatan</span>
                                     </div>
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-100 text-blue-700">{{ $pendaftaran->angkatan }}</span>
+                                    <span
+                                        class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-100 text-blue-700">{{ $pendaftaran->angkatan }}</span>
                                 </div>
 
                                 <div
@@ -246,6 +244,92 @@
                             </div>
                         </div>
                     </div>
+
+                    {{-- ✅ SURAT USULAN CARD (MOVED HERE) --}}
+                    @if ($pendaftaran->suratUsulan)
+                        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                            <!-- Header -->
+                            <div class="bg-emerald-500 px-6 py-4">
+                                <div class="flex items-center gap-3 text-white">
+                                    <div class="p-2 bg-white/20 rounded-lg">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-lg font-bold text-white">Surat Usulan Diterbitkan</h3>
+                                        <p class="text-sm text-emerald-100">Status: Selesai</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Content -->
+                            <div class="p-6">
+                                <p class="text-gray-700 text-sm leading-relaxed mb-4">
+                                    Selamat! Surat usulan seminar proposal Anda telah disetujui dan diterbitkan secara
+                                    resmi.
+                                </p>
+
+                                <!-- Approval Status -->
+                                <div class="space-y-3">
+                                    <!-- TTD Korprodi -->
+                                    <div
+                                        class="flex items-center gap-3 p-3 bg-emerald-50 rounded-xl border border-emerald-200">
+                                        <div class="flex-shrink-0">
+                                            <svg class="w-5 h-5 text-emerald-600" fill="currentColor"
+                                                viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd"
+                                                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                                    clip-rule="evenodd" />
+                                            </svg>
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="text-xs font-bold text-emerald-700 uppercase tracking-wide">
+                                                TTD Korprodi
+                                            </p>
+                                            <p class="text-xs text-gray-600 mt-0.5">
+                                                {{ $pendaftaran->suratUsulan->ttd_kaprodi_at->format('d M Y, H:i') }} WITA
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <!-- TTD Kajur -->
+                                    <div
+                                        class="flex items-center gap-3 p-3 bg-emerald-50 rounded-xl border border-emerald-200">
+                                        <div class="flex-shrink-0">
+                                            <svg class="w-5 h-5 text-emerald-600" fill="currentColor"
+                                                viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd"
+                                                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                                    clip-rule="evenodd" />
+                                            </svg>
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="text-xs font-bold text-emerald-700 uppercase tracking-wide">
+                                                TTD Kajur
+                                            </p>
+                                            <p class="text-xs text-gray-600 mt-0.5">
+                                                {{ $pendaftaran->suratUsulan->ttd_kajur_at->format('d M Y, H:i') }} WITA
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Info Footer -->
+                                <div class="mt-4 pt-4 border-t border-gray-200">
+                                    <div class="flex items-center gap-2 text-xs text-gray-500">
+                                        <svg class="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd"
+                                                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                                                clip-rule="evenodd" />
+                                        </svg>
+                                        <span>Surat dapat diunduh dari sistem admin</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
 
                 </div>
 
@@ -374,73 +458,6 @@
                                             </div>
                                         </div>
                                     @endforeach
-                                </div>
-                            </div>
-                        </div>
-                    @endif
-
-                    {{-- Letter (if generated) --}}
-                    @if ($pendaftaran->suratUsulan)
-                        <div class="relative overflow-hidden rounded-2xl shadow-xl">
-                            <!-- Background -->
-                            <div class="absolute inset-0 bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600">
-                            </div>
-                            <div class="absolute inset-0 opacity-10"
-                                style="background-image: url('data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.4\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');">
-                            </div>
-
-                            <!-- Content -->
-                            <div class="relative p-6 md:p-8">
-                                <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                                    <div class="flex items-start gap-4">
-                                        <div class="p-3 bg-white/20 backdrop-blur-md rounded-2xl shadow-lg">
-                                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                        </div>
-                                        <div class="text-white">
-                                            <h3 class="text-xl font-bold mb-1">Surat Usulan Diterbitkan</h3>
-                                            <p class="text-emerald-100 text-sm mb-4 max-w-md leading-relaxed">
-                                                Selamat! Surat usulan seminar proposal Anda telah disetujui dan dapat
-                                                diunduh.
-                                            </p>
-                                            <div class="flex flex-wrap gap-2">
-                                                <span
-                                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/10 backdrop-blur-sm rounded-lg text-xs font-semibold border border-white/20">
-                                                    <svg class="w-3.5 h-3.5 text-emerald-300" fill="currentColor"
-                                                        viewBox="0 0 20 20">
-                                                        <path fill-rule="evenodd"
-                                                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                                            clip-rule="evenodd" />
-                                                    </svg>
-                                                    TTD Kaprodi
-                                                </span>
-                                                <span
-                                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/10 backdrop-blur-sm rounded-lg text-xs font-semibold border border-white/20">
-                                                    <svg class="w-3.5 h-3.5 text-emerald-300" fill="currentColor"
-                                                        viewBox="0 0 20 20">
-                                                        <path fill-rule="evenodd"
-                                                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                                            clip-rule="evenodd" />
-                                                    </svg>
-                                                    TTD Kajur
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <a href="{{ route('user.pendaftaran-seminar-proposal.download-surat', $pendaftaran) }}"
-                                        class="group flex-shrink-0 inline-flex items-center gap-2 px-6 py-3 bg-white text-emerald-700 font-bold rounded-xl shadow-lg hover:shadow-2xl hover:bg-emerald-50 transition-all"
-                                        target="_blank">
-                                        <svg class="w-5 h-5 transition-transform group-hover:translate-y-1" fill="none"
-                                            stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                        </svg>
-                                        Download Surat
-                                    </a>
                                 </div>
                             </div>
                         </div>

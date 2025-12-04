@@ -151,7 +151,7 @@
                                         <span class="timeline-point timeline-point-success"></span>
                                         <div class="timeline-event">
                                             <div class="timeline-header mb-1">
-                                                <h6 class="mb-0">TTD Kaprodi</h6>
+                                                <h6 class="mb-0">TTD Korprodi</h6>
                                                 <small
                                                     class="text-muted">{{ $pendaftaran->suratUsulan->ttd_kaprodi_at->format('d M Y, H:i') }}</small>
                                             </div>
@@ -201,17 +201,17 @@
                             </h6>
                         </div>
                         <div class="card-body">
-                            {{-- TTD KAPRODI - Untuk Kaprodi atau Staff --}}
+                            {{-- TTD KAPRODI - Untuk Korprodi atau Staff --}}
                             @if ($pendaftaran->status === 'menunggu_ttd_kaprodi')
                                 @if (auth()->user()->isKoordinatorProdi() || auth()->user()->hasRole('staff'))
                                     <button type="button" class="btn btn-success w-100 mb-2" data-bs-toggle="modal"
                                         data-bs-target="#ttdKaprodiModal">
-                                        <i class="bx bx-pen me-1"></i> Tanda Tangan Kaprodi
+                                        <i class="bx bx-pen me-1"></i> Tanda Tangan Korprodi
                                     </button>
                                 @else
                                     <div class="alert alert-info mb-2">
                                         <i class="bx bx-info-circle me-1"></i>
-                                        <small>Menunggu tanda tangan dari Kaprodi</small>
+                                        <small>Menunggu tanda tangan dari Korprodi</small>
                                     </div>
                                 @endif
                             @endif
@@ -698,7 +698,7 @@
                                                 <i class="bx bx-time-five text-warning fs-4 me-2"></i>
                                             @endif
                                             <div>
-                                                <h6 class="mb-0">TTD Kaprodi</h6>
+                                                <h6 class="mb-0">TTD Korprodi</h6>
                                                 @if ($pendaftaran->suratUsulan->ttd_kaprodi_at)
                                                     <small class="text-success">
                                                         {{ $pendaftaran->suratUsulan->ttd_kaprodi_at->format('d M Y, H:i') }}
@@ -726,7 +726,7 @@
                                                         {{ $pendaftaran->suratUsulan->ttd_kajur_at->format('d M Y, H:i') }}
                                                     </small>
                                                 @else
-                                                    <small class="text-muted">Menunggu TTD Kaprodi</small>
+                                                    <small class="text-muted">Menunggu TTD Korprodi</small>
                                                 @endif
                                             </div>
                                         </div>
@@ -790,7 +790,7 @@
                                     </div>
                                     <div>
                                         <h6 class="mb-1">Menunggu Tanda Tangan</h6>
-                                        <p class="mb-0 text-muted">Surat menunggu tanda tangan dari Kaprodi</p>
+                                        <p class="mb-0 text-muted">Surat menunggu tanda tangan dari Korprodi</p>
                                     </div>
                                 </div>
                             @elseif ($pendaftaran->status === 'menunggu_ttd_kajur')
@@ -812,7 +812,7 @@
                     <div class="card bg-success text-white">
                         <div class="card-body text-center py-4">
                             <i class="bx bx-check-circle fs-1 mb-2"></i>
-                            <h5 class="mb-1">Proses Selesai</h5>
+                            <h5 class="mb-1 text-white">Proses Selesai</h5>
                             <p class="mb-0 opacity-75">Pendaftaran seminar proposal telah selesai diproses</p>
                         </div>
                     </div>

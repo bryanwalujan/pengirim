@@ -320,44 +320,108 @@
                                     </td>
                                     <td class="px-5 py-4 whitespace-nowrap">
                                         <div class="space-y-1">
-                                            @if ($item->status == 'pending')
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
-                                                    <svg class="w-3 h-3 mr-1 animate-pulse" fill="currentColor"
-                                                        viewBox="0 0 20 20">
-                                                        <path fill-rule="evenodd"
-                                                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
-                                                            clip-rule="evenodd" />
-                                                    </svg>
-                                                    Menunggu
-                                                </span>
-                                                <div class="text-[10px] text-gray-500 font-medium">Sedang diproses</div>
-                                            @elseif($item->status == 'approved')
-                                                <span
-                                                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800 border border-green-200">
-                                                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                        <path fill-rule="evenodd"
-                                                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                                            clip-rule="evenodd" />
-                                                    </svg>
-                                                    Disetujui
-                                                </span>
-                                                <div class="text-[10px] text-gray-500 font-medium">
-                                                    {{ $item->updated_at->translatedFormat('d M Y') }}
-                                                </div>
-                                            @else
-                                                <span
-                                                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800 border border-red-200">
-                                                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                        <path fill-rule="evenodd"
-                                                            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                                                            clip-rule="evenodd" />
-                                                    </svg>
-                                                    Ditolak
-                                                </span>
-                                                <div class="text-[10px] text-gray-500 font-medium">
-                                                    {{ $item->updated_at->translatedFormat('d M Y') }}
-                                                </div>
-                                            @endif
+                                            @switch($item->status)
+                                                {{-- 1. PENDING - Menunggu Penentuan Pembahas --}}
+                                                @case('pending')
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
+                                                        <svg class="w-3 h-3 mr-1 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd"
+                                                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                                                                clip-rule="evenodd" />
+                                                        </svg>
+                                                        Pending
+                                                    </span>
+                                                    <div class="text-[10px] text-gray-500 font-medium">Menunggu penentuan pembahas</div>
+                                                @break
+                                    
+                                                {{-- 2. PEMBAHAS DITENTUKAN --}}
+                                                @case('pembahas_ditentukan')
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200">
+                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"/>
+                                                        </svg>
+                                                        Pembahas OK
+                                                    </span>
+                                                    <div class="text-[10px] text-gray-500 font-medium">Pembahas sudah ditentukan</div>
+                                                @break
+                                    
+                                                {{-- 3. SURAT DIPROSES --}}
+                                                @case('surat_diproses')
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800 border border-indigo-200">
+                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/>
+                                                        </svg>
+                                                        Surat Diproses
+                                                    </span>
+                                                    <div class="text-[10px] text-gray-500 font-medium">Surat sedang digenerate</div>
+                                                @break
+                                    
+                                                {{-- 4. MENUNGGU TTD KAPRODI --}}
+                                                @case('menunggu_ttd_kaprodi')
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-800 border border-purple-200">
+                                                        <svg class="w-3 h-3 mr-1 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd"
+                                                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                                                                clip-rule="evenodd" />
+                                                        </svg>
+                                                        TTD Kaprodi
+                                                    </span>
+                                                    <div class="text-[10px] text-gray-500 font-medium">Menunggu tanda tangan</div>
+                                                @break
+                                    
+                                                {{-- 5. MENUNGGU TTD KAJUR --}}
+                                                @case('menunggu_ttd_kajur')
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-violet-100 text-violet-800 border border-violet-200">
+                                                        <svg class="w-3 h-3 mr-1 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd"
+                                                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                                                                clip-rule="evenodd" />
+                                                        </svg>
+                                                        TTD Kajur
+                                                    </span>
+                                                    <div class="text-[10px] text-gray-500 font-medium">Menunggu tanda tangan</div>
+                                                @break
+                                    
+                                                {{-- 6. SELESAI --}}
+                                                @case('selesai')
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd"
+                                                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                                                clip-rule="evenodd" />
+                                                        </svg>
+                                                        Selesai
+                                                    </span>
+                                                    <div class="text-[10px] text-emerald-600 font-medium">Proses lengkap</div>
+                                                @break
+                                    
+                                                {{-- 7. DITOLAK --}}
+                                                @case('ditolak')
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800 border border-red-200">
+                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd"
+                                                                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                                                clip-rule="evenodd" />
+                                                        </svg>
+                                                        Ditolak
+                                                    </span>
+                                                    <div class="text-[10px] text-red-600 font-medium">
+                                                        {{ $item->updated_at->translatedFormat('d M Y') }}
+                                                    </div>
+                                                @break
+                                    
+                                                {{-- DEFAULT: Unknown Status --}}
+                                                @default
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-800 border border-gray-200">
+                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd"
+                                                                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                                                                clip-rule="evenodd" />
+                                                        </svg>
+                                                        {{ ucwords(str_replace('_', ' ', $item->status)) }}
+                                                    </span>
+                                                    <div class="text-[10px] text-gray-500 font-medium">Status tidak diketahui</div>
+                                            @endswitch
                                         </div>
                                     </td>
                                     <td class="px-5 py-4 whitespace-nowrap text-center">
