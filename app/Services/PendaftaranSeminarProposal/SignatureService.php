@@ -124,6 +124,9 @@ class SignatureService
      * @param int|null $defaultKajurId Default Kajur ID jika staff override
      * @return bool
      */
+    /**
+     * Sign as Kajur dengan QR Code
+     */
     public function signAsKajur(
         PendaftaranSeminarProposal $pendaftaran,
         ?User $kajur = null,
@@ -141,19 +144,44 @@ class SignatureService
                 throw new \Exception('Surat tidak dapat ditandatangani oleh Kajur saat ini. Pastikan Kaprodi sudah TTD.');
             }
 
-            $currentUser = Auth::user();
-            $isKajur = $this->isKajur($currentUser);
-            $canOverride = $this->canOverrideSignature($currentUser);
+            $currentUser = User::find(Auth::id());
+            $isKajur = $currentUser->isKetuaJurusan();
+            $canOverride = $currentUser->can('manage pendaftaran sempro');
+
+            Log::info('SignatureService - signAsKajur', [
+                'current_user_id' => $currentUser->id,
+                'current_user_jabatan' => $currentUser->jabatan,
+                'is_kajur' => $isKajur,
+                'can_override' => $canOverride,
+                'default_kajur_id' => $defaultKajurId,
+            ]);
 
             // Determine penandatangan
             if ($isKajur) {
                 $penandatanganId = $currentUser->id;
                 $jabatan = $currentUser->jabatan ?? 'Ketua Jurusan';
+
+                Log::info('Signing as Kajur (direct)', [
+                    'penandatangan_id' => $penandatanganId,
+                    'jabatan' => $jabatan,
+                ]);
             } elseif ($canOverride && $defaultKajurId) {
                 // Staff override
                 $penandatanganId = $defaultKajurId;
                 $defaultKajur = User::find($defaultKajurId);
+
+                if (!$defaultKajur) {
+                    throw new \Exception('Default Kajur tidak ditemukan');
+                }
+
                 $jabatan = $defaultKajur->jabatan ?? 'Ketua Jurusan';
+
+                Log::info('Signing as Kajur (staff override)', [
+                    'staff_id' => $currentUser->id,
+                    'penandatangan_id' => $penandatanganId,
+                    'default_kajur_name' => $defaultKajur->name,
+                    'jabatan' => $jabatan,
+                ]);
 
                 // Save override info
                 $surat->setOverrideInfo('kajur', [
@@ -167,7 +195,7 @@ class SignatureService
                 throw new \Exception('Anda tidak memiliki izin untuk menandatangani surat ini');
             }
 
-            // Generate QR Code untuk Kajur (GUNAKAN VERIFICATION CODE YANG SAMA)
+            // Generate QR Code untuk Kajur
             $verificationUrl = $surat->verification_url;
             $qrCodeKajur = base64_encode(
                 QrCode::format('png')

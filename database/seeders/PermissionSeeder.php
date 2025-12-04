@@ -87,6 +87,7 @@ class PermissionSeeder extends Seeder
             'view dashboard',
             'manage komisi proposal',
             'manage komisi hasil',
+            'manage pendaftaran sempro'
         ]);
 
         // Note: Approval permissions akan di-assign secara dinamis 

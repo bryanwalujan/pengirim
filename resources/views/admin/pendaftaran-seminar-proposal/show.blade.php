@@ -201,45 +201,80 @@
                             </h6>
                         </div>
                         <div class="card-body">
-                            @if ($pendaftaran->status === 'pending')
-                                <a href="{{ route('admin.pendaftaran-seminar-proposal.assign-pembahas', $pendaftaran) }}"
-                                    class="btn btn-primary w-100 mb-2">
-                                    <i class="bx bx-user-check me-1"></i> Tentukan Pembahas
-                                </a>
-                            @elseif ($pendaftaran->status === 'pembahas_ditentukan' && !$pendaftaran->suratUsulan)
-                                <button type="button" class="btn btn-success w-100 mb-2" data-bs-toggle="modal"
-                                    data-bs-target="#generateSuratModal">
-                                    <i class="bx bx-file me-1"></i> Generate Surat
-                                </button>
+                            {{-- TTD KAPRODI - Untuk Kaprodi atau Staff --}}
+                            @if ($pendaftaran->status === 'menunggu_ttd_kaprodi')
+                                @if (auth()->user()->isKoordinatorProdi() || auth()->user()->hasRole('staff'))
+                                    <button type="button" class="btn btn-success w-100 mb-2" data-bs-toggle="modal"
+                                        data-bs-target="#ttdKaprodiModal">
+                                        <i class="bx bx-pen me-1"></i> Tanda Tangan Kaprodi
+                                    </button>
+                                @else
+                                    <div class="alert alert-info mb-2">
+                                        <i class="bx bx-info-circle me-1"></i>
+                                        <small>Menunggu tanda tangan dari Kaprodi</small>
+                                    </div>
+                                @endif
                             @endif
 
-                            @if ($pendaftaran->isPembahasDitentukan() && !$pendaftaran->isKajurSigned())
-                                <button type="button" class="btn btn-warning w-100 mb-2" data-bs-toggle="modal"
-                                    data-bs-target="#resetPembahasModal">
-                                    <i class="bx bx-reset me-1"></i> Reset Pembahas
-                                </button>
+                            {{-- TTD KAJUR - Untuk Kajur atau Staff --}}
+                            @if ($pendaftaran->status === 'menunggu_ttd_kajur')
+                                @if (auth()->user()->isKetuaJurusan() || auth()->user()->hasRole('staff'))
+                                    <button type="button" class="btn btn-primary w-100 mb-2" data-bs-toggle="modal"
+                                        data-bs-target="#ttdKajurModal">
+                                        <i class="bx bx-pen me-1"></i> Tanda Tangan Kajur
+                                    </button>
+                                @else
+                                    <div class="alert alert-info mb-2">
+                                        <i class="bx bx-info-circle me-1"></i>
+                                        <small>Menunggu tanda tangan dari Kajur</small>
+                                    </div>
+                                @endif
                             @endif
 
+                            {{-- STAFF ONLY ACTIONS --}}
+                            @if (auth()->user()->hasRole('staff'))
+                                @if ($pendaftaran->status === 'pending')
+                                    <a href="{{ route('admin.pendaftaran-seminar-proposal.assign-pembahas', $pendaftaran) }}"
+                                        class="btn btn-primary w-100 mb-2">
+                                        <i class="bx bx-user-check me-1"></i> Tentukan Pembahas
+                                    </a>
+                                @elseif ($pendaftaran->status === 'pembahas_ditentukan' && !$pendaftaran->suratUsulan)
+                                    <button type="button" class="btn btn-success w-100 mb-2" data-bs-toggle="modal"
+                                        data-bs-target="#generateSuratModal">
+                                        <i class="bx bx-file me-1"></i> Generate Surat
+                                    </button>
+                                @endif
+
+                                @if ($pendaftaran->isPembahasDitentukan() && !$pendaftaran->isKajurSigned())
+                                    <button type="button" class="btn btn-warning w-100 mb-2" data-bs-toggle="modal"
+                                        data-bs-target="#resetPembahasModal">
+                                        <i class="bx bx-reset me-1"></i> Reset Pembahas
+                                    </button>
+                                @endif
+
+                                {{-- Tombol Reject - Hanya staff, status pending/pembahas_ditentukan --}}
+                                @if (in_array($pendaftaran->status, ['pending', 'pembahas_ditentukan']))
+                                    <button type="button" class="btn btn-danger w-100 mb-2" data-bs-toggle="modal"
+                                        data-bs-target="#rejectModal">
+                                        <i class="bx bx-x-circle me-1"></i> Tolak Pendaftaran
+                                    </button>
+                                @endif
+
+                                {{-- Hapus - Tidak bisa hapus jika sudah selesai --}}
+                                @if ($pendaftaran->status !== 'selesai')
+                                    <button type="button" class="btn btn-outline-danger w-100" data-bs-toggle="modal"
+                                        data-bs-target="#deleteModal">
+                                        <i class="bx bx-trash me-1"></i> Hapus Pendaftaran
+                                    </button>
+                                @endif
+                            @endif
+
+                            {{-- Download Surat - Untuk semua yang punya akses --}}
                             @if ($pendaftaran->suratUsulan)
                                 <a href="{{ route('admin.pendaftaran-seminar-proposal.download-surat', $pendaftaran) }}"
-                                    class="btn btn-outline-primary w-100 mb-2">
+                                    target="_blank" class="btn btn-outline-primary w-100 mb-2">
                                     <i class="bx bx-download me-1"></i> Download Surat
                                 </a>
-                            @endif
-
-                            {{-- Tombol Reject - Hanya tampil jika status pending atau pembahas_ditentukan --}}
-                            @if (auth()->user()->hasRole('staff') && in_array($pendaftaran->status, ['pending', 'pembahas_ditentukan']))
-                                <button type="button" class="btn btn-danger w-100 mb-2" data-bs-toggle="modal"
-                                    data-bs-target="#rejectModal">
-                                    <i class="bx bx-x-circle me-1"></i> Tolak Pendaftaran
-                                </button>
-                            @endif
-
-                            @if (auth()->user()->hasRole('staff') && $pendaftaran->status !== 'selesai')
-                                <button type="button" class="btn btn-outline-danger w-100" data-bs-toggle="modal"
-                                    data-bs-target="#deleteModal">
-                                    <i class="bx bx-trash me-1"></i> Hapus Pendaftaran
-                                </button>
                             @endif
                         </div>
                     </div>

@@ -1,4 +1,5 @@
 {{-- filepath: /c:/laragon/www/eservice-app/resources/views/admin/pendaftaran-seminar-proposal/index.blade.php --}}
+
 @extends('layouts.admin.app')
 
 @section('title', 'Pendaftaran Seminar Proposal')
@@ -20,87 +21,140 @@
             <span class="text-muted fw-light">Manajemen /</span> Pendaftaran Seminar Proposal
         </h4>
 
-        {{-- Statistics Cards --}}
-        <div class="row mb-4">
-            <div class="col-lg-2 col-md-4 col-6 mb-4">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="card-title d-flex align-items-start justify-content-between">
-                            <div class="avatar flex-shrink-0">
-                                <i class="bx bx-list-ul rounded p-2 bg-primary" style="font-size: 2rem;"></i>
+        {{-- ✅ PERBAIKAN: Statistics Cards - Conditional based on user role --}}
+        @if (auth()->user()->isDosenWithApprovalAuthority())
+            {{-- DOSEN VIEW: Simplified Statistics --}}
+            <div class="row mb-4">
+                @if (auth()->user()->isKoordinatorProdi())
+                    {{-- Kaprodi Statistics --}}
+                    <div class="col-lg-6 col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="card-title d-flex align-items-start justify-content-between">
+                                    <div class="avatar flex-shrink-0">
+                                        <i class="bx bx-hourglass rounded p-2 bg-warning" style="font-size: 2rem;"></i>
+                                    </div>
+                                </div>
+                                <span class="fw-semibold d-block mb-1">Menunggu TTD Kaprodi</span>
+                                <h3 class="card-title mb-2">{{ $statistics['menunggu_ttd_kaprodi'] ?? 0 }}</h3>
                             </div>
                         </div>
-                        <span class="fw-semibold d-block mb-1">Total</span>
-                        <h3 class="card-title mb-2">{{ $statistics['total'] }}</h3>
+                    </div>
+                @elseif(auth()->user()->isKetuaJurusan())
+                    {{-- Kajur Statistics --}}
+                    <div class="col-lg-6 col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="card-title d-flex align-items-start justify-content-between">
+                                    <div class="avatar flex-shrink-0">
+                                        <i class="bx bx-hourglass rounded p-2 bg-primary" style="font-size: 2rem;"></i>
+                                    </div>
+                                </div>
+                                <span class="fw-semibold d-block mb-1">Menunggu TTD Kajur</span>
+                                <h3 class="card-title mb-2">{{ $statistics['menunggu_ttd_kajur'] ?? 0 }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
+                {{-- Selesai (untuk semua dosen) --}}
+                <div class="col-lg-6 col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="card-title d-flex align-items-start justify-content-between">
+                                <div class="avatar flex-shrink-0">
+                                    <i class="bx bx-check-circle rounded p-2 bg-success" style="font-size: 2rem;"></i>
+                                </div>
+                            </div>
+                            <span class="fw-semibold d-block mb-1">Selesai</span>
+                            <h3 class="card-title mb-2">{{ $statistics['selesai'] ?? 0 }}</h3>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-2 col-md-4 col-6 mb-4">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="card-title d-flex align-items-start justify-content-between">
-                            <div class="avatar flex-shrink-0">
-                                <i class="bx bx-time-five rounded p-2 bg-warning" style="font-size: 2rem;"></i>
+        @else
+            {{-- STAFF VIEW: Full Statistics --}}
+            <div class="row mb-4">
+                <div class="col-lg-2 col-md-4 col-6 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="card-title d-flex align-items-start justify-content-between">
+                                <div class="avatar flex-shrink-0">
+                                    <i class="bx bx-list-ul rounded p-2 bg-primary" style="font-size: 2rem;"></i>
+                                </div>
                             </div>
+                            <span class="fw-semibold d-block mb-1">Total</span>
+                            <h3 class="card-title mb-2">{{ $statistics['total'] ?? 0 }}</h3>
                         </div>
-                        <span class="fw-semibold d-block mb-1">Pending</span>
-                        <h3 class="card-title mb-2">{{ $statistics['pending'] }}</h3>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-4 col-6 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="card-title d-flex align-items-start justify-content-between">
+                                <div class="avatar flex-shrink-0">
+                                    <i class="bx bx-time-five rounded p-2 bg-warning" style="font-size: 2rem;"></i>
+                                </div>
+                            </div>
+                            <span class="fw-semibold d-block mb-1">Pending</span>
+                            <h3 class="card-title mb-2">{{ $statistics['pending'] ?? 0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-4 col-6 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="card-title d-flex align-items-start justify-content-between">
+                                <div class="avatar flex-shrink-0">
+                                    <i class="bx bx-user-check rounded p-2 bg-info" style="font-size: 2rem;"></i>
+                                </div>
+                            </div>
+                            <span class="fw-semibold d-block mb-1">Pembahas OK</span>
+                            <h3 class="card-title mb-2">{{ $statistics['pembahas_ditentukan'] ?? 0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-4 col-6 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="card-title d-flex align-items-start justify-content-between">
+                                <div class="avatar flex-shrink-0">
+                                    <i class="bx bx-hourglass rounded p-2 bg-primary" style="font-size: 2rem;"></i>
+                                </div>
+                            </div>
+                            <span class="fw-semibold d-block mb-1">TTD Kaprodi</span>
+                            <h3 class="card-title mb-2">{{ $statistics['menunggu_ttd_kaprodi'] ?? 0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-4 col-6 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="card-title d-flex align-items-start justify-content-between">
+                                <div class="avatar flex-shrink-0">
+                                    <i class="bx bx-hourglass rounded p-2 bg-secondary" style="font-size: 2rem;"></i>
+                                </div>
+                            </div>
+                            <span class="fw-semibold d-block mb-1">TTD Kajur</span>
+                            <h3 class="card-title mb-2">{{ $statistics['menunggu_ttd_kajur'] ?? 0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-4 col-6 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="card-title d-flex align-items-start justify-content-between">
+                                <div class="avatar flex-shrink-0">
+                                    <i class="bx bx-check-circle rounded p-2 bg-success" style="font-size: 2rem;"></i>
+                                </div>
+                            </div>
+                            <span class="fw-semibold d-block mb-1">Selesai</span>
+                            <h3 class="card-title mb-2">{{ $statistics['selesai'] ?? 0 }}</h3>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-2 col-md-4 col-6 mb-4">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="card-title d-flex align-items-start justify-content-between">
-                            <div class="avatar flex-shrink-0">
-                                <i class="bx bx-user-check rounded p-2 bg-info" style="font-size: 2rem;"></i>
-                            </div>
-                        </div>
-                        <span class="fw-semibold d-block mb-1">Pembahas OK</span>
-                        <h3 class="card-title mb-2">{{ $statistics['pembahas_ditentukan'] }}</h3>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-2 col-md-4 col-6 mb-4">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="card-title d-flex align-items-start justify-content-between">
-                            <div class="avatar flex-shrink-0">
-                                <i class="bx bx-hourglass rounded p-2 bg-primary" style="font-size: 2rem;"></i>
-                            </div>
-                        </div>
-                        <span class="fw-semibold d-block mb-1">TTD Kaprodi</span>
-                        <h3 class="card-title mb-2">{{ $statistics['menunggu_ttd_kaprodi'] }}</h3>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-2 col-md-4 col-6 mb-4">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="card-title d-flex align-items-start justify-content-between">
-                            <div class="avatar flex-shrink-0">
-                                <i class="bx bx-hourglass rounded p-2 bg-secondary" style="font-size: 2rem;"></i>
-                            </div>
-                        </div>
-                        <span class="fw-semibold d-block mb-1">TTD Kajur</span>
-                        <h3 class="card-title mb-2">{{ $statistics['menunggu_ttd_kajur'] }}</h3>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-2 col-md-4 col-6 mb-4">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="card-title d-flex align-items-start justify-content-between">
-                            <div class="avatar flex-shrink-0">
-                                <i class="bx bx-check-circle rounded p-2 bg-success" style="font-size: 2rem;"></i>
-                            </div>
-                        </div>
-                        <span class="fw-semibold d-block mb-1">Selesai</span>
-                        <h3 class="card-title mb-2">{{ $statistics['selesai'] }}</h3>
-                    </div>
-                </div>
-            </div>
-        </div>
+        @endif
 
         {{-- Main Card --}}
         <div class="card">
@@ -123,6 +177,10 @@
                     <div class="col-md-3">
                         <form action="{{ route('admin.pendaftaran-seminar-proposal.index') }}" method="GET"
                             id="filterAngkatanForm">
+                            {{-- Preserve status filter if exists --}}
+                            @if (request('status'))
+                                <input type="hidden" name="status" value="{{ request('status') }}">
+                            @endif
                             <select name="angkatan" class="form-select" onchange="this.form.submit()">
                                 <option value="">Semua Angkatan</option>
                                 @foreach ($uniqueAngkatan as $year)
@@ -135,28 +193,35 @@
                         </form>
                     </div>
 
-                    {{-- Filter Status --}}
-                    <div class="col-md-3">
-                        <form action="{{ route('admin.pendaftaran-seminar-proposal.index') }}" method="GET"
-                            id="filterStatusForm">
-                            <select name="status" class="form-select" onchange="this.form.submit()">
-                                <option value="">Semua Status</option>
-                                <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending
-                                </option>
-                                <option value="pembahas_ditentukan"
-                                    {{ request('status') == 'pembahas_ditentukan' ? 'selected' : '' }}>Pembahas Ditentukan
-                                </option>
-                                <option value="menunggu_ttd_kaprodi"
-                                    {{ request('status') == 'menunggu_ttd_kaprodi' ? 'selected' : '' }}>Menunggu TTD
-                                    Kaprodi</option>
-                                <option value="menunggu_ttd_kajur"
-                                    {{ request('status') == 'menunggu_ttd_kajur' ? 'selected' : '' }}>Menunggu TTD Kajur
-                                </option>
-                                <option value="selesai" {{ request('status') == 'selesai' ? 'selected' : '' }}>Selesai
-                                </option>
-                            </select>
-                        </form>
-                    </div>
+                    {{-- Filter Status (hanya untuk staff) --}}
+                    @if (!auth()->user()->isDosenWithApprovalAuthority())
+                        <div class="col-md-3">
+                            <form action="{{ route('admin.pendaftaran-seminar-proposal.index') }}" method="GET"
+                                id="filterStatusForm">
+                                <select name="status" class="form-select" onchange="this.form.submit()">
+                                    <option value="">Semua Status</option>
+                                    <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>
+                                        Pending
+                                    </option>
+                                    <option value="pembahas_ditentukan"
+                                        {{ request('status') == 'pembahas_ditentukan' ? 'selected' : '' }}>
+                                        Pembahas Ditentukan
+                                    </option>
+                                    <option value="menunggu_ttd_kaprodi"
+                                        {{ request('status') == 'menunggu_ttd_kaprodi' ? 'selected' : '' }}>
+                                        Menunggu TTD Kaprodi
+                                    </option>
+                                    <option value="menunggu_ttd_kajur"
+                                        {{ request('status') == 'menunggu_ttd_kajur' ? 'selected' : '' }}>
+                                        Menunggu TTD Kajur
+                                    </option>
+                                    <option value="selesai" {{ request('status') == 'selesai' ? 'selected' : '' }}>
+                                        Selesai
+                                    </option>
+                                </select>
+                            </form>
+                        </div>
+                    @endif
 
                     {{-- Reset Filter --}}
                     <div class="col-md-2">
@@ -182,6 +247,19 @@
                     <div class="alert alert-danger alert-dismissible" role="alert">
                         {{ session('error') }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                @endif
+
+                {{-- Info Banner untuk Dosen --}}
+                @if (auth()->user()->isDosenWithApprovalAuthority())
+                    <div class="alert alert-info mb-4">
+                        <i class="bx bx-info-circle me-2"></i>
+                        <strong>Info:</strong>
+                        @if (auth()->user()->isKoordinatorProdi())
+                            Anda melihat daftar pendaftaran yang memerlukan tanda tangan Kaprodi atau sudah selesai.
+                        @elseif(auth()->user()->isKetuaJurusan())
+                            Anda melihat daftar pendaftaran yang memerlukan tanda tangan Kajur atau sudah selesai.
+                        @endif
                     </div>
                 @endif
 
@@ -236,7 +314,13 @@
                                         <div class="mb-3">
                                             <i class="bx bx-search-alt" style="font-size: 3rem; opacity: 0.3;"></i>
                                         </div>
-                                        <p class="text-muted">Tidak ada data pendaftaran seminar proposal</p>
+                                        <p class="text-muted">
+                                            @if (auth()->user()->isDosenWithApprovalAuthority())
+                                                Tidak ada pendaftaran yang memerlukan persetujuan Anda saat ini.
+                                            @else
+                                                Tidak ada data pendaftaran seminar proposal
+                                            @endif
+                                        </p>
                                     </td>
                                 </tr>
                             @endforelse

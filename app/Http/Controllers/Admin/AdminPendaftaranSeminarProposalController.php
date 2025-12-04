@@ -50,6 +50,9 @@ class AdminPendaftaranSeminarProposalController extends Controller
 
     public function index(Request $request)
     {
+        $user = User::find(Auth::id());
+
+        // Base query
         $query = PendaftaranSeminarProposal::with([
             'user',
             'dosenPembimbing',
@@ -58,7 +61,28 @@ class AdminPendaftaranSeminarProposalController extends Controller
             'suratUsulan'
         ])->latest();
 
-        // Apply filters
+        // ✅ PERBAIKAN: Filter by status (URL parameter)
+        if ($request->has('status')) {
+            $status = $request->input('status');
+            $query->where('status', $status);
+        }
+
+        // ✅ PERBAIKAN: Filter berdasarkan role dosen
+        if ($user->isDosenWithApprovalAuthority()) {
+            if ($user->isKoordinatorProdi()) {
+                // Kaprodi: hanya lihat yang perlu TTD Kaprodi atau sudah selesai
+                if (!$request->has('status')) {
+                    $query->whereIn('status', ['menunggu_ttd_kaprodi', 'selesai']);
+                }
+            } elseif ($user->isKetuaJurusan()) {
+                // Kajur: hanya lihat yang perlu TTD Kajur atau sudah selesai
+                if (!$request->has('status')) {
+                    $query->whereIn('status', ['menunggu_ttd_kajur', 'selesai']);
+                }
+            }
+        }
+
+        // Apply other filters (search, angkatan, etc.)
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -74,10 +98,6 @@ class AdminPendaftaranSeminarProposalController extends Controller
             });
         }
 
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
         if ($request->filled('angkatan')) {
             $query->where('angkatan', $request->angkatan);
         }
@@ -90,16 +110,31 @@ class AdminPendaftaranSeminarProposalController extends Controller
             ->orderBy('angkatan', 'desc')
             ->pluck('angkatan');
 
-        // Statistics
-        $statistics = [
-            'total' => PendaftaranSeminarProposal::count(),
-            'pending' => PendaftaranSeminarProposal::where('status', 'pending')->count(),
-            'pembahas_ditentukan' => PendaftaranSeminarProposal::where('status', 'pembahas_ditentukan')->count(),
-            'menunggu_ttd_kaprodi' => PendaftaranSeminarProposal::where('status', 'menunggu_ttd_kaprodi')->count(),
-            'menunggu_ttd_kajur' => PendaftaranSeminarProposal::where('status', 'menunggu_ttd_kajur')->count(),
-            'selesai' => PendaftaranSeminarProposal::where('status', 'selesai')->count(),
-            'ditolak' => PendaftaranSeminarProposal::where('status', 'ditolak')->count(),
-        ];
+        // ✅ Statistics (adjusted for dosen)
+        if ($user->isDosenWithApprovalAuthority()) {
+            if ($user->isKoordinatorProdi()) {
+                $statistics = [
+                    'menunggu_ttd_kaprodi' => PendaftaranSeminarProposal::where('status', 'menunggu_ttd_kaprodi')->count(),
+                    'selesai' => PendaftaranSeminarProposal::where('status', 'selesai')->count(),
+                ];
+            } else {
+                $statistics = [
+                    'menunggu_ttd_kajur' => PendaftaranSeminarProposal::where('status', 'menunggu_ttd_kajur')->count(),
+                    'selesai' => PendaftaranSeminarProposal::where('status', 'selesai')->count(),
+                ];
+            }
+        } else {
+            // Staff - semua statistik
+            $statistics = [
+                'total' => PendaftaranSeminarProposal::count(),
+                'pending' => PendaftaranSeminarProposal::where('status', 'pending')->count(),
+                'pembahas_ditentukan' => PendaftaranSeminarProposal::where('status', 'pembahas_ditentukan')->count(),
+                'menunggu_ttd_kaprodi' => PendaftaranSeminarProposal::where('status', 'menunggu_ttd_kaprodi')->count(),
+                'menunggu_ttd_kajur' => PendaftaranSeminarProposal::where('status', 'menunggu_ttd_kajur')->count(),
+                'selesai' => PendaftaranSeminarProposal::where('status', 'selesai')->count(),
+                'ditolak' => PendaftaranSeminarProposal::where('status', 'ditolak')->count(),
+            ];
+        }
 
         return view('admin.pendaftaran-seminar-proposal.index', compact(
             'pendaftaran',
@@ -515,46 +550,68 @@ class AdminPendaftaranSeminarProposalController extends Controller
     {
         $user = User::find(Auth::id());
 
+
         Log::info('=== TTD KAJUR - START ===', [
-            'pendaftaran_id' => $pendaftaranSeminarProposal->id,
             'user_id' => $user->id,
             'user_name' => $user->name,
+            'user_jabatan' => $user->jabatan,
+            'user_roles' => $user->roles->pluck('name')->toArray(),
+            'is_dosen' => $user->hasRole('dosen'),
+            'is_ketua_jurusan' => $user->isKetuaJurusan(),
+            'pendaftaran_id' => $pendaftaranSeminarProposal->id,
             'current_status' => $pendaftaranSeminarProposal->status,
         ]);
 
         // VALIDASI 1: Check surat usulan exists
         if (!$pendaftaranSeminarProposal->suratUsulan) {
-            return back()->with('error', 'Surat usulan belum digenerate.');
+            Log::error('TTD Kajur FAILED: Surat tidak ditemukan');
+            return back()->with('error', 'Surat usulan belum dibuat');
         }
 
         $surat = $pendaftaranSeminarProposal->suratUsulan;
 
         // VALIDASI 2: Check status pendaftaran
         if ($pendaftaranSeminarProposal->status !== 'menunggu_ttd_kajur') {
-            return back()->with('error', 'Pendaftaran tidak dalam tahap TTD Kajur. Status saat ini: ' . $pendaftaranSeminarProposal->status);
+            Log::error('TTD Kajur FAILED: Status tidak valid', [
+                'current_status' => $pendaftaranSeminarProposal->status,
+                'expected_status' => 'menunggu_ttd_kajur'
+            ]);
+            return back()->with('error', 'Status tidak valid untuk tanda tangan Kajur. Status saat ini: ' . $pendaftaranSeminarProposal->status);
         }
 
         // VALIDASI 3: Check Kaprodi sudah TTD
         if (!$surat->isKaprodiSigned()) {
-            return back()->with('error', 'Kaprodi belum menandatangani surat. TTD Kaprodi terlebih dahulu.');
+            Log::error('TTD Kajur FAILED: Kaprodi belum TTD');
+            return back()->with('error', 'Kaprodi belum menandatangani surat ini');
         }
 
         // VALIDASI 4: Check surat dapat ditandatangani
         if (!$surat->canBeSignedByKajur()) {
-            return back()->with('error', 'Surat tidak dapat ditandatangani oleh Kajur saat ini.');
+            Log::error('TTD Kajur FAILED: Surat tidak dapat ditandatangani', [
+                'is_kaprodi_signed' => $surat->isKaprodiSigned(),
+                'is_kajur_signed' => $surat->isKajurSigned(),
+            ]);
+            return back()->with('error', 'Surat tidak dapat ditandatangani oleh Kajur saat ini');
         }
 
-        // VALIDASI 5: Check permission
-        $isKajur = $user->hasRole('dosen') && $this->isKetuaJurusan($user);
-        $canOverride = $this->canOverrideApproval($user);
+        // VALIDASI 5: Check permission - PERBAIKAN DI SINI
+        $isKajur = $user->isKetuaJurusan(); // Menggunakan method dari User model
+        $canOverride = $user->can('manage pendaftaran sempro'); // Staff permission
+
+        Log::info('Permission Check', [
+            'is_kajur' => $isKajur,
+            'can_override' => $canOverride,
+            'user_jabatan' => $user->jabatan,
+        ]);
 
         if (!$isKajur && !$canOverride) {
-            Log::warning('User tidak memiliki izin TTD Kajur', [
+            Log::error('TTD Kajur FAILED: No permission', [
                 'user_id' => $user->id,
                 'is_kajur' => $isKajur,
                 'can_override' => $canOverride,
+                'jabatan' => $user->jabatan,
             ]);
-            return back()->with('error', 'Hanya Kajur atau Staff yang dapat menandatangani.');
+            return back()->with('error', 'Anda tidak memiliki izin untuk menandatangani surat ini');
         }
 
         try {
@@ -564,41 +621,71 @@ class AdminPendaftaranSeminarProposalController extends Controller
                 $defaultKajurId = $this->getDefaultKajurId();
 
                 if (!$defaultKajurId) {
-                    return back()->with('error', 'Default Kajur tidak ditemukan. Hubungi administrator.');
+                    Log::error('TTD Kajur FAILED: Default Kajur not found');
+                    return back()->with('error', 'Default Kajur tidak ditemukan di sistem');
                 }
+
+                Log::info('Staff override: Using default Kajur', [
+                    'staff_id' => $user->id,
+                    'default_kajur_id' => $defaultKajurId,
+                ]);
             }
 
-            // Call signature service
+            // Execute signature
             $this->signatureService->signAsKajur(
                 $pendaftaranSeminarProposal,
                 $user,
                 $defaultKajurId
             );
 
-            Log::info('TTD Kajur - SUCCESS (COMPLETED)', [
-                'pendaftaran_id' => $pendaftaranSeminarProposal->id,
+            Log::info('=== TTD KAJUR - SUCCESS ===', [
                 'surat_id' => $surat->id,
                 'signed_by' => $user->id,
                 'is_override' => $canOverride && !$isKajur,
             ]);
 
-            $message = $canOverride && !$isKajur
-                ? 'Surat berhasil ditandatangani lengkap (Staff Override). Mahasiswa dapat mengunduh surat.'
-                : 'Surat berhasil ditandatangani lengkap sebagai Kajur. Mahasiswa dapat mengunduh surat.';
-
             return redirect()
                 ->route('admin.pendaftaran-seminar-proposal.show', $pendaftaranSeminarProposal)
-                ->with('success', $message);
+                ->with('success', 'Surat berhasil ditandatangani oleh Kajur. Proses selesai!');
 
         } catch (\Exception $e) {
-            Log::error('TTD Kajur - FAILED', [
-                'pendaftaran_id' => $pendaftaranSeminarProposal->id,
+            Log::error('=== TTD KAJUR - ERROR ===', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
+                'trace' => $e->getTraceAsString()
             ]);
 
             return back()->with('error', 'Gagal menandatangani: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Get default Kajur ID
+     */
+    private function getDefaultKajurId(): ?int
+    {
+        // Cari dosen dengan jabatan Kajur/Ketua Jurusan/Pimpinan Jurusan
+        $kajur = User::whereHas('roles', function ($q) {
+            $q->where('name', 'dosen');
+        })
+            ->where(function ($query) {
+                $query->where('jabatan', 'like', '%ketua jurusan%')
+                    ->orWhere('jabatan', 'like', '%kajur%')
+                    ->orWhere('jabatan', 'like', '%pimpinan jurusan%')
+                    ->orWhere('jabatan', 'like', '%kepala jurusan%');
+            })
+            ->first();
+
+        if ($kajur) {
+            Log::info('Default Kajur found', [
+                'kajur_id' => $kajur->id,
+                'kajur_name' => $kajur->name,
+                'jabatan' => $kajur->jabatan,
+            ]);
+        } else {
+            Log::warning('No default Kajur found in system');
+        }
+
+        return $kajur?->id;
     }
 
     /**
@@ -620,24 +707,6 @@ class AdminPendaftaranSeminarProposalController extends Controller
         return $kaprodi?->id;
     }
 
-    /**
-     * Get default Kajur ID
-     */
-    private function getDefaultKajurId(): ?int
-    {
-        // Cari dosen dengan jabatan Kajur
-        $kajur = User::whereHas('roles', function ($q) {
-            $q->where('name', 'dosen');
-        })
-            ->where(function ($q) {
-                $q->whereRaw('LOWER(jabatan) LIKE ?', ['%ketua jurusan%'])
-                    ->orWhereRaw('LOWER(jabatan) LIKE ?', ['%kajur%'])
-                    ->orWhereRaw('LOWER(jabatan) LIKE ?', ['%kepala jurusan%']);
-            })
-            ->first();
-
-        return $kajur?->id;
-    }
 
     /**
      * ========================================

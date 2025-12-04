@@ -796,7 +796,9 @@
             </li>
         @endcan
 
-        @can('manage pendaftaran sempro')
+        {{-- ✅ UPDATED: Pendaftaran Sempro - Accessible by Staff & Dosen (Kaprodi/Kajur) --}}
+        @if (auth()->user()->can('manage pendaftaran sempro') || auth()->user()->isDosenWithApprovalAuthority())
+
             @php
                 $pendaftaranSempropActiveStates = [
                     'admin.pendaftaran-seminar-proposal.index',
@@ -806,13 +808,69 @@
                 $isPendaftaranSempropActive = request()->routeIs($pendaftaranSempropActiveStates);
             @endphp
 
-            <li class="menu-item {{ $isPendaftaranSempropActive ? 'active' : '' }}">
-                <a href="{{ route('admin.pendaftaran-seminar-proposal.index') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-clipboard"></i>
-                    <div data-i18n="Pendaftaran Sempro">Pendaftaran Sempro</div>
-                </a>
-            </li>
-        @endcan
+            {{-- Check if user is Dosen with approval authority --}}
+            @if (auth()->user()->isDosenWithApprovalAuthority())
+
+                {{-- DOSEN VIEW: Simplified menu for approval only --}}
+                <li class="menu-item {{ $isPendaftaranSempropActive ? 'active open' : '' }}">
+                    <a href="javascript:void(0);" class="menu-link menu-toggle">
+                        <i class="menu-icon tf-icons bx bx-clipboard"></i>
+                        <div>Pendaftaran Sempro</div>
+                    </a>
+                    <ul class="menu-sub">
+                        {{-- Menunggu TTD Kaprodi --}}
+                        @if (auth()->user()->isKoordinatorProdi())
+                            <li
+                                class="menu-item {{ request()->routeIs('admin.pendaftaran-seminar-proposal.index') &&
+                                request()->input('status') === 'menunggu_ttd_kaprodi'
+                                    ? 'active'
+                                    : '' }}">
+                                <a href="{{ route('admin.pendaftaran-seminar-proposal.index', ['status' => 'menunggu_ttd_kaprodi']) }}"
+                                    class="menu-link">
+                                    <i class="menu-icon tf-icons bx bx-time"></i>
+                                    <div>Menunggu TTD Kaprodi</div>
+                                </a>
+                            </li>
+                        @endif
+
+                        {{-- Menunggu TTD Kajur --}}
+                        @if (auth()->user()->isKetuaJurusan())
+                            <li
+                                class="menu-item {{ request()->routeIs('admin.pendaftaran-seminar-proposal.index') &&
+                                request()->input('status') === 'menunggu_ttd_kajur'
+                                    ? 'active'
+                                    : '' }}">
+                                <a href="{{ route('admin.pendaftaran-seminar-proposal.index', ['status' => 'menunggu_ttd_kajur']) }}"
+                                    class="menu-link">
+                                    <i class="menu-icon tf-icons bx bx-time"></i>
+                                    <div>Menunggu TTD Kajur</div>
+                                </a>
+                            </li>
+                        @endif
+
+                        {{-- Riwayat yang sudah ditandatangani --}}
+                        <li
+                            class="menu-item {{ request()->routeIs('admin.pendaftaran-seminar-proposal.index') && request()->input('status') === 'selesai'
+                                ? 'active'
+                                : '' }}">
+                            <a href="{{ route('admin.pendaftaran-seminar-proposal.index', ['status' => 'selesai']) }}"
+                                class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-check-circle"></i>
+                                <div>Selesai</div>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            @else
+                {{-- STAFF VIEW: Full menu access --}}
+                <li class="menu-item {{ $isPendaftaranSempropActive ? 'active' : '' }}">
+                    <a href="{{ route('admin.pendaftaran-seminar-proposal.index') }}" class="menu-link">
+                        <i class="menu-icon tf-icons bx bx-clipboard"></i>
+                        <div data-i18n="Pendaftaran Sempro">Pendaftaran Sempro</div>
+                    </a>
+                </li>
+            @endif
+        @endif
 
         @can('manage pendaftaran hasil')
             <li class="menu-item {{ request()->routeIs('admin.pendaftaran-ujian-hasil.*') ? 'active' : '' }}">
