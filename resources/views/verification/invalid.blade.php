@@ -1,4 +1,5 @@
-{{-- filepath: resources/views/verification/invalid.blade.php --}}
+{{-- filepath: /c:/laragon/www/eservice-app/resources/views/verification/invalid.blade.php --}}
+
 @extends('layouts.verification')
 
 @section('title', 'Dokumen Tidak Valid')
@@ -9,108 +10,101 @@
             <!-- Header -->
             <div class="verification-header error">
                 <div class="icon-container">
-                    <i class='bx bx-error-circle'></i>
+                    <i class='bx bxs-error-circle'></i>
                 </div>
                 <h1>Dokumen Tidak Valid</h1>
-                <p class="mb-0">
-                    @if (isset($type))
-                        Verifikasi {{ ucfirst($type) }} - Kode tidak ditemukan
-                    @else
-                        Kode verifikasi tidak ditemukan
-                    @endif
-                </p>
+                <p class="mb-0">Kode verifikasi tidak ditemukan atau tidak valid</p>
+                @if (isset($type))
+                    <span class="document-type">
+                        <i class='bx bx-file-blank'></i>
+                        {{ $type }}
+                    </span>
+                @endif
             </div>
 
             <!-- Content -->
             <div class="verification-content">
-                <!-- Error Message -->
-                <div class="alert alert-danger d-flex align-items-start">
-                    <i class='bx bx-error-circle me-2 flex-shrink-0' style="font-size: 1.5rem;"></i>
-                    <div>
-                        <strong>Perhatian!</strong><br>
-                        <small>{{ $message ?? 'Dokumen tidak ditemukan atau kode verifikasi tidak valid.' }}</small>
+                <!-- Error Banner -->
+                <div class="status-banner warning">
+                    <div class="status-icon">
+                        <i class='bx bxs-x-circle'></i>
+                    </div>
+                    <div class="status-text">
+                        <h3>Verifikasi Gagal</h3>
+                        <p>Dokumen dengan kode tersebut tidak dapat ditemukan</p>
                     </div>
                 </div>
 
-                <!-- Possible Causes -->
-                <div class="info-section">
-                    <h6 class="fw-bold mb-3" style="color: #333;">
-                        <i class='bx bx-info-circle me-2' style="color: var(--primary-orange);"></i>
-                        Kemungkinan Penyebab:
-                    </h6>
-                    <ul class="list-unstyled mb-0">
-                        <li>
-                            <i class='bx bx-x'></i>
-                            <span>QR Code sudah kadaluarsa atau tidak valid</span>
-                        </li>
-                        <li>
-                            <i class='bx bx-x'></i>
-                            <span>Dokumen belum disetujui atau masih dalam proses</span>
-                        </li>
-                        <li>
-                            <i class='bx bx-x'></i>
-                            <span>Link verifikasi salah atau rusak</span>
-                        </li>
-                        <li>
-                            <i class='bx bx-x'></i>
-                            <span>Dokumen telah dibatalkan atau ditolak</span>
-                        </li>
-                        @if (isset($type) && $type === 'komisi')
-                            <li>
-                                <i class='bx bx-x'></i>
-                                <span>Pastikan menggunakan QR code dari dokumen yang sudah disetujui</span>
-                            </li>
-                        @endif
-                    </ul>
-                </div>
-
-                <!-- Document Type Info -->
-                @if (isset($type))
-                    <div class="alert alert-info d-flex align-items-center mt-3">
-                        <i class='bx bx-file me-2' style="font-size: 1.3rem;"></i>
-                        <div>
-                            <strong>Tipe Dokumen:</strong> {{ ucfirst($type) }}
+                <!-- Error Message -->
+                @if (isset($message))
+                    <div class="info-card">
+                        <div class="info-card-header">
+                            <i class='bx bxs-message-error'></i>
+                            <span>Pesan Error</span>
+                        </div>
+                        <div class="info-card-body">
+                            <p style="margin: 0; color: #dc3545;">{{ $message }}</p>
                         </div>
                     </div>
                 @endif
 
+                <!-- Possible Causes -->
+                <div class="info-card">
+                    <div class="info-card-header">
+                        <i class='bx bxs-help-circle'></i>
+                        <span>Kemungkinan Penyebab</span>
+                    </div>
+                    <div class="info-card-body">
+                        <ul class="list-unstyled mb-0">
+                            <li>
+                                <i class='bx bx-chevron-right'></i>
+                                <span>Kode verifikasi salah atau tidak lengkap</span>
+                            </li>
+                            <li>
+                                <i class='bx bx-chevron-right'></i>
+                                <span>Dokumen sudah dihapus dari sistem</span>
+                            </li>
+                            <li>
+                                <i class='bx bx-chevron-right'></i>
+                                <span>QR Code rusak atau tidak terbaca dengan benar</span>
+                            </li>
+                            <li>
+                                <i class='bx bx-chevron-right'></i>
+                                <span>Dokumen belum selesai diproses dalam sistem</span>
+                            </li>
+                            @if (isset($type) && str_contains(strtolower($type), 'komisi'))
+                                <li>
+                                    <i class='bx bx-chevron-right'></i>
+                                    <span>Pastikan menggunakan QR code dari dokumen yang sudah disetujui</span>
+                                </li>
+                            @endif
+                        </ul>
+                    </div>
+                </div>
+
                 <!-- Help Section -->
-                <div class="mt-4 p-3"
-                    style="background: #f8f9fa; border-radius: 10px; border-left: 4px solid var(--primary-orange);">
-                    <small class="text-muted">
-                        <i class='bx bx-help-circle me-1'></i>
-                        <strong>Butuh bantuan?</strong> Silakan hubungi bagian administrasi akademik atau scan ulang QR code
-                        dari dokumen resmi.
-                    </small>
+                <div class="notice-box">
+                    <div class="notice-icon">
+                        <i class='bx bxs-info-circle'></i>
+                    </div>
+                    <div class="notice-content">
+                        <h5>Butuh Bantuan?</h5>
+                        <p>
+                            Silakan hubungi bagian administrasi Program Studi Teknik Informatika UNIMA
+                            atau scan ulang QR Code dari dokumen asli. Pastikan QR Code terlihat jelas
+                            dan tidak rusak.
+                        </p>
+                    </div>
                 </div>
             </div>
 
             <!-- Footer -->
             <div class="verification-footer">
                 <a href="{{ route('user.home.index') }}" class="btn-custom">
-                    <i class='bx bx-home'></i>
+                    <i class='bx bx-arrow-back'></i>
                     Kembali ke Beranda
                 </a>
             </div>
         </div>
     </div>
 @endsection
-
-@push('styles')
-    <style>
-        /* Additional specific styles for invalid page */
-        .list-unstyled li {
-            font-size: 0.9rem;
-            padding: 0.4rem 0;
-        }
-
-        .list-unstyled li i {
-            color: #dc3545;
-            font-size: 1rem;
-        }
-
-        .alert small {
-            line-height: 1.6;
-        }
-    </style>
-@endpush

@@ -23,13 +23,13 @@ class SignatureService
      * Sign as Kaprodi dengan QR Code
      * 
      * @param PendaftaranSeminarProposal $pendaftaran
-     * @param User|null $kaprodi User yang melakukan TTD (untuk override)
+     * @param User $currentUser User yang sedang login
      * @param int|null $defaultKaprodiId Default Kaprodi ID jika staff override
      * @return bool
      */
     public function signAsKaprodi(
         PendaftaranSeminarProposal $pendaftaran,
-        ?User $kaprodi = null,
+        User $currentUser,
         ?int $defaultKaprodiId = null
     ): bool {
         DB::beginTransaction();
@@ -44,30 +44,59 @@ class SignatureService
                 throw new \Exception('Surat tidak dapat ditandatangani oleh Kaprodi saat ini');
             }
 
-            $currentUser = Auth::user();
-            $isKaprodi = $this->isKaprodi($currentUser);
-            $canOverride = $this->canOverrideSignature($currentUser);
+            $isKaprodi = $currentUser->isKoordinatorProdi();
+            $canOverride = $currentUser->hasRole('staff');
+
+            Log::info('SignatureService - signAsKaprodi', [
+                'current_user_id' => $currentUser->id,
+                'current_user_name' => $currentUser->name,
+                'is_kaprodi' => $isKaprodi,
+                'can_override' => $canOverride,
+                'default_kaprodi_id' => $defaultKaprodiId,
+            ]);
 
             // Determine penandatangan
             if ($isKaprodi) {
+                // Kaprodi langsung TTD
                 $penandatanganId = $currentUser->id;
-                $jabatan = $currentUser->jabatan ?? 'Koordinator Program Studi';
-            } elseif ($canOverride && $defaultKaprodiId) {
-                // Staff override
-                $penandatanganId = $defaultKaprodiId;
-                $defaultKaprodi = User::find($defaultKaprodiId);
-                $jabatan = $defaultKaprodi->jabatan ?? 'Koordinator Program Studi';
+                $penandatangan = $currentUser;
+                $isOverride = false;
+            } elseif ($canOverride) {
+                // Staff override - gunakan default Kaprodi atau cari otomatis
+                $penandatanganId = $defaultKaprodiId ?? $this->getDefaultKaprodiId();
 
-                // Save override info
-                $surat->setOverrideInfo('kaprodi', [
-                    'override_by' => $currentUser->id,
-                    'override_name' => $currentUser->name,
-                    'override_role' => $currentUser->roles->pluck('name')->first(),
-                    'original_kaprodi_id' => $defaultKaprodiId,
-                    'original_kaprodi_name' => $defaultKaprodi->name,
+                if (!$penandatanganId) {
+                    throw new \Exception('Default Kaprodi tidak ditemukan di sistem. Silakan tambahkan dosen dengan jabatan Koordinator Program Studi.');
+                }
+
+                $penandatangan = User::find($penandatanganId);
+                if (!$penandatangan) {
+                    throw new \Exception('Penandatangan Kaprodi tidak ditemukan');
+                }
+
+                $isOverride = true;
+
+                // Simpan informasi override
+                $overrideInfo = $surat->override_info ?? [];
+                $overrideInfo['kaprodi'] = [
+                    'override_by_id' => $currentUser->id,
+                    'override_by_name' => $currentUser->name,
+                    'override_by_role' => 'staff',
+                    'original_kaprodi_id' => $penandatanganId,
+                    'original_kaprodi_name' => $penandatangan->name,
+                    'override_at' => now()->toDateTimeString(),
+                    'reason' => 'Staff override untuk persetujuan Kaprodi',
+                ];
+                $surat->override_info = $overrideInfo;
+
+                Log::info('Staff override for Kaprodi', [
+                    'staff_id' => $currentUser->id,
+                    'staff_name' => $currentUser->name,
+                    'kaprodi_id' => $penandatanganId,
+                    'kaprodi_name' => $penandatangan->name,
                 ]);
             } else {
-                throw new \Exception('Anda tidak memiliki izin untuk menandatangani surat ini');
+                throw new \Exception('Anda tidak memiliki izin untuk menandatangani surat ini sebagai Kaprodi');
             }
 
             // Generate QR Code untuk Kaprodi
@@ -75,6 +104,7 @@ class SignatureService
             $qrCodeKaprodi = base64_encode(
                 QrCode::format('png')
                     ->size(200)
+                    ->margin(1)
                     ->errorCorrection('H')
                     ->generate($verificationUrl)
             );
@@ -85,6 +115,7 @@ class SignatureService
                 'ttd_kaprodi_at' => now(),
                 'qr_code_kaprodi' => $qrCodeKaprodi,
                 'status' => 'menunggu_ttd_kajur',
+                'override_info' => $surat->override_info,
             ]);
 
             // Regenerate PDF dengan QR Kaprodi
@@ -97,11 +128,13 @@ class SignatureService
 
             DB::commit();
 
-            Log::info('Surat usulan signed by Kaprodi', [
+            Log::info('Surat usulan signed by Kaprodi - SUCCESS', [
                 'surat_id' => $surat->id,
                 'pendaftaran_id' => $pendaftaran->id,
                 'signed_by' => $penandatanganId,
-                'is_override' => $canOverride && !$isKaprodi,
+                'signed_by_name' => $penandatangan->name,
+                'is_override' => $isOverride,
+                'action_by' => $currentUser->id,
             ]);
 
             return true;
@@ -110,6 +143,7 @@ class SignatureService
             DB::rollBack();
             Log::error('Error signing as Kaprodi: ' . $e->getMessage(), [
                 'pendaftaran_id' => $pendaftaran->id,
+                'user_id' => $currentUser->id,
                 'trace' => $e->getTraceAsString(),
             ]);
             throw $e;
@@ -120,16 +154,13 @@ class SignatureService
      * Sign as Kajur dengan QR Code
      * 
      * @param PendaftaranSeminarProposal $pendaftaran
-     * @param User|null $kajur User yang melakukan TTD (untuk override)
+     * @param User $currentUser User yang sedang login
      * @param int|null $defaultKajurId Default Kajur ID jika staff override
      * @return bool
      */
-    /**
-     * Sign as Kajur dengan QR Code
-     */
     public function signAsKajur(
         PendaftaranSeminarProposal $pendaftaran,
-        ?User $kajur = null,
+        User $currentUser,
         ?int $defaultKajurId = null
     ): bool {
         DB::beginTransaction();
@@ -144,12 +175,12 @@ class SignatureService
                 throw new \Exception('Surat tidak dapat ditandatangani oleh Kajur saat ini. Pastikan Kaprodi sudah TTD.');
             }
 
-            $currentUser = User::find(Auth::id());
             $isKajur = $currentUser->isKetuaJurusan();
-            $canOverride = $currentUser->can('manage pendaftaran sempro');
+            $canOverride = $currentUser->hasRole('staff');
 
             Log::info('SignatureService - signAsKajur', [
                 'current_user_id' => $currentUser->id,
+                'current_user_name' => $currentUser->name,
                 'current_user_jabatan' => $currentUser->jabatan,
                 'is_kajur' => $isKajur,
                 'can_override' => $canOverride,
@@ -158,41 +189,46 @@ class SignatureService
 
             // Determine penandatangan
             if ($isKajur) {
+                // Kajur langsung TTD
                 $penandatanganId = $currentUser->id;
-                $jabatan = $currentUser->jabatan ?? 'Ketua Jurusan';
+                $penandatangan = $currentUser;
+                $isOverride = false;
+            } elseif ($canOverride) {
+                // Staff override - gunakan default Kajur atau cari otomatis
+                $penandatanganId = $defaultKajurId ?? $this->getDefaultKajurId();
 
-                Log::info('Signing as Kajur (direct)', [
-                    'penandatangan_id' => $penandatanganId,
-                    'jabatan' => $jabatan,
-                ]);
-            } elseif ($canOverride && $defaultKajurId) {
-                // Staff override
-                $penandatanganId = $defaultKajurId;
-                $defaultKajur = User::find($defaultKajurId);
-
-                if (!$defaultKajur) {
-                    throw new \Exception('Default Kajur tidak ditemukan');
+                if (!$penandatanganId) {
+                    throw new \Exception('Default Kajur tidak ditemukan di sistem. Silakan tambahkan dosen dengan jabatan Ketua Jurusan.');
                 }
 
-                $jabatan = $defaultKajur->jabatan ?? 'Ketua Jurusan';
+                $penandatangan = User::find($penandatanganId);
+                if (!$penandatangan) {
+                    throw new \Exception('Penandatangan Kajur tidak ditemukan');
+                }
 
-                Log::info('Signing as Kajur (staff override)', [
+                $isOverride = true;
+
+                // Simpan informasi override
+                $overrideInfo = $surat->override_info ?? [];
+                $overrideInfo['kajur'] = [
+                    'override_by_id' => $currentUser->id,
+                    'override_by_name' => $currentUser->name,
+                    'override_by_role' => 'staff',
+                    'original_kajur_id' => $penandatanganId,
+                    'original_kajur_name' => $penandatangan->name,
+                    'override_at' => now()->toDateTimeString(),
+                    'reason' => 'Staff override untuk persetujuan Kajur',
+                ];
+                $surat->override_info = $overrideInfo;
+
+                Log::info('Staff override for Kajur', [
                     'staff_id' => $currentUser->id,
-                    'penandatangan_id' => $penandatanganId,
-                    'default_kajur_name' => $defaultKajur->name,
-                    'jabatan' => $jabatan,
-                ]);
-
-                // Save override info
-                $surat->setOverrideInfo('kajur', [
-                    'override_by' => $currentUser->id,
-                    'override_name' => $currentUser->name,
-                    'override_role' => $currentUser->roles->pluck('name')->first(),
-                    'original_kajur_id' => $defaultKajurId,
-                    'original_kajur_name' => $defaultKajur->name,
+                    'staff_name' => $currentUser->name,
+                    'kajur_id' => $penandatanganId,
+                    'kajur_name' => $penandatangan->name,
                 ]);
             } else {
-                throw new \Exception('Anda tidak memiliki izin untuk menandatangani surat ini');
+                throw new \Exception('Anda tidak memiliki izin untuk menandatangani surat ini sebagai Kajur');
             }
 
             // Generate QR Code untuk Kajur
@@ -200,6 +236,7 @@ class SignatureService
             $qrCodeKajur = base64_encode(
                 QrCode::format('png')
                     ->size(200)
+                    ->margin(1)
                     ->errorCorrection('H')
                     ->generate($verificationUrl)
             );
@@ -210,6 +247,7 @@ class SignatureService
                 'ttd_kajur_at' => now(),
                 'qr_code_kajur' => $qrCodeKajur,
                 'status' => 'selesai',
+                'override_info' => $surat->override_info,
             ]);
 
             // Regenerate PDF dengan kedua QR
@@ -226,7 +264,9 @@ class SignatureService
                 'surat_id' => $surat->id,
                 'pendaftaran_id' => $pendaftaran->id,
                 'signed_by' => $penandatanganId,
-                'is_override' => $canOverride && !$isKajur,
+                'signed_by_name' => $penandatangan->name,
+                'is_override' => $isOverride,
+                'action_by' => $currentUser->id,
             ]);
 
             return true;
@@ -235,10 +275,68 @@ class SignatureService
             DB::rollBack();
             Log::error('Error signing as Kajur: ' . $e->getMessage(), [
                 'pendaftaran_id' => $pendaftaran->id,
+                'user_id' => $currentUser->id,
                 'trace' => $e->getTraceAsString(),
             ]);
             throw $e;
         }
+    }
+
+    /**
+     * Get default Kaprodi ID
+     */
+    public function getDefaultKaprodiId(): ?int
+    {
+        $kaprodi = User::whereHas('roles', function ($q) {
+            $q->where('name', 'dosen');
+        })
+            ->where(function ($query) {
+                $query->whereRaw('LOWER(jabatan) LIKE ?', ['%koordinator%'])
+                    ->orWhereRaw('LOWER(jabatan) LIKE ?', ['%kaprodi%'])
+                    ->orWhereRaw('LOWER(jabatan) LIKE ?', ['%korprodi%']);
+            })
+            ->first();
+
+        if ($kaprodi) {
+            Log::info('Default Kaprodi found', [
+                'kaprodi_id' => $kaprodi->id,
+                'kaprodi_name' => $kaprodi->name,
+                'jabatan' => $kaprodi->jabatan,
+            ]);
+        } else {
+            Log::warning('No default Kaprodi found in system');
+        }
+
+        return $kaprodi?->id;
+    }
+
+    /**
+     * Get default Kajur ID
+     */
+    public function getDefaultKajurId(): ?int
+    {
+        $kajur = User::whereHas('roles', function ($q) {
+            $q->where('name', 'dosen');
+        })
+            ->where(function ($query) {
+                $query->whereRaw('LOWER(jabatan) LIKE ?', ['%ketua jurusan%'])
+                    ->orWhereRaw('LOWER(jabatan) LIKE ?', ['%kajur%'])
+                    ->orWhereRaw('LOWER(jabatan) LIKE ?', ['%pimpinan jurusan%'])
+                    ->orWhereRaw('LOWER(jabatan) LIKE ?', ['%kepala jurusan%']);
+            })
+            ->first();
+
+        if ($kajur) {
+            Log::info('Default Kajur found', [
+                'kajur_id' => $kajur->id,
+                'kajur_name' => $kajur->name,
+                'jabatan' => $kajur->jabatan,
+            ]);
+        } else {
+            Log::warning('No default Kajur found in system');
+        }
+
+        return $kajur?->id;
     }
 
     /**
@@ -313,55 +411,5 @@ class SignatureService
             'old_path' => $oldFilePath,
             'status' => $statusSuffix,
         ]);
-    }
-
-    /**
-     * Check if user is Kaprodi
-     */
-    protected function isKaprodi(User $user): bool
-    {
-        if (!$user->hasRole('dosen')) {
-            return false;
-        }
-
-        $jabatan = strtolower($user->jabatan ?? '');
-        $keywords = ['koordinator', 'kaprodi', 'korprodi'];
-
-        foreach ($keywords as $keyword) {
-            if (str_contains($jabatan, $keyword)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Check if user is Kajur
-     */
-    protected function isKajur(User $user): bool
-    {
-        if (!$user->hasRole('dosen')) {
-            return false;
-        }
-
-        $jabatan = strtolower($user->jabatan ?? '');
-        $keywords = ['ketua jurusan', 'kajur', 'kepala jurusan'];
-
-        foreach ($keywords as $keyword) {
-            if (str_contains($jabatan, $keyword)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Check if user can override signature
-     */
-    protected function canOverrideSignature(User $user): bool
-    {
-        return $user->hasAnyRole(['super-admin', 'admin', 'staff-tu']);
     }
 }

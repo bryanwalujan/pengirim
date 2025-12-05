@@ -916,12 +916,6 @@ h6 {
     transition: all 0.3s ease;
 }
 
-.page-title .breadcrumbs ol:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: translateY(-2px);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15),
-        inset 0 1px 0 rgba(255, 255, 255, 0.3);
-}
 
 /* Individual Breadcrumb Items */
 .page-title .breadcrumbs ol li {
@@ -931,9 +925,6 @@ h6 {
     padding: 0.25rem 0;
 }
 
-.page-title .breadcrumbs ol li:hover {
-    color: #ffffff;
-}
 
 /* Breadcrumb Links */
 .page-title .breadcrumbs ol li a {
@@ -946,21 +937,6 @@ h6 {
     overflow: hidden;
 }
 
-.page-title .breadcrumbs ol li a::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-        90deg,
-        transparent,
-        rgba(255, 255, 255, 0.2),
-        transparent
-    );
-    transition: left 0.5s ease;
-}
 
 .page-title .breadcrumbs ol li a:hover::before {
     left: 100%;

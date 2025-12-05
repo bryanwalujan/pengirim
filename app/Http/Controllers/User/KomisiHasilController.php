@@ -283,20 +283,20 @@ class KomisiHasilController extends Controller
         if ($komisiHasil->user_id !== Auth::id()) {
             abort(403, 'Anda tidak memiliki akses ke dokumen ini.');
         }
-
+    
         // Hanya bisa download jika sudah approved
         if ($komisiHasil->status !== 'approved') {
             return back()->with('error', 'Dokumen hanya dapat diunduh setelah disetujui lengkap.');
         }
-
-        // Gunakan disk 'local'
-        if (!$komisiHasil->file_komisi || !Storage::disk('local')->exists($komisiHasil->file_komisi)) {
+    
+        // Gunakan nama kolom yang benar: file_komisi_hasil
+        if (!$komisiHasil->file_komisi_hasil || !Storage::disk('local')->exists($komisiHasil->file_komisi_hasil)) {
             return back()->with('error', 'File dokumen tidak ditemukan.');
         }
-
-        $fullPath = Storage::disk('local')->path($komisiHasil->file_komisi);
+    
+        $fullPath = Storage::disk('local')->path($komisiHasil->file_komisi_hasil);
         $filename = 'Komisi_Hasil_' . Auth::user()->nim . '_' . now()->format('Ymd') . '.pdf';
-
+    
         return response()->download($fullPath, $filename);
     }
 }

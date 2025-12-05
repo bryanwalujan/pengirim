@@ -172,65 +172,65 @@ class AdminPendaftaranSeminarProposalController extends Controller
     }
 
     /**
- * Hapus pendaftaran seminar proposal
- * HANYA STAFF yang bisa menghapus
- */
-public function destroy(PendaftaranSeminarProposal $pendaftaranSeminarProposal)
-{
-    try {
-        $user = User::find(Auth::id());
+     * Hapus pendaftaran seminar proposal
+     * HANYA STAFF yang bisa menghapus
+     */
+    public function destroy(PendaftaranSeminarProposal $pendaftaranSeminarProposal)
+    {
+        try {
+            $user = User::find(Auth::id());
 
-        // Validasi: HANYA staff yang bisa menghapus
-        if (!$user->hasRole('staff')) {
-            Log::warning('Unauthorized delete attempt', [
-                'user_id' => $user->id,
-                'user_name' => $user->name,
-                'pendaftaran_id' => $pendaftaranSeminarProposal->id,
+            // Validasi: HANYA staff yang bisa menghapus
+            if (!$user->hasRole('staff')) {
+                Log::warning('Unauthorized delete attempt', [
+                    'user_id' => $user->id,
+                    'user_name' => $user->name,
+                    'pendaftaran_id' => $pendaftaranSeminarProposal->id,
+                ]);
+                return back()->with('error', 'Anda tidak memiliki akses untuk menghapus data ini. Hanya Staff yang dapat menghapus.');
+            }
+
+            // Simpan info sebelum dihapus untuk logging
+            $nim = $pendaftaranSeminarProposal->user->nim;
+            $userName = $pendaftaranSeminarProposal->user->name;
+            $status = $pendaftaranSeminarProposal->status;
+            $hasSurat = $pendaftaranSeminarProposal->suratUsulan ? true : false;
+            $nomorSurat = $pendaftaranSeminarProposal->suratUsulan?->nomor_surat;
+
+            // Hapus pendaftaran (file otomatis terhapus via model boot method)
+            $pendaftaranSeminarProposal->delete();
+
+            Log::info('Pendaftaran seminar proposal dihapus', [
+                'nim' => $nim,
+                'nama' => $userName,
+                'status_sebelum_dihapus' => $status,
+                'had_surat' => $hasSurat,
+                'nomor_surat' => $nomorSurat,
+                'deleted_by' => $user->name,
+                'deleted_by_id' => $user->id,
+                'deleted_at' => now()->toDateTimeString(),
             ]);
-            return back()->with('error', 'Anda tidak memiliki akses untuk menghapus data ini. Hanya Staff yang dapat menghapus.');
+
+            // Pesan berdasarkan status
+            $message = match ($status) {
+                'selesai' => "Pendaftaran yang sudah selesai (Surat: {$nomorSurat}) berhasil dihapus beserta semua dokumen.",
+                'ditolak' => 'Pendaftaran yang ditolak berhasil dihapus beserta semua dokumen.',
+                default => 'Pendaftaran berhasil dihapus beserta semua dokumen.',
+            };
+
+            return redirect()
+                ->route('admin.pendaftaran-seminar-proposal.index')
+                ->with('success', $message);
+
+        } catch (\Exception $e) {
+            Log::error('Error deleting pendaftaran seminar proposal', [
+                'pendaftaran_id' => $pendaftaranSeminarProposal->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return back()->with('error', 'Gagal menghapus pendaftaran: ' . $e->getMessage());
         }
-
-        // Simpan info sebelum dihapus untuk logging
-        $nim = $pendaftaranSeminarProposal->user->nim;
-        $userName = $pendaftaranSeminarProposal->user->name;
-        $status = $pendaftaranSeminarProposal->status;
-        $hasSurat = $pendaftaranSeminarProposal->suratUsulan ? true : false;
-        $nomorSurat = $pendaftaranSeminarProposal->suratUsulan?->nomor_surat;
-
-        // Hapus pendaftaran (file otomatis terhapus via model boot method)
-        $pendaftaranSeminarProposal->delete();
-
-        Log::info('Pendaftaran seminar proposal dihapus', [
-            'nim' => $nim,
-            'nama' => $userName,
-            'status_sebelum_dihapus' => $status,
-            'had_surat' => $hasSurat,
-            'nomor_surat' => $nomorSurat,
-            'deleted_by' => $user->name,
-            'deleted_by_id' => $user->id,
-            'deleted_at' => now()->toDateTimeString(),
-        ]);
-
-        // Pesan berdasarkan status
-        $message = match ($status) {
-            'selesai' => "Pendaftaran yang sudah selesai (Surat: {$nomorSurat}) berhasil dihapus beserta semua dokumen.",
-            'ditolak' => 'Pendaftaran yang ditolak berhasil dihapus beserta semua dokumen.',
-            default => 'Pendaftaran berhasil dihapus beserta semua dokumen.',
-        };
-
-        return redirect()
-            ->route('admin.pendaftaran-seminar-proposal.index')
-            ->with('success', $message);
-
-    } catch (\Exception $e) {
-        Log::error('Error deleting pendaftaran seminar proposal', [
-            'pendaftaran_id' => $pendaftaranSeminarProposal->id,
-            'error' => $e->getMessage(),
-            'trace' => $e->getTraceAsString()
-        ]);
-        return back()->with('error', 'Gagal menghapus pendaftaran: ' . $e->getMessage());
     }
-}
 
     /**
      * ========================================
@@ -471,7 +471,7 @@ public function destroy(PendaftaranSeminarProposal $pendaftaranSeminarProposal)
      */
 
     /**
-     * TTD Kaprodi - PERBAIKAN
+     * TTD Kaprodi - DENGAN STAFF OVERRIDE
      */
     public function ttdKaprodi(Request $request, PendaftaranSeminarProposal $pendaftaranSeminarProposal)
     {
@@ -481,6 +481,7 @@ public function destroy(PendaftaranSeminarProposal $pendaftaranSeminarProposal)
             'pendaftaran_id' => $pendaftaranSeminarProposal->id,
             'user_id' => $user->id,
             'user_name' => $user->name,
+            'user_role' => $user->roles->pluck('name')->first(),
             'current_status' => $pendaftaranSeminarProposal->status,
         ]);
 
@@ -501,15 +502,15 @@ public function destroy(PendaftaranSeminarProposal $pendaftaranSeminarProposal)
             return back()->with('error', 'Surat tidak dapat ditandatangani pada tahap ini.');
         }
 
-        // VALIDASI 4: Check permission
-        $isKaprodi = $user->hasRole('dosen') && $this->isKoordinatorProdi($user);
-        $canOverride = $this->canOverrideApproval($user);
+        // VALIDASI 4: Check permission - Kaprodi ATAU Staff
+        $isKaprodi = $user->isKoordinatorProdi();
+        $isStaff = $user->hasRole('staff');
 
-        if (!$isKaprodi && !$canOverride) {
+        if (!$isKaprodi && !$isStaff) {
             Log::warning('User tidak memiliki izin TTD Kaprodi', [
                 'user_id' => $user->id,
                 'is_kaprodi' => $isKaprodi,
-                'can_override' => $canOverride,
+                'is_staff' => $isStaff,
             ]);
             return back()->with('error', 'Hanya Kaprodi atau Staff yang dapat menandatangani.');
         }
@@ -517,11 +518,11 @@ public function destroy(PendaftaranSeminarProposal $pendaftaranSeminarProposal)
         try {
             // Get default Kaprodi ID untuk staff override
             $defaultKaprodiId = null;
-            if ($canOverride && !$isKaprodi) {
-                $defaultKaprodiId = $this->getDefaultKorprodiId();
+            if ($isStaff && !$isKaprodi) {
+                $defaultKaprodiId = $this->signatureService->getDefaultKaprodiId();
 
                 if (!$defaultKaprodiId) {
-                    return back()->with('error', 'Default Kaprodi tidak ditemukan. Hubungi administrator.');
+                    return back()->with('error', 'Default Kaprodi tidak ditemukan di sistem. Silakan tambahkan dosen dengan jabatan Koordinator Program Studi.');
                 }
             }
 
@@ -535,12 +536,12 @@ public function destroy(PendaftaranSeminarProposal $pendaftaranSeminarProposal)
             Log::info('TTD Kaprodi - SUCCESS', [
                 'pendaftaran_id' => $pendaftaranSeminarProposal->id,
                 'surat_id' => $surat->id,
-                'signed_by' => $user->id,
-                'is_override' => $canOverride && !$isKaprodi,
+                'action_by' => $user->id,
+                'is_override' => $isStaff && !$isKaprodi,
             ]);
 
-            $message = $canOverride && !$isKaprodi
-                ? 'Surat berhasil ditandatangani (Staff Override). Menunggu tanda tangan Kajur.'
+            $message = ($isStaff && !$isKaprodi)
+                ? 'Surat berhasil ditandatangani (Staff Override atas nama Kaprodi). Menunggu tanda tangan Kajur.'
                 : 'Surat berhasil ditandatangani sebagai Kaprodi. Menunggu tanda tangan Kajur.';
 
             return redirect()
@@ -559,20 +560,17 @@ public function destroy(PendaftaranSeminarProposal $pendaftaranSeminarProposal)
     }
 
     /**
-     * TTD Kajur - PERBAIKAN
+     * TTD Kajur - DENGAN STAFF OVERRIDE
      */
     public function ttdKajur(Request $request, PendaftaranSeminarProposal $pendaftaranSeminarProposal)
     {
         $user = User::find(Auth::id());
 
-
         Log::info('=== TTD KAJUR - START ===', [
             'user_id' => $user->id,
             'user_name' => $user->name,
             'user_jabatan' => $user->jabatan,
-            'user_roles' => $user->roles->pluck('name')->toArray(),
-            'is_dosen' => $user->hasRole('dosen'),
-            'is_ketua_jurusan' => $user->isKetuaJurusan(),
+            'user_role' => $user->roles->pluck('name')->first(),
             'pendaftaran_id' => $pendaftaranSeminarProposal->id,
             'current_status' => $pendaftaranSeminarProposal->status,
         ]);
@@ -602,42 +600,38 @@ public function destroy(PendaftaranSeminarProposal $pendaftaranSeminarProposal)
 
         // VALIDASI 4: Check surat dapat ditandatangani
         if (!$surat->canBeSignedByKajur()) {
-            Log::error('TTD Kajur FAILED: Surat tidak dapat ditandatangani', [
-                'is_kaprodi_signed' => $surat->isKaprodiSigned(),
-                'is_kajur_signed' => $surat->isKajurSigned(),
-            ]);
+            Log::error('TTD Kajur FAILED: Surat tidak dapat ditandatangani');
             return back()->with('error', 'Surat tidak dapat ditandatangani oleh Kajur saat ini');
         }
 
-        // VALIDASI 5: Check permission - PERBAIKAN DI SINI
-        $isKajur = $user->isKetuaJurusan(); // Menggunakan method dari User model
-        $canOverride = $user->can('manage pendaftaran sempro'); // Staff permission
+        // VALIDASI 5: Check permission - Kajur ATAU Staff
+        $isKajur = $user->isKetuaJurusan();
+        $isStaff = $user->hasRole('staff');
 
         Log::info('Permission Check', [
             'is_kajur' => $isKajur,
-            'can_override' => $canOverride,
+            'is_staff' => $isStaff,
             'user_jabatan' => $user->jabatan,
         ]);
 
-        if (!$isKajur && !$canOverride) {
+        if (!$isKajur && !$isStaff) {
             Log::error('TTD Kajur FAILED: No permission', [
                 'user_id' => $user->id,
                 'is_kajur' => $isKajur,
-                'can_override' => $canOverride,
-                'jabatan' => $user->jabatan,
+                'is_staff' => $isStaff,
             ]);
-            return back()->with('error', 'Anda tidak memiliki izin untuk menandatangani surat ini');
+            return back()->with('error', 'Hanya Kajur atau Staff yang dapat menandatangani surat ini');
         }
 
         try {
             // Get default Kajur ID untuk staff override
             $defaultKajurId = null;
-            if ($canOverride && !$isKajur) {
-                $defaultKajurId = $this->getDefaultKajurId();
+            if ($isStaff && !$isKajur) {
+                $defaultKajurId = $this->signatureService->getDefaultKajurId();
 
                 if (!$defaultKajurId) {
                     Log::error('TTD Kajur FAILED: Default Kajur not found');
-                    return back()->with('error', 'Default Kajur tidak ditemukan di sistem');
+                    return back()->with('error', 'Default Kajur tidak ditemukan di sistem. Silakan tambahkan dosen dengan jabatan Ketua Jurusan.');
                 }
 
                 Log::info('Staff override: Using default Kajur', [
@@ -655,13 +649,17 @@ public function destroy(PendaftaranSeminarProposal $pendaftaranSeminarProposal)
 
             Log::info('=== TTD KAJUR - SUCCESS ===', [
                 'surat_id' => $surat->id,
-                'signed_by' => $user->id,
-                'is_override' => $canOverride && !$isKajur,
+                'action_by' => $user->id,
+                'is_override' => $isStaff && !$isKajur,
             ]);
+
+            $message = ($isStaff && !$isKajur)
+                ? 'Surat berhasil ditandatangani (Staff Override atas nama Kajur). Proses selesai!'
+                : 'Surat berhasil ditandatangani oleh Kajur. Proses selesai!';
 
             return redirect()
                 ->route('admin.pendaftaran-seminar-proposal.show', $pendaftaranSeminarProposal)
-                ->with('success', 'Surat berhasil ditandatangani oleh Kajur. Proses selesai!');
+                ->with('success', $message);
 
         } catch (\Exception $e) {
             Log::error('=== TTD KAJUR - ERROR ===', [

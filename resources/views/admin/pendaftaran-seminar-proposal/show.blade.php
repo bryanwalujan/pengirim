@@ -283,7 +283,7 @@
                             {{-- Download Surat - Untuk semua yang punya akses --}}
                             @if ($pendaftaran->suratUsulan)
                                 <a href="{{ route('admin.pendaftaran-seminar-proposal.download-surat', $pendaftaran) }}"
-                                    target="_blank" class="btn btn-outline-primary w-100 mb-2">
+                                    target="_blank" class="btn btn-outline-primary w-100 my-2">
                                     <i class="bx bx-download me-1"></i> Download Surat
                                 </a>
                             @endif
