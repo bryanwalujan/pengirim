@@ -260,13 +260,24 @@
                                     </button>
                                 @endif
 
-                                {{-- Hapus - Tidak bisa hapus jika sudah selesai --}}
-                                @if ($pendaftaran->status !== 'selesai')
-                                    <button type="button" class="btn btn-outline-danger w-100" data-bs-toggle="modal"
-                                        data-bs-target="#deleteModal">
-                                        <i class="bx bx-trash me-1"></i> Hapus Pendaftaran
+                                {{-- ✅ TOMBOL HAPUS - SELALU MUNCUL UNTUK STAFF --}}
+                                <hr class="my-4">
+                                <div class="d-grid">
+                                    <button type="button"
+                                        class="btn {{ $pendaftaran->status === 'selesai' ? 'btn-danger' : 'btn-outline-danger' }}"
+                                        data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                        <i class="bx bx-trash me-1"></i>
+                                        Hapus Pendaftaran
+                                        @if ($pendaftaran->status === 'selesai')
+                                            <span class="badge bg-white text-danger ms-1">!</span>
+                                        @endif
                                     </button>
-                                @endif
+                                    @if ($pendaftaran->status === 'selesai')
+                                        <small class="text-danger text-center mt-1">
+                                            <i class="bx bx-error-circle"></i> Data sudah selesai diproses
+                                        </small>
+                                    @endif
+                                </div>
                             @endif
 
                             {{-- Download Surat - Untuk semua yang punya akses --}}

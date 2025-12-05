@@ -171,51 +171,66 @@ class AdminPendaftaranSeminarProposalController extends Controller
         ]);
     }
 
-    public function destroy(PendaftaranSeminarProposal $pendaftaranSeminarProposal)
-    {
-        try {
-            // Validasi: Hanya staff yang bisa menghapus
-            if (User::find(!Auth::id())->hasRole('staff')) {
-                return back()->with('error', 'Anda tidak memiliki akses untuk menghapus data ini.');
-            }
+    /**
+ * Hapus pendaftaran seminar proposal
+ * HANYA STAFF yang bisa menghapus
+ */
+public function destroy(PendaftaranSeminarProposal $pendaftaranSeminarProposal)
+{
+    try {
+        $user = User::find(Auth::id());
 
-            // Tidak boleh hapus jika status selesai (sudah ada surat resmi)
-            if ($pendaftaranSeminarProposal->status === 'selesai') {
-                return back()->with('error', 'Pendaftaran yang sudah selesai tidak dapat dihapus.');
-            }
-
-            $nim = $pendaftaranSeminarProposal->user->nim;
-            $userName = $pendaftaranSeminarProposal->user->name;
-            $status = $pendaftaranSeminarProposal->status;
-
-            // Hapus pendaftaran (file otomatis terhapus via model boot method)
-            $pendaftaranSeminarProposal->delete();
-
-            Log::info('Pendaftaran seminar proposal dihapus', [
-                'nim' => $nim,
-                'nama' => $userName,
-                'status_sebelum_dihapus' => $status,
-                'deleted_by' => Auth::user()->name,
-                'deleted_by_id' => Auth::id(),
-                'alasan' => $status === 'ditolak' ? 'Pembersihan data ditolak' : 'Dihapus oleh staff',
+        // Validasi: HANYA staff yang bisa menghapus
+        if (!$user->hasRole('staff')) {
+            Log::warning('Unauthorized delete attempt', [
+                'user_id' => $user->id,
+                'user_name' => $user->name,
+                'pendaftaran_id' => $pendaftaranSeminarProposal->id,
             ]);
-
-            $message = $status === 'ditolak'
-                ? 'Pendaftaran yang ditolak berhasil dihapus beserta semua dokumen.'
-                : 'Pendaftaran berhasil dihapus beserta semua dokumen.';
-
-            return redirect()
-                ->route('admin.pendaftaran-seminar-proposal.index')
-                ->with('success', $message);
-
-        } catch (\Exception $e) {
-            Log::error('Error deleting pendaftaran seminar proposal', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            return back()->with('error', 'Gagal menghapus pendaftaran: ' . $e->getMessage());
+            return back()->with('error', 'Anda tidak memiliki akses untuk menghapus data ini. Hanya Staff yang dapat menghapus.');
         }
+
+        // Simpan info sebelum dihapus untuk logging
+        $nim = $pendaftaranSeminarProposal->user->nim;
+        $userName = $pendaftaranSeminarProposal->user->name;
+        $status = $pendaftaranSeminarProposal->status;
+        $hasSurat = $pendaftaranSeminarProposal->suratUsulan ? true : false;
+        $nomorSurat = $pendaftaranSeminarProposal->suratUsulan?->nomor_surat;
+
+        // Hapus pendaftaran (file otomatis terhapus via model boot method)
+        $pendaftaranSeminarProposal->delete();
+
+        Log::info('Pendaftaran seminar proposal dihapus', [
+            'nim' => $nim,
+            'nama' => $userName,
+            'status_sebelum_dihapus' => $status,
+            'had_surat' => $hasSurat,
+            'nomor_surat' => $nomorSurat,
+            'deleted_by' => $user->name,
+            'deleted_by_id' => $user->id,
+            'deleted_at' => now()->toDateTimeString(),
+        ]);
+
+        // Pesan berdasarkan status
+        $message = match ($status) {
+            'selesai' => "Pendaftaran yang sudah selesai (Surat: {$nomorSurat}) berhasil dihapus beserta semua dokumen.",
+            'ditolak' => 'Pendaftaran yang ditolak berhasil dihapus beserta semua dokumen.',
+            default => 'Pendaftaran berhasil dihapus beserta semua dokumen.',
+        };
+
+        return redirect()
+            ->route('admin.pendaftaran-seminar-proposal.index')
+            ->with('success', $message);
+
+    } catch (\Exception $e) {
+        Log::error('Error deleting pendaftaran seminar proposal', [
+            'pendaftaran_id' => $pendaftaranSeminarProposal->id,
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ]);
+        return back()->with('error', 'Gagal menghapus pendaftaran: ' . $e->getMessage());
     }
+}
 
     /**
      * ========================================
@@ -846,7 +861,7 @@ class AdminPendaftaranSeminarProposalController extends Controller
                 'alasan' => $validated['alasan_penolakan'],
             ]);
 
-            // TODO: Kirim notifikasi ke mahasiswa (optional)
+            // Kirim notifikasi ke mahasiswa (optional)
             // $pendaftaranSeminarProposal->user->notify(new PendaftaranDitolakNotification($pendaftaranSeminarProposal));
 
             return redirect()
@@ -865,98 +880,98 @@ class AdminPendaftaranSeminarProposalController extends Controller
     /**
      * Preview PDF dengan data dummy untuk testing template
      */
-    public function previewPdf()
-    {
-        // PERBAIKAN: Gunakan 'collect' untuk mensimulasikan relation hasMany
-        $proposalPembahas = collect([
-            (object) [
-                'posisi' => 1,
-                'dosen' => (object) [
-                    'name' => 'Dr. Irene Realyta Halldy Trosi Tangkawarow, ST., MISD',
-                    'nip' => '1985xxxx'
-                ]
-            ],
-            (object) [
-                'posisi' => 2,
-                'dosen' => (object) [
-                    'name' => 'Dr. Glenn David Paulus Maramis, M.Compsc',
-                    'nip' => '1980xxxx'
-                ]
-            ],
-            (object) [
-                'posisi' => 3,
-                'dosen' => (object) [
-                    'name' => 'Alfiansyah Hasibuan, S.Kom, M.Kom.',
-                    'nip' => '1990xxxx'
-                ]
-            ]
-        ]);
+    // public function previewPdf()
+    // {
+    //     // PERBAIKAN: Gunakan 'collect' untuk mensimulasikan relation hasMany
+    //     $proposalPembahas = collect([
+    //         (object) [
+    //             'posisi' => 1,
+    //             'dosen' => (object) [
+    //                 'name' => 'Dr. Irene Realyta Halldy Trosi Tangkawarow, ST., MISD',
+    //                 'nip' => '1985xxxx'
+    //             ]
+    //         ],
+    //         (object) [
+    //             'posisi' => 2,
+    //             'dosen' => (object) [
+    //                 'name' => 'Dr. Glenn David Paulus Maramis, M.Compsc',
+    //                 'nip' => '1980xxxx'
+    //             ]
+    //         ],
+    //         (object) [
+    //             'posisi' => 3,
+    //             'dosen' => (object) [
+    //                 'name' => 'Alfiansyah Hasibuan, S.Kom, M.Kom.',
+    //                 'nip' => '1990xxxx'
+    //             ]
+    //         ]
+    //     ]);
 
-        // Data dummy untuk preview
-        $pendaftaran = (object) [
-            'id' => 999,
-            'user' => (object) [
-                'name' => 'JUAN IMANUEL KAMASI',
-                'nim' => '22210076'
-            ],
-            'angkatan' => '2022',
-            'ipk' => '3.75',
-            'judul_skripsi' => 'Analisis Tren dan Visualisasi Data Kasus Narkotika Berbasis Statistik Deskriptif Pada Badan Narkotika Nasional Provinsi Sulawesi Utara',
-            'dosenPembimbing' => (object) [
-                'name' => 'Dr. Quido C Kainde, ST.,MM.,MT',
-                'nip' => '1980xxxx'
-            ],
-            // PERBAIKAN: Masukkan collection yang sudah dibuat di atas
-            'proposalPembahas' => $proposalPembahas,
-        ];
+    //     // Data dummy untuk preview
+    //     $pendaftaran = (object) [
+    //         'id' => 999,
+    //         'user' => (object) [
+    //             'name' => 'JUAN IMANUEL KAMASI',
+    //             'nim' => '22210076'
+    //         ],
+    //         'angkatan' => '2022',
+    //         'ipk' => '3.75',
+    //         'judul_skripsi' => 'Analisis Tren dan Visualisasi Data Kasus Narkotika Berbasis Statistik Deskriptif Pada Badan Narkotika Nasional Provinsi Sulawesi Utara',
+    //         'dosenPembimbing' => (object) [
+    //             'name' => 'Dr. Quido C Kainde, ST.,MM.,MT',
+    //             'nip' => '1980xxxx'
+    //         ],
+    //         // PERBAIKAN: Masukkan collection yang sudah dibuat di atas
+    //         'proposalPembahas' => $proposalPembahas,
+    //     ];
 
-        // Surat dummy
-        $surat = (object) [
-            'qr_code_kaprodi' => base64_encode(QrCode::format('png')
-                ->size(200)
-                ->margin(1)
-                ->errorCorrection('H')
-                ->generate('https://example.com/verify/PREVIEW-KAPRODI')),
-            'qr_code_kajur' => base64_encode(QrCode::format('png')
-                ->size(200)
-                ->margin(1)
-                ->errorCorrection('H')
-                ->generate('https://example.com/verify/PREVIEW-KAJUR')),
-            'ttdKaprodiBy' => (object) [
-                'name' => 'Kristofel Santa, S.ST, M.MT',
-                'nip' => '19870531 201504 1 003'
-            ],
-            'ttdKajurBy' => (object) [
-                'name' => 'Dr. Arje C. Djamen. ST, MT',
-                'nip' => '19870712 201012 1 006'
-            ],
-            'verification_code' => 'PREVIEW-' . strtoupper(uniqid()),
-            'nomor_surat' => '2869/UN41.2/TI/2025',
-            'tanggal_surat' => now(), // Tambahkan tanggal surat
-            'is_kaprodi_signed' => true,
-            'is_kajur_signed' => true,
-        ];
+    //     // Surat dummy
+    //     $surat = (object) [
+    //         'qr_code_kaprodi' => base64_encode(QrCode::format('png')
+    //             ->size(200)
+    //             ->margin(1)
+    //             ->errorCorrection('H')
+    //             ->generate('https://example.com/verify/PREVIEW-KAPRODI')),
+    //         'qr_code_kajur' => base64_encode(QrCode::format('png')
+    //             ->size(200)
+    //             ->margin(1)
+    //             ->errorCorrection('H')
+    //             ->generate('https://example.com/verify/PREVIEW-KAJUR')),
+    //         'ttdKaprodiBy' => (object) [
+    //             'name' => 'Kristofel Santa, S.ST, M.MT',
+    //             'nip' => '19870531 201504 1 003'
+    //         ],
+    //         'ttdKajurBy' => (object) [
+    //             'name' => 'Dr. Arje C. Djamen. ST, MT',
+    //             'nip' => '19870712 201012 1 006'
+    //         ],
+    //         'verification_code' => 'PREVIEW-' . strtoupper(uniqid()),
+    //         'nomor_surat' => '2869/UN41.2/TI/2025',
+    //         'tanggal_surat' => now(), // Tambahkan tanggal surat
+    //         'is_kaprodi_signed' => true,
+    //         'is_kajur_signed' => true,
+    //     ];
 
-        // Variabel pendukung view
-        $nomorSurat = $surat->nomor_surat;
-        $tanggalSurat = $surat->tanggal_surat;
-        $show_kajur_signature = true; // Agar watermark DRAFT hilang saat preview
-        $show_kaprodi_signature = true;
+    //     // Variabel pendukung view
+    //     $nomorSurat = $surat->nomor_surat;
+    //     $tanggalSurat = $surat->tanggal_surat;
+    //     $show_kajur_signature = true; // Agar watermark DRAFT hilang saat preview
+    //     $show_kaprodi_signature = true;
 
-        $pdf = Pdf::loadView('admin.pendaftaran-seminar-proposal.surat-usulan-pdf', compact(
-            'pendaftaran',
-            'surat',
-            'nomorSurat',
-            'tanggalSurat',
-            'show_kajur_signature',
-            'show_kaprodi_signature'
-        ))
-            ->setPaper('a4', 'portrait')
-            ->setOption('margin-top', '0.39in')
-            ->setOption('margin-bottom', '1in')
-            ->setOption('margin-left', '1in')
-            ->setOption('margin-right', '1in');
+    //     $pdf = Pdf::loadView('admin.pendaftaran-seminar-proposal.surat-usulan-pdf', compact(
+    //         'pendaftaran',
+    //         'surat',
+    //         'nomorSurat',
+    //         'tanggalSurat',
+    //         'show_kajur_signature',
+    //         'show_kaprodi_signature'
+    //     ))
+    //         ->setPaper('a4', 'portrait')
+    //         ->setOption('margin-top', '0.39in')
+    //         ->setOption('margin-bottom', '1in')
+    //         ->setOption('margin-left', '1in')
+    //         ->setOption('margin-right', '1in');
 
-        return $pdf->stream('preview-surat-usulan-sempro.pdf');
-    }
+    //     return $pdf->stream('preview-surat-usulan-sempro.pdf');
+    // }
 }

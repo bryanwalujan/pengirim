@@ -72,7 +72,6 @@ Route::get('/storage/academic-calendars/{filename}', function ($filename) {
 Route::get('/verify/{code}', [DocumentVerificationController::class, 'verify'])
     ->name('document.verify');
 
-
 // Route untuk role mahasiswa
 Route::middleware(['auth', 'verified', 'role:mahasiswa', 'check.ukt'])->group(function () {
 

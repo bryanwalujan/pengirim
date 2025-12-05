@@ -1,6 +1,3 @@
-{{-- filepath: /c:/laragon/www/eservice-app/resources/views/admin/pendaftaran-seminar-proposal/modals/ttd-kaprodi.blade.php --}}
-
-{{-- ✅ PERBAIKAN: Tambahkan kondisi untuk dosen --}}
 @if (
     $pendaftaran->suratUsulan &&
         $pendaftaran->status === 'menunggu_ttd_kaprodi' &&
@@ -11,7 +8,7 @@
             <div class="modal-content">
                 <div class="modal-header bg-success text-white">
                     <h5 class="modal-title text-white">
-                        <i class="bx bx-pen me-2"></i>Tanda Tangan Kaprodi
+                        <i class="bx bx-pen me-2"></i>Tanda Tangan Korprodi
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                         aria-label="Close"></button>

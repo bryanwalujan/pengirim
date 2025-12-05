@@ -824,7 +824,7 @@
                                 <a href="{{ route('admin.pendaftaran-seminar-proposal.index', ['status' => 'menunggu_ttd_kaprodi']) }}"
                                     class="menu-link">
                                     <i class="menu-icon tf-icons bx bx-time"></i>
-                                    <div>Menunggu TTD Kaprodi</div>
+                                    <div>Menunggu TTD Korprodi</div>
                                 </a>
                             </li>
                         @endif

@@ -165,10 +165,51 @@ class PendaftaranSeminarProposal extends Model
         return $this->status === 'selesai';
     }
 
+    /**
+     * Check if can be deleted
+     * Staff dapat menghapus semua data, termasuk yang sudah selesai
+     */
     public function canBeDeleted(): bool
     {
-        // Tidak bisa dihapus jika sudah ada tanda tangan
-        return !$this->isKaprodiSigned() && !$this->isKajurSigned();
+        // Staff bisa hapus semua data
+        // Method ini sekarang hanya untuk informasi, bukan blocking
+        return true;
+    }
+
+    /**
+     * Check if deletion needs extra confirmation
+     * Data yang sudah selesai atau ada surat perlu konfirmasi ekstra
+     */
+    public function needsDeleteConfirmation(): bool
+    {
+        return $this->status === 'selesai'
+            || $this->isKaprodiSigned()
+            || $this->isKajurSigned()
+            || $this->suratUsulan()->exists();
+    }
+
+    /**
+     * Get deletion warning message
+     */
+    public function getDeletionWarningAttribute(): ?string
+    {
+        if ($this->status === 'selesai') {
+            return 'PERINGATAN: Data ini sudah SELESAI diproses dan memiliki surat resmi yang sudah ditandatangani!';
+        }
+
+        if ($this->isKajurSigned()) {
+            return 'PERINGATAN: Surat sudah ditandatangani oleh Kajur!';
+        }
+
+        if ($this->isKaprodiSigned()) {
+            return 'PERINGATAN: Surat sudah ditandatangani oleh Kaprodi!';
+        }
+
+        if ($this->suratUsulan()->exists()) {
+            return 'PERINGATAN: Surat usulan sudah digenerate!';
+        }
+
+        return null;
     }
 
     // ========== HELPER - PEMBAHAS STATISTICS ==========
