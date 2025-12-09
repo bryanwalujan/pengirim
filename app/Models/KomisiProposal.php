@@ -1,4 +1,5 @@
 <?php
+// filepath: /c:/laragon/www/eservice-app/app/Models/KomisiProposal.php
 
 namespace App\Models;
 
@@ -29,14 +30,39 @@ class KomisiProposal extends Model
         'tanggal_persetujuan_korprodi' => 'datetime',
     ];
 
+    // ========== RELATIONS ==========
+
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * Relasi ke Dosen Pembimbing Utama (PA)
+     * Untuk tahap proposal, HANYA ada 1 pembimbing
+     */
     public function pembimbing()
     {
         return $this->belongsTo(User::class, 'dosen_pembimbing_id');
+    }
+
+    /**
+     * ✅ ALIAS: Untuk kompatibilitas dengan kode yang mengharapkan pembimbing1
+     * Mengarah ke pembimbing yang sama
+     */
+    public function pembimbing1()
+    {
+        return $this->belongsTo(User::class, 'dosen_pembimbing_id');
+    }
+
+    /**
+     * ❌ TIDAK ADA: Pembimbing 2 belum ada di tahap proposal
+     * Method ini SENGAJA return null untuk prevent error
+     */
+    public function pembimbing2()
+    {
+        // Return null relation - tidak ada pembimbing 2 di tahap proposal
+        return null;
     }
 
     public function penandatanganPA()
@@ -50,32 +76,60 @@ class KomisiProposal extends Model
     }
 
     /**
-     * Check if can be approved by PA
+     * Get seminar proposal registrations using this komisi
      */
+    public function pendaftaranSeminarProposals()
+    {
+        return $this->hasMany(PendaftaranSeminarProposal::class, 'komisi_proposal_id');
+    }
+
+    // ========== HELPER METHODS ==========
+
+    /**
+     * ✅ Check if pembimbing 1 exists (alias untuk pembimbing utama)
+     */
+    public function hasPembimbing1(): bool
+    {
+        return !is_null($this->dosen_pembimbing_id);
+    }
+
+    /**
+     * ❌ Check if pembimbing 2 exists (SELALU FALSE untuk proposal)
+     */
+    public function hasPembimbing2(): bool
+    {
+        return false; // Tidak ada pembimbing 2 di tahap proposal
+    }
+
+    /**
+     * ✅ Get all pembimbing (hanya pembimbing utama untuk proposal)
+     */
+    public function getAllPembimbing()
+    {
+        return collect([
+            $this->pembimbing, // Hanya 1 pembimbing di tahap proposal
+        ])->filter();
+    }
+
+    // ========== STATUS CHECKS ==========
+
     public function canBeApprovedByPA(): bool
     {
         return $this->status === 'pending';
     }
 
-    /**
-     * Check if can be approved by Korprodi
-     */
     public function canBeApprovedByKorprodi(): bool
     {
         return $this->status === 'approved_pa';
     }
 
-    /**
-     * Get verification URL
-     */
     public function getVerificationUrlAttribute(): string
     {
         return route('document.verify', ['code' => $this->verification_code ?? '']);
     }
 
-    /**
-     * Check if user has active or approved proposal
-     */
+    // ========== STATIC METHODS ==========
+
     public static function hasActiveProposal(int $userId): bool
     {
         return self::where('user_id', $userId)
@@ -83,9 +137,6 @@ class KomisiProposal extends Model
             ->exists();
     }
 
-    /**
-     * Check if user has approved proposal
-     */
     public static function hasApprovedProposal(int $userId): bool
     {
         return self::where('user_id', $userId)
@@ -93,9 +144,6 @@ class KomisiProposal extends Model
             ->exists();
     }
 
-    /**
-     * Get user's latest proposal
-     */
     public static function getLatestProposal(int $userId)
     {
         return self::where('user_id', $userId)
@@ -103,14 +151,10 @@ class KomisiProposal extends Model
             ->first();
     }
 
-    /**
-     * Check if user can create new proposal
-     */
     public static function canCreateNewProposal(int $userId): array
     {
         $latestProposal = self::getLatestProposal($userId);
 
-        // Jika belum pernah mengajukan
         if (!$latestProposal) {
             return [
                 'can_create' => true,
@@ -119,7 +163,6 @@ class KomisiProposal extends Model
             ];
         }
 
-        // Jika sudah disetujui lengkap
         if ($latestProposal->status === 'approved') {
             return [
                 'can_create' => false,
@@ -128,7 +171,6 @@ class KomisiProposal extends Model
             ];
         }
 
-        // Jika masih pending atau approved_pa
         if (in_array($latestProposal->status, ['pending', 'approved_pa'])) {
             return [
                 'can_create' => false,
@@ -137,7 +179,6 @@ class KomisiProposal extends Model
             ];
         }
 
-        // Jika ditolak, boleh mengajukan lagi
         if ($latestProposal->status === 'rejected') {
             return [
                 'can_create' => true,
@@ -153,9 +194,8 @@ class KomisiProposal extends Model
         ];
     }
 
-    /**
-     * Get status badge HTML
-     */
+    // ========== ATTRIBUTES ==========
+
     public function getStatusBadgeAttribute(): string
     {
         $badges = [
@@ -168,17 +208,8 @@ class KomisiProposal extends Model
         return $badges[$this->status] ?? '<span class="badge bg-label-secondary">Unknown</span>';
     }
 
-    /**
-     * Get seminar proposal registrations using this komisi
-     */
-    public function pendaftaranSeminarProposals()
-    {
-        return $this->hasMany(PendaftaranSeminarProposal::class, 'komisi_proposal_id');
-    }
+    // ========== CHECKS ==========
 
-    /**
-     * Check if this komisi has been used for seminar registration
-     */
     public function hasActiveRegistration(): bool
     {
         return $this->pendaftaranSeminarProposals()
@@ -186,9 +217,25 @@ class KomisiProposal extends Model
             ->exists();
     }
 
-    /**
-     * Boot method untuk handle events
-     */
+    public function canBeDeleted(): bool
+    {
+        return in_array($this->status, ['pending', 'rejected', 'approved_pa', 'approved']);
+    }
+
+    public function getDeleteConfirmationMessage(): string
+    {
+        $statusMessages = [
+            'pending' => 'Pengajuan masih menunggu persetujuan PA.',
+            'approved_pa' => 'Pengajuan sudah disetujui PA, menunggu Korprodi.',
+            'approved' => 'Pengajuan sudah disetujui lengkap.',
+            'rejected' => 'Pengajuan ditolak.',
+        ];
+
+        return $statusMessages[$this->status] ?? 'Status tidak diketahui.';
+    }
+
+    // ========== BOOT METHOD ==========
+
     protected static function boot()
     {
         parent::boot();
@@ -238,11 +285,9 @@ class KomisiProposal extends Model
             }
         });
 
-        // UBAH: Gunakan disk 'local' untuk private storage
         static::deleting(function ($model) {
             $deletedFiles = [];
 
-            // Hapus file_komisi_pa jika ada
             if ($model->file_komisi_pa && Storage::disk('local')->exists($model->file_komisi_pa)) {
                 try {
                     Storage::disk('local')->delete($model->file_komisi_pa);
@@ -256,7 +301,6 @@ class KomisiProposal extends Model
                 }
             }
 
-            // Hapus file_komisi (final) jika ada
             if ($model->file_komisi && Storage::disk('local')->exists($model->file_komisi)) {
                 try {
                     Storage::disk('local')->delete($model->file_komisi);
@@ -283,15 +327,11 @@ class KomisiProposal extends Model
         });
     }
 
-    /**
-     * Cleanup empty directories after file deletion
-     */
     protected function cleanupEmptyDirectories(array $deletedFiles)
     {
         foreach ($deletedFiles as $filePath) {
             $directory = dirname($filePath);
 
-            // Cek apakah directory masih ada dan kosong
             if (Storage::disk('local')->exists($directory)) {
                 $files = Storage::disk('local')->files($directory);
 
@@ -308,30 +348,5 @@ class KomisiProposal extends Model
                 }
             }
         }
-    }
-
-    /**
-     * Check if proposal can be deleted
-     */
-    public function canBeDeleted(): bool
-    {
-        // Proposal dapat dihapus dalam status apa saja
-        // Tapi biasanya hanya yang pending, rejected, atau approved_pa
-        return in_array($this->status, ['pending', 'rejected', 'approved_pa', 'approved']);
-    }
-
-    /**
-     * Get delete confirmation message
-     */
-    public function getDeleteConfirmationMessage(): string
-    {
-        $statusMessages = [
-            'pending' => 'Pengajuan masih menunggu persetujuan PA.',
-            'approved_pa' => 'Pengajuan sudah disetujui PA, menunggu Korprodi.',
-            'approved' => 'Pengajuan sudah disetujui lengkap.',
-            'rejected' => 'Pengajuan ditolak.',
-        ];
-
-        return $statusMessages[$this->status] ?? 'Status tidak diketahui.';
     }
 }

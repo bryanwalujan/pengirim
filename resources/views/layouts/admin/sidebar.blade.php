@@ -866,6 +866,76 @@
             @endif
         @endif
 
+        {{-- ✅ TAMBAHAN BARU: 2.1 Jadwal Seminar Proposal --}}
+        @can('manage jadwal sempro')
+            @php
+                $jadwalSemproActiveStates = [
+                    'admin.jadwal-seminar-proposal.index',
+                    'admin.jadwal-seminar-proposal.show',
+                    'admin.jadwal-seminar-proposal.create',
+                    'admin.jadwal-seminar-proposal.edit',
+                ];
+                $isJadwalSemproActive = request()->routeIs($jadwalSemproActiveStates);
+            @endphp
+
+            <li class="menu-item {{ $isJadwalSemproActive ? 'active open' : '' }}">
+                <a href="javascript:void(0);" class="menu-link menu-toggle">
+                    <i class="menu-icon tf-icons bx bx-calendar-event"></i>
+                    <div>Jadwal Sempro</div>
+                </a>
+                <ul class="menu-sub">
+                    {{-- Menunggu Upload SK --}}
+                    <li
+                        class="menu-item {{ request()->routeIs('admin.jadwal-seminar-proposal.index') && request()->input('status') === 'menunggu_sk' ? 'active' : '' }}">
+                        <a href="{{ route('admin.jadwal-seminar-proposal.index', ['status' => 'menunggu_sk']) }}"
+                            class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-upload"></i>
+                            <div>Menunggu Upload SK</div>
+                        </a>
+                    </li>
+
+                    {{-- Menunggu Penjadwalan --}}
+                    <li
+                        class="menu-item {{ request()->routeIs('admin.jadwal-seminar-proposal.index') && request()->input('status') === 'menunggu_jadwal' ? 'active' : '' }}">
+                        <a href="{{ route('admin.jadwal-seminar-proposal.index', ['status' => 'menunggu_jadwal']) }}"
+                            class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-calendar-check"></i>
+                            <div>Menunggu Penjadwalan</div>
+                        </a>
+                    </li>
+
+                    {{-- Sudah Dijadwalkan --}}
+                    <li
+                        class="menu-item {{ request()->routeIs('admin.jadwal-seminar-proposal.index') && request()->input('status') === 'dijadwalkan' ? 'active' : '' }}">
+                        <a href="{{ route('admin.jadwal-seminar-proposal.index', ['status' => 'dijadwalkan']) }}"
+                            class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-calendar"></i>
+                            <div>Sudah Dijadwalkan</div>
+                        </a>
+                    </li>
+
+                    {{-- Selesai --}}
+                    <li
+                        class="menu-item {{ request()->routeIs('admin.jadwal-seminar-proposal.index') && request()->input('status') === 'selesai' ? 'active' : '' }}">
+                        <a href="{{ route('admin.jadwal-seminar-proposal.index', ['status' => 'selesai']) }}"
+                            class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-check-circle"></i>
+                            <div>Selesai</div>
+                        </a>
+                    </li>
+
+                    {{-- Kalender Jadwal --}}
+                    <li
+                        class="menu-item {{ request()->routeIs('admin.jadwal-seminar-proposal.calendar') ? 'active' : '' }}">
+                        <a href="{{ route('admin.jadwal-seminar-proposal.calendar') }}" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-calendar-alt"></i>
+                            <div>Kalender Jadwal</div>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+        @endcan
+
         {{-- 3. Komisi Hasil --}}
         @can('manage komisi hasil')
             <li class="menu-item {{ request()->routeIs('admin.komisi-hasil.*') ? 'active' : '' }}">

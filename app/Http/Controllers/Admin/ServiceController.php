@@ -16,7 +16,7 @@ class ServiceController extends Controller
     public function index()
     {
         $this->authorize('manage services');
-        $services = Service::orderBy('order')->paginate(5); // 10 items per page
+        $services = Service::orderBy('order')->paginate(10); // 10 items per page
         return view('admin.services.index', compact('services'));
     }
 

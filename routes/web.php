@@ -29,12 +29,14 @@ use App\Http\Controllers\User\SuratCutiAkademikController;
 use App\Http\Controllers\User\PeminjamanProyektorController;
 use App\Http\Controllers\Admin\AdminKomisiProposalController;
 use App\Http\Controllers\Admin\AdminSuratIjinSurveyController;
+use App\Http\Controllers\User\JadwalSeminarProposalController;
 use App\Http\Controllers\User\PendaftaranUjianHasilController;
 use App\Http\Controllers\Admin\AdminSuratAktifKuliahController;
 use App\Http\Controllers\User\PeminjamanLaboratoriumController;
 use App\Http\Controllers\Admin\AdminSuratCutiAkademikController;
 use App\Http\Controllers\Admin\AdminPeminjamanProyektorController;
 use App\Http\Controllers\User\PendaftaranSeminarProposalController;
+use App\Http\Controllers\Admin\AdminJadwalSeminarProposalController;
 use App\Http\Controllers\Admin\AdminPendaftaranUjianHasilController;
 use App\Http\Controllers\Admin\AdminPeminjamanLaboratoriumController;
 use App\Http\Controllers\Admin\AdminPendaftaranSeminarProposalController;
@@ -168,6 +170,29 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa', 'check.ukt'])->group(fu
         // Download Surat Usulan (jika sudah digenerate)
         Route::get('/{pendaftaranSeminarProposal}/download-surat', [PendaftaranSeminarProposalController::class, 'downloadSuratUsulan'])
             ->name('download-surat');
+    });
+
+    // Layanan Jadwal Seminar Proposal 
+    Route::prefix('jadwal-seminar-proposal')->name('user.jadwal-seminar-proposal.')->group(function () {
+        // View jadwal
+        Route::get('/', [JadwalSeminarProposalController::class, 'index'])
+            ->name('index');
+
+        // Upload SK Proposal
+        Route::post('/upload-sk', [JadwalSeminarProposalController::class, 'storeSkProposal'])
+            ->name('upload-sk');
+
+        // Download SK Proposal
+        Route::get('/{jadwal}/download-sk', [JadwalSeminarProposalController::class, 'downloadSkProposal'])
+            ->name('download-sk');
+
+        // View SK Proposal (inline)
+        Route::get('/{jadwal}/view-sk', [JadwalSeminarProposalController::class, 'viewSkProposal'])
+            ->name('view-sk');
+
+        // Delete SK Proposal
+        Route::delete('/{jadwal}/delete-sk', [JadwalSeminarProposalController::class, 'deleteSkProposal'])
+            ->name('delete-sk');
     });
 
     // Layanan Pendaftaran Ujian Hasil
@@ -588,6 +613,55 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 
             Route::post('/{pendaftaranSeminarProposal}/ttd-kajur', [AdminPendaftaranSeminarProposalController::class, 'ttdKajur'])
                 ->name('ttd-kajur');
+        });
+    });
+
+    // Jadwal Seminar Proposal
+    Route::middleware(['can:manage jadwal sempro'])->group(function () {
+        Route::prefix('jadwal-seminar-proposal')->name('jadwal-seminar-proposal.')->group(function () {
+            // List & filter
+            Route::get('/', [AdminJadwalSeminarProposalController::class, 'index'])
+                ->name('index');
+
+            // Create form
+            Route::get('/{jadwal}/create', [AdminJadwalSeminarProposalController::class, 'create'])
+                ->name('create');
+
+            // Store jadwal
+            Route::post('/{jadwal}', [AdminJadwalSeminarProposalController::class, 'store'])
+                ->name('store');
+
+            // Show detail
+            Route::get('/{jadwal}', [AdminJadwalSeminarProposalController::class, 'show'])
+                ->name('show');
+
+            // Edit form
+            Route::get('/{jadwal}/edit', [AdminJadwalSeminarProposalController::class, 'edit'])
+                ->name('edit');
+
+            // Update jadwal (reschedule)
+            Route::put('/{jadwal}', [AdminJadwalSeminarProposalController::class, 'update'])
+                ->name('update');
+
+            // Download SK
+            Route::get('/{jadwal}/download-sk', [AdminJadwalSeminarProposalController::class, 'downloadSk'])
+                ->name('download-sk');
+
+            // View SK (inline)
+            Route::get('/{jadwal}/view-sk', [AdminJadwalSeminarProposalController::class, 'viewSk'])
+                ->name('view-sk');
+
+            // Mark as selesai
+            Route::post('/{jadwal}/mark-selesai', [AdminJadwalSeminarProposalController::class, 'markAsSelesai'])
+                ->name('mark-selesai');
+
+            // Kirim ulang undangan
+            Route::post('/{jadwal}/kirim-ulang-undangan', [AdminJadwalSeminarProposalController::class, 'kirimUlangUndangan'])
+                ->name('kirim-ulang-undangan');
+
+            // Calendar view
+            Route::get('/calendar/view', [AdminJadwalSeminarProposalController::class, 'calendar'])
+                ->name('calendar');
         });
     });
 

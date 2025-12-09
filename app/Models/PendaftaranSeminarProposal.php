@@ -61,6 +61,14 @@ class PendaftaranSeminarProposal extends Model
         return $this->belongsTo(User::class, 'ditentukan_oleh_id');
     }
 
+    /**
+     * Relasi ke Jadwal Seminar Proposal (One-to-One)
+     */
+    public function jadwalSeminarProposal()
+    {
+        return $this->hasOne(JadwalSeminarProposal::class);
+    }
+
     // ========== HELPER METHODS - PEMBAHAS ==========
     public function getPembahas1()
     {
@@ -432,5 +440,24 @@ class PendaftaranSeminarProposal extends Model
         return $this->tanggal_penentuan_pembahas
             ? $this->tanggal_penentuan_pembahas->translatedFormat('d F Y, H:i') . ' WITA'
             : null;
+    }
+
+    /**
+     * Check if has jadwal
+     */
+    public function hasJadwal(): bool
+    {
+        return $this->jadwalSeminarProposal()->exists();
+    }
+
+    /**
+     * Check if can create jadwal
+     * Hanya bisa create jadwal jika status = selesai (surat sudah fully signed)
+     */
+    public function canCreateJadwal(): bool
+    {
+        return $this->status === 'selesai'
+            && $this->isFullySigned()
+            && !$this->hasJadwal();
     }
 }

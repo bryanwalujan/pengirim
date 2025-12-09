@@ -51,6 +51,9 @@ class PermissionSeeder extends Seeder
             // Pendaftaran Sempro
             ['name' => 'manage pendaftaran sempro', 'group' => 'Tugas Akhir'],
 
+            // Penjadwalan Sempro
+            ['name' => 'manage jadwal sempro', 'group' => 'Tugas Akhir'],
+
             // Pendaftaran Ujian Hasil
             ['name' => 'manage pendaftaran hasil', 'group' => 'Tugas Akhir'],
 
@@ -87,7 +90,8 @@ class PermissionSeeder extends Seeder
             'view dashboard',
             'manage komisi proposal',
             'manage komisi hasil',
-            'manage pendaftaran sempro'
+            'manage pendaftaran sempro',
+            'manage jadwal sempro', 
         ]);
 
         // Note: Approval permissions akan di-assign secara dinamis 
