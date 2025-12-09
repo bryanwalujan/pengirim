@@ -22,12 +22,11 @@ class AdminJadwalSeminarProposalController extends Controller
     {
         $status = $request->input('status', 'menunggu_jadwal');
 
-        // ✅ PERBAIKAN: Hapus .pembimbing1 dan .pembimbing2 dari eager loading
         $query = JadwalSeminarProposal::with([
             'pendaftaranSeminarProposal.user',
-            'pendaftaranSeminarProposal.dosenPembimbing', // ✅ Pembimbing utama (hanya 1)
-            'pendaftaranSeminarProposal.komisiProposal',   // ✅ Load komisi tanpa nested relations
-            'pendaftaranSeminarProposal.proposalPembahas.dosen' // ✅ 3 Pembahas
+            'pendaftaranSeminarProposal.dosenPembimbing',
+            'pendaftaranSeminarProposal.komisiProposal',
+            'pendaftaranSeminarProposal.proposalPembahas.dosen'
         ]);
 
         if ($status && $status !== 'semua') {
@@ -48,13 +47,68 @@ class AdminJadwalSeminarProposalController extends Controller
         return view('admin.jadwal-seminar-proposal.index', compact('jadwals', 'stats', 'status'));
     }
 
+    /**
+     * ✅ TAMBAHAN: Calendar view untuk jadwal seminar proposal
+     */
+    public function calendar(Request $request)
+    {
+        // Get bulan dan tahun dari request, default ke bulan/tahun sekarang
+        $bulan = $request->input('bulan', now()->month);
+        $tahun = $request->input('tahun', now()->year);
+
+        // Validasi bulan dan tahun
+        $bulan = (int) $bulan;
+        $tahun = (int) $tahun;
+
+        if ($bulan < 1 || $bulan > 12) {
+            $bulan = now()->month;
+        }
+
+        if ($tahun < 2020 || $tahun > 2030) {
+            $tahun = now()->year;
+        }
+
+        // Get jadwal untuk bulan yang dipilih (hanya yang sudah dijadwalkan)
+        $startDate = Carbon::create($tahun, $bulan, 1)->startOfMonth();
+        $endDate = Carbon::create($tahun, $bulan, 1)->endOfMonth();
+
+        $jadwals = JadwalSeminarProposal::with([
+            'pendaftaranSeminarProposal.user',
+            'pendaftaranSeminarProposal.dosenPembimbing',
+            'pendaftaranSeminarProposal.proposalPembahas.dosen'
+        ])
+            ->where('status', 'dijadwalkan')
+            ->whereBetween('tanggal', [$startDate, $endDate])
+            ->orderBy('tanggal')
+            ->orderBy('jam_mulai')
+            ->get();
+
+        // Stats untuk bulan ini
+        $stats = [
+            'total_jadwal' => $jadwals->count(),
+            'hari_ini' => $jadwals->filter(function ($j) {
+                return $j->tanggal->isToday();
+            })->count(),
+            'minggu_ini' => $jadwals->filter(function ($j) {
+                return $j->tanggal->isCurrentWeek();
+            })->count(),
+            'bulan_ini' => $jadwals->count(),
+        ];
+
+        return view('admin.jadwal-seminar-proposal.calendar', compact(
+            'jadwals',
+            'bulan',
+            'tahun',
+            'stats'
+        ));
+    }
+
     public function create(JadwalSeminarProposal $jadwal)
     {
         if ($jadwal->status !== 'menunggu_jadwal') {
             return back()->with('error', 'Jadwal hanya dapat dibuat untuk yang berstatus menunggu penjadwalan.');
         }
 
-        // ✅ PERBAIKAN: Load tanpa nested pembimbing
         $jadwal->load([
             'pendaftaranSeminarProposal.user',
             'pendaftaranSeminarProposal.dosenPembimbing',
@@ -130,11 +184,10 @@ class AdminJadwalSeminarProposalController extends Controller
                 'status' => 'dijadwalkan',
             ]);
 
-            // ✅ PERBAIKAN: Kumpulkan dosen TANPA pembimbing 2
             $pendaftaran = $jadwal->pendaftaranSeminarProposal;
             $dosensToNotify = collect();
 
-            // 1. Dosen Pembimbing Utama (dari pendaftaran sempro)
+            // 1. Dosen Pembimbing Utama
             if ($pendaftaran->dosenPembimbing) {
                 $dosensToNotify->push($pendaftaran->dosenPembimbing);
                 Log::info('✅ Pembimbing utama ditambahkan', [
@@ -143,10 +196,7 @@ class AdminJadwalSeminarProposalController extends Controller
                 ]);
             }
 
-            // ❌ HAPUS: Tidak ada pembimbing 1 & 2 dari komisi proposal
-            // Komisi Proposal hanya punya 1 pembimbing (sama dengan pembimbing utama di atas)
-
-            // 2. Dosen Pembahas 1, 2, 3 (dari proposal pembahas)
+            // 2. Dosen Pembahas 1, 2, 3
             $pembahasList = $pendaftaran->proposalPembahas;
             foreach ($pembahasList as $pembahas) {
                 if ($pembahas->dosen) {
@@ -159,7 +209,6 @@ class AdminJadwalSeminarProposalController extends Controller
                 }
             }
 
-            // Hapus duplikat
             $dosensToNotify = $dosensToNotify->unique('id');
 
             Log::info('📋 Total dosen yang akan menerima undangan', [
@@ -167,7 +216,6 @@ class AdminJadwalSeminarProposalController extends Controller
                 'dosen_list' => $dosensToNotify->pluck('name', 'id')->toArray(),
             ]);
 
-            // Filter yang punya email
             $dosensWithEmail = $dosensToNotify->filter(function ($dosen) {
                 return !empty($dosen->email);
             });
@@ -178,7 +226,6 @@ class AdminJadwalSeminarProposalController extends Controller
                     ->with('warning', 'Jadwal berhasil dibuat, tetapi tidak ada dosen dengan email yang valid.');
             }
 
-            // Kirim notifikasi
             $berhasilDikirim = 0;
             $gagalDikirim = 0;
 
@@ -236,7 +283,6 @@ class AdminJadwalSeminarProposalController extends Controller
 
     public function show(JadwalSeminarProposal $jadwal)
     {
-        // ✅ PERBAIKAN: Load tanpa nested pembimbing
         $jadwal->load([
             'pendaftaranSeminarProposal.user',
             'pendaftaranSeminarProposal.dosenPembimbing',
@@ -325,12 +371,9 @@ class AdminJadwalSeminarProposalController extends Controller
             $pendaftaran = $jadwal->pendaftaranSeminarProposal;
             $dosensToNotify = collect();
 
-            // ✅ PERBAIKAN: Hanya pembimbing utama + 3 pembahas
             if ($pendaftaran->dosenPembimbing) {
                 $dosensToNotify->push($pendaftaran->dosenPembimbing);
             }
-
-            // ❌ HAPUS: Tidak ada load pembimbing dari komisi
 
             foreach ($pendaftaran->proposalPembahas as $pembahas) {
                 if ($pembahas->dosen) {
@@ -364,20 +407,15 @@ class AdminJadwalSeminarProposalController extends Controller
         }
     }
 
-    /**
-     * ✅ TAMBAHAN: Delete jadwal seminar proposal
-     */
     public function destroy(JadwalSeminarProposal $jadwal)
     {
         try {
             DB::beginTransaction();
-    
-            // STEP 1: Validasi status - Hanya bisa reset jika belum selesai
+
             if ($jadwal->status === 'selesai') {
                 return back()->with('error', 'Jadwal yang sudah selesai tidak dapat dihapus.');
             }
-    
-            // STEP 2: Simpan data untuk logging
+
             $mahasiswaNama = $jadwal->pendaftaranSeminarProposal->user->name;
             $mahasiswaNim = $jadwal->pendaftaranSeminarProposal->user->nim;
             $statusSebelumnya = $jadwal->status;
@@ -387,8 +425,7 @@ class AdminJadwalSeminarProposalController extends Controller
                 'jam_selesai' => $jadwal->jam_selesai,
                 'ruangan' => $jadwal->ruangan,
             ];
-    
-            // STEP 3: Hapus file SK jika ada
+
             $fileSkDihapus = false;
             if ($jadwal->file_sk_proposal && Storage::disk('public')->exists($jadwal->file_sk_proposal)) {
                 try {
@@ -404,19 +441,18 @@ class AdminJadwalSeminarProposalController extends Controller
                     ]);
                 }
             }
-    
-            // STEP 4: Reset jadwal ke status awal (menunggu_sk)
+
             $jadwal->update([
                 'file_sk_proposal' => null,
                 'tanggal' => null,
                 'jam_mulai' => null,
                 'jam_selesai' => null,
                 'ruangan' => null,
-                'status' => 'menunggu_sk', // ✅ Reset ke status awal
+                'status' => 'menunggu_sk',
             ]);
-    
+
             DB::commit();
-    
+
             Log::info('✅ Jadwal Seminar Proposal berhasil direset', [
                 'jadwal_id' => $jadwal->id,
                 'mahasiswa_nama' => $mahasiswaNama,
@@ -428,27 +464,24 @@ class AdminJadwalSeminarProposalController extends Controller
                 'reset_by' => Auth::user()->name,
                 'reset_at' => now(),
             ]);
-    
+
             return redirect()
                 ->route('admin.jadwal-seminar-proposal.index', ['status' => 'menunggu_sk'])
                 ->with('success', "Jadwal untuk {$mahasiswaNama} ({$mahasiswaNim}) berhasil dihapus. Mahasiswa sekarang dapat mengupload SK baru.");
-    
+
         } catch (\Exception $e) {
             DB::rollBack();
-    
+
             Log::error('❌ Error saat menghapus jadwal seminar proposal', [
                 'jadwal_id' => $jadwal->id,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
-    
+
             return back()->with('error', 'Terjadi kesalahan saat menghapus jadwal: ' . $e->getMessage());
         }
     }
-    
-    /**
-     * ✅ PERBAIKAN: Bulk delete dengan reset ke menunggu_sk
-     */
+
     public function bulkDestroy(Request $request)
     {
         $validated = $request->validate([
@@ -460,36 +493,32 @@ class AdminJadwalSeminarProposalController extends Controller
             'jadwal_ids.min' => 'Pilih minimal 1 jadwal untuk dihapus.',
             'jadwal_ids.*.exists' => 'Salah satu jadwal tidak ditemukan.',
         ]);
-    
+
         try {
             DB::beginTransaction();
-    
+
             $jadwalIds = $validated['jadwal_ids'];
-    
-            // Load jadwal yang akan direset
+
             $jadwals = JadwalSeminarProposal::whereIn('id', $jadwalIds)
                 ->with('pendaftaranSeminarProposal.user')
                 ->get();
-    
-            // Validasi tidak ada yang sudah selesai
+
             $jadwalSelesai = $jadwals->where('status', 'selesai');
             if ($jadwalSelesai->count() > 0) {
                 return back()->with('error', 'Terdapat ' . $jadwalSelesai->count() . ' jadwal yang sudah selesai dan tidak dapat dihapus.');
             }
-    
+
             $berhasilDireset = 0;
             $gagalDireset = 0;
             $filesDeleted = 0;
-    
+
             foreach ($jadwals as $jadwal) {
                 try {
-                    // Hapus file SK
                     if ($jadwal->file_sk_proposal && Storage::disk('public')->exists($jadwal->file_sk_proposal)) {
                         Storage::disk('public')->delete($jadwal->file_sk_proposal);
                         $filesDeleted++;
                     }
-    
-                    // Reset jadwal ke status menunggu_sk
+
                     $jadwal->update([
                         'file_sk_proposal' => null,
                         'tanggal' => null,
@@ -498,14 +527,14 @@ class AdminJadwalSeminarProposalController extends Controller
                         'ruangan' => null,
                         'status' => 'menunggu_sk',
                     ]);
-    
+
                     $berhasilDireset++;
-    
+
                     Log::info('✅ Jadwal direset (bulk)', [
                         'jadwal_id' => $jadwal->id,
                         'mahasiswa' => $jadwal->pendaftaranSeminarProposal->user->name,
                     ]);
-    
+
                 } catch (\Exception $e) {
                     $gagalDireset++;
                     Log::error('Error bulk reset jadwal', [
@@ -514,9 +543,9 @@ class AdminJadwalSeminarProposalController extends Controller
                     ]);
                 }
             }
-    
+
             DB::commit();
-    
+
             Log::info('✅ Bulk reset jadwal selesai', [
                 'total_dipilih' => count($jadwalIds),
                 'berhasil_direset' => $berhasilDireset,
@@ -524,24 +553,24 @@ class AdminJadwalSeminarProposalController extends Controller
                 'files_deleted' => $filesDeleted,
                 'reset_by' => Auth::user()->name,
             ]);
-    
+
             $message = "{$berhasilDireset} jadwal berhasil dihapus dan mahasiswa dapat mengupload SK baru.";
             if ($gagalDireset > 0) {
                 $message .= " ({$gagalDireset} gagal dihapus)";
             }
-    
+
             return redirect()
                 ->route('admin.jadwal-seminar-proposal.index', ['status' => 'menunggu_sk'])
                 ->with('success', $message);
-    
+
         } catch (\Exception $e) {
             DB::rollBack();
-    
+
             Log::error('Error bulk reset jadwal', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
-    
+
             return back()->with('error', 'Terjadi kesalahan saat menghapus jadwal.');
         }
     }
