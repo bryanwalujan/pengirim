@@ -3,16 +3,18 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
-use App\Models\JadwalSeminarProposal;
-use App\Models\PendaftaranSeminarProposal;
+use Carbon\Carbon;
 use App\Models\User;
-use App\Notifications\UndanganSeminarProposal;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
+use App\Models\JadwalSeminarProposal;
+use Illuminate\Support\Facades\Storage;
+use App\Models\PendaftaranSeminarProposal;
 use Illuminate\Support\Facades\Notification;
-use Carbon\Carbon;
+use App\Notifications\UndanganSeminarProposal;
 
 class AdminJadwalSeminarProposalController extends Controller
 {
@@ -359,6 +361,188 @@ class AdminJadwalSeminarProposalController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Gagal mengirim ulang undangan: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * ✅ TAMBAHAN: Delete jadwal seminar proposal
+     */
+    public function destroy(JadwalSeminarProposal $jadwal)
+    {
+        try {
+            DB::beginTransaction();
+    
+            // STEP 1: Validasi status - Hanya bisa reset jika belum selesai
+            if ($jadwal->status === 'selesai') {
+                return back()->with('error', 'Jadwal yang sudah selesai tidak dapat dihapus.');
+            }
+    
+            // STEP 2: Simpan data untuk logging
+            $mahasiswaNama = $jadwal->pendaftaranSeminarProposal->user->name;
+            $mahasiswaNim = $jadwal->pendaftaranSeminarProposal->user->nim;
+            $statusSebelumnya = $jadwal->status;
+            $jadwalSebelumnya = [
+                'tanggal' => $jadwal->tanggal,
+                'jam_mulai' => $jadwal->jam_mulai,
+                'jam_selesai' => $jadwal->jam_selesai,
+                'ruangan' => $jadwal->ruangan,
+            ];
+    
+            // STEP 3: Hapus file SK jika ada
+            $fileSkDihapus = false;
+            if ($jadwal->file_sk_proposal && Storage::disk('public')->exists($jadwal->file_sk_proposal)) {
+                try {
+                    Storage::disk('public')->delete($jadwal->file_sk_proposal);
+                    $fileSkDihapus = true;
+                    Log::info('✅ File SK Proposal berhasil dihapus', [
+                        'file_path' => $jadwal->file_sk_proposal,
+                    ]);
+                } catch (\Exception $e) {
+                    Log::warning('⚠️ Gagal hapus file SK Proposal', [
+                        'file_path' => $jadwal->file_sk_proposal,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+    
+            // STEP 4: Reset jadwal ke status awal (menunggu_sk)
+            $jadwal->update([
+                'file_sk_proposal' => null,
+                'tanggal' => null,
+                'jam_mulai' => null,
+                'jam_selesai' => null,
+                'ruangan' => null,
+                'status' => 'menunggu_sk', // ✅ Reset ke status awal
+            ]);
+    
+            DB::commit();
+    
+            Log::info('✅ Jadwal Seminar Proposal berhasil direset', [
+                'jadwal_id' => $jadwal->id,
+                'mahasiswa_nama' => $mahasiswaNama,
+                'mahasiswa_nim' => $mahasiswaNim,
+                'status_sebelumnya' => $statusSebelumnya,
+                'status_sekarang' => 'menunggu_sk',
+                'jadwal_sebelumnya' => $jadwalSebelumnya,
+                'file_sk_dihapus' => $fileSkDihapus,
+                'reset_by' => Auth::user()->name,
+                'reset_at' => now(),
+            ]);
+    
+            return redirect()
+                ->route('admin.jadwal-seminar-proposal.index', ['status' => 'menunggu_sk'])
+                ->with('success', "Jadwal untuk {$mahasiswaNama} ({$mahasiswaNim}) berhasil dihapus. Mahasiswa sekarang dapat mengupload SK baru.");
+    
+        } catch (\Exception $e) {
+            DB::rollBack();
+    
+            Log::error('❌ Error saat menghapus jadwal seminar proposal', [
+                'jadwal_id' => $jadwal->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+    
+            return back()->with('error', 'Terjadi kesalahan saat menghapus jadwal: ' . $e->getMessage());
+        }
+    }
+    
+    /**
+     * ✅ PERBAIKAN: Bulk delete dengan reset ke menunggu_sk
+     */
+    public function bulkDestroy(Request $request)
+    {
+        $validated = $request->validate([
+            'jadwal_ids' => 'required|array|min:1',
+            'jadwal_ids.*' => 'exists:jadwal_seminar_proposals,id',
+        ], [
+            'jadwal_ids.required' => 'Pilih minimal 1 jadwal untuk dihapus.',
+            'jadwal_ids.array' => 'Format data tidak valid.',
+            'jadwal_ids.min' => 'Pilih minimal 1 jadwal untuk dihapus.',
+            'jadwal_ids.*.exists' => 'Salah satu jadwal tidak ditemukan.',
+        ]);
+    
+        try {
+            DB::beginTransaction();
+    
+            $jadwalIds = $validated['jadwal_ids'];
+    
+            // Load jadwal yang akan direset
+            $jadwals = JadwalSeminarProposal::whereIn('id', $jadwalIds)
+                ->with('pendaftaranSeminarProposal.user')
+                ->get();
+    
+            // Validasi tidak ada yang sudah selesai
+            $jadwalSelesai = $jadwals->where('status', 'selesai');
+            if ($jadwalSelesai->count() > 0) {
+                return back()->with('error', 'Terdapat ' . $jadwalSelesai->count() . ' jadwal yang sudah selesai dan tidak dapat dihapus.');
+            }
+    
+            $berhasilDireset = 0;
+            $gagalDireset = 0;
+            $filesDeleted = 0;
+    
+            foreach ($jadwals as $jadwal) {
+                try {
+                    // Hapus file SK
+                    if ($jadwal->file_sk_proposal && Storage::disk('public')->exists($jadwal->file_sk_proposal)) {
+                        Storage::disk('public')->delete($jadwal->file_sk_proposal);
+                        $filesDeleted++;
+                    }
+    
+                    // Reset jadwal ke status menunggu_sk
+                    $jadwal->update([
+                        'file_sk_proposal' => null,
+                        'tanggal' => null,
+                        'jam_mulai' => null,
+                        'jam_selesai' => null,
+                        'ruangan' => null,
+                        'status' => 'menunggu_sk',
+                    ]);
+    
+                    $berhasilDireset++;
+    
+                    Log::info('✅ Jadwal direset (bulk)', [
+                        'jadwal_id' => $jadwal->id,
+                        'mahasiswa' => $jadwal->pendaftaranSeminarProposal->user->name,
+                    ]);
+    
+                } catch (\Exception $e) {
+                    $gagalDireset++;
+                    Log::error('Error bulk reset jadwal', [
+                        'jadwal_id' => $jadwal->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+    
+            DB::commit();
+    
+            Log::info('✅ Bulk reset jadwal selesai', [
+                'total_dipilih' => count($jadwalIds),
+                'berhasil_direset' => $berhasilDireset,
+                'gagal_direset' => $gagalDireset,
+                'files_deleted' => $filesDeleted,
+                'reset_by' => Auth::user()->name,
+            ]);
+    
+            $message = "{$berhasilDireset} jadwal berhasil dihapus dan mahasiswa dapat mengupload SK baru.";
+            if ($gagalDireset > 0) {
+                $message .= " ({$gagalDireset} gagal dihapus)";
+            }
+    
+            return redirect()
+                ->route('admin.jadwal-seminar-proposal.index', ['status' => 'menunggu_sk'])
+                ->with('success', $message);
+    
+        } catch (\Exception $e) {
+            DB::rollBack();
+    
+            Log::error('Error bulk reset jadwal', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+    
+            return back()->with('error', 'Terjadi kesalahan saat menghapus jadwal.');
         }
     }
 }

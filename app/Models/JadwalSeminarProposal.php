@@ -156,6 +156,50 @@ class JadwalSeminarProposal extends Model
         return $badges[$this->status] ?? '<span class="badge bg-label-secondary">Unknown</span>';
     }
 
+    // ========== DELETE VALIDATION ==========
+
+    /**
+     * ✅ TAMBAHAN: Check if can be deleted
+     */
+    public function canBeDeleted(): bool
+    {
+        // Tidak bisa hapus jika sudah selesai
+        if ($this->status === 'selesai') {
+            return false;
+        }
+
+        // Bisa hapus untuk status: menunggu_sk, menunggu_jadwal, dijadwalkan
+        return in_array($this->status, ['menunggu_sk', 'menunggu_jadwal', 'dijadwalkan']);
+    }
+
+    /**
+     * ✅ TAMBAHAN: Get delete confirmation message
+     */
+    public function getDeleteConfirmationMessage(): string
+    {
+        $statusMessages = [
+            'menunggu_sk' => 'Jadwal ini masih menunggu upload SK. Yakin ingin menghapus?',
+            'menunggu_jadwal' => 'Jadwal ini sudah memiliki SK tapi belum dijadwalkan. Yakin ingin menghapus?',
+            'dijadwalkan' => 'Jadwal ini sudah dikonfirmasi dan undangan telah dikirim. Yakin ingin menghapus?',
+            'selesai' => 'Jadwal yang sudah selesai tidak dapat dihapus.',
+        ];
+
+        return $statusMessages[$this->status] ?? 'Yakin ingin menghapus jadwal ini?';
+    }
+
+    /**
+     * ✅ TAMBAHAN: Get delete warning level
+     */
+    public function getDeleteWarningLevel(): string
+    {
+        return match ($this->status) {
+            'menunggu_sk' => 'info',
+            'menunggu_jadwal' => 'warning',
+            'dijadwalkan' => 'danger',
+            default => 'info',
+        };
+    }
+
     // ========== SCOPE QUERIES ==========
 
     public function scopeMenungguSk($query)

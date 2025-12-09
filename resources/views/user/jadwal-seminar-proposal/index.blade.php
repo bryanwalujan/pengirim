@@ -73,7 +73,7 @@
                             <div class="flex justify-between">
                                 <span class="text-gray-600">Judul Skripsi:</span>
                                 <span
-                                    class="font-medium text-gray-800 text-right max-w-xs">{{ $pendaftaran->judul_skripsi }}</span>
+                                    class="font-medium text-gray-800 text-right max-w-xs">{!! $pendaftaran->judul_skripsi !!}</span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-600">Pembimbing:</span>

@@ -24,10 +24,24 @@
                     </ol>
                 </nav>
             </div>
-            <div>
+            <div class="btn-group">
                 <a href="{{ route('admin.jadwal-seminar-proposal.index') }}" class="btn btn-outline-secondary">
                     <i class="bx bx-arrow-back me-1"></i> Kembali
                 </a>
+
+                {{-- ✅ TAMBAHAN: Delete Button di Show Page --}}
+                @if ($jadwal->canBeDeleted())
+                    <form action="{{ route('admin.jadwal-seminar-proposal.destroy', $jadwal) }}" method="POST"
+                        class="d-inline delete-form-show"
+                        data-mahasiswa="{{ $jadwal->pendaftaranSeminarProposal->user->name }}"
+                        data-nim="{{ $jadwal->pendaftaranSeminarProposal->user->nim }}" data-status="{{ $jadwal->status }}">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bx bx-trash me-1"></i> Hapus Jadwal
+                        </button>
+                    </form>
+                @endif
             </div>
         </div>
 
@@ -262,3 +276,56 @@
     @include('admin.jadwal-seminar-proposal.modals.schedule-modal')
 
 @endsection
+
+@push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Delete confirmation for show page
+            const deleteFormShow = document.querySelector('.delete-form-show');
+
+            if (deleteFormShow) {
+                deleteFormShow.addEventListener('submit', function(e) {
+                    e.preventDefault();
+
+                    const mahasiswa = this.dataset.mahasiswa;
+                    const nim = this.dataset.nim;
+                    const status = this.dataset.status;
+
+                    Swal.fire({
+                        title: 'Konfirmasi Hapus Jadwal',
+                        html: `
+                    <div class="text-start">
+                        <p class="mb-2"><strong>Mahasiswa:</strong> ${mahasiswa}</p>
+                        <p class="mb-3"><strong>NIM:</strong> ${nim}</p>
+                        <div class="alert alert-danger mb-0">
+                            <i class="bx bx-error-circle me-2"></i>
+                            <strong>Peringatan:</strong> Tindakan ini akan menghapus:
+                            <ul class="mb-0 mt-2">
+                                <li>Data jadwal seminar proposal</li>
+                                <li>File SK Proposal (jika ada)</li>
+                            </ul>
+                            <p class="mb-0 mt-2">Tindakan ini <strong>tidak dapat dibatalkan</strong>!</p>
+                        </div>
+                    </div>
+                `,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: '<i class="bx bx-trash me-1"></i> Ya, Hapus!',
+                        cancelButtonText: '<i class="bx bx-x me-1"></i> Batal',
+                        customClass: {
+                            confirmButton: 'btn btn-danger me-2',
+                            cancelButton: 'btn btn-secondary'
+                        },
+                        buttonsStyling: false
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            this.submit();
+                        }
+                    });
+                });
+            }
+        });
+    </script>
+@endpush

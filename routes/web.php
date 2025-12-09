@@ -662,6 +662,14 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             // Calendar view
             Route::get('/calendar/view', [AdminJadwalSeminarProposalController::class, 'calendar'])
                 ->name('calendar');
+
+            // ✅ TAMBAHAN: Delete routes
+            Route::delete('/{jadwal}', [AdminJadwalSeminarProposalController::class, 'destroy'])
+                ->name('destroy');
+
+            // ✅ TAMBAHAN: Bulk delete (opsional)
+            Route::post('/bulk-delete', [AdminJadwalSeminarProposalController::class, 'bulkDestroy'])
+                ->name('bulk-destroy');
         });
     });
 
