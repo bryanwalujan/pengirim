@@ -1,4 +1,3 @@
-{{-- filepath: resources/views/admin/jadwal-seminar-proposal/calendar.blade.php --}}
 @extends('layouts.admin.app')
 
 @section('title', 'Kalender Jadwal Seminar Proposal')
@@ -372,4 +371,3 @@
         }
     </style>
 @endpush
-@endsection

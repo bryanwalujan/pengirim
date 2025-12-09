@@ -619,57 +619,31 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     // Jadwal Seminar Proposal
     Route::middleware(['can:manage jadwal sempro'])->group(function () {
         Route::prefix('jadwal-seminar-proposal')->name('jadwal-seminar-proposal.')->group(function () {
-            // List & filter
-            Route::get('/', [AdminJadwalSeminarProposalController::class, 'index'])
-                ->name('index');
+            // Index & Calendar
+            Route::get('/', [AdminJadwalSeminarProposalController::class, 'index'])->name('index');
+            Route::get('/calendar', [AdminJadwalSeminarProposalController::class, 'calendar'])->name('calendar');
 
-            // Create form
-            Route::get('/{jadwal}/create', [AdminJadwalSeminarProposalController::class, 'create'])
-                ->name('create');
+            // CRUD Operations
+            Route::get('/{jadwal}', [AdminJadwalSeminarProposalController::class, 'show'])->name('show');
+            Route::get('/{jadwal}/create', [AdminJadwalSeminarProposalController::class, 'create'])->name('create');
 
-            // Store jadwal
-            Route::post('/{jadwal}', [AdminJadwalSeminarProposalController::class, 'store'])
-                ->name('store');
+            // ⚠️ PENTING: Route untuk store jadwal (POST)
+            Route::post('/{jadwal}', [AdminJadwalSeminarProposalController::class, 'store'])->name('store');
 
-            // Show detail
-            Route::get('/{jadwal}', [AdminJadwalSeminarProposalController::class, 'show'])
-                ->name('show');
+            Route::get('/{jadwal}/edit', [AdminJadwalSeminarProposalController::class, 'edit'])->name('edit');
+            Route::put('/{jadwal}', [AdminJadwalSeminarProposalController::class, 'update'])->name('update');
 
-            // Edit form
-            Route::get('/{jadwal}/edit', [AdminJadwalSeminarProposalController::class, 'edit'])
-                ->name('edit');
+            // SK Actions
+            Route::get('/{jadwal}/download-sk', [AdminJadwalSeminarProposalController::class, 'downloadSk'])->name('download-sk');
+            Route::get('/{jadwal}/view-sk', [AdminJadwalSeminarProposalController::class, 'viewSk'])->name('view-sk');
 
-            // Update jadwal (reschedule)
-            Route::put('/{jadwal}', [AdminJadwalSeminarProposalController::class, 'update'])
-                ->name('update');
+            // Other Actions
+            Route::post('/{jadwal}/mark-selesai', [AdminJadwalSeminarProposalController::class, 'markAsSelesai'])->name('mark-selesai');
+            Route::post('/{jadwal}/kirim-ulang-undangan', [AdminJadwalSeminarProposalController::class, 'kirimUlangUndangan'])->name('kirim-ulang-undangan');
 
-            // Download SK
-            Route::get('/{jadwal}/download-sk', [AdminJadwalSeminarProposalController::class, 'downloadSk'])
-                ->name('download-sk');
-
-            // View SK (inline)
-            Route::get('/{jadwal}/view-sk', [AdminJadwalSeminarProposalController::class, 'viewSk'])
-                ->name('view-sk');
-
-            // Mark as selesai
-            Route::post('/{jadwal}/mark-selesai', [AdminJadwalSeminarProposalController::class, 'markAsSelesai'])
-                ->name('mark-selesai');
-
-            // Kirim ulang undangan
-            Route::post('/{jadwal}/kirim-ulang-undangan', [AdminJadwalSeminarProposalController::class, 'kirimUlangUndangan'])
-                ->name('kirim-ulang-undangan');
-
-            // Calendar view
-            Route::get('/calendar/view', [AdminJadwalSeminarProposalController::class, 'calendar'])
-                ->name('calendar');
-
-            // ✅ TAMBAHAN: Delete routes
-            Route::delete('/{jadwal}', [AdminJadwalSeminarProposalController::class, 'destroy'])
-                ->name('destroy');
-
-            // ✅ TAMBAHAN: Bulk delete (opsional)
-            Route::post('/bulk-delete', [AdminJadwalSeminarProposalController::class, 'bulkDestroy'])
-                ->name('bulk-destroy');
+            // Delete
+            Route::delete('/{jadwal}', [AdminJadwalSeminarProposalController::class, 'destroy'])->name('destroy');
+            Route::post('/bulk-destroy', [AdminJadwalSeminarProposalController::class, 'bulkDestroy'])->name('bulk-destroy');
         });
     });
 
