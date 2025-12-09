@@ -108,7 +108,7 @@
                                 data-bs-target="#scheduleModal" data-jadwal-id="{{ $jadwal->id }}"
                                 data-mahasiswa-nama="{{ $jadwal->pendaftaranSeminarProposal->user->name }}"
                                 data-mahasiswa-nim="{{ $jadwal->pendaftaranSeminarProposal->user->nim }}"
-                                data-mahasiswa-judul="{{ $jadwal->pendaftaranSeminarProposal->judul_skripsi }}">
+                                data-mahasiswa-judul="{!! $jadwal->pendaftaranSeminarProposal->judul_skripsi !!}">
                                 <i class="bx bx-calendar-plus me-1"></i> Buat Jadwal
                             </button>
                         @elseif($jadwal->status === 'dijadwalkan')
@@ -117,7 +117,7 @@
                                     data-bs-target="#scheduleModal" data-jadwal-id="{{ $jadwal->id }}"
                                     data-mahasiswa-nama="{{ $jadwal->pendaftaranSeminarProposal->user->name }}"
                                     data-mahasiswa-nim="{{ $jadwal->pendaftaranSeminarProposal->user->nim }}"
-                                    data-mahasiswa-judul="{{ $jadwal->pendaftaranSeminarProposal->judul_skripsi }}"
+                                    data-mahasiswa-judul="{!! $jadwal->pendaftaranSeminarProposal->judul_skripsi !!}"
                                     data-tanggal="{{ $jadwal->tanggal->format('Y-m-d') }}"
                                     data-jam-mulai="{{ $jadwal->jam_mulai }}"
                                     data-jam-selesai="{{ $jadwal->jam_selesai }}" data-ruangan="{{ $jadwal->ruangan }}">
@@ -146,7 +146,7 @@
                         <h5 class="card-title mb-3">
                             <i class="bx bx-book me-1"></i> Judul Skripsi
                         </h5>
-                        <p class="mb-0">{{ $jadwal->pendaftaranSeminarProposal->judul_skripsi }}</p>
+                        <p class="mb-0">{!! $jadwal->pendaftaranSeminarProposal->judul_skripsi !!}</p>
                     </div>
                 </div>
 

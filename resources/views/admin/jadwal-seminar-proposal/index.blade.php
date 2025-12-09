@@ -248,7 +248,7 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <small>{{ Str::limit($jadwal->pendaftaranSeminarProposal->judul_skripsi, 60) }}</small>
+                                        <small>{{ Str::limit(strip_tags($jadwal->pendaftaranSeminarProposal->judul_skripsi, 60)) }}</small>
                                     </td>
                                     <td>
                                         <small class="text-muted">
@@ -311,7 +311,7 @@
                                                         data-jadwal-id="{{ $jadwal->id }}"
                                                         data-mahasiswa-nama="{{ $jadwal->pendaftaranSeminarProposal->user->name }}"
                                                         data-mahasiswa-nim="{{ $jadwal->pendaftaranSeminarProposal->user->nim }}"
-                                                        data-mahasiswa-judul="{{ $jadwal->pendaftaranSeminarProposal->judul_skripsi }}">
+                                                        data-mahasiswa-judul="{!! $jadwal->pendaftaranSeminarProposal->judul_skripsi !!}">
                                                         <i class="bx bx-calendar-plus me-1 text-primary"></i> Buat Jadwal
                                                     </button>
                                                 @endif
@@ -323,7 +323,7 @@
                                                         data-jadwal-id="{{ $jadwal->id }}"
                                                         data-mahasiswa-nama="{{ $jadwal->pendaftaranSeminarProposal->user->name }}"
                                                         data-mahasiswa-nim="{{ $jadwal->pendaftaranSeminarProposal->user->nim }}"
-                                                        data-mahasiswa-judul="{{ $jadwal->pendaftaranSeminarProposal->judul_skripsi }}"
+                                                        data-mahasiswa-judul="{!! $jadwal->pendaftaranSeminarProposal->judul_skripsi !!}"
                                                         data-tanggal="{{ $jadwal->tanggal ? $jadwal->tanggal->format('Y-m-d') : '' }}"
                                                         data-jam-mulai="{{ $jadwal->jam_mulai }}"
                                                         data-jam-selesai="{{ $jadwal->jam_selesai }}"
