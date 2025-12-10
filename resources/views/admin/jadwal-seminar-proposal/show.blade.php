@@ -119,7 +119,7 @@
                                         <div class="timeline-header mb-1">
                                             <h6 class="mb-0">SK Proposal Diupload</h6>
                                             <small
-                                                class="text-muted">{{ $jadwal->updated_at->format('d M Y, H:i') }}</small>
+                                                class="text-muted">{{ $jadwal->updated_at->locale('id')->translatedFormat('d F Y, H:i') }}</small>
                                         </div>
                                         <p class="mb-0 small">Mahasiswa telah mengupload SK Proposal</p>
                                     </div>
@@ -134,7 +134,7 @@
                                         <div class="timeline-header mb-1">
                                             <h6 class="mb-0">Jadwal Ditentukan</h6>
                                             <small
-                                                class="text-muted">{{ $jadwal->updated_at->format('d M Y, H:i') }}</small>
+                                                class="text-muted">{{ $jadwal->updated_at->locale('id')->translatedFormat('d F Y, H:i') }}</small>
                                         </div>
                                         <p class="mb-0 small">Jadwal seminar telah dibuat oleh admin</p>
                                     </div>
@@ -149,7 +149,7 @@
                                         <div class="timeline-header mb-1">
                                             <h6 class="mb-0">Undangan Terkirim</h6>
                                             <small
-                                                class="text-muted">{{ $jadwal->updated_at->format('d M Y, H:i') }}</small>
+                                                class="text-muted">{{ $jadwal->updated_at->locale('id')->translatedFormat('d F Y, H:i') }}</small>
                                         </div>
                                         <p class="mb-0 small">Undangan telah dikirim ke dosen pembimbing dan pembahas</p>
                                     </div>
@@ -164,7 +164,7 @@
                                         <div class="timeline-header mb-1">
                                             <h6 class="mb-0">Seminar Selesai</h6>
                                             <small
-                                                class="text-muted">{{ $jadwal->updated_at->format('d M Y, H:i') }}</small>
+                                                class="text-muted">{{ $jadwal->updated_at->locale('id')->translatedFormat('d F Y, H:i') }}</small>
                                         </div>
                                         <p class="mb-0 small">Seminar proposal telah dilaksanakan</p>
                                     </div>
@@ -329,19 +329,23 @@
                 {{-- Card: Informasi Jadwal --}}
                 @if ($jadwal->hasJadwal())
                     <div class="card mb-4 border-primary">
-                        <div class="card-header bg-primary bg-opacity-10">
+                        <div class="card-header bg-primary bg-opacity-10 mb-3">
                             <h5 class="card-title mb-0 text-primary">
                                 <i class="bx bx-calendar me-2"></i>Informasi Jadwal Seminar
                             </h5>
                         </div>
                         <div class="card-body">
                             <div class="row g-3">
+
                                 <div class="col-md-4">
                                     <div class="p-3 bg-primary bg-opacity-10 rounded text-center hover-shadow">
                                         <i class="bx bx-calendar text-primary fs-3 mb-2"></i>
                                         <label class="form-label text-muted mb-1 d-block small">Tanggal</label>
-                                        <h6 class="mb-0 text-primary">{{ $jadwal->tanggal->format('d M Y') }}</h6>
-                                        <small class="text-muted">{{ $jadwal->tanggal->format('l') }}</small>
+                                        <h6 class="mb-0 text-primary">
+                                            {{ \Carbon\Carbon::parse($jadwal->tanggal)->locale('id')->translatedFormat('d F Y') }}
+                                        </h6>
+                                        <small
+                                            class="text-muted">{{ \Carbon\Carbon::parse($jadwal->tanggal)->locale('id')->translatedFormat('l') }}</small>
                                     </div>
                                 </div>
 
@@ -416,7 +420,7 @@
                             </div>
 
                             {{-- SK Preview Container --}}
-                            <div id="skPreviewContainer" class="sk-preview-container mb-3">
+                            <div id="skPreviewContainer" class="sk-preview-container mb-3" style="display: none;">
                                 <div class="preview-header">
                                     <div class="d-flex align-items-center">
                                         <i class="bx bx-file-blank me-2 fs-4"></i>
@@ -444,8 +448,7 @@
                                         </div>
                                         <p class="mt-2 mb-0 text-muted">Memuat SK Proposal...</p>
                                     </div>
-                                    <iframe id="skPreviewFrame" class="preview-frame"
-                                        src="{{ route('admin.jadwal-seminar-proposal.view-sk', $jadwal) }}"
+                                    <iframe id="skPreviewFrame" class="preview-frame" src="" frameborder="0"
                                         style="display: none;"></iframe>
                                 </div>
                             </div>
@@ -476,7 +479,6 @@
                         @endif
                     </div>
                 </div>
-
                 {{-- Card: Tim Penguji --}}
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
@@ -617,29 +619,73 @@
             const skPreviewFrame = document.getElementById('skPreviewFrame');
             const skPreviewLoading = document.getElementById('skPreviewLoading');
 
-            if (showSkPreviewBtn && skPreviewContainer) {
-                // Initially hide preview container
-                skPreviewContainer.style.display = 'none';
+            if (showSkPreviewBtn && skPreviewContainer && skPreviewFrame) {
+                const skUrl = "{{ route('admin.jadwal-seminar-proposal.view-sk', $jadwal) }}";
+
+                console.log('SK Preview initialized');
+                console.log('SK URL:', skUrl);
 
                 // Show preview
                 showSkPreviewBtn.addEventListener('click', function() {
+                    console.log('Show preview button clicked');
+
+                    // Show container
                     skPreviewContainer.style.display = 'block';
+
+                    // Show loading, hide frame
                     skPreviewLoading.style.display = 'flex';
                     skPreviewFrame.style.display = 'none';
+
+                    // Hide show button
                     this.style.display = 'none';
 
-                    // Show frame after load
+                    // Set iframe source
+                    skPreviewFrame.src = skUrl;
+
+                    console.log('Loading PDF into iframe...');
+
+                    // Handle iframe load
                     skPreviewFrame.onload = function() {
+                        console.log('PDF loaded successfully');
                         skPreviewLoading.style.display = 'none';
                         skPreviewFrame.style.display = 'block';
+                    };
+
+                    // Handle iframe error
+                    skPreviewFrame.onerror = function() {
+                        console.error('Error loading PDF');
+                        skPreviewLoading.innerHTML = `
+                            <div class="text-danger">
+                                <i class="bx bx-error-circle fs-1 mb-2"></i>
+                                <p class="mb-0">Gagal memuat preview PDF</p>
+                                <small>Silakan buka di tab baru atau download file</small>
+                            </div>
+                        `;
                     };
                 });
 
                 // Close preview
                 closeSkPreviewBtn.addEventListener('click', function() {
+                    console.log('Close preview button clicked');
+
+                    // Hide container
                     skPreviewContainer.style.display = 'none';
+
+                    // Show show button
                     showSkPreviewBtn.style.display = 'inline-flex';
-                    skPreviewFrame.src = skPreviewFrame.src; // Reload
+
+                    // Reset iframe
+                    skPreviewFrame.src = '';
+                    skPreviewLoading.style.display = 'flex';
+                    skPreviewFrame.style.display = 'none';
+                });
+            } else {
+                console.error('SK Preview elements not found:', {
+                    showSkPreviewBtn: !!showSkPreviewBtn,
+                    closeSkPreviewBtn: !!closeSkPreviewBtn,
+                    skPreviewContainer: !!skPreviewContainer,
+                    skPreviewFrame: !!skPreviewFrame,
+                    skPreviewLoading: !!skPreviewLoading
                 });
             }
 
@@ -798,6 +844,7 @@
             border-radius: 0.5rem;
             overflow: hidden;
             background: #fff;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
         }
 
         .preview-header {
@@ -811,16 +858,18 @@
 
         .preview-header h6 {
             font-size: 0.875rem;
+            margin: 0;
         }
 
         .preview-actions {
             display: flex;
             align-items: center;
+            gap: 0.5rem;
         }
 
         .preview-body {
             position: relative;
-            height: 500px;
+            height: 600px;
             background: #f0f0f0;
         }
 
@@ -828,6 +877,7 @@
             width: 100%;
             height: 100%;
             border: none;
+            background: #fff;
         }
 
         .preview-loading {
@@ -841,6 +891,7 @@
             align-items: center;
             justify-content: center;
             background: #fff;
+            z-index: 10;
         }
 
         /* Avatar Styles */
@@ -861,12 +912,13 @@
         /* Responsive */
         @media (max-width: 768px) {
             .preview-body {
-                height: 350px;
+                height: 400px;
             }
 
             .preview-header {
                 flex-direction: column;
                 gap: 0.5rem;
+                align-items: flex-start;
             }
 
             .preview-actions {

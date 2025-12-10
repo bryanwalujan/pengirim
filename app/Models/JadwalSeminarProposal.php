@@ -100,7 +100,7 @@ class JadwalSeminarProposal extends Model
     public function getTanggalFormattedAttribute(): ?string
     {
         return $this->tanggal
-            ? $this->tanggal->format('l, d F Y')
+            ? $this->tanggal->locale('id')->translatedFormat('l, d F Y')
             : null;
     }
 
@@ -271,4 +271,6 @@ class JadwalSeminarProposal extends Model
             }
         });
     }
+
+
 }
