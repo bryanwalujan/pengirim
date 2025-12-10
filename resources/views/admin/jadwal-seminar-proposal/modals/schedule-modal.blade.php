@@ -1,4 +1,3 @@
-{{-- filepath: resources/views/admin/jadwal-seminar-proposal/modals/schedule-modal.blade.php --}}
 <div class="modal fade" id="scheduleModal" tabindex="-1" aria-labelledby="scheduleModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
@@ -109,7 +108,7 @@
                                         <span class="text-danger">*</span>
                                     </label>
                                     <input type="text" class="form-control form-control-lg" id="ruangan"
-                                        name="ruangan" value="Ruangan Ujian Prodi Teknik Informatika Unima"
+                                        name="ruangan" value="Gedung C Ruangan Ujian Prodi TI (Luring)"
                                         maxlength="100" required>
                                 </div>
                             </div>
@@ -215,12 +214,22 @@
                 updatePreview();
             });
 
-            // ✅ SOLUSI 3: Form submit dengan error handling untuk CSRF
+            // ✅ SOLUSI 3: Form submit dengan SweetAlert2 Success Popup
             scheduleForm?.addEventListener('submit', function(e) {
                 e.preventDefault();
 
                 // Validate
                 if (!validateJam()) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Validasi Gagal',
+                        text: 'Jam selesai harus lebih besar dari jam mulai!',
+                        confirmButtonColor: '#696cff',
+                        customClass: {
+                            confirmButton: 'btn btn-primary'
+                        },
+                        buttonsStyling: false
+                    });
                     return false;
                 }
 
@@ -232,13 +241,31 @@
                     return false;
                 }
 
+                // Get form data for success message
+                const mahasiswaNama = document.getElementById('modalMahasiswaNama').textContent;
+                const mahasiswaNim = document.getElementById('modalMahasiswaNim').textContent;
+                const tanggalValue = document.getElementById('tanggal').value;
+                const jamMulai = document.getElementById('jam_mulai').value;
+                const jamSelesai = document.getElementById('jam_selesai').value;
+                const ruangan = document.getElementById('ruangan').value;
+
+                // Format tanggal untuk ditampilkan
+                const date = new Date(tanggalValue);
+                const tanggalFormatted = date.toLocaleDateString('id-ID', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+
                 // Disable button
                 const submitBtn = document.getElementById('saveScheduleBtn');
+                const originalBtnText = submitBtn.innerHTML;
                 submitBtn.disabled = true;
                 submitBtn.innerHTML =
                     '<span class="spinner-border spinner-border-sm me-2"></span>Menyimpan...';
 
-                // Submit via AJAX to catch CSRF errors
+                // Submit via AJAX
                 const formData = new FormData(this);
 
                 fetch(this.action, {
@@ -263,9 +290,54 @@
                             });
                         }
 
-                        // Success - redirect
-                        window.location.href = response.url ||
-                            '{{ route('admin.jadwal-seminar-proposal.index', ['status' => 'dijadwalkan']) }}';
+                        // ✅ SUCCESS - Show SweetAlert2 Popup
+                        const modalInstance = bootstrap.Modal.getInstance(scheduleModal);
+                        modalInstance.hide();
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Jadwal Berhasil Disimpan!',
+                            html: `
+                                <div class="text-start">
+                                    <div class="mb-3">
+                                        <p class="mb-2"><strong>Mahasiswa:</strong> ${mahasiswaNama}</p>
+                                        <p class="mb-2"><strong>NIM:</strong> ${mahasiswaNim}</p>
+                                    </div>
+                                    <div class="alert alert-info border-0 mb-3">
+                                        <h6 class="mb-2 fw-semibold"><i class="bx bx-calendar-event me-1"></i> Detail Jadwal</h6>
+                                        <p class="mb-1"><i class="bx bx-calendar me-1"></i> <strong>Tanggal:</strong> ${tanggalFormatted}</p>
+                                        <p class="mb-1"><i class="bx bx-time me-1"></i> <strong>Waktu:</strong> ${jamMulai} - ${jamSelesai} WITA</p>
+                                        <p class="mb-0"><i class="bx bx-door-open me-1"></i> <strong>Ruangan:</strong> ${ruangan}</p>
+                                    </div>
+                                    <div class="alert alert-success border-0 mb-0">
+                                        <i class="bx bx-send me-1"></i> 
+                                        <small>Undangan telah dikirim ke Dosen Pembimbing dan Dosen Pembahas via email</small>
+                                    </div>
+                                </div>
+                            `,
+                            showCancelButton: true,
+                            confirmButtonColor: '#696cff',
+                            cancelButtonColor: '#8592a3',
+                            confirmButtonText: '<i class="bx bx-show me-1"></i> Lihat Detail',
+                            cancelButtonText: '<i class="bx bx-list-ul me-1"></i> Kembali ke Daftar',
+                            customClass: {
+                                confirmButton: 'btn btn-primary me-2',
+                                cancelButton: 'btn btn-label-secondary'
+                            },
+                            buttonsStyling: false,
+                            allowOutsideClick: false,
+                            allowEscapeKey: false
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                // Redirect ke detail page
+                                window.location.href = response.url || 
+                                    `{{ url('admin/jadwal-seminar-proposal') }}/${document.getElementById('jadwalIdInput').value}`;
+                            } else {
+                                // Redirect ke index dengan status dijadwalkan
+                                window.location.href = 
+                                    '{{ route('admin.jadwal-seminar-proposal.index', ['status' => 'dijadwalkan']) }}';
+                            }
+                        });
                     })
                     .catch(error => {
                         console.error('Error:', error);
@@ -276,13 +348,26 @@
                         }
 
                         submitBtn.disabled = false;
-                        submitBtn.innerHTML = '<i class="bx bx-send me-1"></i>Simpan & Kirim Undangan';
+                        submitBtn.innerHTML = originalBtnText;
 
                         Swal.fire({
                             icon: 'error',
-                            title: 'Terjadi Kesalahan',
-                            text: error.message || 'Gagal menyimpan jadwal. Silakan coba lagi.',
-                            confirmButtonColor: '#d33'
+                            title: 'Terjadi Kesalahan!',
+                            html: `
+                                <div class="text-start">
+                                    <p class="mb-2">Gagal menyimpan jadwal seminar proposal.</p>
+                                    <div class="alert alert-danger border-0 mb-0">
+                                        <i class="bx bx-error-circle me-1"></i>
+                                        <small>${error.message || 'Silakan coba lagi atau hubungi administrator.'}</small>
+                                    </div>
+                                </div>
+                            `,
+                            confirmButtonColor: '#d33',
+                            confirmButtonText: '<i class="bx bx-x me-1"></i> Tutup',
+                            customClass: {
+                                confirmButton: 'btn btn-danger'
+                            },
+                            buttonsStyling: false
                         });
                     });
             });
