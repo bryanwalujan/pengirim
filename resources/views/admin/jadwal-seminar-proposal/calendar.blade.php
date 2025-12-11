@@ -191,24 +191,17 @@
                                                     <div class="jadwal-list">
                                                         @foreach ($jadwalsOnDate as $jadwal)
                                                             <div class="jadwal-item mb-2 p-2 bg-primary bg-opacity-10 rounded-2 small cursor-pointer hover-shadow"
-                                                                data-bs-toggle="modal"
-                                                                data-bs-target="#detailModal{{ $jadwal->id }}">
+                                                                data-bs-toggle="tooltip" data-bs-html="true"
+                                                                title="<strong>{{ $jadwal->pendaftaranSeminarProposal->user->name }}</strong><br>{{ $jadwal->jam_formatted }}<br>{{ $jadwal->ruangan }}"
+                                                                onclick="window.location.href='{{ route('admin.jadwal-seminar-proposal.show', $jadwal) }}'">
                                                                 <div class="d-flex align-items-center mb-1">
                                                                     <i class="bx bx-time text-primary me-1"></i>
-                                                                    <strong class="text-primary">
-                                                                        {{ \Carbon\Carbon::parse($jadwal->jam_mulai)->format('H:i') }}
-                                                                        -
-                                                                        {{ \Carbon\Carbon::parse($jadwal->jam_selesai)->format('H:i') }}
-                                                                    </strong>
+                                                                    <strong
+                                                                        class="text-primary">{{ \Carbon\Carbon::parse($jadwal->jam_mulai)->format('H:i') }}</strong>
                                                                 </div>
                                                                 <div class="text-truncate fw-semibold"
-                                                                    style="max-width: 140px;"
-                                                                    title="{{ $jadwal->pendaftaranSeminarProposal->user->name }}">
+                                                                    style="max-width: 140px;">
                                                                     {{ $jadwal->pendaftaranSeminarProposal->user->name }}
-                                                                </div>
-                                                                <div class="text-muted small">
-                                                                    <i
-                                                                        class="bx bx-door-open me-1"></i>{{ Str::limit($jadwal->ruangan, 15) }}
                                                                 </div>
                                                             </div>
 

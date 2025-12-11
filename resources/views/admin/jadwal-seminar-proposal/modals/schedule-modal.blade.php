@@ -201,6 +201,13 @@
                 const jamSelesai = jamSelesaiInput.value;
                 const ruangan = ruanganInput.value;
 
+                console.log('📅 getBatchInfo called:', {
+                    tanggal,
+                    jamMulai,
+                    jamSelesai,
+                    ruangan
+                });
+
                 if (!tanggal) {
                     batchInfo.style.display = 'none';
                     return;
@@ -209,11 +216,11 @@
                 // Show loading
                 batchInfo.style.display = 'block';
                 batchInfoContent.innerHTML = `
-            <div class="spinner-border spinner-border-sm text-primary me-2" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-            <small>Memuat data batch...</small>
-        `;
+                    <div class="spinner-border spinner-border-sm text-primary me-2" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <small>Memuat data batch...</small>
+                `;
 
                 // Debounce AJAX call
                 clearTimeout(batchInfoTimeout);
@@ -228,70 +235,105 @@
                             },
                             body: JSON.stringify({
                                 tanggal: tanggal,
-                                jam_mulai: jamMulai,
-                                jam_selesai: jamSelesai,
-                                ruangan: ruangan
+                                jam_mulai: jamMulai || null,
+                                jam_selesai: jamSelesai || null,
+                                ruangan: ruangan || null
                             })
                         })
-                        .then(response => response.json())
+                        .then(response => {
+                            console.log('📡 Response status:', response.status);
+                            return response.json();
+                        })
                         .then(data => {
-                            if (data.scheduled_count_total === 0) {
+                            console.log('📦 Response data:', data);
+
+                            // ✅ HANDLE ERROR RESPONSE
+                            if (!data.success && data.error) {
                                 batchInfoContent.innerHTML = `
-                        <p class="mb-0 small">
-                            <i class="bx bx-calendar-check me-1"></i>
-                            Belum ada jadwal pada <strong>${data.tanggal_formatted}</strong>
-                        </p>
-                    `;
-                            } else {
-                                let html = `<ul class="mb-0 small">`;
-                                html +=
-                                    `<li><strong>${data.scheduled_count_total} mahasiswa</strong> terjadwal pada <strong>${data.tanggal_formatted}</strong></li>`;
-
-                                if (jamMulai && jamSelesai && data.scheduled_count_same_time > 0) {
-                                    html +=
-                                        `<li><strong>${data.scheduled_count_same_time} mahasiswa</strong> pada jam <strong>${jamMulai} - ${jamSelesai}</strong></li>`;
-                                }
-
-                                if (ruangan && data.scheduled_count_same_room > 0) {
-                                    html +=
-                                        `<li><strong>${data.scheduled_count_same_room} mahasiswa</strong> di ruangan <strong>${ruangan}</strong></li>`;
-                                }
-
-                                html += `</ul>`;
-
-                                // Show grouped schedules (optional)
-                                if (data.schedules_grouped && data.schedules_grouped.length > 0) {
-                                    html += `<hr class="my-2">`;
-                                    html +=
-                                        `<small class="text-muted d-block mb-1"><strong>Detail Batch:</strong></small>`;
-                                    html += `<div class="small">`;
-                                    data.schedules_grouped.forEach(group => {
-                                        html += `<div class="mb-1">`;
-                                        html +=
-                                            `<i class="bx bx-time-five me-1"></i><strong>${group.slot}</strong>: `;
-                                        html += `${group.count} mahasiswa`;
-                                        html += `</div>`;
-                                    });
-                                    html += `</div>`;
-                                }
-
-                                batchInfoContent.innerHTML = html;
+                                    <p class="mb-0 small text-danger">
+                                        <i class="bx bx-error-circle me-1"></i>
+                                        Error: ${data.error}
+                                    </p>
+                                `;
+                                return;
                             }
+
+                            // ✅ HANDLE EMPTY DATA
+                            if (!data.scheduled_count_total || data.scheduled_count_total === 0) {
+                                batchInfoContent.innerHTML = `
+                                    <p class="mb-0 small">
+                                        <i class="bx bx-calendar-check me-1"></i>
+                                        Belum ada jadwal pada <strong>${data.tanggal_formatted || 'tanggal yang dipilih'}</strong>
+                                    </p>
+                                `;
+                                return;
+                            }
+
+                            // ✅ BUILD HTML WITH PROPER DATA (TANPA INFO RUANGAN)
+                            let html = `<ul class="mb-0 small">`;
+
+                            // Total mahasiswa per hari
+                            html +=
+                                `<li><strong>${data.scheduled_count_total} mahasiswa</strong> terjadwal pada <strong>${data.tanggal_formatted}</strong></li>`;
+
+                            // Mahasiswa per waktu yang sama
+                            if (jamMulai && jamSelesai && data.scheduled_count_same_time > 0) {
+                                html +=
+                                    `<li><strong>${data.scheduled_count_same_time} mahasiswa</strong> pada jam <strong>${jamMulai} - ${jamSelesai}</strong></li>`;
+                            }
+
+                            html += `</ul>`;
+
+                            // ✅ SHOW GROUPED SCHEDULES (Detail Batch) - DENGAN INFO RUANGAN PER MAHASISWA
+                            if (data.schedules_grouped && data.schedules_grouped.length > 0) {
+                                html += `<hr class="my-2">`;
+                                html +=
+                                    `<small class="text-muted d-block mb-2"><strong>Detail Jadwal Hari Ini:</strong></small>`;
+                                html += `<div class="small">`;
+
+                                data.schedules_grouped.forEach(group => {
+                                    html += `<div class="mb-2 p-2 bg-light rounded">`;
+                                    html += `<div class="fw-semibold text-primary mb-1">`;
+                                    html += `<i class="bx bx-time-five me-1"></i>${group.slot}`;
+                                    html +=
+                                        ` <span class="badge bg-primary">${group.count} mahasiswa</span>`;
+                                    html += `</div>`;
+                                    html += `<div class="ms-3">`;
+
+                                    group.mahasiswa.forEach((mhs, idx) => {
+                                        html +=
+                                            `<small>${idx + 1}. ${mhs.nama} (${mhs.nim})`;
+                                        // Tampilkan ruangan per mahasiswa
+                                        if (mhs.ruangan) {
+                                            html +=
+                                                ` - <span class="text-muted">${mhs.ruangan}</span>`;
+                                        }
+                                        html += `</small><br>`;
+                                    });
+
+                                    html += `</div>`;
+                                    html += `</div>`;
+                                });
+
+                                html += `</div>`;
+                            }
+
+                            batchInfoContent.innerHTML = html;
                         })
                         .catch(error => {
-                            console.error('Error getting batch info:', error);
+                            console.error('❌ Error getting batch info:', error);
                             batchInfoContent.innerHTML = `
-                    <p class="mb-0 small text-danger">
-                        <i class="bx bx-error-circle me-1"></i>
-                        Gagal memuat data batch
-                    </p>
-                `;
+                                <p class="mb-0 small text-danger">
+                                    <i class="bx bx-error-circle me-1"></i>
+                                    Gagal memuat data batch: ${error.message}
+                                </p>
+                            `;
                         });
                 }, 500); // Debounce 500ms
             }
 
-            // Attach event listeners
-            [tanggalInput, jamMulaiInput, jamSelesaiInput, ruanganInput].forEach(input => {
+            // Attach event listeners - HANYA TANGGAL DAN JAM
+            [tanggalInput, jamMulaiInput, jamSelesaiInput].forEach(input => {
                 input?.addEventListener('change', getBatchInfo);
                 input?.addEventListener('blur', getBatchInfo);
             });

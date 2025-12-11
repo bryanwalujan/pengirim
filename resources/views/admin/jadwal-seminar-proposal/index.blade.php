@@ -363,8 +363,7 @@
                                     {{-- Judul --}}
                                     <td>
                                         <span class="text-truncate d-block" style="max-width: 250px;"
-                                            data-bs-toggle="tooltip"
-                                            title="{!! $jadwal->pendaftaranSeminarProposal->judul_skripsi !!}">
+                                            data-bs-toggle="tooltip" title="{!! $jadwal->pendaftaranSeminarProposal->judul_skripsi !!}">
                                             {{ Str::limit(strip_tags($jadwal->pendaftaranSeminarProposal->judul_skripsi, 50)) }}
                                         </span>
                                     </td>
@@ -399,8 +398,42 @@
                                                 </small>
                                                 <small class="text-muted">
                                                     <i class="bx bx-door-open bx-xs me-1"></i>
-                                                    {{ $jadwal->ruangan }}
+                                                    {{ Str::limit($jadwal->ruangan, 25) }}
                                                 </small>
+
+                                                {{-- ✅ BATCH INFO BADGES --}}
+                                                @php
+                                                    $batchDay = \App\Models\JadwalSeminarProposal::getScheduledCountByDate(
+                                                        $jadwal->tanggal,
+                                                    );
+                                                    $batchTime = \App\Models\JadwalSeminarProposal::getScheduledCountByDateTime(
+                                                        $jadwal->tanggal,
+                                                        $jadwal->jam_mulai,
+                                                        $jadwal->jam_selesai,
+                                                    );
+                                                @endphp
+
+                                                @if ($batchDay > 1 || $batchTime > 1)
+                                                    <div class="d-flex flex-wrap gap-1 mt-1">
+                                                        @if ($batchDay > 1)
+                                                            <span class="badge badge-sm bg-label-info"
+                                                                data-bs-toggle="tooltip"
+                                                                title="{{ $batchDay }} mahasiswa ujian pada hari ini">
+                                                                <i class="bx bx-calendar-event bx-xs"></i>
+                                                                {{ $batchDay }} mhs/hari
+                                                            </span>
+                                                        @endif
+
+                                                        @if ($batchTime > 1)
+                                                            <span class="badge badge-sm bg-label-success"
+                                                                data-bs-toggle="tooltip"
+                                                                title="{{ $batchTime }} mahasiswa ujian pada jam yang sama">
+                                                                <i class="bx bx-time bx-xs"></i> {{ $batchTime }}
+                                                                mhs/jam
+                                                            </span>
+                                                        @endif
+                                                    </div>
+                                                @endif
                                             </div>
                                         @else
                                             <span class="badge bg-label-secondary">
@@ -420,7 +453,7 @@
                                                 data-bs-toggle="dropdown" aria-expanded="false">
                                                 <i class="bx bx-dots-vertical-rounded"></i>
                                             </button>
-                                            <div class="dropdown-menu">
+                                            <div class="dropdown-menu shadow-sm">
                                                 {{-- View Detail --}}
                                                 <a class="dropdown-item"
                                                     href="{{ route('admin.jadwal-seminar-proposal.show', $jadwal) }}">
@@ -442,23 +475,6 @@
                                                         <i class="bx bx-calendar-edit me-1"></i>
                                                         {{ $jadwal->hasJadwal() ? 'Edit Jadwal' : 'Set Jadwal' }}
                                                     </button>
-                                                @endif
-
-                                                @if ($jadwal->hasSkFile())
-                                                    <div class="dropdown-divider"></div>
-
-                                                    {{-- View SK --}}
-                                                    <a class="dropdown-item"
-                                                        href="{{ route('admin.jadwal-seminar-proposal.view-sk', $jadwal) }}"
-                                                        target="_blank">
-                                                        <i class="bx bx-file me-1"></i> Lihat SK
-                                                    </a>
-
-                                                    {{-- Download SK --}}
-                                                    <a class="dropdown-item"
-                                                        href="{{ route('admin.jadwal-seminar-proposal.download-sk', $jadwal) }}">
-                                                        <i class="bx bx-download me-1"></i> Download SK
-                                                    </a>
                                                 @endif
 
                                                 @if ($jadwal->status === 'dijadwalkan')

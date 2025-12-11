@@ -616,56 +616,48 @@ class AdminJadwalSeminarProposalController extends Controller
         }
     }
 
-    /**
-     * ✅ AJAX: Get batch scheduling info (no conflict check)
-     */
     public function getBatchInfo(Request $request)
     {
         try {
+            // Validasi input
             $validated = $request->validate([
                 'tanggal' => 'required|date',
                 'jam_mulai' => 'nullable|date_format:H:i',
                 'jam_selesai' => 'nullable|date_format:H:i',
-                'ruangan' => 'nullable|string',
+                'ruangan' => 'nullable|string|max:100', // Tetap validate tapi tidak digunakan untuk filtering
             ]);
 
-            // ✅ FIX: Pastikan tanggal di-parse dengan benar
             $tanggal = Carbon::parse($validated['tanggal'])->format('Y-m-d');
+            $jamMulai = $validated['jam_mulai'] ?? null;
+            $jamSelesai = $validated['jam_selesai'] ?? null;
 
-            // Get counts
+            // ✅ Get total jadwal per hari
             $scheduledCountTotal = JadwalSeminarProposal::whereDate('tanggal', $tanggal)
                 ->where('status', 'dijadwalkan')
                 ->count();
 
+            // ✅ Get jadwal per waktu yang sama (TANPA FILTER RUANGAN)
             $scheduledCountSameTime = 0;
-            if (!empty($validated['jam_mulai']) && !empty($validated['jam_selesai'])) {
+            if ($jamMulai && $jamSelesai) {
                 $scheduledCountSameTime = JadwalSeminarProposal::whereDate('tanggal', $tanggal)
-                    ->where('jam_mulai', $validated['jam_mulai'])
-                    ->where('jam_selesai', $validated['jam_selesai'])
+                    ->where('jam_mulai', $jamMulai)
+                    ->where('jam_selesai', $jamSelesai)
                     ->where('status', 'dijadwalkan')
                     ->count();
             }
 
-            $scheduledCountSameRoom = 0;
-            if (!empty($validated['ruangan'])) {
-                $scheduledCountSameRoom = JadwalSeminarProposal::whereDate('tanggal', $tanggal)
-                    ->where('ruangan', $validated['ruangan'])
-                    ->where('status', 'dijadwalkan')
-                    ->count();
-            }
-
-            // Get detail schedules
+            // ✅ Get detail schedules untuk di-group (GROUP BY TIME SLOT ONLY)
             $schedules = JadwalSeminarProposal::whereDate('tanggal', $tanggal)
                 ->where('status', 'dijadwalkan')
                 ->with('pendaftaranSeminarProposal.user')
                 ->orderBy('jam_mulai')
-                ->orderBy('ruangan')
+                ->orderBy('jam_selesai')
                 ->get();
 
-            // Group schedules by time slot and room
+            // ✅ Group schedules by time slot ONLY (tanpa ruangan)
             $schedulesGrouped = $schedules->groupBy(function ($item) {
                 return Carbon::parse($item->jam_mulai)->format('H:i') . ' - ' .
-                    Carbon::parse($item->jam_selesai)->format('H:i') . ' (' . $item->ruangan . ')';
+                    Carbon::parse($item->jam_selesai)->format('H:i');
             })->map(function ($group, $key) {
                 return [
                     'slot' => $key,
@@ -674,20 +666,20 @@ class AdminJadwalSeminarProposalController extends Controller
                         return [
                             'nama' => $item->pendaftaranSeminarProposal->user->name ?? 'N/A',
                             'nim' => $item->pendaftaranSeminarProposal->user->nim ?? 'N/A',
+                            'ruangan' => $item->ruangan ?? 'N/A', // Include ruangan for display
                         ];
                     })->toArray(),
                 ];
             })->values();
 
-            // ✅ FIX: Format tanggal untuk display
+            // Format tanggal untuk display
             $tanggalFormatted = Carbon::parse($tanggal)->locale('id')->translatedFormat('l, d F Y');
 
-            // ✅ LOG untuk debugging
+            // Log untuk debugging
             Log::info('✅ Batch Info Response:', [
                 'tanggal' => $tanggal,
                 'total' => $scheduledCountTotal,
                 'same_time' => $scheduledCountSameTime,
-                'same_room' => $scheduledCountSameRoom,
                 'grouped_count' => $schedulesGrouped->count(),
             ]);
 
@@ -695,10 +687,23 @@ class AdminJadwalSeminarProposalController extends Controller
                 'success' => true,
                 'scheduled_count_total' => $scheduledCountTotal,
                 'scheduled_count_same_time' => $scheduledCountSameTime,
-                'scheduled_count_same_room' => $scheduledCountSameRoom,
                 'tanggal_formatted' => $tanggalFormatted,
                 'schedules_grouped' => $schedulesGrouped,
             ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('❌ Validation Error getBatchInfo:', [
+                'errors' => $e->errors(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'error' => 'Validasi gagal: ' . implode(', ', $e->validator->errors()->all()),
+                'scheduled_count_total' => 0,
+                'scheduled_count_same_time' => 0,
+                'tanggal_formatted' => '',
+                'schedules_grouped' => [],
+            ], 422);
 
         } catch (\Exception $e) {
             Log::error('❌ Error getBatchInfo:', [
@@ -708,13 +713,13 @@ class AdminJadwalSeminarProposalController extends Controller
 
             return response()->json([
                 'success' => false,
-                'error' => $e->getMessage(),
+                'error' => 'Terjadi kesalahan server: ' . $e->getMessage(),
                 'scheduled_count_total' => 0,
                 'scheduled_count_same_time' => 0,
-                'scheduled_count_same_room' => 0,
                 'tanggal_formatted' => '',
                 'schedules_grouped' => [],
             ], 500);
         }
     }
+
 }

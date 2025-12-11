@@ -623,6 +623,10 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             Route::get('/', [AdminJadwalSeminarProposalController::class, 'index'])->name('index');
             Route::get('/calendar', [AdminJadwalSeminarProposalController::class, 'calendar'])->name('calendar');
 
+            // ⚠️ PENTING: Route get-batch-info HARUS di atas route dengan parameter {jadwal}
+            Route::post('/get-batch-info', [AdminJadwalSeminarProposalController::class, 'getBatchInfo'])
+                ->name('get-batch-info');
+
             // CRUD Operations
             Route::get('/{jadwal}', [AdminJadwalSeminarProposalController::class, 'show'])->name('show');
             Route::get('/{jadwal}/create', [AdminJadwalSeminarProposalController::class, 'create'])->name('create');
@@ -647,10 +651,6 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 
             // Delete (single) - HARUS di bawah bulk-destroy
             Route::delete('/{jadwal}', [AdminJadwalSeminarProposalController::class, 'destroy'])->name('destroy');
-
-            // AJAX Route to get batch info
-            Route::post('/get-batch-info', [AdminJadwalSeminarProposalController::class, 'getBatchInfo'])
-                ->name('get-batch-info');
         });
     });
 

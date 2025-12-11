@@ -205,7 +205,11 @@ class JadwalSeminarProposal extends Model
      */
     public static function getScheduledCountByDate($date)
     {
-        return self::whereDate('tanggal', $date)
+        if (empty($date)) {
+            return 0;
+        }
+
+        return self::whereDate('tanggal', Carbon::parse($date)->format('Y-m-d'))
             ->where('status', 'dijadwalkan')
             ->count();
     }
@@ -215,7 +219,11 @@ class JadwalSeminarProposal extends Model
      */
     public static function getScheduledCountByDateTime($date, $jamMulai, $jamSelesai)
     {
-        return self::whereDate('tanggal', $date)
+        if (empty($date) || empty($jamMulai) || empty($jamSelesai)) {
+            return 0;
+        }
+
+        return self::whereDate('tanggal', Carbon::parse($date)->format('Y-m-d'))
             ->where('jam_mulai', $jamMulai)
             ->where('jam_selesai', $jamSelesai)
             ->where('status', 'dijadwalkan')
@@ -227,7 +235,11 @@ class JadwalSeminarProposal extends Model
      */
     public static function getScheduledCountByRoom($date, $ruangan)
     {
-        return self::whereDate('tanggal', $date)
+        if (empty($date) || empty($ruangan)) {
+            return 0;
+        }
+
+        return self::whereDate('tanggal', Carbon::parse($date)->format('Y-m-d'))
             ->where('ruangan', $ruangan)
             ->where('status', 'dijadwalkan')
             ->count();
