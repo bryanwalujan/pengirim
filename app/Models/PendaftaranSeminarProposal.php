@@ -2,9 +2,10 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
-use Carbon\Carbon;
 
 class PendaftaranSeminarProposal extends Model
 {
@@ -342,6 +343,44 @@ class PendaftaranSeminarProposal extends Model
                 // Ensure alasan_penolakan is filled when status changed to ditolak
                 if (empty($model->alasan_penolakan)) {
                     throw new \Exception('Alasan penolakan harus diisi saat menolak pendaftaran.');
+                }
+            }
+        });
+
+        // ✅ TAMBAHAN: Auto-create jadwal sempro saat status berubah ke 'selesai'
+        static::updated(function ($model) {
+            // Cek jika status berubah menjadi 'selesai' dan belum ada jadwal
+            if (
+                $model->isDirty('status') &&
+                $model->status === 'selesai' &&
+                !$model->hasJadwal()
+            ) {
+                try {
+                    // Create jadwal sempro dengan status menunggu_sk
+                    JadwalSeminarProposal::create([
+                        'pendaftaran_seminar_proposal_id' => $model->id,
+                        'status' => 'menunggu_sk',
+                        'file_sk_proposal' => null,
+                        'tanggal' => null,
+                        'jam_mulai' => null,
+                        'jam_selesai' => null,
+                        'ruangan' => null,
+                    ]);
+
+                    Log::info('✅ Jadwal sempro auto-created', [
+                        'pendaftaran_id' => $model->id,
+                        'mahasiswa_nim' => $model->user->nim,
+                        'mahasiswa_nama' => $model->user->name,
+                        'status' => 'menunggu_sk',
+                        'created_at' => now(),
+                    ]);
+
+                } catch (\Exception $e) {
+                    Log::error('❌ Gagal auto-create jadwal sempro', [
+                        'pendaftaran_id' => $model->id,
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString(),
+                    ]);
                 }
             }
         });

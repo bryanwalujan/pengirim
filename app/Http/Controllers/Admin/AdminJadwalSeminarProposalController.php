@@ -1,6 +1,4 @@
 <?php
-// filepath: /c:/laragon/www/eservice-app/app/Http/Controllers/Admin/AdminJadwalSeminarProposalController.php
-
 namespace App\Http\Controllers\Admin;
 
 use Carbon\Carbon;
@@ -142,6 +140,7 @@ class AdminJadwalSeminarProposalController extends Controller
         try {
             DB::beginTransaction();
 
+            // ========== VALIDASI STATUS ==========
             if ($jadwal->status !== 'menunggu_jadwal') {
                 return back()
                     ->with('error', 'Jadwal hanya dapat dibuat untuk yang berstatus menunggu penjadwalan.')
@@ -154,28 +153,18 @@ class AdminJadwalSeminarProposalController extends Controller
                     ->withInput();
             }
 
-            // Cek bentrok ruangan
-            $bentrokRuangan = JadwalSeminarProposal::where('id', '!=', $jadwal->id)
-                ->where('tanggal', $validated['tanggal'])
-                ->where('ruangan', $validated['ruangan'])
-                ->where('status', 'dijadwalkan')
-                ->where(function ($query) use ($validated) {
-                    $query->whereBetween('jam_mulai', [$validated['jam_mulai'], $validated['jam_selesai']])
-                        ->orWhereBetween('jam_selesai', [$validated['jam_mulai'], $validated['jam_selesai']])
-                        ->orWhere(function ($q) use ($validated) {
-                            $q->where('jam_mulai', '<=', $validated['jam_mulai'])
-                                ->where('jam_selesai', '>=', $validated['jam_selesai']);
-                        });
-                })
-                ->exists();
+            // ========== VALIDASI WAKTU (Minimum 30 menit) ==========
+            $jamMulai = Carbon::parse($validated['jam_mulai']);
+            $jamSelesai = Carbon::parse($validated['jam_selesai']);
+            $durasiMenit = $jamMulai->diffInMinutes($jamSelesai);
 
-            if ($bentrokRuangan) {
+            if ($durasiMenit < 30) {
                 return back()
-                    ->with('warning', 'Ruangan sudah terpakai pada tanggal dan jam tersebut.')
+                    ->with('warning', 'Durasi seminar minimal 30 menit.')
                     ->withInput();
             }
 
-            // Update jadwal
+            // ========== UPDATE JADWAL ==========
             $jadwal->update([
                 'tanggal' => $validated['tanggal'],
                 'jam_mulai' => $validated['jam_mulai'],
@@ -184,55 +173,51 @@ class AdminJadwalSeminarProposalController extends Controller
                 'status' => 'dijadwalkan',
             ]);
 
+            // ========== GET BATCH INFO ==========
+            $scheduledCountTotal = JadwalSeminarProposal::getScheduledCountByDate($validated['tanggal']);
+            $scheduledCountSameTime = JadwalSeminarProposal::getScheduledCountByDateTime(
+                $validated['tanggal'],
+                $validated['jam_mulai'],
+                $validated['jam_selesai']
+            );
+            $scheduledCountSameRoom = JadwalSeminarProposal::getScheduledCountByRoom(
+                $validated['tanggal'],
+                $validated['ruangan']
+            );
+
+            // ========== KIRIM UNDANGAN ==========
             $pendaftaran = $jadwal->pendaftaranSeminarProposal;
             $dosensToNotify = collect();
 
-            // 1. Dosen Pembimbing Utama
+            // 1. Dosen Pembimbing
             if ($pendaftaran->dosenPembimbing) {
                 $dosensToNotify->push($pendaftaran->dosenPembimbing);
-                Log::info('✅ Pembimbing utama ditambahkan ke queue', [
-                    'dosen_id' => $pendaftaran->dosenPembimbing->id,
-                    'dosen_name' => $pendaftaran->dosenPembimbing->name,
-                ]);
             }
 
-            // 2. Dosen Pembahas 1, 2, 3
-            $pembahasList = $pendaftaran->proposalPembahas;
-            foreach ($pembahasList as $pembahas) {
+            // 2. Dosen Pembahas
+            foreach ($pendaftaran->proposalPembahas as $pembahas) {
                 if ($pembahas->dosen) {
                     $dosensToNotify->push($pembahas->dosen);
-                    Log::info('✅ Pembahas ditambahkan ke queue', [
-                        'posisi' => $pembahas->posisi,
-                        'dosen_id' => $pembahas->dosen->id,
-                        'dosen_name' => $pembahas->dosen->name,
-                    ]);
                 }
             }
 
-            $dosensToNotify = $dosensToNotify->unique('id');
+            $dosensToNotify = $dosensToNotify->unique('id')->filter(fn($d) => !empty($d->email));
 
-            Log::info('📋 Total dosen yang akan menerima undangan via queue', [
-                'total' => $dosensToNotify->count(),
-                'dosen_list' => $dosensToNotify->pluck('name', 'id')->toArray(),
-            ]);
-
-            $dosensWithEmail = $dosensToNotify->filter(function ($dosen) {
-                return !empty($dosen->email);
-            });
-
-            if ($dosensWithEmail->isEmpty()) {
+            if ($dosensToNotify->isEmpty()) {
                 DB::commit();
+
+                $tanggalFormatted = Carbon::parse($validated['tanggal'])->translatedFormat('l, d F Y');
+
                 return redirect()->route('admin.jadwal-seminar-proposal.index', ['status' => 'dijadwalkan'])
-                    ->with('warning', 'Jadwal berhasil dibuat, tetapi tidak ada dosen dengan email yang valid.');
+                    ->with('warning', "Jadwal berhasil dibuat (Total {$scheduledCountTotal} sempro pada {$tanggalFormatted}), tetapi tidak ada dosen dengan email yang valid.");
             }
 
-            // ✅ KIRIM KE QUEUE (Optimized)
+            // Kirim notifikasi
             $berhasilDiqueue = 0;
             $gagalDiqueue = 0;
 
-            foreach ($dosensWithEmail as $dosen) {
+            foreach ($dosensToNotify as $dosen) {
                 try {
-                    // Dispatch notification ke queue
                     $dosen->notify((new UndanganSeminarProposal($jadwal, $dosen->name))->delay(now()->addSeconds(5)));
                     $berhasilDiqueue++;
 
@@ -240,13 +225,11 @@ class AdminJadwalSeminarProposalController extends Controller
                         'jadwal_id' => $jadwal->id,
                         'dosen_id' => $dosen->id,
                         'dosen_nama' => $dosen->name,
-                        'dosen_email' => $dosen->email,
                     ]);
 
                 } catch (\Exception $e) {
                     $gagalDiqueue++;
-
-                    Log::error('❌ Gagal mengirim undangan sempro ke queue', [
+                    Log::error('❌ Gagal mengirim undangan', [
                         'jadwal_id' => $jadwal->id,
                         'dosen_id' => $dosen->id,
                         'error' => $e->getMessage(),
@@ -256,10 +239,18 @@ class AdminJadwalSeminarProposalController extends Controller
 
             DB::commit();
 
-            $message = "Jadwal seminar proposal berhasil dibuat. Undangan sedang dikirim ke {$berhasilDiqueue} dosen (1 Pembimbing + 3 Pembahas) melalui email.";
+            // ========== SUCCESS MESSAGE WITH BATCH INFO ==========
+            $tanggalFormatted = Carbon::parse($validated['tanggal'])->translatedFormat('l, d F Y');
+            $jamFormatted = Carbon::parse($validated['jam_mulai'])->format('H:i') . ' - ' .
+                Carbon::parse($validated['jam_selesai'])->format('H:i');
+
+            $message = "✅ Jadwal seminar proposal berhasil dibuat. Undangan sedang dikirim ke <strong>{$berhasilDiqueue} dosen</strong>.<br>";
+            $message .= "📅 <strong>{$scheduledCountTotal} mahasiswa</strong> terjadwal pada <strong>{$tanggalFormatted}</strong><br>";
+            $message .= "🕐 <strong>{$scheduledCountSameTime} mahasiswa</strong> pada jam <strong>{$jamFormatted}</strong><br>";
+            $message .= "🏫 <strong>{$scheduledCountSameRoom} mahasiswa</strong> di ruangan <strong>{$validated['ruangan']}</strong>";
 
             if ($gagalDiqueue > 0) {
-                $message .= " ({$gagalDiqueue} gagal dijadwalkan untuk dikirim)";
+                $message .= "<br>⚠️ ({$gagalDiqueue} undangan gagal dikirim)";
             }
 
             return redirect()->route('admin.jadwal-seminar-proposal.index', ['status' => 'dijadwalkan'])
@@ -622,6 +613,108 @@ class AdminJadwalSeminarProposalController extends Controller
             ]);
 
             return back()->with('error', 'Terjadi kesalahan saat menghapus jadwal.');
+        }
+    }
+
+    /**
+     * ✅ AJAX: Get batch scheduling info (no conflict check)
+     */
+    public function getBatchInfo(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'tanggal' => 'required|date',
+                'jam_mulai' => 'nullable|date_format:H:i',
+                'jam_selesai' => 'nullable|date_format:H:i',
+                'ruangan' => 'nullable|string',
+            ]);
+
+            // ✅ FIX: Pastikan tanggal di-parse dengan benar
+            $tanggal = Carbon::parse($validated['tanggal'])->format('Y-m-d');
+
+            // Get counts
+            $scheduledCountTotal = JadwalSeminarProposal::whereDate('tanggal', $tanggal)
+                ->where('status', 'dijadwalkan')
+                ->count();
+
+            $scheduledCountSameTime = 0;
+            if (!empty($validated['jam_mulai']) && !empty($validated['jam_selesai'])) {
+                $scheduledCountSameTime = JadwalSeminarProposal::whereDate('tanggal', $tanggal)
+                    ->where('jam_mulai', $validated['jam_mulai'])
+                    ->where('jam_selesai', $validated['jam_selesai'])
+                    ->where('status', 'dijadwalkan')
+                    ->count();
+            }
+
+            $scheduledCountSameRoom = 0;
+            if (!empty($validated['ruangan'])) {
+                $scheduledCountSameRoom = JadwalSeminarProposal::whereDate('tanggal', $tanggal)
+                    ->where('ruangan', $validated['ruangan'])
+                    ->where('status', 'dijadwalkan')
+                    ->count();
+            }
+
+            // Get detail schedules
+            $schedules = JadwalSeminarProposal::whereDate('tanggal', $tanggal)
+                ->where('status', 'dijadwalkan')
+                ->with('pendaftaranSeminarProposal.user')
+                ->orderBy('jam_mulai')
+                ->orderBy('ruangan')
+                ->get();
+
+            // Group schedules by time slot and room
+            $schedulesGrouped = $schedules->groupBy(function ($item) {
+                return Carbon::parse($item->jam_mulai)->format('H:i') . ' - ' .
+                    Carbon::parse($item->jam_selesai)->format('H:i') . ' (' . $item->ruangan . ')';
+            })->map(function ($group, $key) {
+                return [
+                    'slot' => $key,
+                    'count' => $group->count(),
+                    'mahasiswa' => $group->map(function ($item) {
+                        return [
+                            'nama' => $item->pendaftaranSeminarProposal->user->name ?? 'N/A',
+                            'nim' => $item->pendaftaranSeminarProposal->user->nim ?? 'N/A',
+                        ];
+                    })->toArray(),
+                ];
+            })->values();
+
+            // ✅ FIX: Format tanggal untuk display
+            $tanggalFormatted = Carbon::parse($tanggal)->locale('id')->translatedFormat('l, d F Y');
+
+            // ✅ LOG untuk debugging
+            Log::info('✅ Batch Info Response:', [
+                'tanggal' => $tanggal,
+                'total' => $scheduledCountTotal,
+                'same_time' => $scheduledCountSameTime,
+                'same_room' => $scheduledCountSameRoom,
+                'grouped_count' => $schedulesGrouped->count(),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'scheduled_count_total' => $scheduledCountTotal,
+                'scheduled_count_same_time' => $scheduledCountSameTime,
+                'scheduled_count_same_room' => $scheduledCountSameRoom,
+                'tanggal_formatted' => $tanggalFormatted,
+                'schedules_grouped' => $schedulesGrouped,
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('❌ Error getBatchInfo:', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+                'scheduled_count_total' => 0,
+                'scheduled_count_same_time' => 0,
+                'scheduled_count_same_room' => 0,
+                'tanggal_formatted' => '',
+                'schedules_grouped' => [],
+            ], 500);
         }
     }
 }

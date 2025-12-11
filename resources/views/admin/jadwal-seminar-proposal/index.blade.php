@@ -3,6 +3,76 @@
 
 @section('title', 'Jadwal Seminar Proposal')
 
+@push('styles')
+    <style>
+        /* Sneat-styled enhancements */
+        .card-border-shadow-warning {
+            border-left: 3px solid #ffab00;
+        }
+
+        .card-border-shadow-info {
+            border-left: 3px solid #03c3ec;
+        }
+
+        .card-border-shadow-primary {
+            border-left: 3px solid #696cff;
+        }
+
+        .card-border-shadow-success {
+            border-left: 3px solid #71dd37;
+        }
+
+        /* Clickable row styles */
+        .clickable-row {
+            transition: background-color 0.2s ease;
+        }
+
+        .clickable-row:hover {
+            background-color: rgba(67, 89, 113, 0.08) !important;
+        }
+
+        .clickable-row:active {
+            background-color: rgba(67, 89, 113, 0.12) !important;
+        }
+
+        /* Don't change cursor on checkbox and actions */
+        .clickable-row td:first-child,
+        .clickable-row td:last-child {
+            cursor: default;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: rgba(67, 89, 113, 0.04);
+        }
+
+        .nav-pills .nav-link {
+            transition: all 0.2s ease;
+        }
+
+        .nav-pills .nav-link:hover:not(.active) {
+            background-color: rgba(67, 89, 113, 0.04);
+        }
+
+        /* Responsive tabs */
+        @media (max-width: 576px) {
+            .nav-pills {
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .nav-pills .nav-link {
+                white-space: nowrap;
+            }
+        }
+
+        /* Selected row highlight */
+        .clickable-row.row-selected {
+            background-color: rgba(67, 89, 113, 0.1) !important;
+        }
+    </style>
+@endpush
+
 @section('content')
     <div class="container-xxl flex-grow-1 container-p-y">
 
@@ -212,9 +282,9 @@
 
             {{-- Card Body with Table --}}
             <div class="card-body">
-                {{-- Bulk Delete Form (Hidden) --}}
+                {{-- ✅ Bulk Delete Form (Fixed) --}}
                 <form id="bulkDeleteForm" action="{{ route('admin.jadwal-seminar-proposal.bulk-destroy') }}"
-                    method="POST" style="display: none;">
+                    method="POST">
                     @csrf
                     <div id="bulkDeleteInputs"></div>
                 </form>
@@ -239,22 +309,25 @@
                                 <th width="16%" class="text-center">Aksi</th>
                             </tr>
                         </thead>
-                        {{-- Update bagian tbody --}}
                         <tbody class="table-border-bottom-0">
                             @forelse($jadwals as $index => $jadwal)
                                 <tr class="clickable-row"
-                                    data-href="{{ route('admin.jadwal-seminar-proposal.show', $jadwal) }}"
-                                    style="cursor: pointer;">
-                                    {{-- Checkbox --}}
+                                    data-href="{{ route('admin.jadwal-seminar-proposal.show', $jadwal) }}">
+                                    {{-- ✅ Checkbox (Fixed) --}}
                                     <td onclick="event.stopPropagation();">
                                         @if ($jadwal->canBeDeleted())
                                             <div class="form-check">
                                                 <input class="form-check-input row-checkbox" type="checkbox"
-                                                    value="{{ $jadwal->id }}" data-status="{{ $jadwal->status }}"
+                                                    value="{{ $jadwal->id }}"
                                                     data-mahasiswa="{{ $jadwal->pendaftaranSeminarProposal->user->name }}"
-                                                    id="checkbox{{ $jadwal->id }}">
-                                                <label class="form-check-label"
-                                                    for="checkbox{{ $jadwal->id }}"></label>
+                                                    data-nim="{{ $jadwal->pendaftaranSeminarProposal->user->nim }}"
+                                                    id="check-{{ $jadwal->id }}">
+                                                <label class="form-check-label" for="check-{{ $jadwal->id }}"></label>
+                                            </div>
+                                        @else
+                                            <div class="text-center">
+                                                <i class="bx bx-lock-alt text-muted" data-bs-toggle="tooltip"
+                                                    title="Tidak dapat dihapus"></i>
                                             </div>
                                         @endif
                                     </td>
@@ -265,9 +338,25 @@
                                     {{-- Mahasiswa --}}
                                     <td>
                                         <div class="d-flex flex-column">
-                                            <h6 class="mb-0">{{ $jadwal->pendaftaranSeminarProposal->user->name }}</h6>
-                                            <small class="text-muted">NIM:
-                                                {{ $jadwal->pendaftaranSeminarProposal->user->nim }}</small>
+                                            <strong
+                                                class="mb-1">{{ $jadwal->pendaftaranSeminarProposal->user->name }}</strong>
+                                            <small
+                                                class="text-muted">{{ $jadwal->pendaftaranSeminarProposal->user->nim }}</small>
+
+                                            {{-- ✅ BATCH INFO --}}
+                                            @if ($jadwal->isDijadwalkan() && $jadwal->hasJadwal())
+                                                @php
+                                                    $batchCount = \App\Models\JadwalSeminarProposal::getScheduledCountByDate(
+                                                        $jadwal->tanggal,
+                                                    );
+                                                @endphp
+                                                @if ($batchCount > 1)
+                                                    <span class="badge badge-sm bg-label-info mt-1">
+                                                        <i class="bx bx-group bx-xs"></i>
+                                                        Batch: {{ $batchCount }} mahasiswa
+                                                    </span>
+                                                @endif
+                                            @endif
                                         </div>
                                     </td>
 
@@ -275,22 +364,22 @@
                                     <td>
                                         <span class="text-truncate d-block" style="max-width: 250px;"
                                             data-bs-toggle="tooltip"
-                                            title="{{ strip_tags($jadwal->pendaftaranSeminarProposal->judul_skripsi) }}">
-                                            {{ Str::limit(strip_tags($jadwal->pendaftaranSeminarProposal->judul_skripsi), 50) }}
+                                            title="{!! $jadwal->pendaftaranSeminarProposal->judul_skripsi !!}">
+                                            {{ Str::limit(strip_tags($jadwal->pendaftaranSeminarProposal->judul_skripsi, 50)) }}
                                         </span>
                                     </td>
 
                                     {{-- Pembimbing --}}
                                     <td>
                                         <div class="d-flex align-items-center">
-                                            <div class="avatar avatar-xs me-2">
+                                            <div class="avatar avatar-sm me-2">
                                                 <span class="avatar-initial rounded-circle bg-label-primary">
-                                                    {{ strtoupper(substr($jadwal->pendaftaranSeminarProposal->dosenPembimbing->name ?? 'N', 0, 1)) }}
+                                                    {{ strtoupper(substr($jadwal->pendaftaranSeminarProposal->dosenPembimbing->name, 0, 2)) }}
                                                 </span>
                                             </div>
                                             <div>
-                                                <small class="text-truncate d-block" style="max-width: 120px;">
-                                                    {{ $jadwal->pendaftaranSeminarProposal->dosenPembimbing->name ?? '-' }}
+                                                <small class="text-muted d-block">
+                                                    {{ $jadwal->pendaftaranSeminarProposal->dosenPembimbing->name }}
                                                 </small>
                                             </div>
                                         </div>
@@ -300,22 +389,23 @@
                                     <td>
                                         @if ($jadwal->hasJadwal())
                                             <div class="d-flex flex-column gap-1">
-                                                <small>
-                                                    <i class="bx bx-calendar me-1 text-primary"></i>
-                                                    <strong>{{ \Carbon\Carbon::parse($jadwal->tanggal)->locale('id')->translatedFormat('d M Y') }}</strong>
-                                                </small>
+                                                <span class="badge bg-label-primary">
+                                                    <i class="bx bx-calendar bx-xs me-1"></i>
+                                                    {{ $jadwal->tanggal->format('d M Y') }}
+                                                </span>
                                                 <small class="text-muted">
-                                                    <i class="bx bx-time me-1"></i>
+                                                    <i class="bx bx-time bx-xs me-1"></i>
                                                     {{ $jadwal->jam_formatted }}
                                                 </small>
                                                 <small class="text-muted">
-                                                    <i class="bx bx-door-open me-1"></i>
+                                                    <i class="bx bx-door-open bx-xs me-1"></i>
                                                     {{ $jadwal->ruangan }}
                                                 </small>
                                             </div>
                                         @else
                                             <span class="badge bg-label-secondary">
-                                                <i class="bx bx-time-five me-1"></i>Belum Dijadwalkan
+                                                <i class="bx bx-calendar-x bx-xs me-1"></i>
+                                                Belum Dijadwalkan
                                             </span>
                                         @endif
                                     </td>
@@ -326,88 +416,84 @@
                                     {{-- Actions --}}
                                     <td class="text-center" onclick="event.stopPropagation();">
                                         <div class="dropdown">
-                                            <button type="button"
-                                                class="btn btn-sm btn-icon btn-text-secondary rounded-pill dropdown-toggle hide-arrow"
+                                            <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
                                                 data-bs-toggle="dropdown" aria-expanded="false">
                                                 <i class="bx bx-dots-vertical-rounded"></i>
                                             </button>
-                                            <div class="dropdown-menu dropdown-menu-end">
+                                            <div class="dropdown-menu">
                                                 {{-- View Detail --}}
                                                 <a class="dropdown-item"
                                                     href="{{ route('admin.jadwal-seminar-proposal.show', $jadwal) }}">
-                                                    <i class="bx bx-show me-2"></i> Lihat Detail
+                                                    <i class="bx bx-show me-1"></i> Lihat Detail
                                                 </a>
 
-                                                {{-- SK Actions --}}
-                                                @if ($jadwal->hasSkFile())
-                                                    <a class="dropdown-item"
-                                                        href="{{ route('admin.jadwal-seminar-proposal.view-sk', $jadwal) }}"
-                                                        target="_blank">
-                                                        <i class="bx bx-file-blank me-2"></i> Lihat SK
-                                                    </a>
-                                                    <a class="dropdown-item"
-                                                        href="{{ route('admin.jadwal-seminar-proposal.download-sk', $jadwal) }}">
-                                                        <i class="bx bx-download me-2"></i> Download SK
-                                                    </a>
-                                                    <div class="dropdown-divider"></div>
-                                                @endif
-
-                                                {{-- Buat/Edit Jadwal --}}
-                                                @if ($jadwal->status === 'menunggu_jadwal')
+                                                @if ($jadwal->status === 'menunggu_jadwal' || $jadwal->status === 'dijadwalkan')
+                                                    {{-- Set Jadwal --}}
                                                     <button type="button" class="dropdown-item" data-bs-toggle="modal"
                                                         data-bs-target="#scheduleModal"
                                                         data-jadwal-id="{{ $jadwal->id }}"
                                                         data-mahasiswa-nama="{{ $jadwal->pendaftaranSeminarProposal->user->name }}"
                                                         data-mahasiswa-nim="{{ $jadwal->pendaftaranSeminarProposal->user->nim }}"
-                                                        data-mahasiswa-judul="{{ strip_tags($jadwal->pendaftaranSeminarProposal->judul_skripsi) }}">
-                                                        <i class="bx bx-calendar-plus me-2 text-primary"></i> Buat Jadwal
-                                                    </button>
-                                                @endif
-
-                                                @if ($jadwal->status === 'dijadwalkan')
-                                                    <button type="button" class="dropdown-item" data-bs-toggle="modal"
-                                                        data-bs-target="#scheduleModal"
-                                                        data-jadwal-id="{{ $jadwal->id }}"
-                                                        data-mahasiswa-nama="{{ $jadwal->pendaftaranSeminarProposal->user->name }}"
-                                                        data-mahasiswa-nim="{{ $jadwal->pendaftaranSeminarProposal->user->nim }}"
-                                                        data-mahasiswa-judul="{{ strip_tags($jadwal->pendaftaranSeminarProposal->judul_skripsi) }}"
-                                                        data-tanggal="{{ $jadwal->tanggal ? $jadwal->tanggal->format('Y-m-d') : '' }}"
+                                                        data-mahasiswa-judul="{{ $jadwal->pendaftaranSeminarProposal->judul_skripsi }}"
+                                                        data-tanggal="{{ $jadwal->tanggal?->format('Y-m-d') }}"
                                                         data-jam-mulai="{{ $jadwal->jam_mulai }}"
                                                         data-jam-selesai="{{ $jadwal->jam_selesai }}"
                                                         data-ruangan="{{ $jadwal->ruangan }}">
-                                                        <i class="bx bx-edit me-2 text-warning"></i> Edit Jadwal
+                                                        <i class="bx bx-calendar-edit me-1"></i>
+                                                        {{ $jadwal->hasJadwal() ? 'Edit Jadwal' : 'Set Jadwal' }}
                                                     </button>
+                                                @endif
 
+                                                @if ($jadwal->hasSkFile())
                                                     <div class="dropdown-divider"></div>
 
-                                                    {{-- Kirim Ulang --}}
+                                                    {{-- View SK --}}
+                                                    <a class="dropdown-item"
+                                                        href="{{ route('admin.jadwal-seminar-proposal.view-sk', $jadwal) }}"
+                                                        target="_blank">
+                                                        <i class="bx bx-file me-1"></i> Lihat SK
+                                                    </a>
+
+                                                    {{-- Download SK --}}
+                                                    <a class="dropdown-item"
+                                                        href="{{ route('admin.jadwal-seminar-proposal.download-sk', $jadwal) }}">
+                                                        <i class="bx bx-download me-1"></i> Download SK
+                                                    </a>
+                                                @endif
+
+                                                @if ($jadwal->status === 'dijadwalkan')
+                                                    <div class="dropdown-divider"></div>
+
+                                                    {{-- Mark as Selesai --}}
+                                                    @if ($jadwal->canMarkAsSelesai())
+                                                        <form
+                                                            action="{{ route('admin.jadwal-seminar-proposal.mark-selesai', $jadwal) }}"
+                                                            method="POST" class="mark-selesai-form">
+                                                            @csrf
+                                                            <button type="submit" class="dropdown-item text-success">
+                                                                <i class="bx bx-check-circle me-1"></i> Tandai Selesai
+                                                            </button>
+                                                        </form>
+                                                    @endif
+
+                                                    {{-- Kirim Ulang Undangan --}}
                                                     <form
                                                         action="{{ route('admin.jadwal-seminar-proposal.kirim-ulang-undangan', $jadwal) }}"
-                                                        method="POST" class="d-inline kirim-ulang-form">
+                                                        method="POST" class="kirim-ulang-form">
                                                         @csrf
-                                                        <button type="submit" class="dropdown-item">
-                                                            <i class="bx bx-send me-2 text-info"></i> Kirim Ulang Undangan
-                                                        </button>
-                                                    </form>
-
-                                                    {{-- Mark Selesai --}}
-                                                    <form
-                                                        action="{{ route('admin.jadwal-seminar-proposal.mark-selesai', $jadwal) }}"
-                                                        method="POST" class="d-inline mark-selesai-form">
-                                                        @csrf
-                                                        <button type="submit" class="dropdown-item">
-                                                            <i class="bx bx-check-circle me-2 text-success"></i> Tandai
-                                                            Selesai
+                                                        <button type="submit" class="dropdown-item text-info">
+                                                            <i class="bx bx-send me-1"></i> Kirim Ulang Undangan
                                                         </button>
                                                     </form>
                                                 @endif
 
-                                                {{-- Delete --}}
                                                 @if ($jadwal->canBeDeleted())
                                                     <div class="dropdown-divider"></div>
+
+                                                    {{-- Delete --}}
                                                     <form
                                                         action="{{ route('admin.jadwal-seminar-proposal.destroy', $jadwal) }}"
-                                                        method="POST" class="d-inline delete-form"
+                                                        method="POST" class="delete-form"
                                                         data-mahasiswa="{{ $jadwal->pendaftaranSeminarProposal->user->name }}"
                                                         data-nim="{{ $jadwal->pendaftaranSeminarProposal->user->nim }}"
                                                         data-status="{{ $jadwal->status }}"
@@ -415,7 +501,7 @@
                                                         @csrf
                                                         @method('DELETE')
                                                         <button type="submit" class="dropdown-item text-danger">
-                                                            <i class="bx bx-trash me-2"></i> Hapus Jadwal
+                                                            <i class="bx bx-trash me-1"></i> Hapus Jadwal
                                                         </button>
                                                     </form>
                                                 @endif
@@ -427,11 +513,9 @@
                                 <tr>
                                     <td colspan="8" class="text-center py-5">
                                         <div class="d-flex flex-column align-items-center">
-                                            <i class="bx bx-info-circle bx-lg text-muted mb-3"></i>
-                                            <h6 class="text-muted mb-1">Tidak Ada Data</h6>
-                                            <p class="text-muted mb-0">
-                                                Tidak ada jadwal dengan status
-                                                <strong>{{ ucwords(str_replace('_', ' ', $status)) }}</strong>
+                                            <i class="bx bx-calendar-x display-4 text-muted mb-3"></i>
+                                            <h5 class="text-muted">Tidak ada data jadwal</h5>
+                                            <p class="text-muted mb-0">Belum ada jadwal seminar proposal untuk status ini
                                             </p>
                                         </div>
                                     </td>
@@ -486,7 +570,9 @@
                 });
 
                 row.addEventListener('mouseleave', function() {
-                    this.style.backgroundColor = '';
+                    if (!this.querySelector('.row-checkbox:checked')) {
+                        this.style.backgroundColor = '';
+                    }
                 });
             });
 
@@ -615,7 +701,7 @@
                 });
             });
 
-            // ========== BULK DELETE ==========
+            // ========== BULK DELETE FUNCTIONALITY ==========
             const selectAllCheckbox = document.getElementById('selectAll');
             const rowCheckboxes = document.querySelectorAll('.row-checkbox');
             const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
@@ -623,8 +709,17 @@
             const bulkDeleteForm = document.getElementById('bulkDeleteForm');
             const bulkDeleteInputs = document.getElementById('bulkDeleteInputs');
 
+            console.log('🔍 Bulk Delete Init:', {
+                'selectAll': selectAllCheckbox !== null,
+                'rowCheckboxes': rowCheckboxes.length,
+                'bulkDeleteBtn': bulkDeleteBtn !== null,
+                'bulkDeleteForm': bulkDeleteForm !== null
+            });
+
+            // Select All Functionality
             if (selectAllCheckbox) {
                 selectAllCheckbox.addEventListener('change', function() {
+                    console.log('✅ Select All clicked:', this.checked);
                     rowCheckboxes.forEach(checkbox => {
                         checkbox.checked = this.checked;
                     });
@@ -633,14 +728,17 @@
                 });
             }
 
+            // Individual Checkbox Change
             rowCheckboxes.forEach(checkbox => {
                 checkbox.addEventListener('change', function() {
+                    console.log('✅ Checkbox changed:', this.value, this.checked);
                     updateSelectAllState();
                     updateBulkDeleteButton();
                     updateRowHighlight();
                 });
             });
 
+            // Update Select All State
             function updateSelectAllState() {
                 const checkedCount = document.querySelectorAll('.row-checkbox:checked').length;
                 const totalCount = rowCheckboxes.length;
@@ -649,11 +747,20 @@
                     selectAllCheckbox.checked = checkedCount === totalCount && totalCount > 0;
                     selectAllCheckbox.indeterminate = checkedCount > 0 && checkedCount < totalCount;
                 }
+
+                console.log('📊 Select All State:', {
+                    'checked': checkedCount,
+                    'total': totalCount,
+                    'allSelected': checkedCount === totalCount
+                });
             }
 
+            // Update Bulk Delete Button Visibility
             function updateBulkDeleteButton() {
                 const checkedBoxes = document.querySelectorAll('.row-checkbox:checked');
                 const count = checkedBoxes.length;
+
+                console.log('🔢 Checked count:', count);
 
                 if (count > 0) {
                     bulkDeleteBtn.style.display = 'inline-block';
@@ -663,53 +770,83 @@
                 }
             }
 
+            // Update Row Highlight
             function updateRowHighlight() {
                 rowCheckboxes.forEach(checkbox => {
                     const row = checkbox.closest('tr');
                     if (checkbox.checked) {
+                        row.classList.add('row-selected');
                         row.style.backgroundColor = 'rgba(67, 89, 113, 0.1)';
                     } else {
+                        row.classList.remove('row-selected');
                         row.style.backgroundColor = '';
                     }
                 });
             }
 
+            // Bulk Delete Button Click Handler
             if (bulkDeleteBtn) {
-                bulkDeleteBtn.addEventListener('click', function() {
+                bulkDeleteBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+
                     const checkedBoxes = document.querySelectorAll('.row-checkbox:checked');
                     const jadwalIds = Array.from(checkedBoxes).map(cb => cb.value);
-                    const mahasiswaList = Array.from(checkedBoxes).map(cb => cb.dataset.mahasiswa);
+                    const mahasiswaList = Array.from(checkedBoxes).map(cb => ({
+                        nama: cb.dataset.mahasiswa,
+                        nim: cb.dataset.nim
+                    }));
+
+                    console.log('🗑️ Bulk Delete Triggered:', {
+                        'count': jadwalIds.length,
+                        'ids': jadwalIds,
+                        'mahasiswa': mahasiswaList
+                    });
 
                     if (jadwalIds.length === 0) {
                         Swal.fire({
                             icon: 'warning',
                             title: 'Tidak Ada yang Dipilih',
                             text: 'Pilih minimal 1 jadwal untuk dihapus.',
+                            confirmButtonColor: '#696cff',
                         });
                         return;
                     }
 
+                    // Build mahasiswa list HTML
                     const mahasiswaListHtml = mahasiswaList
                         .slice(0, 5)
-                        .map((nama, idx) => `${idx + 1}. ${nama}`)
+                        .map((mhs, idx) => `${idx + 1}. ${mhs.nama} (${mhs.nim})`)
                         .join('<br>');
 
                     const moreText = mahasiswaList.length > 5 ?
-                        `<br><em>... dan ${mahasiswaList.length - 5} lainnya</em>` :
+                        `<br><em class="text-muted">... dan ${mahasiswaList.length - 5} lainnya</em>` :
                         '';
 
                     Swal.fire({
                         title: 'Konfirmasi Bulk Delete',
                         html: `
                             <div class="text-start">
-                                <p class="mb-2"><strong>Total yang akan dihapus: ${jadwalIds.length} jadwal</strong></p>
-                                <div class="alert alert-info mb-2">
-                                    <strong>Mahasiswa:</strong><br>
-                                    ${mahasiswaListHtml}${moreText}
-                                </div>
-                                <div class="alert alert-danger mb-0">
+                                <div class="alert alert-warning mb-3">
                                     <i class="bx bx-error-circle me-2"></i>
-                                    <strong>Peringatan:</strong> Tindakan ini tidak dapat dibatalkan!
+                                    <strong>Total yang akan dihapus: ${jadwalIds.length} jadwal</strong>
+                                </div>
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6 class="card-title mb-2">Mahasiswa yang akan di-reset:</h6>
+                                        <div class="small">
+                                            ${mahasiswaListHtml}${moreText}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="alert alert-danger mt-3 mb-0">
+                                    <i class="bx bx-info-circle me-2"></i>
+                                    <strong>Perhatian:</strong>
+                                    <ul class="mb-0 mt-2">
+                                        <li>Data jadwal akan dihapus</li>
+                                        <li>File SK Proposal akan dihapus</li>
+                                        <li>Status kembali ke "Menunggu SK"</li>
+                                        <li>Mahasiswa harus upload SK baru</li>
+                                    </ul>
                                 </div>
                             </div>
                         `,
@@ -723,10 +860,16 @@
                             confirmButton: 'btn btn-danger me-2',
                             cancelButton: 'btn btn-secondary'
                         },
-                        buttonsStyling: false
+                        buttonsStyling: false,
+                        width: '600px'
                     }).then((result) => {
                         if (result.isConfirmed) {
+                            console.log('✅ User confirmed bulk delete');
+
+                            // Clear previous inputs
                             bulkDeleteInputs.innerHTML = '';
+
+                            // Add jadwal IDs to form
                             jadwalIds.forEach(id => {
                                 const input = document.createElement('input');
                                 input.type = 'hidden';
@@ -734,10 +877,30 @@
                                 input.value = id;
                                 bulkDeleteInputs.appendChild(input);
                             });
+
+                            console.log('📝 Form inputs added:', jadwalIds.length);
+                            console.log('📤 Submitting form to:', bulkDeleteForm.action);
+
+                            // Show loading state
+                            Swal.fire({
+                                title: 'Menghapus...',
+                                html: 'Mohon tunggu, sedang menghapus jadwal...',
+                                allowOutsideClick: false,
+                                allowEscapeKey: false,
+                                didOpen: () => {
+                                    Swal.showLoading();
+                                }
+                            });
+
+                            // Submit form
                             bulkDeleteForm.submit();
+                        } else {
+                            console.log('❌ User cancelled bulk delete');
                         }
                     });
                 });
+            } else {
+                console.error('❌ bulkDeleteBtn not found!');
             }
 
             // Auto dismiss alerts
@@ -751,74 +914,4 @@
             }, 5000);
         });
     </script>
-@endpush
-
-@push('styles')
-    <style>
-        /* Sneat-styled enhancements */
-        .card-border-shadow-warning {
-            border-left: 3px solid #ffab00;
-        }
-
-        .card-border-shadow-info {
-            border-left: 3px solid #03c3ec;
-        }
-
-        .card-border-shadow-primary {
-            border-left: 3px solid #696cff;
-        }
-
-        .card-border-shadow-success {
-            border-left: 3px solid #71dd37;
-        }
-
-        /* Clickable row styles */
-        .clickable-row {
-            transition: background-color 0.2s ease;
-        }
-
-        .clickable-row:hover {
-            background-color: rgba(67, 89, 113, 0.08) !important;
-        }
-
-        .clickable-row:active {
-            background-color: rgba(67, 89, 113, 0.12) !important;
-        }
-
-        /* Don't change cursor on checkbox and actions */
-        .clickable-row td:first-child,
-        .clickable-row td:last-child {
-            cursor: default;
-        }
-
-        .table-hover tbody tr:hover {
-            background-color: rgba(67, 89, 113, 0.04);
-        }
-
-        .nav-pills .nav-link {
-            transition: all 0.2s ease;
-        }
-
-        .nav-pills .nav-link:hover:not(.active) {
-            background-color: rgba(67, 89, 113, 0.04);
-        }
-
-        /* Responsive tabs */
-        @media (max-width: 576px) {
-            .nav-pills {
-                flex-wrap: nowrap;
-                overflow-x: auto;
-                -webkit-overflow-scrolling: touch;
-            }
-
-            .nav-pills .nav-link {
-                white-space: nowrap;
-            }
-        }
-
-        /* Selected row highlight */
-        .clickable-row.row-selected {
-            background-color: rgba(67, 89, 113, 0.1) !important;
-        }
-    </style>
 @endpush

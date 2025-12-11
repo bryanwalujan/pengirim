@@ -200,6 +200,55 @@ class JadwalSeminarProposal extends Model
         };
     }
 
+    /**
+     * Get count of scheduled exams on specific date
+     */
+    public static function getScheduledCountByDate($date)
+    {
+        return self::whereDate('tanggal', $date)
+            ->where('status', 'dijadwalkan')
+            ->count();
+    }
+
+    /**
+     * Get count of scheduled exams on specific date and time slot
+     */
+    public static function getScheduledCountByDateTime($date, $jamMulai, $jamSelesai)
+    {
+        return self::whereDate('tanggal', $date)
+            ->where('jam_mulai', $jamMulai)
+            ->where('jam_selesai', $jamSelesai)
+            ->where('status', 'dijadwalkan')
+            ->count();
+    }
+
+    /**
+     * Get count of scheduled exams in specific room on date
+     */
+    public static function getScheduledCountByRoom($date, $ruangan)
+    {
+        return self::whereDate('tanggal', $date)
+            ->where('ruangan', $ruangan)
+            ->where('status', 'dijadwalkan')
+            ->count();
+    }
+
+    /**
+     * Get all scheduled exams grouped by date
+     */
+    public static function getBatchSchedulesByDate($date)
+    {
+        return self::whereDate('tanggal', $date)
+            ->where('status', 'dijadwalkan')
+            ->with('pendaftaranSeminarProposal.user')
+            ->orderBy('jam_mulai')
+            ->orderBy('ruangan')
+            ->get()
+            ->groupBy(function ($item) {
+                return $item->jam_mulai . ' - ' . $item->jam_selesai . ' (' . $item->ruangan . ')';
+            });
+    }
+
     // ========== SCOPE QUERIES ==========
 
     public function scopeMenungguSk($query)
@@ -232,6 +281,16 @@ class JadwalSeminarProposal extends Model
         return $query->where('status', 'dijadwalkan')
             ->where('tanggal', '>=', now()->toDateString())
             ->orderBy('tanggal')
+            ->orderBy('jam_mulai');
+    }
+
+    /**
+     * Get jadwal by tanggal (untuk batch view)
+     */
+    public function scopeByDate($query, $date)
+    {
+        return $query->whereDate('tanggal', $date)
+            ->where('status', 'dijadwalkan')
             ->orderBy('jam_mulai');
     }
 

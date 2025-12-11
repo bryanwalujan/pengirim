@@ -19,22 +19,15 @@ class UndanganSeminarProposal extends Notification implements ShouldQueue
 
     public $tries = 3;
     public $retryAfter = 60;
-
-    // Timeout untuk job (5 menit)
     public $timeout = 300;
 
     public function __construct(JadwalSeminarProposal $jadwal, string $namaDosen)
     {
         $this->jadwal = $jadwal;
         $this->namaDosen = $namaDosen;
-
-        // Set queue untuk optimasi
         $this->onQueue('emails');
     }
 
-    /**
-     * Get unique ID untuk notification ini (mencegah duplicate)
-     */
     public function uniqueId(): string
     {
         return 'undangan-sempro-' . $this->jadwal->id . '-dosen-' . md5($this->namaDosen) . '-' . time();
@@ -45,6 +38,9 @@ class UndanganSeminarProposal extends Notification implements ShouldQueue
         return ['mail', 'database'];
     }
 
+    /**
+     * Get the mail representation of the notification.
+     */
     public function toMail(object $notifiable): MailMessage
     {
         $pendaftaran = $this->jadwal->pendaftaranSeminarProposal;
@@ -65,29 +61,18 @@ class UndanganSeminarProposal extends Notification implements ShouldQueue
 
         return (new MailMessage)
             ->subject($subject)
-            ->greeting('Dengan Hormat,')
-            ->line('Bersama ini kami mengundang Bapak/Ibu Dosen untuk menghadiri pelaksanaan **Seminar Proposal Skripsi** yang akan dilaksanakan pada:')
-            ->line('')
-            ->line('**Hari / Tanggal:** ' . $hariTanggal)
-            ->line('**Jam:** ' . $jamMulai . ' - ' . $jamSelesai . ' WITA')
-            ->line('**Tempat:** ' . $this->jadwal->ruangan . ' (Luring)')
-            ->line('')
-            ->line('**Data Mahasiswa:**')
-            ->line('Nama: **' . $mahasiswa->name . '**')
-            ->line('NIM: **' . $mahasiswa->nim . '**')
-            ->line('')
-            ->line('**Judul Skripsi:**')
-            ->line('*' . strip_tags($pendaftaran->judul_skripsi) . '*')
-            ->line('')
-            ->line('**Dosen Pembimbing:**')
-            ->line($pendaftaran->dosenPembimbing->name)
-            ->line('')
-            ->action('Lihat Detail Pendaftaran', route('admin.pendaftaran-seminar-proposal.show', $pendaftaran->id))
-            ->line('')
-            ->line('Demikian undangan ini, atas kehadiran Bapak/Ibu Dosen kami sampaikan terima kasih.')
-            ->salutation('Hormat kami,')
-            ->salutation('**Sistem E-Service**')
-            ->salutation('**Jurusan Teknik Informatika**');
+            ->view('emails.undangan-seminar-proposal', [
+                'namaDosen' => $this->namaDosen,
+                'hariTanggal' => $hariTanggal,
+                'jamMulai' => $jamMulai,
+                'jamSelesai' => $jamSelesai,
+                'ruangan' => $this->jadwal->ruangan,
+                'mahasiswaNama' => $mahasiswa->name,
+                'mahasiswaNim' => $mahasiswa->nim,
+                'judulSkripsi' => strip_tags($pendaftaran->judul_skripsi),
+                'dosenPembimbing' => $pendaftaran->dosenPembimbing->name,
+                'actionUrl' => route('admin.pendaftaran-seminar-proposal.show', $pendaftaran->id),
+            ]);
     }
 
     public function toArray(object $notifiable): array
@@ -123,5 +108,4 @@ class UndanganSeminarProposal extends Notification implements ShouldQueue
             'database' => 'default',
         ];
     }
-
 }

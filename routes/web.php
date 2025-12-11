@@ -641,9 +641,16 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             Route::post('/{jadwal}/mark-selesai', [AdminJadwalSeminarProposalController::class, 'markAsSelesai'])->name('mark-selesai');
             Route::post('/{jadwal}/kirim-ulang-undangan', [AdminJadwalSeminarProposalController::class, 'kirimUlangUndangan'])->name('kirim-ulang-undangan');
 
-            // Delete
+            // ⚠️ PENTING: Bulk Destroy HARUS di atas route DELETE dengan parameter
+            Route::post('/bulk-destroy', [AdminJadwalSeminarProposalController::class, 'bulkDestroy'])
+                ->name('bulk-destroy');
+
+            // Delete (single) - HARUS di bawah bulk-destroy
             Route::delete('/{jadwal}', [AdminJadwalSeminarProposalController::class, 'destroy'])->name('destroy');
-            Route::post('/bulk-destroy', [AdminJadwalSeminarProposalController::class, 'bulkDestroy'])->name('bulk-destroy');
+
+            // AJAX Route to get batch info
+            Route::post('/get-batch-info', [AdminJadwalSeminarProposalController::class, 'getBatchInfo'])
+                ->name('get-batch-info');
         });
     });
 

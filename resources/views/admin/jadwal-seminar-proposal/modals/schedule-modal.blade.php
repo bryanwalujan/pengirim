@@ -1,3 +1,4 @@
+{{-- filepath: resources/views/admin/jadwal-seminar-proposal/modals/schedule-modal.blade.php --}}
 <div class="modal fade" id="scheduleModal" tabindex="-1" aria-labelledby="scheduleModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
@@ -24,8 +25,14 @@
                             <i class="bx bx-info-circle fs-3 me-2"></i>
                             <div class="flex-grow-1">
                                 <strong>Informasi Penting</strong>
-                                <p class="mb-0 small mt-1">Setelah jadwal disimpan, sistem akan otomatis mengirimkan
-                                    undangan ke Dosen Pembimbing dan Dosen Pembahas via email.</p>
+                                <p class="mb-1 small mt-1">
+                                    • Setelah jadwal disimpan, sistem akan otomatis mengirimkan undangan ke Dosen
+                                    Pembimbing dan Dosen Pembahas via email.
+                                </p>
+                                <p class="mb-0 small">
+                                    • Batch scheduling diperbolehkan: <strong>Multiple mahasiswa boleh ujian di hari,
+                                        waktu, dan ruangan yang sama.</strong>
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -108,8 +115,29 @@
                                         <span class="text-danger">*</span>
                                     </label>
                                     <input type="text" class="form-control form-control-lg" id="ruangan"
-                                        name="ruangan" value="Gedung C Ruangan Ujian Prodi TI (Luring)"
-                                        maxlength="100" required>
+                                        name="ruangan" value="Gedung C Ruangan Ujian Prodi TI (Luring)" maxlength="100"
+                                        required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- ✅ BATCH INFO (Real-time) --}}
+                    <div id="batchInfo" class="mt-4" style="display:none;">
+                        <div class="alert alert-info border-0 shadow-sm">
+                            <div class="d-flex align-items-start">
+                                <i class="bx bx-info-circle fs-4 me-2"></i>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-2 fw-semibold">
+                                        <i class="bx bx-group me-1"></i>Info Batch Scheduling
+                                    </h6>
+                                    <div id="batchInfoContent">
+                                        <div class="spinner-border spinner-border-sm text-primary me-2"
+                                            role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                        <small>Memuat data...</small>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -157,8 +185,118 @@
             const scheduleModal = document.getElementById('scheduleModal');
             const scheduleForm = document.getElementById('scheduleForm');
             const csrfErrorAlert = document.getElementById('csrfErrorAlert');
+            const tanggalInput = document.getElementById('tanggal');
+            const jamMulaiInput = document.getElementById('jam_mulai');
+            const jamSelesaiInput = document.getElementById('jam_selesai');
+            const ruanganInput = document.getElementById('ruangan');
+            const batchInfo = document.getElementById('batchInfo');
+            const batchInfoContent = document.getElementById('batchInfoContent');
 
-            // ✅ SOLUSI 1: Auto-refresh CSRF token setiap kali modal dibuka
+            // ✅ GET BATCH INFO (Real-time AJAX)
+            let batchInfoTimeout;
+
+            function getBatchInfo() {
+                const tanggal = tanggalInput.value;
+                const jamMulai = jamMulaiInput.value;
+                const jamSelesai = jamSelesaiInput.value;
+                const ruangan = ruanganInput.value;
+
+                if (!tanggal) {
+                    batchInfo.style.display = 'none';
+                    return;
+                }
+
+                // Show loading
+                batchInfo.style.display = 'block';
+                batchInfoContent.innerHTML = `
+            <div class="spinner-border spinner-border-sm text-primary me-2" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <small>Memuat data batch...</small>
+        `;
+
+                // Debounce AJAX call
+                clearTimeout(batchInfoTimeout);
+                batchInfoTimeout = setTimeout(() => {
+                    fetch(`{{ route('admin.jadwal-seminar-proposal.get-batch-info') }}`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                    .content,
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: JSON.stringify({
+                                tanggal: tanggal,
+                                jam_mulai: jamMulai,
+                                jam_selesai: jamSelesai,
+                                ruangan: ruangan
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.scheduled_count_total === 0) {
+                                batchInfoContent.innerHTML = `
+                        <p class="mb-0 small">
+                            <i class="bx bx-calendar-check me-1"></i>
+                            Belum ada jadwal pada <strong>${data.tanggal_formatted}</strong>
+                        </p>
+                    `;
+                            } else {
+                                let html = `<ul class="mb-0 small">`;
+                                html +=
+                                    `<li><strong>${data.scheduled_count_total} mahasiswa</strong> terjadwal pada <strong>${data.tanggal_formatted}</strong></li>`;
+
+                                if (jamMulai && jamSelesai && data.scheduled_count_same_time > 0) {
+                                    html +=
+                                        `<li><strong>${data.scheduled_count_same_time} mahasiswa</strong> pada jam <strong>${jamMulai} - ${jamSelesai}</strong></li>`;
+                                }
+
+                                if (ruangan && data.scheduled_count_same_room > 0) {
+                                    html +=
+                                        `<li><strong>${data.scheduled_count_same_room} mahasiswa</strong> di ruangan <strong>${ruangan}</strong></li>`;
+                                }
+
+                                html += `</ul>`;
+
+                                // Show grouped schedules (optional)
+                                if (data.schedules_grouped && data.schedules_grouped.length > 0) {
+                                    html += `<hr class="my-2">`;
+                                    html +=
+                                        `<small class="text-muted d-block mb-1"><strong>Detail Batch:</strong></small>`;
+                                    html += `<div class="small">`;
+                                    data.schedules_grouped.forEach(group => {
+                                        html += `<div class="mb-1">`;
+                                        html +=
+                                            `<i class="bx bx-time-five me-1"></i><strong>${group.slot}</strong>: `;
+                                        html += `${group.count} mahasiswa`;
+                                        html += `</div>`;
+                                    });
+                                    html += `</div>`;
+                                }
+
+                                batchInfoContent.innerHTML = html;
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error getting batch info:', error);
+                            batchInfoContent.innerHTML = `
+                    <p class="mb-0 small text-danger">
+                        <i class="bx bx-error-circle me-1"></i>
+                        Gagal memuat data batch
+                    </p>
+                `;
+                        });
+                }, 500); // Debounce 500ms
+            }
+
+            // Attach event listeners
+            [tanggalInput, jamMulaiInput, jamSelesaiInput, ruanganInput].forEach(input => {
+                input?.addEventListener('change', getBatchInfo);
+                input?.addEventListener('blur', getBatchInfo);
+            });
+
+            // ✅ Auto-refresh CSRF token
             scheduleModal?.addEventListener('show.bs.modal', function() {
                 fetch('{{ route('admin.jadwal-seminar-proposal.index') }}', {
                     method: 'HEAD',
@@ -166,7 +304,6 @@
                         'X-Requested-With': 'XMLHttpRequest'
                     }
                 }).then(() => {
-                    // Refresh CSRF token
                     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
                     const csrfInput = scheduleForm.querySelector('input[name="_token"]');
                     if (csrfToken && csrfInput) {
@@ -181,26 +318,20 @@
                 const button = event.relatedTarget;
                 if (!button) return;
 
-                // Get data attributes
                 const jadwalId = button.getAttribute('data-jadwal-id');
                 const mahasiswaNama = button.getAttribute('data-mahasiswa-nama') || '-';
                 const mahasiswaNim = button.getAttribute('data-mahasiswa-nim') || '-';
                 const mahasiswaJudul = stripHtml(button.getAttribute('data-mahasiswa-judul') || '-');
 
-                // Populate modal
                 document.getElementById('modalMahasiswaNama').textContent = mahasiswaNama;
                 document.getElementById('modalMahasiswaNim').textContent = mahasiswaNim;
                 document.getElementById('modalMahasiswaJudul').textContent = mahasiswaJudul;
 
-                // ✅ SOLUSI 2: Set form action dengan route name helper
                 const formAction = `{{ url('admin/jadwal-seminar-proposal') }}/${jadwalId}`;
                 scheduleForm.setAttribute('action', formAction);
                 document.getElementById('jadwalIdInput').value = jadwalId;
 
-                console.log('✅ Form action:', formAction);
-                console.log('✅ CSRF token:', document.querySelector('input[name="_token"]')?.value);
-
-                // Load existing data (for edit)
+                // Load existing data
                 const tanggal = button.getAttribute('data-tanggal');
                 const jamMulai = button.getAttribute('data-jam-mulai');
                 const jamSelesai = button.getAttribute('data-jam-selesai');
@@ -212,13 +343,13 @@
                 if (ruangan) document.getElementById('ruangan').value = ruangan;
 
                 updatePreview();
+                getBatchInfo(); // Load batch info
             });
 
-            // ✅ SOLUSI 3: Form submit dengan SweetAlert2 Success Popup
+            // ✅ Form submit
             scheduleForm?.addEventListener('submit', function(e) {
                 e.preventDefault();
 
-                // Validate
                 if (!validateJam()) {
                     Swal.fire({
                         icon: 'warning',
@@ -233,7 +364,6 @@
                     return false;
                 }
 
-                // Get CSRF token
                 const csrfToken = this.querySelector('input[name="_token"]')?.value;
                 if (!csrfToken) {
                     csrfErrorAlert.classList.remove('d-none');
@@ -241,31 +371,12 @@
                     return false;
                 }
 
-                // Get form data for success message
-                const mahasiswaNama = document.getElementById('modalMahasiswaNama').textContent;
-                const mahasiswaNim = document.getElementById('modalMahasiswaNim').textContent;
-                const tanggalValue = document.getElementById('tanggal').value;
-                const jamMulai = document.getElementById('jam_mulai').value;
-                const jamSelesai = document.getElementById('jam_selesai').value;
-                const ruangan = document.getElementById('ruangan').value;
-
-                // Format tanggal untuk ditampilkan
-                const date = new Date(tanggalValue);
-                const tanggalFormatted = date.toLocaleDateString('id-ID', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                });
-
-                // Disable button
                 const submitBtn = document.getElementById('saveScheduleBtn');
                 const originalBtnText = submitBtn.innerHTML;
                 submitBtn.disabled = true;
                 submitBtn.innerHTML =
                     '<span class="spinner-border spinner-border-sm me-2"></span>Menyimpan...';
 
-                // Submit via AJAX
                 const formData = new FormData(this);
 
                 fetch(this.action, {
@@ -278,7 +389,6 @@
                     })
                     .then(response => {
                         if (response.status === 419) {
-                            // CSRF token mismatch
                             csrfErrorAlert.classList.remove('d-none');
                             setTimeout(() => location.reload(), 3000);
                             throw new Error('CSRF token mismatch');
@@ -290,59 +400,13 @@
                             });
                         }
 
-                        // ✅ SUCCESS - Show SweetAlert2 Popup
-                        const modalInstance = bootstrap.Modal.getInstance(scheduleModal);
-                        modalInstance.hide();
-
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Jadwal Berhasil Disimpan!',
-                            html: `
-                                <div class="text-start">
-                                    <div class="mb-3">
-                                        <p class="mb-2"><strong>Mahasiswa:</strong> ${mahasiswaNama}</p>
-                                        <p class="mb-2"><strong>NIM:</strong> ${mahasiswaNim}</p>
-                                    </div>
-                                    <div class="alert alert-info border-0 mb-3">
-                                        <h6 class="mb-2 fw-semibold"><i class="bx bx-calendar-event me-1"></i> Detail Jadwal</h6>
-                                        <p class="mb-1"><i class="bx bx-calendar me-1"></i> <strong>Tanggal:</strong> ${tanggalFormatted}</p>
-                                        <p class="mb-1"><i class="bx bx-time me-1"></i> <strong>Waktu:</strong> ${jamMulai} - ${jamSelesai} WITA</p>
-                                        <p class="mb-0"><i class="bx bx-door-open me-1"></i> <strong>Ruangan:</strong> ${ruangan}</p>
-                                    </div>
-                                    <div class="alert alert-success border-0 mb-0">
-                                        <i class="bx bx-send me-1"></i> 
-                                        <small>Undangan telah dikirim ke Dosen Pembimbing dan Dosen Pembahas via email</small>
-                                    </div>
-                                </div>
-                            `,
-                            showCancelButton: true,
-                            confirmButtonColor: '#696cff',
-                            cancelButtonColor: '#8592a3',
-                            confirmButtonText: '<i class="bx bx-show me-1"></i> Lihat Detail',
-                            cancelButtonText: '<i class="bx bx-list-ul me-1"></i> Kembali ke Daftar',
-                            customClass: {
-                                confirmButton: 'btn btn-primary me-2',
-                                cancelButton: 'btn btn-label-secondary'
-                            },
-                            buttonsStyling: false,
-                            allowOutsideClick: false,
-                            allowEscapeKey: false
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                // Redirect ke detail page
-                                window.location.href = response.url || 
-                                    `{{ url('admin/jadwal-seminar-proposal') }}/${document.getElementById('jadwalIdInput').value}`;
-                            } else {
-                                // Redirect ke index dengan status dijadwalkan
-                                window.location.href = 
-                                    '{{ route('admin.jadwal-seminar-proposal.index', ['status' => 'dijadwalkan']) }}';
-                            }
-                        });
+                        // Redirect to index with success
+                        window.location.href =
+                            '{{ route('admin.jadwal-seminar-proposal.index', ['status' => 'dijadwalkan']) }}';
                     })
                     .catch(error => {
                         console.error('Error:', error);
 
-                        // Re-enable button if not CSRF error
                         if (!csrfErrorAlert.classList.contains('d-none')) {
                             return;
                         }
@@ -354,14 +418,14 @@
                             icon: 'error',
                             title: 'Terjadi Kesalahan!',
                             html: `
-                                <div class="text-start">
-                                    <p class="mb-2">Gagal menyimpan jadwal seminar proposal.</p>
-                                    <div class="alert alert-danger border-0 mb-0">
-                                        <i class="bx bx-error-circle me-1"></i>
-                                        <small>${error.message || 'Silakan coba lagi atau hubungi administrator.'}</small>
-                                    </div>
-                                </div>
-                            `,
+                    <div class="text-start">
+                        <p class="mb-2">Gagal menyimpan jadwal seminar proposal.</p>
+                        <div class="alert alert-danger border-0 mb-0">
+                            <i class="bx bx-error-circle me-1"></i>
+                            <small>${error.message || 'Silakan coba lagi atau hubungi administrator.'}</small>
+                        </div>
+                    </div>
+                `,
                             confirmButtonColor: '#d33',
                             confirmButtonText: '<i class="bx bx-x me-1"></i> Tutup',
                             customClass: {
@@ -422,7 +486,6 @@
                 }
             }
 
-            // Live preview
             ['tanggal', 'jam_mulai', 'jam_selesai', 'ruangan'].forEach(id => {
                 document.getElementById(id)?.addEventListener('change', updatePreview);
             });
