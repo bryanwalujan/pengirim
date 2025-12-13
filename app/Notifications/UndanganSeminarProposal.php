@@ -4,24 +4,35 @@
 namespace App\Notifications;
 
 use App\Models\JadwalSeminarProposal;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Carbon\Carbon;
 
-class UndanganSeminarProposal extends Notification
+class UndanganSeminarProposal extends Notification implements ShouldQueue
 {
+    use Queueable;
+
     protected $jadwal;
     protected $namaDosen;
+
+    public $tries = 3;
+    public $retryAfter = 60;
+    public $timeout = 300;
 
     public function __construct(JadwalSeminarProposal $jadwal, string $namaDosen)
     {
         $this->jadwal = $jadwal;
         $this->namaDosen = $namaDosen;
+        $this->onQueue('emails');
     }
 
-    /**
-     * Get the notification's delivery channels.
-     */
+    public function uniqueId(): string
+    {
+        return 'undangan-sempro-' . $this->jadwal->id . '-dosen-' . md5($this->namaDosen) . '-' . time();
+    }
+
     public function via(object $notifiable): array
     {
         return ['mail', 'database'];
@@ -64,9 +75,6 @@ class UndanganSeminarProposal extends Notification
             ]);
     }
 
-    /**
-     * Get the array representation of the notification (for database).
-     */
     public function toArray(object $notifiable): array
     {
         $pendaftaran = $this->jadwal->pendaftaranSeminarProposal;
@@ -90,6 +98,14 @@ class UndanganSeminarProposal extends Notification
             'jam_selesai' => $this->jadwal->jam_selesai,
             'ruangan' => $this->jadwal->ruangan,
             'action_url' => route('admin.pendaftaran-seminar-proposal.show', $pendaftaran->id),
+        ];
+    }
+
+    public function viaQueues(): array
+    {
+        return [
+            'mail' => 'emails',
+            'database' => 'default',
         ];
     }
 }

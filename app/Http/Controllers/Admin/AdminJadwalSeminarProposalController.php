@@ -180,8 +180,12 @@ class AdminJadwalSeminarProposalController extends Controller
                 $validated['jam_mulai'],
                 $validated['jam_selesai']
             );
+            $scheduledCountSameRoom = JadwalSeminarProposal::getScheduledCountByRoom(
+                $validated['tanggal'],
+                $validated['ruangan']
+            );
 
-            // ========== KIRIM UNDANGAN (LANGSUNG TANPA QUEUE) ==========
+            // ========== KIRIM UNDANGAN ==========
             $pendaftaran = $jadwal->pendaftaranSeminarProposal;
             $dosensToNotify = collect();
 
@@ -208,32 +212,27 @@ class AdminJadwalSeminarProposalController extends Controller
                     ->with('warning', "Jadwal berhasil dibuat (Total {$scheduledCountTotal} sempro pada {$tanggalFormatted}), tetapi tidak ada dosen dengan email yang valid.");
             }
 
-            // ✅ KIRIM EMAIL LANGSUNG (SYNCHRONOUS)
-            $berhasilDikirim = 0;
-            $gagalDikirim = 0;
+            // Kirim notifikasi
+            $berhasilDiqueue = 0;
+            $gagalDiqueue = 0;
 
             foreach ($dosensToNotify as $dosen) {
                 try {
-                    // Kirim langsung tanpa queue
-                    $dosen->notify(new UndanganSeminarProposal($jadwal, $dosen->name));
-                    $berhasilDikirim++;
+                    $dosen->notify((new UndanganSeminarProposal($jadwal, $dosen->name))->delay(now()->addSeconds(5)));
+                    $berhasilDiqueue++;
 
-                    Log::info('✅ Undangan sempro berhasil dikirim', [
+                    Log::info('✅ Undangan sempro berhasil diqueue', [
                         'jadwal_id' => $jadwal->id,
                         'dosen_id' => $dosen->id,
                         'dosen_nama' => $dosen->name,
-                        'dosen_email' => $dosen->email,
                     ]);
 
                 } catch (\Exception $e) {
-                    $gagalDikirim++;
-
-                    Log::error('❌ Gagal mengirim undangan sempro', [
+                    $gagalDiqueue++;
+                    Log::error('❌ Gagal mengirim undangan', [
                         'jadwal_id' => $jadwal->id,
                         'dosen_id' => $dosen->id,
-                        'dosen_nama' => $dosen->name,
                         'error' => $e->getMessage(),
-                        'trace' => $e->getTraceAsString(),
                     ]);
                 }
             }
@@ -245,12 +244,13 @@ class AdminJadwalSeminarProposalController extends Controller
             $jamFormatted = Carbon::parse($validated['jam_mulai'])->format('H:i') . ' - ' .
                 Carbon::parse($validated['jam_selesai'])->format('H:i');
 
-            $message = "✅ Jadwal seminar proposal berhasil dibuat. Undangan telah dikirim ke <strong>{$berhasilDikirim} dosen</strong>.<br>";
+            $message = "✅ Jadwal seminar proposal berhasil dibuat. Undangan sedang dikirim ke <strong>{$berhasilDiqueue} dosen</strong>.<br>";
             $message .= "📅 <strong>{$scheduledCountTotal} mahasiswa</strong> terjadwal pada <strong>{$tanggalFormatted}</strong><br>";
-            $message .= "🕐 <strong>{$scheduledCountSameTime} mahasiswa</strong> pada jam <strong>{$jamFormatted}</strong>";
+            $message .= "🕐 <strong>{$scheduledCountSameTime} mahasiswa</strong> pada jam <strong>{$jamFormatted}</strong><br>";
+            $message .= "🏫 <strong>{$scheduledCountSameRoom} mahasiswa</strong> di ruangan <strong>{$validated['ruangan']}</strong>";
 
-            if ($gagalDikirim > 0) {
-                $message .= "<br>⚠️ ({$gagalDikirim} undangan gagal dikirim)";
+            if ($gagalDiqueue > 0) {
+                $message .= "<br>⚠️ ({$gagalDiqueue} undangan gagal dikirim)";
             }
 
             return redirect()->route('admin.jadwal-seminar-proposal.index', ['status' => 'dijadwalkan'])
@@ -273,7 +273,6 @@ class AdminJadwalSeminarProposalController extends Controller
                 ->withInput();
         }
     }
-
 
     public function show(JadwalSeminarProposal $jadwal)
     {
@@ -382,17 +381,16 @@ class AdminJadwalSeminarProposalController extends Controller
                 return back()->with('error', 'Tidak ada dosen dengan email valid untuk dikirim undangan.');
             }
 
-            // ✅ KIRIM EMAIL LANGSUNG (SYNCHRONOUS)
-            $berhasilDikirim = 0;
-            $gagalDikirim = 0;
+            $berhasilDiqueue = 0;
+            $gagalDiqueue = 0;
 
             foreach ($dosensToNotify as $dosen) {
                 try {
-                    // Kirim langsung tanpa queue
+                    // ✅ KIRIM LANGSUNG (tidak pakai delay untuk kirim ulang)
                     $dosen->notify(new UndanganSeminarProposal($jadwal, $dosen->name));
-                    $berhasilDikirim++;
+                    $berhasilDiqueue++;
 
-                    Log::info('✅ Undangan sempro berhasil dikirim ulang', [
+                    Log::info('✅ Undangan sempro berhasil diqueue ulang', [
                         'jadwal_id' => $jadwal->id,
                         'dosen_id' => $dosen->id,
                         'dosen_nama' => $dosen->name,
@@ -401,9 +399,9 @@ class AdminJadwalSeminarProposalController extends Controller
                     ]);
 
                 } catch (\Exception $e) {
-                    $gagalDikirim++;
+                    $gagalDiqueue++;
 
-                    Log::error('❌ Gagal kirim ulang undangan', [
+                    Log::error('❌ Gagal kirim ulang undangan ke queue', [
                         'jadwal_id' => $jadwal->id,
                         'dosen_id' => $dosen->id,
                         'dosen_nama' => $dosen->name,
@@ -419,19 +417,19 @@ class AdminJadwalSeminarProposalController extends Controller
             Log::info('📊 Summary pengiriman ulang undangan', [
                 'jadwal_id' => $jadwal->id,
                 'total_dosen' => $dosensToNotify->count(),
-                'berhasil' => $berhasilDikirim,
-                'gagal' => $gagalDikirim,
+                'berhasil' => $berhasilDiqueue,
+                'gagal' => $gagalDiqueue,
                 'dikirim_oleh' => Auth::user()->name,
             ]);
 
-            if ($berhasilDikirim === 0) {
+            if ($berhasilDiqueue === 0) {
                 return back()->with('error', 'Gagal mengirim undangan ke semua dosen. Silakan periksa log untuk detail.');
             }
 
-            $message = "Undangan berhasil dikirim ulang ke {$berhasilDikirim} dosen melalui email.";
+            $message = "Undangan berhasil dikirim ulang ke {$berhasilDiqueue} dosen melalui email.";
 
-            if ($gagalDikirim > 0) {
-                $message .= " ({$gagalDikirim} gagal, silakan periksa log)";
+            if ($gagalDiqueue > 0) {
+                $message .= " ({$gagalDiqueue} gagal, silakan periksa log)";
                 return back()->with('warning', $message);
             }
 

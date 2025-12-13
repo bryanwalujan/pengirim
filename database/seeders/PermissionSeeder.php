@@ -36,26 +36,13 @@ class PermissionSeeder extends Seeder
             ['name' => 'manage surat cuti akademik', 'group' => 'Surat (Management)'],
             ['name' => 'manage surat pindah', 'group' => 'Surat (Management)'],
 
-            // Academic Calendar
-            ['name' => 'manage academic calendar', 'group' => 'Akademik'],
-
-            // Letterhead Management
-            ['name' => 'manage kopsurat', 'group' => 'Template'],
-
-            // Peminjaman Proyektor
+            // Peminjaman
             ['name' => 'manage peminjaman proyektor', 'group' => 'Peminjaman'],
-
-            // Peminjaman Laboratorium
             ['name' => 'manage peminjaman laboratorium', 'group' => 'Peminjaman'],
 
-            // Pendaftaran Sempro
+            // Penjadwalan & Pendaftaran (Staff)
             ['name' => 'manage pendaftaran sempro', 'group' => 'Tugas Akhir'],
-
-            // Penjadwalan Sempro
             ['name' => 'manage jadwal sempro', 'group' => 'Tugas Akhir'],
-
-            // Pendaftaran Ujian Hasil
-            ['name' => 'manage pendaftaran hasil', 'group' => 'Tugas Akhir'],
 
             // Komisi Proposal - Available for ALL dosen
             ['name' => 'manage komisi proposal', 'group' => 'Tugas Akhir'],
@@ -77,22 +64,41 @@ class PermissionSeeder extends Seeder
         ];
 
         foreach ($permissions as $permission) {
-            Permission::create($permission);
+            // PERUBAHAN UTAMA DI SINI:
+            // Menggunakan updateOrCreate agar tidak error jika data sudah ada
+            Permission::updateOrCreate(
+                ['name' => $permission['name']], // Kunci pencarian (cek berdasarkan nama)
+                ['group' => $permission['group']] // Data yang diupdate/insert
+            );
         }
 
-        // Create Staff Role with ALL permissions
-        $staffRole = Role::create(['name' => 'staff']);
-        $staffRole->givePermissionTo(Permission::all());
+        // --- ROLE STAFF ---
+        // Gunakan firstOrCreate agar tidak error jika role sudah ada
+        $staffRole = Role::firstOrCreate(['name' => 'staff']);
 
-        // Create Dosen Role with BASE permissions (for ALL dosen)
-        $dosenRole = Role::create(['name' => 'dosen']);
-        $dosenRole->givePermissionTo([
+        // Sync semua permission ke staff (timpa yang lama dengan semua yang baru)
+        $staffRole->syncPermissions(Permission::all());
+
+        // --- ROLE DOSEN ---
+        // Gunakan firstOrCreate
+        $dosenRole = Role::firstOrCreate(['name' => 'dosen']);
+
+        // Daftar permission dasar untuk Dosen
+        $dosenPermissions = [
             'view dashboard',
             'manage komisi proposal',
             'manage komisi hasil',
             'manage pendaftaran sempro',
-            'manage jadwal sempro', 
-        ]);
+            'manage jadwal sempro',
+        ];
+
+        // Gunakan givePermissionTo (aman dijalankan berulang, tidak akan duplikat)
+        foreach ($dosenPermissions as $pName) {
+            // Cek dulu apakah permission ada di DB untuk menghindari error jika typo
+            if (Permission::where('name', $pName)->exists()) {
+                $dosenRole->givePermissionTo($pName);
+            }
+        }
 
         // Note: Approval permissions akan di-assign secara dinamis 
         // berdasarkan jabatan saat create/update dosen
