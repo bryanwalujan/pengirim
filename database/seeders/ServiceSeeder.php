@@ -84,6 +84,13 @@ class ServiceSeeder extends Seeder
                 'order' => 10,
                 'is_active' => true,
             ],
+            [
+                'name' => 'Jadwal Seminar Proposal',
+                'icon' => 'bx bx-calendar-event',
+                'description' => 'Menu ini merupakan tahapan lanjutan setelah proses pendaftaran dan penerbitan Surat Usulan Proposal selesai. Di sini, mahasiswa wajib mengunggah Surat Keputusan (SK) Proposal yang telah diterbitkan oleh Fakultas/Jurusan. ',
+                'order' => 11,
+                'is_active' => true,
+            ],
 
         ];
 

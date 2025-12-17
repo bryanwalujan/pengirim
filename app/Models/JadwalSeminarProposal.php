@@ -24,6 +24,15 @@ class JadwalSeminarProposal extends Model
         return $this->belongsTo(PendaftaranSeminarProposal::class);
     }
 
+    /**
+     * Relasi ke BeritaAcaraSeminarProposal (One-to-One)
+     */
+    public function beritaAcaraSeminarProposal()
+    {
+        return $this->hasOne(BeritaAcaraSeminarProposal::class);
+    }
+
+
     // ========== STATUS CHECKS ==========
 
     public function isMenungguSk(): bool
@@ -44,6 +53,14 @@ class JadwalSeminarProposal extends Model
     public function isSelesai(): bool
     {
         return $this->status === 'selesai';
+    }
+
+    /**
+     * Check apakah sudah memiliki berita acara
+     */
+    public function hasBeritaAcara(): bool
+    {
+        return $this->beritaAcaraSeminarProposal()->exists();
     }
 
     /**
@@ -90,6 +107,18 @@ class JadwalSeminarProposal extends Model
         return $this->status === 'dijadwalkan'
             && $this->hasJadwal()
             && Carbon::parse($this->tanggal)->isPast();
+    }
+
+    /**
+     * Check apakah bisa membuat berita acara
+     */
+    public function canCreateBeritaAcara(): bool
+    {
+        // Hanya bisa buat berita acara jika:
+        // 1. Status dijadwalkan atau selesai
+        // 2. Belum ada berita acara
+        return in_array($this->status, ['dijadwalkan', 'selesai'])
+            && !$this->hasBeritaAcara();
     }
 
     // ========== HELPER METHODS ==========
