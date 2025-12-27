@@ -10,6 +10,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use App\Models\JadwalSeminarProposal;
 use Illuminate\Support\Facades\Storage;
+use App\Services\PelaksanaanUjianService;
 use App\Models\PendaftaranSeminarProposal;
 use Illuminate\Support\Facades\Notification;
 use App\Notifications\UndanganSeminarProposal;
@@ -76,19 +77,19 @@ class AdminJadwalSeminarProposalController extends Controller
             'pendaftaranSeminarProposal.proposalPembahas.dosen'
         ])
             ->where('status', 'dijadwalkan')
-            ->whereBetween('tanggal', [$startDate, $endDate])
-            ->orderBy('tanggal')
-            ->orderBy('jam_mulai')
+            ->whereBetween('tanggal_ujian', [$startDate, $endDate])
+            ->orderBy('tanggal_ujian')
+            ->orderBy('waktu_mulai')
             ->get();
 
         // Stats untuk bulan ini
         $stats = [
             'total_jadwal' => $jadwals->count(),
             'hari_ini' => $jadwals->filter(function ($j) {
-                return $j->tanggal->isToday();
+                return $j->tanggal_ujian->isToday();
             })->count(),
             'minggu_ini' => $jadwals->filter(function ($j) {
-                return $j->tanggal->isCurrentWeek();
+                return $j->tanggal_ujian->isCurrentWeek();
             })->count(),
             'bulan_ini' => $jadwals->count(),
         ];
@@ -117,33 +118,32 @@ class AdminJadwalSeminarProposalController extends Controller
         return view('admin.jadwal-seminar-proposal.create', compact('jadwal'));
     }
 
+    /**
+     * Store OR Update jadwal
+     */
     public function store(Request $request, JadwalSeminarProposal $jadwal)
     {
         $validated = $request->validate([
-            'tanggal' => 'required|date|after_or_equal:today',
-            'jam_mulai' => 'required|date_format:H:i',
-            'jam_selesai' => 'required|date_format:H:i|after:jam_mulai',
+            'tanggal_ujian' => 'required|date|after_or_equal:today',
+            'waktu_mulai' => 'required|date_format:H:i',
+            'waktu_selesai' => 'required|date_format:H:i|after:waktu_mulai',
             'ruangan' => 'required|string|max:100',
         ], [
-            'tanggal.required' => 'Tanggal seminar wajib diisi.',
-            'tanggal.date' => 'Format tanggal tidak valid.',
-            'tanggal.after_or_equal' => 'Tanggal seminar tidak boleh di masa lalu.',
-            'jam_mulai.required' => 'Jam mulai wajib diisi.',
-            'jam_mulai.date_format' => 'Format jam mulai harus HH:MM (contoh: 09:00).',
-            'jam_selesai.required' => 'Jam selesai wajib diisi.',
-            'jam_selesai.date_format' => 'Format jam selesai harus HH:MM (contoh: 11:00).',
-            'jam_selesai.after' => 'Jam selesai harus lebih besar dari jam mulai.',
+            'tanggal_ujian.required' => 'Tanggal seminar wajib diisi.',
+            'tanggal_ujian.after_or_equal' => 'Tanggal seminar tidak boleh di masa lalu.',
+            'waktu_mulai.required' => 'Jam mulai wajib diisi.',
+            'waktu_selesai.required' => 'Jam selesai wajib diisi.',
+            'waktu_selesai.after' => 'Jam selesai harus lebih besar dari jam mulai.',
             'ruangan.required' => 'Ruangan wajib diisi.',
-            'ruangan.max' => 'Nama ruangan maksimal 100 karakter.',
         ]);
 
         try {
             DB::beginTransaction();
 
-            // ========== VALIDASI STATUS ==========
-            if ($jadwal->status !== 'menunggu_jadwal') {
+            // Validasi status
+            if (!in_array($jadwal->status, ['menunggu_jadwal', 'dijadwalkan'])) {
                 return back()
-                    ->with('error', 'Jadwal hanya dapat dibuat untuk yang berstatus menunggu penjadwalan.')
+                    ->with('error', 'Jadwal tidak dapat diubah untuk status ' . $jadwal->status)
                     ->withInput();
             }
 
@@ -153,9 +153,9 @@ class AdminJadwalSeminarProposalController extends Controller
                     ->withInput();
             }
 
-            // ========== VALIDASI WAKTU (Minimum 30 menit) ==========
-            $jamMulai = Carbon::parse($validated['jam_mulai']);
-            $jamSelesai = Carbon::parse($validated['jam_selesai']);
+            // Validasi durasi minimum
+            $jamMulai = Carbon::parse($validated['waktu_mulai']);
+            $jamSelesai = Carbon::parse($validated['waktu_selesai']);
             $durasiMenit = $jamMulai->diffInMinutes($jamSelesai);
 
             if ($durasiMenit < 30) {
@@ -164,105 +164,48 @@ class AdminJadwalSeminarProposalController extends Controller
                     ->withInput();
             }
 
-            // ========== UPDATE JADWAL ==========
+            // Update jadwal
             $jadwal->update([
-                'tanggal' => $validated['tanggal'],
-                'jam_mulai' => $validated['jam_mulai'],
-                'jam_selesai' => $validated['jam_selesai'],
+                'tanggal_ujian' => $validated['tanggal_ujian'],
+                'waktu_mulai' => $validated['waktu_mulai'],
+                'waktu_selesai' => $validated['waktu_selesai'],
                 'ruangan' => $validated['ruangan'],
                 'status' => 'dijadwalkan',
             ]);
 
-            // ========== GET BATCH INFO ==========
-            $scheduledCountTotal = JadwalSeminarProposal::getScheduledCountByDate($validated['tanggal']);
+            // Get batch info
+            $scheduledCountTotal = JadwalSeminarProposal::getScheduledCountByDate($validated['tanggal_ujian']);
             $scheduledCountSameTime = JadwalSeminarProposal::getScheduledCountByDateTime(
-                $validated['tanggal'],
-                $validated['jam_mulai'],
-                $validated['jam_selesai']
-            );
-            $scheduledCountSameRoom = JadwalSeminarProposal::getScheduledCountByRoom(
-                $validated['tanggal'],
-                $validated['ruangan']
+                $validated['tanggal_ujian'],
+                $validated['waktu_mulai'],
+                $validated['waktu_selesai']
             );
 
-            // ========== KIRIM UNDANGAN ==========
-            $pendaftaran = $jadwal->pendaftaranSeminarProposal;
-            $dosensToNotify = collect();
+            // Kirim undangan (hanya jika jadwal baru dibuat)
+            $isNewSchedule = $jadwal->wasChanged('tanggal_ujian');
 
-            // 1. Dosen Pembimbing
-            if ($pendaftaran->dosenPembimbing) {
-                $dosensToNotify->push($pendaftaran->dosenPembimbing);
-            }
-
-            // 2. Dosen Pembahas
-            foreach ($pendaftaran->proposalPembahas as $pembahas) {
-                if ($pembahas->dosen) {
-                    $dosensToNotify->push($pembahas->dosen);
-                }
-            }
-
-            $dosensToNotify = $dosensToNotify->unique('id')->filter(fn($d) => !empty($d->email));
-
-            if ($dosensToNotify->isEmpty()) {
-                DB::commit();
-
-                $tanggalFormatted = Carbon::parse($validated['tanggal'])->translatedFormat('l, d F Y');
-
-                return redirect()->route('admin.jadwal-seminar-proposal.index', ['status' => 'dijadwalkan'])
-                    ->with('warning', "Jadwal berhasil dibuat (Total {$scheduledCountTotal} sempro pada {$tanggalFormatted}), tetapi tidak ada dosen dengan email yang valid.");
-            }
-
-            // Kirim notifikasi
-            $berhasilDiqueue = 0;
-            $gagalDiqueue = 0;
-
-            foreach ($dosensToNotify as $dosen) {
-                try {
-                    $dosen->notify((new UndanganSeminarProposal($jadwal, $dosen->name))->delay(now()->addSeconds(5)));
-                    $berhasilDiqueue++;
-
-                    Log::info('✅ Undangan sempro berhasil diqueue', [
-                        'jadwal_id' => $jadwal->id,
-                        'dosen_id' => $dosen->id,
-                        'dosen_nama' => $dosen->name,
-                    ]);
-
-                } catch (\Exception $e) {
-                    $gagalDiqueue++;
-                    Log::error('❌ Gagal mengirim undangan', [
-                        'jadwal_id' => $jadwal->id,
-                        'dosen_id' => $dosen->id,
-                        'error' => $e->getMessage(),
-                    ]);
-                }
+            if ($isNewSchedule) {
+                $this->kirimUndanganInternal($jadwal);
             }
 
             DB::commit();
 
-            // ========== SUCCESS MESSAGE WITH BATCH INFO ==========
-            $tanggalFormatted = Carbon::parse($validated['tanggal'])->translatedFormat('l, d F Y');
-            $jamFormatted = Carbon::parse($validated['jam_mulai'])->format('H:i') . ' - ' .
-                Carbon::parse($validated['jam_selesai'])->format('H:i');
+            $tanggalFormatted = Carbon::parse($validated['tanggal_ujian'])->translatedFormat('l, d F Y');
+            $jamFormatted = Carbon::parse($validated['waktu_mulai'])->format('H:i') . ' - ' .
+                Carbon::parse($validated['waktu_selesai'])->format('H:i');
 
-            $message = "✅ Jadwal seminar proposal berhasil dibuat. Undangan sedang dikirim ke <strong>{$berhasilDiqueue} dosen</strong>.<br>";
+            $message = "✅ Jadwal seminar proposal berhasil " . ($isNewSchedule ? 'dibuat' : 'diperbarui') . ".<br>";
             $message .= "📅 <strong>{$scheduledCountTotal} mahasiswa</strong> terjadwal pada <strong>{$tanggalFormatted}</strong><br>";
-            $message .= "🕐 <strong>{$scheduledCountSameTime} mahasiswa</strong> pada jam <strong>{$jamFormatted}</strong><br>";
-            $message .= "🏫 <strong>{$scheduledCountSameRoom} mahasiswa</strong> di ruangan <strong>{$validated['ruangan']}</strong>";
+            $message .= "🕐 <strong>{$scheduledCountSameTime} mahasiswa</strong> pada jam <strong>{$jamFormatted}</strong>";
 
-            if ($gagalDiqueue > 0) {
-                $message .= "<br>⚠️ ({$gagalDiqueue} undangan gagal dikirim)";
-            }
-
-            return redirect()->route('admin.jadwal-seminar-proposal.index', ['status' => 'dijadwalkan'])
+            return redirect()
+                ->route('admin.jadwal-seminar-proposal.show', $jadwal)
                 ->with('success', $message);
-
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            throw $e;
 
         } catch (\Exception $e) {
             DB::rollBack();
 
-            Log::error('Error saat membuat jadwal sempro', [
+            Log::error('Error saat menyimpan jadwal sempro', [
                 'jadwal_id' => $jadwal->id,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
@@ -461,9 +404,9 @@ class AdminJadwalSeminarProposalController extends Controller
             $mahasiswaNim = $jadwal->pendaftaranSeminarProposal->user->nim;
             $statusSebelumnya = $jadwal->status;
             $jadwalSebelumnya = [
-                'tanggal' => $jadwal->tanggal,
-                'jam_mulai' => $jadwal->jam_mulai,
-                'jam_selesai' => $jadwal->jam_selesai,
+                'tanggal_ujian' => $jadwal->tanggal_ujian,
+                'waktu_mulai' => $jadwal->waktu_mulai,
+                'waktu_selesai' => $jadwal->waktu_selesai,
                 'ruangan' => $jadwal->ruangan,
             ];
 
@@ -485,9 +428,9 @@ class AdminJadwalSeminarProposalController extends Controller
 
             $jadwal->update([
                 'file_sk_proposal' => null,
-                'tanggal' => null,
-                'jam_mulai' => null,
-                'jam_selesai' => null,
+                'tanggal_ujian' => null,
+                'waktu_mulai' => null,
+                'waktu_selesai' => null,
                 'ruangan' => null,
                 'status' => 'menunggu_sk',
             ]);
@@ -562,9 +505,9 @@ class AdminJadwalSeminarProposalController extends Controller
 
                     $jadwal->update([
                         'file_sk_proposal' => null,
-                        'tanggal' => null,
-                        'jam_mulai' => null,
-                        'jam_selesai' => null,
+                        'tanggal_ujian' => null,
+                        'waktu_mulai' => null,
+                        'waktu_selesai' => null,
                         'ruangan' => null,
                         'status' => 'menunggu_sk',
                     ]);
@@ -621,43 +564,43 @@ class AdminJadwalSeminarProposalController extends Controller
         try {
             // Validasi input
             $validated = $request->validate([
-                'tanggal' => 'required|date',
-                'jam_mulai' => 'nullable|date_format:H:i',
-                'jam_selesai' => 'nullable|date_format:H:i',
+                'tanggal_ujian' => 'required|date',
+                'waktu_mulai' => 'nullable|date_format:H:i',
+                'waktu_selesai' => 'nullable|date_format:H:i',
                 'ruangan' => 'nullable|string|max:100', // Tetap validate tapi tidak digunakan untuk filtering
             ]);
 
-            $tanggal = Carbon::parse($validated['tanggal'])->format('Y-m-d');
-            $jamMulai = $validated['jam_mulai'] ?? null;
-            $jamSelesai = $validated['jam_selesai'] ?? null;
+            $tanggal_ujian = Carbon::parse($validated['tanggal_ujian'])->format('Y-m-d');
+            $jamMulai = $validated['waktu_mulai'] ?? null;
+            $jamSelesai = $validated['waktu_selesai'] ?? null;
 
             // ✅ Get total jadwal per hari
-            $scheduledCountTotal = JadwalSeminarProposal::whereDate('tanggal', $tanggal)
+            $scheduledCountTotal = JadwalSeminarProposal::whereDate('tanggal_ujian', $tanggal_ujian)
                 ->where('status', 'dijadwalkan')
                 ->count();
 
             // ✅ Get jadwal per waktu yang sama (TANPA FILTER RUANGAN)
             $scheduledCountSameTime = 0;
             if ($jamMulai && $jamSelesai) {
-                $scheduledCountSameTime = JadwalSeminarProposal::whereDate('tanggal', $tanggal)
-                    ->where('jam_mulai', $jamMulai)
-                    ->where('jam_selesai', $jamSelesai)
+                $scheduledCountSameTime = JadwalSeminarProposal::whereDate('tanggal_ujian', $tanggal_ujian)
+                    ->where('waktu_mulai', $jamMulai)
+                    ->where('waktu_selesai', $jamSelesai)
                     ->where('status', 'dijadwalkan')
                     ->count();
             }
 
             // ✅ Get detail schedules untuk di-group (GROUP BY TIME SLOT ONLY)
-            $schedules = JadwalSeminarProposal::whereDate('tanggal', $tanggal)
+            $schedules = JadwalSeminarProposal::whereDate('tanggal_ujian', $tanggal_ujian)
                 ->where('status', 'dijadwalkan')
                 ->with('pendaftaranSeminarProposal.user')
-                ->orderBy('jam_mulai')
-                ->orderBy('jam_selesai')
+                ->orderBy('waktu_mulai')
+                ->orderBy('waktu_selesai')
                 ->get();
 
             // ✅ Group schedules by time slot ONLY (tanpa ruangan)
             $schedulesGrouped = $schedules->groupBy(function ($item) {
-                return Carbon::parse($item->jam_mulai)->format('H:i') . ' - ' .
-                    Carbon::parse($item->jam_selesai)->format('H:i');
+                return Carbon::parse($item->waktu_mulai)->format('H:i') . ' - ' .
+                    Carbon::parse($item->waktu_selesai)->format('H:i');
             })->map(function ($group, $key) {
                 return [
                     'slot' => $key,
@@ -672,12 +615,12 @@ class AdminJadwalSeminarProposalController extends Controller
                 ];
             })->values();
 
-            // Format tanggal untuk display
-            $tanggalFormatted = Carbon::parse($tanggal)->locale('id')->translatedFormat('l, d F Y');
+            // Format tanggal_ujian untuk display
+            $tanggalFormatted = Carbon::parse($tanggal_ujian)->locale('id')->translatedFormat('l, d F Y');
 
             // Log untuk debugging
             Log::info('✅ Batch Info Response:', [
-                'tanggal' => $tanggal,
+                'tanggal_ujian' => $tanggal_ujian,
                 'total' => $scheduledCountTotal,
                 'same_time' => $scheduledCountSameTime,
                 'grouped_count' => $schedulesGrouped->count(),
@@ -719,6 +662,47 @@ class AdminJadwalSeminarProposalController extends Controller
                 'tanggal_formatted' => '',
                 'schedules_grouped' => [],
             ], 500);
+        }
+    }
+
+
+
+    /**
+     * Helper method untuk kirim undangan
+     */
+    private function kirimUndanganInternal(JadwalSeminarProposal $jadwal)
+    {
+        $pendaftaran = $jadwal->pendaftaranSeminarProposal;
+        $dosensToNotify = collect();
+
+        // Kumpulkan dosen
+        if ($pendaftaran->dosenPembimbing) {
+            $dosensToNotify->push($pendaftaran->dosenPembimbing);
+        }
+
+        foreach ($pendaftaran->proposalPembahas as $pembahas) {
+            if ($pembahas->dosen) {
+                $dosensToNotify->push($pembahas->dosen);
+            }
+        }
+
+        $dosensToNotify = $dosensToNotify->unique('id')->filter(fn($d) => !empty($d->email));
+
+        foreach ($dosensToNotify as $dosen) {
+            try {
+                $dosen->notify((new UndanganSeminarProposal($jadwal, $dosen->name))->delay(now()->addSeconds(5)));
+
+                Log::info('✅ Undangan sempro berhasil diqueue', [
+                    'jadwal_id' => $jadwal->id,
+                    'dosen_id' => $dosen->id,
+                ]);
+            } catch (\Exception $e) {
+                Log::error('❌ Gagal mengirim undangan', [
+                    'jadwal_id' => $jadwal->id,
+                    'dosen_id' => $dosen->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
         }
     }
 

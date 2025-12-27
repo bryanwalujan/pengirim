@@ -2,16 +2,20 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
-use Carbon\Carbon;
 
 class JadwalSeminarProposal extends Model
 {
     protected $guarded = ['id'];
 
+
     protected $casts = [
-        'tanggal' => 'datetime',
+        'tanggal_ujian' => 'datetime',
+        'waktu_mulai' => 'datetime',
+        'waktu_selesai' => 'datetime',
     ];
 
     // ========== RELATIONS ==========
@@ -77,9 +81,9 @@ class JadwalSeminarProposal extends Model
      */
     public function hasJadwal(): bool
     {
-        return !is_null($this->tanggal)
-            && !is_null($this->jam_mulai)
-            && !is_null($this->jam_selesai)
+        return !is_null($this->tanggal_ujian)
+            && !is_null($this->waktu_mulai)
+            && !is_null($this->waktu_selesai)
             && !is_null($this->ruangan);
     }
 
@@ -106,30 +110,71 @@ class JadwalSeminarProposal extends Model
     {
         return $this->status === 'dijadwalkan'
             && $this->hasJadwal()
-            && Carbon::parse($this->tanggal)->isPast();
+            && Carbon::parse($this->tanggal_ujian)->isPast();
     }
 
+
     /**
-     * Check apakah bisa membuat berita acara
+     * Check if can create berita acara
      */
     public function canCreateBeritaAcara(): bool
     {
-        // Hanya bisa buat berita acara jika:
-        // 1. Status dijadwalkan atau selesai
-        // 2. Belum ada berita acara
-        return in_array($this->status, ['dijadwalkan', 'selesai'])
-            && !$this->hasBeritaAcara();
+        // Cek status
+        if ($this->status !== 'dijadwalkan') {
+            return false;
+        }
+
+        // Cek apakah sudah ada berita acara
+        if ($this->hasBeritaAcara()) {
+            return false;
+        }
+
+        // ✅ PERBAIKAN: Staff bisa buat BA kapan saja setelah jadwal dibuat
+        // Tidak perlu menunggu tanggal H
+        if (!$this->tanggal_ujian) {
+            return false;
+        }
+
+        // ✅ UPDATED: Bisa dibuat kapan saja setelah jadwal dibuat
+        return true;
+    }
+
+    /**
+     * Get reason why BA cannot be created (for debugging/user feedback)
+     */
+    public function getCannotCreateBeritaAcaraReason(): ?string
+    {
+        if ($this->status !== 'dijadwalkan') {
+            return "Status jadwal harus 'dijadwalkan'. Status saat ini: {$this->status}";
+        }
+
+        if ($this->hasBeritaAcara()) {
+            return "Berita acara sudah dibuat untuk jadwal ini.";
+        }
+
+        if (!$this->tanggal_ujian) {
+            return "Tanggal ujian belum diatur.";
+        }
+
+        return null;
+    }
+
+    public function dosenPenguji()
+    {
+        return $this->belongsToMany(User::class, 'dosen_penguji_jadwal_sempro', 'jadwal_seminar_proposal_id', 'dosen_id')
+            ->withPivot('posisi', 'keterangan')
+            ->withTimestamps();
     }
 
     // ========== HELPER METHODS ==========
 
     /**
-     * Get formatted tanggal
+     * Get formatted tanggal_ujian
      */
     public function getTanggalFormattedAttribute(): ?string
     {
-        return $this->tanggal
-            ? $this->tanggal->locale('id')->translatedFormat('l, d F Y')
+        return $this->tanggal_ujian
+            ? $this->tanggal_ujian->locale('id')->translatedFormat('l, d F Y')
             : null;
     }
 
@@ -138,12 +183,12 @@ class JadwalSeminarProposal extends Model
      */
     public function getJamFormattedAttribute(): ?string
     {
-        if (!$this->jam_mulai || !$this->jam_selesai) {
+        if (!$this->waktu_mulai || !$this->waktu_selesai) {
             return null;
         }
 
-        return Carbon::parse($this->jam_mulai)->format('H:i') . ' - ' .
-            Carbon::parse($this->jam_selesai)->format('H:i') . ' WITA';
+        return Carbon::parse($this->waktu_mulai)->format('H:i') . ' - ' .
+            Carbon::parse($this->waktu_selesai)->format('H:i') . ' WITA';
     }
 
     /**
@@ -184,6 +229,54 @@ class JadwalSeminarProposal extends Model
 
         return $badges[$this->status] ?? '<span class="badge bg-label-secondary">Unknown</span>';
     }
+
+    /**
+     * Get Ketua Penguji (biasanya Penguji 1 atau yang ditunjuk)
+     */
+    public function getKetuaPenguji()
+    {
+        return $this->dosenPenguji()
+            ->wherePivot('posisi', 'Keguat Penguji')
+            ->first();
+    }
+
+    /**
+     * Get all penguji yang hadir (exclude yang berhalangan)
+     */
+    public function getPengujiHadir()
+    {
+        return $this->dosenPenguji()
+            ->get();
+    }
+
+    /**
+     * ✅ TAMBAHAN: Get semua dosen penguji anggota (exclude Ketua)
+     */
+    public function getAnggotaPenguji()
+    {
+        return $this->dosenPenguji()
+            ->wherePivot('posisi', 'like', 'Anggota Penguji%')
+            ->orderByRaw("CAST(SUBSTRING_INDEX(posisi, ' ', -1) AS UNSIGNED)")
+            ->get();
+    }
+
+    /**
+     * ✅ TAMBAHAN: Update dosen penguji untuk posisi tertentu
+     */
+    public function updatePenguji($posisi, $dosenId)
+    {
+        // Detach dosen lama di posisi ini
+        $this->dosenPenguji()
+            ->wherePivot('posisi', $posisi)
+            ->detach();
+
+        // Attach dosen baru
+        $this->dosenPenguji()->attach($dosenId, [
+            'posisi' => $posisi,
+            'updated_at' => now(),
+        ]);
+    }
+
 
     // ========== DELETE VALIDATION ==========
 
@@ -238,7 +331,7 @@ class JadwalSeminarProposal extends Model
             return 0;
         }
 
-        return self::whereDate('tanggal', Carbon::parse($date)->format('Y-m-d'))
+        return self::whereDate('tanggal_ujian', Carbon::parse($date)->format('Y-m-d'))
             ->where('status', 'dijadwalkan')
             ->count();
     }
@@ -252,9 +345,9 @@ class JadwalSeminarProposal extends Model
             return 0;
         }
 
-        return self::whereDate('tanggal', Carbon::parse($date)->format('Y-m-d'))
-            ->where('jam_mulai', $jamMulai)
-            ->where('jam_selesai', $jamSelesai)
+        return self::whereDate('tanggal_ujian', Carbon::parse($date)->format('Y-m-d'))
+            ->where('waktu_mulai', $jamMulai)
+            ->where('waktu_selesai', $jamSelesai)
             ->where('status', 'dijadwalkan')
             ->count();
     }
@@ -268,7 +361,7 @@ class JadwalSeminarProposal extends Model
             return 0;
         }
 
-        return self::whereDate('tanggal', Carbon::parse($date)->format('Y-m-d'))
+        return self::whereDate('tanggal_ujian', Carbon::parse($date)->format('Y-m-d'))
             ->where('ruangan', $ruangan)
             ->where('status', 'dijadwalkan')
             ->count();
@@ -279,14 +372,14 @@ class JadwalSeminarProposal extends Model
      */
     public static function getBatchSchedulesByDate($date)
     {
-        return self::whereDate('tanggal', $date)
+        return self::whereDate('tanggal_ujian', $date)
             ->where('status', 'dijadwalkan')
             ->with('pendaftaranSeminarProposal.user')
-            ->orderBy('jam_mulai')
+            ->orderBy('waktu_mulai')
             ->orderBy('ruangan')
             ->get()
             ->groupBy(function ($item) {
-                return $item->jam_mulai . ' - ' . $item->jam_selesai . ' (' . $item->ruangan . ')';
+                return $item->waktu_mulai . ' - ' . $item->waktu_selesai . ' (' . $item->ruangan . ')';
             });
     }
 
@@ -312,27 +405,27 @@ class JadwalSeminarProposal extends Model
         return $query->where('status', 'selesai');
     }
 
-    public function scopeByTanggal($query, $tanggal)
+    public function scopeByTanggal($query, $tanggal_ujian)
     {
-        return $query->whereDate('tanggal', $tanggal);
+        return $query->whereDate('tanggal_ujian', $tanggal_ujian);
     }
 
     public function scopeUpcoming($query)
     {
         return $query->where('status', 'dijadwalkan')
-            ->where('tanggal', '>=', now()->toDateString())
-            ->orderBy('tanggal')
-            ->orderBy('jam_mulai');
+            ->where('tanggal_ujian', '>=', now()->toDateString())
+            ->orderBy('tanggal_ujian')
+            ->orderBy('waktu_mulai');
     }
 
     /**
-     * Get jadwal by tanggal (untuk batch view)
+     * Get jadwal by tanggal_ujian (untuk batch view)
      */
     public function scopeByDate($query, $date)
     {
-        return $query->whereDate('tanggal', $date)
+        return $query->whereDate('tanggal_ujian', $date)
             ->where('status', 'dijadwalkan')
-            ->orderBy('jam_mulai');
+            ->orderBy('waktu_mulai');
     }
 
     // ========== BOOT METHOD ==========
@@ -362,12 +455,51 @@ class JadwalSeminarProposal extends Model
             // Jika jadwal diset lengkap dan status masih menunggu_jadwal
             if (
                 $model->status === 'menunggu_jadwal'
-                && !is_null($model->tanggal)
-                && !is_null($model->jam_mulai)
-                && !is_null($model->jam_selesai)
+                && !is_null($model->tanggal_ujian)
+                && !is_null($model->waktu_mulai)
+                && !is_null($model->waktu_selesai)
                 && !is_null($model->ruangan)
             ) {
                 $model->status = 'dijadwalkan';
+            }
+        });
+
+        // ✅ ATAU ganti dengan ini (hanya run sekali saat created, tidak di updated):
+        static::created(function ($model) {
+            $pendaftaran = $model->pendaftaranSeminarProposal;
+
+            if ($pendaftaran) {
+                $dosenData = [];
+
+                // Pembimbing sebagai Ketua Penguji
+                if ($pendaftaran->dosen_pembimbing_id) {
+                    $dosenData[$pendaftaran->dosen_pembimbing_id] = [
+                        'posisi' => 'Ketua Penguji', // ✅ Gunakan nilai yang konsisten
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+                }
+
+                // Pembahas
+                $pembahas = $pendaftaran->proposalPembahas()
+                    ->orderBy('posisi')
+                    ->get();
+
+                foreach ($pembahas as $index => $pb) {
+                    $dosenData[$pb->dosen_id] = [
+                        'posisi' => 'Anggota Penguji ' . ($index + 1), // ✅ Konsisten dengan migration
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+                }
+
+                // ✅ PENTING: Gunakan syncWithoutDetaching agar tidak override manual changes
+                $model->dosenPenguji()->syncWithoutDetaching($dosenData);
+
+                Log::info('✅ Auto-sync dosen penguji on jadwal created', [
+                    'jadwal_id' => $model->id,
+                    'dosen_count' => count($dosenData),
+                ]);
             }
         });
     }

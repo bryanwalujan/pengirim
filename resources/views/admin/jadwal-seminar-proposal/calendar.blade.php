@@ -173,7 +173,7 @@
                                             $isCurrentMonth = $currentDate->month == $bulan;
                                             $dateKey = $currentDate->format('Y-m-d');
                                             $jadwalsOnDate = $jadwals->filter(function ($j) use ($dateKey) {
-                                                return $j->tanggal->format('Y-m-d') === $dateKey;
+                                                return $j->tanggal_ujian->format('Y-m-d') === $dateKey;
                                             });
                                         @endphp
                                         <td class="calendar-day {{ !$isCurrentMonth ? 'bg-light text-muted' : '' }} {{ $currentDate->isToday() ? 'bg-primary bg-opacity-10' : '' }}"
@@ -197,7 +197,7 @@
                                                                 <div class="d-flex align-items-center mb-1">
                                                                     <i class="bx bx-time text-primary me-1"></i>
                                                                     <strong
-                                                                        class="text-primary">{{ \Carbon\Carbon::parse($jadwal->jam_mulai)->format('H:i') }}</strong>
+                                                                        class="text-primary">{{ \Carbon\Carbon::parse($jadwal->waktu_mulai)->format('H:i') }}</strong>
                                                                 </div>
                                                                 <div class="text-truncate fw-semibold"
                                                                     style="max-width: 140px;">
@@ -248,16 +248,16 @@
                                                                                     <label
                                                                                         class="form-label text-muted small mb-1">Tanggal</label>
                                                                                     <p class="fw-bold mb-0">
-                                                                                        {{ $jadwal->tanggal->translatedFormat('l, d F Y') }}
+                                                                                        {{ $jadwal->tanggal_ujian->translatedFormat('l, d F Y') }}
                                                                                     </p>
                                                                                 </div>
                                                                                 <div class="col-md-4">
                                                                                     <label
                                                                                         class="form-label text-muted small mb-1">Waktu</label>
                                                                                     <p class="fw-bold mb-0">
-                                                                                        {{ \Carbon\Carbon::parse($jadwal->jam_mulai)->format('H:i') }}
+                                                                                        {{ \Carbon\Carbon::parse($jadwal->waktu_mulai)->format('H:i') }}
                                                                                         -
-                                                                                        {{ \Carbon\Carbon::parse($jadwal->jam_selesai)->format('H:i') }}
+                                                                                        {{ \Carbon\Carbon::parse($jadwal->waktu_selesai)->format('H:i') }}
                                                                                         WITA
                                                                                     </p>
                                                                                 </div>

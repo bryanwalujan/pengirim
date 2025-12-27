@@ -46,6 +46,8 @@ class PembahasService
                 'status' => 'pembahas_ditentukan'
             ]);
 
+            $this->syncPengujiToJadwal($pendaftaran);
+
             DB::commit();
 
             Log::info('Pembahas assigned/updated', [
@@ -64,6 +66,39 @@ class PembahasService
             ]);
             throw $e;
         }
+    }
+
+    /**
+     * ✅ NEW: Sync penguji ke jadwal setelah pembahas ditentukan
+     */
+    private function syncPengujiToJadwal(PendaftaranSeminarProposal $pendaftaran): void
+    {
+        // Cek apakah sudah ada jadwal
+        $jadwal = $pendaftaran->jadwalSeminarProposal;
+
+        if (!$jadwal) {
+            return;
+        }
+
+        // Clear existing penguji
+        $jadwal->dosenPenguji()->detach();
+
+        // Attach pembimbing sebagai Ketua Penguji
+        $jadwal->dosenPenguji()->attach($pendaftaran->dosen_pembimbing_id, [
+            'posisi' => 'Ketua Penguji',
+        ]);
+
+        // Attach pembahas 1, 2, 3
+        foreach ($pendaftaran->proposalPembahas as $index => $pembahas) {
+            $jadwal->dosenPenguji()->attach($pembahas->dosen_id, [
+                'posisi' => 'Anggota Penguji ' . ($index + 1),
+            ]);
+        }
+
+        Log::info('Penguji synced to jadwal', [
+            'jadwal_id' => $jadwal->id,
+            'total_penguji' => $jadwal->dosenPenguji()->count(),
+        ]);
     }
 
     /**

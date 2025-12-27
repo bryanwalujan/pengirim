@@ -77,32 +77,32 @@
                             <div class="row g-3">
                                 {{-- Tanggal --}}
                                 <div class="col-12">
-                                    <label for="tanggal" class="form-label fw-semibold">
+                                    <label for="tanggal_ujian" class="form-label fw-semibold">
                                         <i class="bx bx-calendar text-primary me-1"></i>Tanggal Ujian
                                         <span class="text-danger">*</span>
                                     </label>
-                                    <input type="date" class="form-control form-control-lg" id="tanggal"
-                                        name="tanggal" min="{{ date('Y-m-d') }}" required>
+                                    <input type="date" class="form-control form-control-lg" id="tanggal_ujian"
+                                        name="tanggal_ujian" min="{{ date('Y-m-d') }}" required>
                                 </div>
 
                                 {{-- Jam Mulai --}}
                                 <div class="col-md-6">
-                                    <label for="jam_mulai" class="form-label fw-semibold">
+                                    <label for="waktu_mulai" class="form-label fw-semibold">
                                         <i class="bx bx-time text-success me-1"></i>Jam Mulai
                                         <span class="text-danger">*</span>
                                     </label>
-                                    <input type="time" class="form-control form-control-lg" id="jam_mulai"
-                                        name="jam_mulai" value="09:00" required>
+                                    <input type="time" class="form-control form-control-lg" id="waktu_mulai"
+                                        name="waktu_mulai" value="09:00" required>
                                 </div>
 
                                 {{-- Jam Selesai --}}
                                 <div class="col-md-6">
-                                    <label for="jam_selesai" class="form-label fw-semibold">
+                                    <label for="waktu_selesai" class="form-label fw-semibold">
                                         <i class="bx bx-time-five text-danger me-1"></i>Jam Selesai
                                         <span class="text-danger">*</span>
                                     </label>
-                                    <input type="time" class="form-control form-control-lg" id="jam_selesai"
-                                        name="jam_selesai" value="15:00" required>
+                                    <input type="time" class="form-control form-control-lg" id="waktu_selesai"
+                                        name="waktu_selesai" value="15:00" required>
                                     <div class="invalid-feedback" id="jamSelesaiError" style="display:none;">
                                         Jam selesai harus lebih besar dari jam mulai
                                     </div>
@@ -185,9 +185,9 @@
             const scheduleModal = document.getElementById('scheduleModal');
             const scheduleForm = document.getElementById('scheduleForm');
             const csrfErrorAlert = document.getElementById('csrfErrorAlert');
-            const tanggalInput = document.getElementById('tanggal');
-            const jamMulaiInput = document.getElementById('jam_mulai');
-            const jamSelesaiInput = document.getElementById('jam_selesai');
+            const tanggalInput = document.getElementById('tanggal_ujian');
+            const jamMulaiInput = document.getElementById('waktu_mulai');
+            const jamSelesaiInput = document.getElementById('waktu_selesai');
             const ruanganInput = document.getElementById('ruangan');
             const batchInfo = document.getElementById('batchInfo');
             const batchInfoContent = document.getElementById('batchInfoContent');
@@ -196,19 +196,19 @@
             let batchInfoTimeout;
 
             function getBatchInfo() {
-                const tanggal = tanggalInput.value;
+                const tanggal_ujian = tanggalInput.value;
                 const jamMulai = jamMulaiInput.value;
                 const jamSelesai = jamSelesaiInput.value;
                 const ruangan = ruanganInput.value;
 
                 console.log('📅 getBatchInfo called:', {
-                    tanggal,
+                    tanggal_ujian,
                     jamMulai,
                     jamSelesai,
                     ruangan
                 });
 
-                if (!tanggal) {
+                if (!tanggal_ujian) {
                     batchInfo.style.display = 'none';
                     return;
                 }
@@ -234,9 +234,9 @@
                                 'X-Requested-With': 'XMLHttpRequest'
                             },
                             body: JSON.stringify({
-                                tanggal: tanggal,
-                                jam_mulai: jamMulai || null,
-                                jam_selesai: jamSelesai || null,
+                                tanggal_ujian: tanggal_ujian,
+                                waktu_mulai: jamMulai || null,
+                                waktu_selesai: jamSelesai || null,
                                 ruangan: ruangan || null
                             })
                         })
@@ -263,7 +263,7 @@
                                 batchInfoContent.innerHTML = `
                                     <p class="mb-0 small">
                                         <i class="bx bx-calendar-check me-1"></i>
-                                        Belum ada jadwal pada <strong>${data.tanggal_formatted || 'tanggal yang dipilih'}</strong>
+                                        Belum ada jadwal pada <strong>${data.tanggal_formatted || 'tanggal_ujian yang dipilih'}</strong>
                                     </p>
                                 `;
                                 return;
@@ -369,19 +369,21 @@
                 document.getElementById('modalMahasiswaNim').textContent = mahasiswaNim;
                 document.getElementById('modalMahasiswaJudul').textContent = mahasiswaJudul;
 
-                const formAction = `{{ url('admin/jadwal-seminar-proposal') }}/${jadwalId}`;
+                // ✅ PERBAIKAN: Set form action dengan route yang benar
+                const formAction = `{{ url('admin/jadwal-seminar-proposal') }}/${jadwalId}/store`;
                 scheduleForm.setAttribute('action', formAction);
+
                 document.getElementById('jadwalIdInput').value = jadwalId;
 
                 // Load existing data
-                const tanggal = button.getAttribute('data-tanggal');
+                const tanggal_ujian = button.getAttribute('data-tanggal_ujian');
                 const jamMulai = button.getAttribute('data-jam-mulai');
                 const jamSelesai = button.getAttribute('data-jam-selesai');
                 const ruangan = button.getAttribute('data-ruangan');
 
-                if (tanggal) document.getElementById('tanggal').value = tanggal;
-                if (jamMulai) document.getElementById('jam_mulai').value = jamMulai;
-                if (jamSelesai) document.getElementById('jam_selesai').value = jamSelesai;
+                if (tanggal_ujian) document.getElementById('tanggal_ujian').value = tanggal_ujian;
+                if (jamMulai) document.getElementById('waktu_mulai').value = jamMulai;
+                if (jamSelesai) document.getElementById('waktu_selesai').value = jamSelesai;
                 if (ruangan) document.getElementById('ruangan').value = ruangan;
 
                 updatePreview();
@@ -486,30 +488,30 @@
             }
 
             function validateJam() {
-                const jamMulai = document.getElementById('jam_mulai').value;
-                const jamSelesai = document.getElementById('jam_selesai').value;
+                const jamMulai = document.getElementById('waktu_mulai').value;
+                const jamSelesai = document.getElementById('waktu_selesai').value;
                 const errorDiv = document.getElementById('jamSelesaiError');
 
                 if (jamSelesai <= jamMulai) {
                     errorDiv.style.display = 'block';
-                    document.getElementById('jam_selesai').classList.add('is-invalid');
+                    document.getElementById('waktu_selesai').classList.add('is-invalid');
                     return false;
                 }
 
                 errorDiv.style.display = 'none';
-                document.getElementById('jam_selesai').classList.remove('is-invalid');
+                document.getElementById('waktu_selesai').classList.remove('is-invalid');
                 return true;
             }
 
             function updatePreview() {
-                const tanggal = document.getElementById('tanggal').value;
-                const jamMulai = document.getElementById('jam_mulai').value;
-                const jamSelesai = document.getElementById('jam_selesai').value;
+                const tanggal_ujian = document.getElementById('tanggal_ujian').value;
+                const jamMulai = document.getElementById('waktu_mulai').value;
+                const jamSelesai = document.getElementById('waktu_selesai').value;
                 const ruangan = document.getElementById('ruangan').value;
                 const preview = document.getElementById('schedulePreview');
 
-                if (tanggal && jamMulai && jamSelesai && ruangan) {
-                    const date = new Date(tanggal);
+                if (tanggal_ujian && jamMulai && jamSelesai && ruangan) {
+                    const date = new Date(tanggal_ujian);
                     const options = {
                         weekday: 'long',
                         year: 'numeric',
@@ -528,11 +530,11 @@
                 }
             }
 
-            ['tanggal', 'jam_mulai', 'jam_selesai', 'ruangan'].forEach(id => {
+            ['tanggal_ujian', 'waktu_mulai', 'waktu_selesai', 'ruangan'].forEach(id => {
                 document.getElementById(id)?.addEventListener('change', updatePreview);
             });
 
-            document.getElementById('jam_selesai')?.addEventListener('change', validateJam);
+            document.getElementById('waktu_selesai')?.addEventListener('change', validateJam);
         });
     </script>
 @endpush

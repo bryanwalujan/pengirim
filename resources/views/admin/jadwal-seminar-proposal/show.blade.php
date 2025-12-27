@@ -62,6 +62,60 @@
             </div>
         @endif
 
+        {{-- ✅ PERBAIKAN: Alert Berita Acara Status --}}
+        @if ($jadwal->status === 'dijadwalkan')
+            @if ($jadwal->hasBeritaAcara())
+                {{-- Berita Acara Sudah Dibuat --}}
+                <div class="alert alert-success d-flex align-items-center justify-content-between mb-4" role="alert">
+                    <div class="d-flex align-items-center">
+                        <i class="bx bx-check-circle fs-3 me-2"></i>
+                        <div>
+                            <strong>Berita Acara Sudah Dibuat</strong>
+                            <p class="mb-0 small">
+                                Kode: <code>{{ $jadwal->beritaAcaraSeminarProposal->verification_code }}</code>
+                                | Status: {!! $jadwal->beritaAcaraSeminarProposal->status_badge !!}
+                            </p>
+                        </div>
+                    </div>
+                    <a href="{{ route('admin.berita-acara-sempro.show', $jadwal->beritaAcaraSeminarProposal) }}"
+                        class="btn btn-success">
+                        <i class="bx bx-show me-1"></i> Lihat Berita Acara
+                    </a>
+                </div>
+            @elseif ($jadwal->canCreateBeritaAcara())
+                {{-- ✅ PERBAIKAN: Bisa Buat Berita Acara (kapan saja setelah dijadwalkan) --}}
+                <div class="alert alert-info d-flex align-items-center justify-content-between mb-4" role="alert">
+                    <div class="d-flex align-items-center">
+                        <i class="bx bx-file-blank fs-3 me-2"></i>
+                        <div>
+                            <strong>Berita Acara Belum Dibuat</strong>
+                            <p class="mb-0 small">
+                                Jadwal ujian: {{ $jadwal->tanggal_ujian->translatedFormat('l, d F Y') }}
+                                ({{ $jadwal->jam_formatted }}).
+                                <br>
+                                <span class="text-muted">
+                                    <i class="bx bx-info-circle me-1"></i>
+                                    Berita acara dapat dibuat kapan saja setelah jadwal dikonfirmasi.
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                    <a href="{{ route('admin.berita-acara-sempro.create', $jadwal) }}" class="btn btn-primary">
+                        <i class="bx bx-plus me-1"></i> Buat Berita Acara
+                    </a>
+                </div>
+            @else
+                {{-- Belum Bisa Buat Berita Acara --}}
+                <div class="alert alert-warning d-flex align-items-center mb-4" role="alert">
+                    <i class="bx bx-info-circle fs-3 me-2"></i>
+                    <div>
+                        <strong>Berita Acara Belum Dapat Dibuat</strong>
+                        <p class="mb-0 small">{{ $jadwal->getCannotCreateBeritaAcaraReason() }}</p>
+                    </div>
+                </div>
+            @endif
+        @endif
+
         <div class="row">
             {{-- Left Column --}}
             <div class="col-xl-4 col-lg-5 mb-4">
@@ -156,6 +210,78 @@
                                 </li>
                             @endif
 
+                            {{-- ✅ PERBAIKAN: Berita Acara Dibuat --}}
+                            @if ($jadwal->hasBeritaAcara())
+                                <li class="timeline-item timeline-item-transparent">
+                                    <span class="timeline-point timeline-point-success"></span>
+                                    <div class="timeline-event">
+                                        <div class="timeline-header mb-1">
+                                            <h6 class="mb-0">Berita Acara Dibuat</h6>
+                                            <small class="text-muted">
+                                                {{ $jadwal->beritaAcaraSeminarProposal->created_at->diffForHumans() }}
+                                            </small>
+                                        </div>
+                                        <p class="mb-0 small">
+                                            Kode: <code>{{ $jadwal->beritaAcaraSeminarProposal->verification_code }}</code>
+                                            <br>
+                                            Status: {!! $jadwal->beritaAcaraSeminarProposal->status_badge !!}
+                                        </p>
+                                    </div>
+                                </li>
+
+                                {{-- Berita Acara Ditandatangani --}}
+                                @if ($jadwal->beritaAcaraSeminarProposal->isSigned())
+                                    <li class="timeline-item timeline-item-transparent">
+                                        <span class="timeline-point timeline-point-success"></span>
+                                        <div class="timeline-event">
+                                            <div class="timeline-header mb-1">
+                                                <h6 class="mb-0">Berita Acara Ditandatangani</h6>
+                                                <small class="text-muted">
+                                                    {{ $jadwal->beritaAcaraSeminarProposal->ttd_ketua_penguji_at->diffForHumans() }}
+                                                </small>
+                                            </div>
+                                            <p class="mb-0 small">
+                                                Oleh: {{ $jadwal->beritaAcaraSeminarProposal->ketuaPenguji->name }}
+                                            </p>
+                                        </div>
+                                    </li>
+                                @else
+                                    <li class="timeline-item timeline-item-transparent">
+                                        <span class="timeline-point timeline-point-secondary"></span>
+                                        <div class="timeline-event">
+                                            <div class="timeline-header mb-1">
+                                                <h6 class="mb-0 text-muted">Menunggu Tanda Tangan</h6>
+                                            </div>
+                                            <p class="mb-0 small text-muted">
+                                                {{ $jadwal->beritaAcaraSeminarProposal->workflow_message }}
+                                            </p>
+                                        </div>
+                                    </li>
+                                @endif
+                            @else
+                                {{-- Berita Acara Belum Dibuat --}}
+                                <li class="timeline-item timeline-item-transparent">
+                                    <span class="timeline-point timeline-point-secondary"></span>
+                                    <div class="timeline-event">
+                                        <div class="timeline-header mb-1">
+                                            <h6 class="mb-0 text-muted">Berita Acara Belum Dibuat</h6>
+                                        </div>
+                                        @if ($jadwal->canCreateBeritaAcara())
+                                            <p class="mb-0 small">
+                                                <a href="{{ route('admin.berita-acara-sempro.create', $jadwal) }}"
+                                                    class="text-primary">
+                                                    <i class="bx bx-plus me-1"></i>Buat berita acara sekarang
+                                                </a>
+                                            </p>
+                                        @else
+                                            <p class="mb-0 small text-muted">
+                                                {{ $jadwal->getCannotCreateBeritaAcaraReason() }}
+                                            </p>
+                                        @endif
+                                    </div>
+                                </li>
+                            @endif
+
                             {{-- Selesai --}}
                             @if ($jadwal->isSelesai())
                                 <li class="timeline-item timeline-item-transparent">
@@ -189,7 +315,7 @@
                                     data-bs-target="#scheduleModal" data-jadwal-id="{{ $jadwal->id }}"
                                     data-mahasiswa-nama="{{ $jadwal->pendaftaranSeminarProposal->user->name }}"
                                     data-mahasiswa-nim="{{ $jadwal->pendaftaranSeminarProposal->user->nim }}"
-                                    data-mahasiswa-judul="{{ strip_tags($jadwal->pendaftaranSeminarProposal->judul_skripsi) }}">
+                                    data-mahasiswa-judul="{{ $jadwal->pendaftaranSeminarProposal->judul_skripsi }}">
                                     <i class="bx bx-calendar-plus me-1"></i> Buat Jadwal
                                 </button>
                             @endif
@@ -200,20 +326,42 @@
                                     data-bs-target="#scheduleModal" data-jadwal-id="{{ $jadwal->id }}"
                                     data-mahasiswa-nama="{{ $jadwal->pendaftaranSeminarProposal->user->name }}"
                                     data-mahasiswa-nim="{{ $jadwal->pendaftaranSeminarProposal->user->nim }}"
-                                    data-mahasiswa-judul="{{ strip_tags($jadwal->pendaftaranSeminarProposal->judul_skripsi) }}"
-                                    data-tanggal="{{ $jadwal->tanggal->format('Y-m-d') }}"
-                                    data-jam-mulai="{{ $jadwal->jam_mulai }}" data-jam-selesai="{{ $jadwal->jam_selesai }}"
+                                    data-mahasiswa-judul="{{ $jadwal->pendaftaranSeminarProposal->judul_skripsi }}"
+                                    data-tanggal_ujian="{{ $jadwal->tanggal_ujian ? $jadwal->tanggal_ujian->format('Y-m-d') : '' }}"
+                                    data-jam-mulai="{{ $jadwal->waktu_mulai ? $jadwal->waktu_mulai->format('H:i') : '' }}"
+                                    data-jam-selesai="{{ $jadwal->waktu_selesai ? $jadwal->waktu_selesai->format('H:i') : '' }}"
                                     data-ruangan="{{ $jadwal->ruangan }}">
                                     <i class="bx bx-edit me-1"></i> Edit Jadwal
                                 </button>
 
-                                <form action="{{ route('admin.jadwal-seminar-proposal.mark-selesai', $jadwal) }}"
-                                    method="POST" class="mark-selesai-form">
-                                    @csrf
-                                    <button type="submit" class="btn btn-success w-100 mb-2">
-                                        <i class="bx bx-check-circle me-1"></i> Tandai Selesai
+                                {{-- ✅ PERBAIKAN: Aksi Berita Acara (bisa dibuat kapan saja) --}}
+                                @if ($jadwal->hasBeritaAcara())
+                                    <a href="{{ route('admin.berita-acara-sempro.show', $jadwal->beritaAcaraSeminarProposal) }}"
+                                        class="btn btn-success w-100 mb-2">
+                                        <i class="bx bx-show me-1"></i> Lihat Berita Acara
+                                    </a>
+                                @elseif ($jadwal->canCreateBeritaAcara())
+                                    <a href="{{ route('admin.berita-acara-sempro.create', $jadwal) }}"
+                                        class="btn btn-primary w-100 mb-2">
+                                        <i class="bx bx-plus me-1"></i> Buat Berita Acara
+                                    </a>
+                                @else
+                                    <button type="button" class="btn btn-secondary w-100 mb-2" disabled
+                                        title="{{ $jadwal->getCannotCreateBeritaAcaraReason() }}">
+                                        <i class="bx bx-info-circle me-1"></i> Belum Bisa Buat BA
                                     </button>
-                                </form>
+                                @endif
+
+                                {{-- ✅ PERBAIKAN: Mark as Selesai (hanya jika sudah ada BA yang signed) --}}
+                                @if ($jadwal->hasBeritaAcara() && $jadwal->beritaAcaraSeminarProposal->isSigned())
+                                    <form action="{{ route('admin.jadwal-seminar-proposal.mark-selesai', $jadwal) }}"
+                                        method="POST" class="mark-selesai-form">
+                                        @csrf
+                                        <button type="submit" class="btn btn-success w-100 mb-2">
+                                            <i class="bx bx-check-circle me-1"></i> Tandai Selesai
+                                        </button>
+                                    </form>
+                                @endif
 
                                 <form action="{{ route('admin.jadwal-seminar-proposal.kirim-ulang-undangan', $jadwal) }}"
                                     method="POST" class="kirim-ulang-form">
@@ -226,36 +374,18 @@
 
                             {{-- SK Actions --}}
                             @if ($jadwal->hasSkFile())
-                                <a href="{{ route('admin.jadwal-seminar-proposal.view-sk', $jadwal) }}" target="_blank"
-                                    class="btn btn-outline-primary w-100 mb-2">
-                                    <i class="bx bx-show me-1"></i> Lihat SK
-                                </a>
                                 <a href="{{ route('admin.jadwal-seminar-proposal.download-sk', $jadwal) }}"
-                                    class="btn btn-outline-success w-100 mb-2">
+                                    class="btn btn-outline-primary w-100 mb-2">
                                     <i class="bx bx-download me-1"></i> Download SK
                                 </a>
                             @endif
 
                             {{-- Delete Button --}}
                             @if ($jadwal->canBeDeleted())
-                                <hr class="my-3">
-                                <div class="d-grid">
-                                    <button type="button"
-                                        class="btn {{ $jadwal->status === 'dijadwalkan' ? 'btn-danger' : 'btn-outline-danger' }}"
-                                        data-bs-toggle="modal" data-bs-target="#deleteModal">
-                                        <i class="bx bx-trash me-1"></i>
-                                        Hapus Jadwal
-                                        @if ($jadwal->status === 'dijadwalkan')
-                                            <span class="badge bg-white text-danger ms-1">!</span>
-                                        @endif
-                                    </button>
-                                    @if ($jadwal->status === 'dijadwalkan')
-                                        <small class="text-danger text-center mt-1">
-                                            <i class="bx bx-error-circle me-1"></i>
-                                            Undangan sudah terkirim!
-                                        </small>
-                                    @endif
-                                </div>
+                                <button type="button" class="btn btn-outline-danger w-100" data-bs-toggle="modal"
+                                    data-bs-target="#deleteModal">
+                                    <i class="bx bx-trash me-1"></i> Hapus Jadwal
+                                </button>
                             @endif
                         </div>
                     </div>
@@ -342,10 +472,10 @@
                                         <i class="bx bx-calendar text-primary fs-3 mb-2"></i>
                                         <label class="form-label text-muted mb-1 d-block small">Tanggal</label>
                                         <h6 class="mb-0 text-primary">
-                                            {{ \Carbon\Carbon::parse($jadwal->tanggal)->locale('id')->translatedFormat('d F Y') }}
+                                            {{ \Carbon\Carbon::parse($jadwal->tanggal_ujian)->locale('id')->translatedFormat('d F Y') }}
                                         </h6>
                                         <small
-                                            class="text-muted">{{ \Carbon\Carbon::parse($jadwal->tanggal)->locale('id')->translatedFormat('l') }}</small>
+                                            class="text-muted">{{ \Carbon\Carbon::parse($jadwal->tanggal_ujian)->locale('id')->translatedFormat('l') }}</small>
                                     </div>
                                 </div>
 
@@ -379,6 +509,33 @@
                                     </div>
                                 </div>
                             </div>
+
+                            {{-- ✅ PERBAIKAN: Status Ujian (informasi saja, tidak blocking) --}}
+                            @if ($jadwal->tanggal_ujian->isPast())
+                                <div class="mt-3 alert alert-success mb-0">
+                                    <i class="bx bx-check-circle me-2"></i>
+                                    <strong>Ujian Sudah Dilaksanakan</strong>
+                                    <small class="d-block mt-1">
+                                        Dilaksanakan {{ $jadwal->tanggal_ujian->diffForHumans() }}
+                                    </small>
+                                </div>
+                            @elseif ($jadwal->tanggal_ujian->isToday())
+                                <div class="mt-3 alert alert-warning mb-0">
+                                    <i class="bx bx-calendar-event me-2"></i>
+                                    <strong>Ujian Hari Ini</strong>
+                                    <small class="d-block mt-1">
+                                        {{ $jadwal->jam_formatted }}
+                                    </small>
+                                </div>
+                            @else
+                                <div class="mt-3 alert alert-info mb-0">
+                                    <i class="bx bx-calendar me-2"></i>
+                                    <strong>Ujian Akan Datang</strong>
+                                    <small class="d-block mt-1">
+                                        {{ $jadwal->tanggal_ujian->diffForHumans() }}
+                                    </small>
+                                </div>
+                            @endif
                         </div>
                     </div>
                 @else
@@ -479,6 +636,105 @@
                         @endif
                     </div>
                 </div>
+
+                {{-- ✅ BARU: Card Berita Acara (jika sudah ada) --}}
+                @if ($jadwal->hasBeritaAcara())
+                    @php $beritaAcara = $jadwal->beritaAcaraSeminarProposal; @endphp
+                    <div class="card mb-4 border-success">
+                        <div
+                            class="card-header bg-success bg-opacity-10 d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0 text-success">
+                                <i class="bx bx-file me-2"></i>Berita Acara Seminar
+                            </h5>
+                            <a href="{{ route('admin.berita-acara-sempro.show', $beritaAcara) }}"
+                                class="btn btn-sm btn-success">
+                                <i class="bx bx-show me-1"></i> Detail
+                            </a>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="p-3 bg-light rounded text-center">
+                                        <label class="form-label text-muted mb-1 d-block small">Keputusan</label>
+                                        <span
+                                            class="badge bg-{{ $beritaAcara->keputusan === 'Lulus' ? 'success' : ($beritaAcara->keputusan === 'Lulus Bersyarat' ? 'warning' : 'danger') }} fs-6">
+                                            {{ $beritaAcara->keputusan }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="p-3 bg-light rounded text-center">
+                                        <label class="form-label text-muted mb-1 d-block small">Catatan Kejadian</label>
+                                        <span
+                                            class="badge bg-{{ $beritaAcara->catatan_kejadian === 'Lancar' ? 'success' : 'warning' }} fs-6">
+                                            {{ $beritaAcara->catatan_kejadian }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="p-3 bg-light rounded text-center">
+                                        <label class="form-label text-muted mb-1 d-block small">Status</label>
+                                        @if ($beritaAcara->isSigned())
+                                            <span class="badge bg-success fs-6">
+                                                <i class="bx bx-check-double me-1"></i>Ditandatangani
+                                            </span>
+                                        @else
+                                            <span class="badge bg-warning fs-6">
+                                                <i class="bx bx-time me-1"></i>Menunggu TTD
+                                            </span>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr class="my-3">
+
+                            <div class="row align-items-center">
+                                <div class="col-md-6">
+                                    <small class="text-muted d-block">Kode Verifikasi</small>
+                                    <code class="fs-6">{{ $beritaAcara->verification_code }}</code>
+                                </div>
+                                <div class="col-md-6 text-md-end">
+                                    <div class="btn-group">
+                                        <a href="{{ route('admin.berita-acara-sempro.preview-pdf', $beritaAcara) }}"
+                                            target="_blank" class="btn btn-outline-info btn-sm">
+                                            <i class="bx bx-show me-1"></i> Preview PDF
+                                        </a>
+                                        <a href="{{ route('admin.berita-acara-sempro.download-pdf', $beritaAcara) }}"
+                                            class="btn btn-outline-success btn-sm">
+                                            <i class="bx bx-download me-1"></i> Download
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Lembar Catatan Status --}}
+                            @if ($beritaAcara->lembarCatatan && $beritaAcara->lembarCatatan->count() > 0)
+                                <hr class="my-3">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <small class="text-muted d-block">Lembar Catatan</small>
+                                        <span class="badge bg-label-info">
+                                            {{ $beritaAcara->lembarCatatan->count() }} dari
+                                            {{ $jadwal->dosenPenguji()->wherePivot('status_kehadiran', 'Hadir')->count() }}
+                                            dosen
+                                        </span>
+                                    </div>
+                                    @if ($beritaAcara->hasAllCatatan())
+                                        <span class="badge bg-success">
+                                            <i class="bx bx-check-circle me-1"></i>Semua Catatan Lengkap
+                                        </span>
+                                    @else
+                                        <span class="badge bg-warning">
+                                            <i class="bx bx-time me-1"></i>Menunggu Catatan
+                                        </span>
+                                    @endif
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                @endif
+
                 {{-- Card: Tim Penguji --}}
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
@@ -488,88 +744,87 @@
                         <span class="badge bg-label-info">
                             {{ 1 + count($jadwal->pendaftaranSeminarProposal->proposalPembahas) }} Dosen
                         </span>
+                        {{-- ✅ HAPUS: Tombol Kelola Penguji sudah tidak diperlukan --}}
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
                             <table class="table table-hover table-sm">
                                 <thead class="table-light">
                                     <tr>
-                                        <th width="20%">Posisi</th>
-                                        <th width="35%">Nama Dosen</th>
-                                        <th width="30%">Email</th>
-                                        <th width="15%">Status</th>
+                                        <th width="5%">No</th>
+                                        <th>Nama Dosen</th>
+                                        <th>Posisi</th>
+                                        <th width="20%">Kontak</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {{-- Pembimbing --}}
                                     <tr>
-                                        <td>
-                                            <span class="badge bg-label-primary">
-                                                <i class="bx bx-user-pin me-1"></i>Pembimbing
-                                            </span>
-                                        </td>
+                                        <td class="text-center">1</td>
                                         <td>
                                             <div class="d-flex align-items-center">
-                                                <div class="avatar avatar-xs me-2">
+                                                <div class="avatar avatar-sm me-2">
                                                     <span class="avatar-initial rounded-circle bg-label-primary">
                                                         {{ strtoupper(substr($jadwal->pendaftaranSeminarProposal->dosenPembimbing->name ?? 'N', 0, 1)) }}
                                                     </span>
                                                 </div>
                                                 <div>
-                                                    <h6 class="mb-0 small">
+                                                    <h6 class="mb-0">
                                                         {{ $jadwal->pendaftaranSeminarProposal->dosenPembimbing->name ?? '-' }}
                                                     </h6>
-                                                    <small
-                                                        class="text-muted">{{ $jadwal->pendaftaranSeminarProposal->dosenPembimbing->nip ?? '-' }}</small>
+                                                    <small class="text-muted">NIP:
+                                                        {{ $jadwal->pendaftaranSeminarProposal->dosenPembimbing->nip ?? '-' }}</small>
                                                 </div>
                                             </div>
                                         </td>
                                         <td>
-                                            <small>{{ $jadwal->pendaftaranSeminarProposal->dosenPembimbing->email ?? '-' }}</small>
+                                            <span class="badge bg-label-success">
+                                                <i class="bx bx-user-check me-1"></i>Pembimbing
+                                            </span>
                                         </td>
                                         <td>
-                                            <span class="badge bg-label-success">
-                                                <i class="bx bx-check"></i>
-                                            </span>
+                                            <small class="text-muted">
+                                                <i
+                                                    class="bx bx-envelope me-1"></i>{{ $jadwal->pendaftaranSeminarProposal->dosenPembimbing->email ?? '-' }}
+                                            </small>
                                         </td>
                                     </tr>
 
                                     {{-- Pembahas 1, 2, 3 --}}
-                                    @forelse ($jadwal->pendaftaranSeminarProposal->proposalPembahas as $pembahas)
+                                    @forelse ($jadwal->pendaftaranSeminarProposal->proposalPembahas as $index => $pembahas)
                                         <tr>
-                                            <td>
-                                                <span class="badge bg-label-info">
-                                                    <i class="bx bx-user-check me-1"></i>Pembahas {{ $pembahas->posisi }}
-                                                </span>
-                                            </td>
+                                            <td class="text-center">{{ $index + 2 }}</td>
                                             <td>
                                                 <div class="d-flex align-items-center">
-                                                    <div class="avatar avatar-xs me-2">
+                                                    <div class="avatar avatar-sm me-2">
                                                         <span class="avatar-initial rounded-circle bg-label-info">
                                                             {{ strtoupper(substr($pembahas->dosen->name ?? 'N', 0, 1)) }}
                                                         </span>
                                                     </div>
                                                     <div>
-                                                        <h6 class="mb-0 small">{{ $pembahas->dosen->name ?? '-' }}</h6>
-                                                        <small
-                                                            class="text-muted">{{ $pembahas->dosen->nip ?? '-' }}</small>
+                                                        <h6 class="mb-0">{{ $pembahas->dosen->name ?? '-' }}</h6>
+                                                        <small class="text-muted">NIP:
+                                                            {{ $pembahas->dosen->nip ?? '-' }}</small>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td>
-                                                <small>{{ $pembahas->dosen->email ?? '-' }}</small>
+                                                <span class="badge bg-label-primary">
+                                                    <i class="bx bx-user me-1"></i>{{ ucfirst($pembahas->posisi) }}
+                                                </span>
                                             </td>
                                             <td>
-                                                <span class="badge bg-label-success">
-                                                    <i class="bx bx-check"></i>
-                                                </span>
+                                                <small class="text-muted">
+                                                    <i
+                                                        class="bx bx-envelope me-1"></i>{{ $pembahas->dosen->email ?? '-' }}
+                                                </small>
                                             </td>
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="4" class="text-center text-muted">
-                                                <i class="bx bx-info-circle me-1"></i>
-                                                Belum ada dosen pembahas
+                                            <td colspan="4" class="text-center text-muted py-4">
+                                                <i class="bx bx-user-x fs-4 d-block mb-2"></i>
+                                                Belum ada dosen pembahas yang ditugaskan
                                             </td>
                                         </tr>
                                     @endforelse
@@ -577,22 +832,29 @@
                             </table>
                         </div>
 
+                        {{-- ✅ UPDATE: Info tentang pengelolaan pembahas --}}
                         @if ($jadwal->status === 'dijadwalkan')
                             <hr class="my-3">
                             <div class="alert alert-info border-0 mb-0">
                                 <div class="d-flex align-items-start">
-                                    <i class="bx bx-info-circle fs-4 me-2"></i>
-                                    <div class="flex-grow-1">
-                                        <strong class="d-block mb-1">Informasi Undangan</strong>
-                                        <p class="mb-2 small">Undangan sudah dikirim ke semua dosen di atas</p>
-                                        <form
-                                            action="{{ route('admin.jadwal-seminar-proposal.kirim-ulang-undangan', $jadwal) }}"
-                                            method="POST" class="kirim-ulang-form-inline">
-                                            @csrf
-                                            <button type="submit" class="btn btn-sm btn-info">
-                                                <i class="bx bx-send me-1"></i> Kirim Ulang Undangan
-                                            </button>
-                                        </form>
+                                    <i class="bx bx-info-circle fs-4 me-2 mt-1"></i>
+                                    <div>
+                                        <strong>Informasi:</strong>
+                                        <p class="mb-0 small">
+                                            Untuk mengelola kehadiran atau mengganti dosen pembahas, silakan ke halaman
+                                            <strong>Berita Acara</strong> setelah berita acara dibuat.
+                                        </p>
+                                        @if ($jadwal->hasBeritaAcara())
+                                            <a href="{{ route('admin.berita-acara-sempro.show', $jadwal->beritaAcaraSeminarProposal) }}"
+                                                class="btn btn-sm btn-outline-primary mt-2">
+                                                <i class="bx bx-arrow-right me-1"></i> Lihat Berita Acara
+                                            </a>
+                                        @elseif ($jadwal->canCreateBeritaAcara())
+                                            <a href="{{ route('admin.berita-acara-sempro.create', $jadwal) }}"
+                                                class="btn btn-sm btn-outline-primary mt-2">
+                                                <i class="bx bx-plus me-1"></i> Buat Berita Acara
+                                            </a>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
@@ -601,103 +863,68 @@
                 </div>
             </div>
         </div>
-    </div>
 
-    {{-- Include Modals --}}
-    @include('admin.jadwal-seminar-proposal.modals.schedule-modal')
-    @include('admin.jadwal-seminar-proposal.modals.delete-modal')
+        {{-- Include Modals --}}
+        @include('admin.jadwal-seminar-proposal.modals.schedule-modal')
+        @include('admin.jadwal-seminar-proposal.modals.delete-modal')
 
-@endsection
+    @endsection
 
-@push('scripts')
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // SK Preview Elements
-            const showSkPreviewBtn = document.getElementById('showSkPreviewBtn');
-            const closeSkPreviewBtn = document.getElementById('closeSkPreviewBtn');
-            const skPreviewContainer = document.getElementById('skPreviewContainer');
-            const skPreviewFrame = document.getElementById('skPreviewFrame');
-            const skPreviewLoading = document.getElementById('skPreviewLoading');
+    @push('scripts')
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // SK Preview Elements
+                const showSkPreviewBtn = document.getElementById('showSkPreviewBtn');
+                const closeSkPreviewBtn = document.getElementById('closeSkPreviewBtn');
+                const skPreviewContainer = document.getElementById('skPreviewContainer');
+                const skPreviewFrame = document.getElementById('skPreviewFrame');
+                const skPreviewLoading = document.getElementById('skPreviewLoading');
 
-            if (showSkPreviewBtn && skPreviewContainer && skPreviewFrame) {
-                const skUrl = "{{ route('admin.jadwal-seminar-proposal.view-sk', $jadwal) }}";
+                if (showSkPreviewBtn && skPreviewContainer && skPreviewFrame) {
+                    const skUrl = "{{ route('admin.jadwal-seminar-proposal.view-sk', $jadwal) }}";
 
-                console.log('SK Preview initialized');
-                console.log('SK URL:', skUrl);
+                    // Show preview
+                    showSkPreviewBtn.addEventListener('click', function() {
+                        skPreviewContainer.style.display = 'block';
+                        skPreviewLoading.style.display = 'flex';
+                        skPreviewFrame.style.display = 'none';
+                        this.style.display = 'none';
+                        skPreviewFrame.src = skUrl;
 
-                // Show preview
-                showSkPreviewBtn.addEventListener('click', function() {
-                    console.log('Show preview button clicked');
+                        skPreviewFrame.onload = function() {
+                            skPreviewLoading.style.display = 'none';
+                            skPreviewFrame.style.display = 'block';
+                        };
 
-                    // Show container
-                    skPreviewContainer.style.display = 'block';
-
-                    // Show loading, hide frame
-                    skPreviewLoading.style.display = 'flex';
-                    skPreviewFrame.style.display = 'none';
-
-                    // Hide show button
-                    this.style.display = 'none';
-
-                    // Set iframe source
-                    skPreviewFrame.src = skUrl;
-
-                    console.log('Loading PDF into iframe...');
-
-                    // Handle iframe load
-                    skPreviewFrame.onload = function() {
-                        console.log('PDF loaded successfully');
-                        skPreviewLoading.style.display = 'none';
-                        skPreviewFrame.style.display = 'block';
-                    };
-
-                    // Handle iframe error
-                    skPreviewFrame.onerror = function() {
-                        console.error('Error loading PDF');
-                        skPreviewLoading.innerHTML = `
+                        skPreviewFrame.onerror = function() {
+                            skPreviewLoading.innerHTML = `
                             <div class="text-danger">
                                 <i class="bx bx-error-circle fs-1 mb-2"></i>
                                 <p class="mb-0">Gagal memuat preview PDF</p>
-                                <small>Silakan buka di tab baru atau download file</small>
                             </div>
                         `;
-                    };
-                });
+                        };
+                    });
 
-                // Close preview
-                closeSkPreviewBtn.addEventListener('click', function() {
-                    console.log('Close preview button clicked');
+                    // Close preview
+                    closeSkPreviewBtn.addEventListener('click', function() {
+                        skPreviewContainer.style.display = 'none';
+                        showSkPreviewBtn.style.display = 'inline-flex';
+                        skPreviewFrame.src = '';
+                        skPreviewLoading.style.display = 'flex';
+                        skPreviewFrame.style.display = 'none';
+                    });
+                }
 
-                    // Hide container
-                    skPreviewContainer.style.display = 'none';
+                // Mark as Selesai Confirmation
+                const markSelesaiForm = document.querySelector('.mark-selesai-form');
+                if (markSelesaiForm) {
+                    markSelesaiForm.addEventListener('submit', function(e) {
+                        e.preventDefault();
 
-                    // Show show button
-                    showSkPreviewBtn.style.display = 'inline-flex';
-
-                    // Reset iframe
-                    skPreviewFrame.src = '';
-                    skPreviewLoading.style.display = 'flex';
-                    skPreviewFrame.style.display = 'none';
-                });
-            } else {
-                console.error('SK Preview elements not found:', {
-                    showSkPreviewBtn: !!showSkPreviewBtn,
-                    closeSkPreviewBtn: !!closeSkPreviewBtn,
-                    skPreviewContainer: !!skPreviewContainer,
-                    skPreviewFrame: !!skPreviewFrame,
-                    skPreviewLoading: !!skPreviewLoading
-                });
-            }
-
-            // Mark as Selesai Confirmation
-            const markSelesaiForm = document.querySelector('.mark-selesai-form');
-            if (markSelesaiForm) {
-                markSelesaiForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-
-                    Swal.fire({
-                        title: 'Konfirmasi Tandai Selesai',
-                        html: `
+                        Swal.fire({
+                            title: 'Konfirmasi Tandai Selesai',
+                            html: `
                             <div class="text-start">
                                 <p class="mb-3">Apakah Anda yakin ingin menandai seminar proposal ini sebagai <strong>selesai</strong>?</p>
                                 <div class="alert alert-info mb-0">
@@ -706,225 +933,219 @@
                                 </div>
                             </div>
                         `,
-                        icon: 'question',
-                        showCancelButton: true,
-                        confirmButtonColor: '#28a745',
-                        cancelButtonColor: '#6c757d',
-                        confirmButtonText: '<i class="bx bx-check-circle me-1"></i> Ya, Tandai Selesai',
-                        cancelButtonText: '<i class="bx bx-x me-1"></i> Batal',
-                        customClass: {
-                            confirmButton: 'btn btn-success me-2',
-                            cancelButton: 'btn btn-secondary'
-                        },
-                        buttonsStyling: false
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            this.submit();
-                        }
+                            icon: 'question',
+                            showCancelButton: true,
+                            confirmButtonColor: '#28a745',
+                            cancelButtonColor: '#6c757d',
+                            confirmButtonText: '<i class="bx bx-check-circle me-1"></i> Ya, Tandai Selesai',
+                            cancelButtonText: '<i class="bx bx-x me-1"></i> Batal',
+                            customClass: {
+                                confirmButton: 'btn btn-success me-2',
+                                cancelButton: 'btn btn-secondary'
+                            },
+                            buttonsStyling: false
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                this.submit();
+                            }
+                        });
                     });
-                });
-            }
+                }
 
-            // Kirim Ulang Undangan Confirmation
-            const kirimUlangForms = document.querySelectorAll('.kirim-ulang-form, .kirim-ulang-form-inline');
-            kirimUlangForms.forEach(form => {
-                form.addEventListener('submit', function(e) {
-                    e.preventDefault();
+                // Kirim Ulang Undangan Confirmation
+                const kirimUlangForms = document.querySelectorAll('.kirim-ulang-form, .kirim-ulang-form-inline');
+                kirimUlangForms.forEach(form => {
+                    form.addEventListener('submit', function(e) {
+                        e.preventDefault();
 
-                    Swal.fire({
-                        title: 'Konfirmasi Kirim Ulang',
-                        html: `
+                        Swal.fire({
+                            title: 'Konfirmasi Kirim Ulang',
+                            html: `
                             <div class="text-start">
                                 <p class="mb-3">Apakah Anda yakin ingin mengirim ulang undangan ke semua dosen?</p>
-                                <div class="alert alert-info mb-0">
-                                    <i class="bx bx-info-circle me-2"></i>
-                                    <small>Email undangan akan dikirim ke:<br>
-                                    • 1 Dosen Pembimbing<br>
-                                    • 3 Dosen Pembahas</small>
-                                </div>
                             </div>
                         `,
-                        icon: 'question',
-                        showCancelButton: true,
-                        confirmButtonColor: '#17a2b8',
-                        cancelButtonColor: '#6c757d',
-                        confirmButtonText: '<i class="bx bx-send me-1"></i> Ya, Kirim Ulang',
-                        cancelButtonText: '<i class="bx bx-x me-1"></i> Batal',
-                        customClass: {
-                            confirmButton: 'btn btn-info me-2',
-                            cancelButton: 'btn btn-secondary'
-                        },
-                        buttonsStyling: false
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            this.submit();
-                        }
+                            icon: 'question',
+                            showCancelButton: true,
+                            confirmButtonColor: '#17a2b8',
+                            cancelButtonColor: '#6c757d',
+                            confirmButtonText: '<i class="bx bx-send me-1"></i> Ya, Kirim Ulang',
+                            cancelButtonText: '<i class="bx bx-x me-1"></i> Batal',
+                            customClass: {
+                                confirmButton: 'btn btn-info me-2',
+                                cancelButton: 'btn btn-secondary'
+                            },
+                            buttonsStyling: false
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                this.submit();
+                            }
+                        });
                     });
                 });
+
+                // Auto dismiss alerts
+                setTimeout(() => {
+                    const alerts = document.querySelectorAll('.alert-dismissible');
+                    alerts.forEach(alert => {
+                        alert.style.transition = 'opacity 0.5s ease';
+                        alert.style.opacity = '0';
+                        setTimeout(() => alert.remove(), 500);
+                    });
+                }, 5000);
             });
+        </script>
+    @endpush
 
-            // Auto dismiss alerts
-            setTimeout(() => {
-                const alerts = document.querySelectorAll('.alert-dismissible');
-                alerts.forEach(alert => {
-                    alert.style.transition = 'opacity 0.5s ease';
-                    alert.style.opacity = '0';
-                    setTimeout(() => alert.remove(), 500);
-                });
-            }, 5000);
-        });
-    </script>
-@endpush
+    @push('styles')
+        <style>
+            /* Enhanced Styles */
+            .bg-lighter {
+                background-color: rgba(67, 89, 113, 0.04);
+            }
 
-@push('styles')
-    <style>
-        /* Enhanced Styles */
-        .bg-lighter {
-            background-color: rgba(67, 89, 113, 0.04);
-        }
+            .hover-shadow {
+                transition: all 0.3s ease;
+            }
 
-        .hover-shadow {
-            transition: all 0.3s ease;
-        }
+            .hover-shadow:hover {
+                box-shadow: 0 4px 12px 0 rgba(67, 89, 113, 0.16);
+                transform: translateY(-2px);
+            }
 
-        .hover-shadow:hover {
-            box-shadow: 0 4px 12px 0 rgba(67, 89, 113, 0.16);
-            transform: translateY(-2px);
-        }
+            /* Timeline Styles */
+            .timeline {
+                position: relative;
+                padding-left: 2rem;
+            }
 
-        /* Timeline Styles */
-        .timeline {
-            position: relative;
-            padding-left: 2rem;
-        }
+            .timeline-item {
+                position: relative;
+                padding-bottom: 1.5rem;
+                border-left: 2px solid #ddd;
+            }
 
-        .timeline-item {
-            position: relative;
-            padding-bottom: 1.5rem;
-            border-left: 2px solid #ddd;
-        }
+            .timeline-item:last-child {
+                border-left: 2px solid transparent;
+                padding-bottom: 0;
+            }
 
-        .timeline-item:last-child {
-            border-left: 2px solid transparent;
-            padding-bottom: 0;
-        }
+            .timeline-point {
+                position: absolute;
+                left: -6px;
+                width: 12px;
+                height: 12px;
+                border-radius: 50%;
+                background-color: #fff;
+                border: 2px solid #ddd;
+            }
 
-        .timeline-point {
-            position: absolute;
-            left: -6px;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background-color: #fff;
-            border: 2px solid #ddd;
-        }
+            .timeline-point-primary {
+                border-color: #696cff;
+                background-color: #696cff;
+            }
 
-        .timeline-point-primary {
-            border-color: #696cff;
-            background-color: #696cff;
-        }
+            .timeline-point-success {
+                border-color: #71dd37;
+                background-color: #71dd37;
+            }
 
-        .timeline-point-success {
-            border-color: #71dd37;
-            background-color: #71dd37;
-        }
+            .timeline-point-info {
+                border-color: #03c3ec;
+                background-color: #03c3ec;
+            }
 
-        .timeline-point-info {
-            border-color: #03c3ec;
-            background-color: #03c3ec;
-        }
+            .timeline-event {
+                padding-left: 1.5rem;
+            }
 
-        .timeline-event {
-            padding-left: 1.5rem;
-        }
-
-        /* SK Preview Styles */
-        .sk-preview-container {
-            border: 1px solid #e9ecef;
-            border-radius: 0.5rem;
-            overflow: hidden;
-            background: #fff;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .preview-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.75rem 1rem;
-            background: #f8f9fa;
-            border-bottom: 1px solid #e9ecef;
-        }
-
-        .preview-header h6 {
-            font-size: 0.875rem;
-            margin: 0;
-        }
-
-        .preview-actions {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .preview-body {
-            position: relative;
-            height: 600px;
-            background: #f0f0f0;
-        }
-
-        .preview-frame {
-            width: 100%;
-            height: 100%;
-            border: none;
-            background: #fff;
-        }
-
-        .preview-loading {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: #fff;
-            z-index: 10;
-        }
-
-        /* Avatar Styles */
-        .avatar-xl {
-            width: 5rem;
-            height: 5rem;
-        }
-
-        .avatar-xl .avatar-initial {
-            font-size: 2rem;
-        }
-
-        /* Table Styles */
-        .table-hover tbody tr:hover {
-            background-color: rgba(67, 89, 113, 0.04);
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .preview-body {
-                height: 400px;
+            /* SK Preview Styles */
+            .sk-preview-container {
+                border: 1px solid #e9ecef;
+                border-radius: 0.5rem;
+                overflow: hidden;
+                background: #fff;
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
             }
 
             .preview-header {
-                flex-direction: column;
-                gap: 0.5rem;
-                align-items: flex-start;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.75rem 1rem;
+                background: #f8f9fa;
+                border-bottom: 1px solid #e9ecef;
+            }
+
+            .preview-header h6 {
+                font-size: 0.875rem;
+                margin: 0;
             }
 
             .preview-actions {
-                width: 100%;
-                justify-content: flex-end;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
             }
-        }
-    </style>
-@endpush
+
+            .preview-body {
+                position: relative;
+                height: 600px;
+                background: #f0f0f0;
+            }
+
+            .preview-frame {
+                width: 100%;
+                height: 100%;
+                border: none;
+                background: #fff;
+            }
+
+            .preview-loading {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                background: #fff;
+                z-index: 10;
+            }
+
+            /* Avatar Styles */
+            .avatar-xl {
+                width: 5rem;
+                height: 5rem;
+            }
+
+            .avatar-xl .avatar-initial {
+                font-size: 2rem;
+            }
+
+            /* Table Styles */
+            .table-hover tbody tr:hover {
+                background-color: rgba(67, 89, 113, 0.04);
+            }
+
+            /* Responsive */
+            @media (max-width: 768px) {
+                .preview-body {
+                    height: 400px;
+                }
+
+                .preview-header {
+                    flex-direction: column;
+                    gap: 0.5rem;
+                    align-items: flex-start;
+                }
+
+                .preview-actions {
+                    width: 100%;
+                    justify-content: flex-end;
+                }
+            }
+        </style>
+    @endpush

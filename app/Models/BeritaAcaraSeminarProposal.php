@@ -1,331 +1,404 @@
 <?php
+// filepath: app/Models/BeritaAcaraSeminarProposal.php
 
 namespace App\Models;
 
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
-use Carbon\Carbon;
 
 class BeritaAcaraSeminarProposal extends Model
 {
-    protected $guarded = ['id'];
-
-    protected $casts = [
-        'tanggal_seminar' => 'datetime',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
+    protected $fillable = [
+        'jadwal_seminar_proposal_id',
+        'catatan_kejadian',
+        'keputusan',
+        'catatan_tambahan',
+        'verification_code',
+        'file_path',
+        'status',
+        'ttd_dosen_pembahas',
+        'diisi_oleh_pembimbing_id',
+        'diisi_pembimbing_at',
+        'ttd_pembimbing_at',
+        'ttd_pembimbing_by',
+        'ttd_ketua_penguji_at',
+        'ttd_ketua_penguji_by',
+        'dibuat_oleh_id',
     ];
 
-    // ========== RELATIONS ==========
+    protected $casts = [
+        'diisi_pembimbing_at' => 'datetime',
+        'ttd_pembimbing_at' => 'datetime',
+        'ttd_ketua_penguji_at' => 'datetime',
+        'ttd_dosen_pembahas' => 'array',
+    ];
 
-    /**
-     * Relasi ke JadwalSeminarProposal (One-to-One Inverse)
-     */
+    // ========================================
+    // RELATIONSHIPS
+    // ========================================
+
     public function jadwalSeminarProposal()
     {
         return $this->belongsTo(JadwalSeminarProposal::class);
     }
 
-    /**
-     * Relasi ke Dosen PA (Ketua Pembahas/Pembimbing Akademik)
-     */
-    public function dosenPa()
+    public function dosenPembimbingPengisi()
     {
-        return $this->belongsTo(User::class, 'dosen_pa_id');
+        return $this->belongsTo(User::class, 'diisi_oleh_pembimbing_id');
+    }
+
+    public function dosenPembimbingPenandatangan()
+    {
+        return $this->belongsTo(User::class, 'ttd_pembimbing_by');
+    }
+
+    public function ketuaPenguji()
+    {
+        return $this->belongsTo(User::class, 'ttd_ketua_penguji_by');
+    }
+
+    public function pembuatBeritaAcara()
+    {
+        return $this->belongsTo(User::class, 'dibuat_oleh_id');
+    }
+
+    public function lembarCatatan()
+    {
+        return $this->hasMany(LembarCatatanSeminarProposal::class);
+    }
+
+    // ========================================
+    // STATUS CHECKERS
+    // ========================================
+
+    public function isDraft(): bool
+    {
+        return $this->status === 'draft';
+    }
+
+    public function isMenungguTtdPembahas(): bool
+    {
+        return $this->status === 'menunggu_ttd_pembahas';
+    }
+
+    public function isMenungguTtdPembimbing(): bool
+    {
+        return $this->status === 'menunggu_ttd_pembimbing';
+    }
+
+    public function isMenungguTtdKetua(): bool
+    {
+        return $this->status === 'menunggu_ttd_ketua';
+    }
+
+    public function isSelesai(): bool
+    {
+        return $this->status === 'selesai';
+    }
+
+    public function isFilledByPembimbing(): bool
+    {
+        return !is_null($this->catatan_kejadian) && !is_null($this->keputusan);
+    }
+
+    public function isSigned(): bool
+    {
+        return !is_null($this->ttd_ketua_penguji_at);
+    }
+
+    // ========================================
+    // ✅ NEW: PEMBAHAS SIGNATURE CHECKERS
+    // ========================================
+
+    /**
+     * ✅ SIMPLIFIED: Check apakah semua dosen pembahas sudah TTD
+     */
+    public function allPembahasHaveSigned(): bool
+    {
+        $jadwal = $this->jadwalSeminarProposal;
+
+        // Count semua pembahas (exclude Ketua Penguji)
+        $totalPembahas = $jadwal->dosenPenguji()
+            ->where('posisi', '!=', 'Ketua Penguji')
+            ->count();
+
+        $signedPembahas = count($this->ttd_dosen_pembahas ?? []);
+
+        return $signedPembahas === $totalPembahas && $totalPembahas > 0;
     }
 
     /**
-     * Relasi ke Dosen Pembahas 1
+     * Check apakah dosen pembahas tertentu sudah TTD
      */
-    public function pembahasSatu()
+    public function hasSignedByPembahas(int $dosenId): bool
     {
-        return $this->belongsTo(User::class, 'dosen_pembahas_1_id');
+        $signatures = $this->ttd_dosen_pembahas ?? [];
+
+        foreach ($signatures as $signature) {
+            if ($signature['dosen_id'] === $dosenId) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
-     * Relasi ke Dosen Pembahas 2
+     * Get list dosen pembahas yang belum TTD
      */
-    public function pembahasDua()
+    public function getPembahasYangBelumTtd()
     {
-        return $this->belongsTo(User::class, 'dosen_pembahas_2_id');
+        $jadwal = $this->jadwalSeminarProposal;
+        $signedIds = collect($this->ttd_dosen_pembahas ?? [])->pluck('dosen_id')->toArray();
+
+        return $jadwal->dosenPenguji()
+            ->where('posisi', '!=', 'Ketua Penguji')
+            ->whereNotIn('users.id', $signedIds)
+            ->get();
     }
 
     /**
-     * Relasi ke Dosen Pembahas 3
+     * ✅ PERBAIKAN: Get jumlah pembahas yang sudah TTD vs total
      */
-    public function pembahasTiga()
+    public function getTtdPembahasProgress(): array
     {
-        return $this->belongsTo(User::class, 'dosen_pembahas_3_id');
-    }
+        $jadwal = $this->jadwalSeminarProposal;
 
-    // ========== ACCESSORS (Human-Readable Text) ==========
+        $total = $jadwal->dosenPenguji()
+            ->where('posisi', '!=', 'Ketua Penguji')
+            ->count();
 
-    /**
-     * Get human-readable text untuk catatan kejadian
-     */
-    public function getCatatanKejadianTextAttribute(): string
-    {
-        $texts = [
-            'lancar' => 'Lancar',
-            'perbaikan' => 'Ada Perbaikan',
+        $signed = count($this->ttd_dosen_pembahas ?? []);
+
+        return [
+            'signed' => $signed,
+            'total' => $total,
+            'percentage' => $total > 0 ? round(($signed / $total) * 100, 1) : 0,
         ];
-
-        return $texts[$this->catatan_kejadian] ?? 'Tidak Diketahui';
     }
 
-    /**
-     * Get human-readable text untuk keputusan seminar
-     */
-    public function getKeputusanSeminarTextAttribute(): string
+    // ========================================
+    // ✅ NEW: PEMBIMBING SIGNATURE CHECKER
+    // ========================================
+
+    public function hasPembimbingSigned(): bool
     {
-        $texts = [
-            'layak' => 'Ya, layak',
-            'layak_dengan_perbaikan' => 'Ya, dengan perbaikan',
-            'tidak_layak' => 'Tidak layak',
-        ];
-
-        return $texts[$this->keputusan_seminar] ?? 'Tidak Diketahui';
+        return !is_null($this->ttd_pembimbing_at);
     }
 
+    // ========================================
+    // PERMISSION CHECKERS
+    // ========================================
+
     /**
-     * Get formatted tanggal seminar
+     * Check if BA can be signed by specific pembahas (dosen penguji)
      */
-    public function getTanggalSeminarFormattedAttribute(): string
+    public function canBeSignedByPembahas(int $dosenId): bool
     {
-        return $this->tanggal_seminar
-            ? $this->tanggal_seminar->locale('id')->translatedFormat('l, d F Y')
-            : '-';
+        if (!$this->isMenungguTtdPembahas()) {
+            return false;
+        }
+
+        $isPembahas = $this->jadwalSeminarProposal
+            ->dosenPenguji()
+            ->where('users.id', $dosenId)
+            ->where('posisi', '!=', 'Ketua Penguji')
+            ->exists();
+
+        if (!$isPembahas) {
+            return false;
+        }
+
+        if ($this->hasSignedByPembahas($dosenId)) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
-     * Get file URL untuk PDF
+     * ✅ UPDATED: Check apakah pembimbing (yang juga ketua) bisa mengisi & TTD
      */
-    public function getFileUrlAttribute(): ?string
+    public function canBeFilledAndSignedByPembimbing(int $dosenId): bool
     {
-        return $this->file_path
-            ? asset('storage/' . $this->file_path)
-            : null;
+        if (!$this->isMenungguTtdPembimbing()) {
+            return false;
+        }
+
+        if (!$this->allPembahasHaveSigned()) {
+            return false;
+        }
+
+        $jadwal = $this->jadwalSeminarProposal;
+        $pendaftaran = $jadwal->pendaftaranSeminarProposal;
+
+        $isPembimbing = $pendaftaran->dosen_pembimbing_id === $dosenId;
+
+        $isKetuaPenguji = $jadwal->dosenPenguji()
+            ->where('users.id', $dosenId)
+            ->where('posisi', 'Ketua Penguji')
+            ->exists();
+
+        if (!$isPembimbing && !$isKetuaPenguji) {
+            return false;
+        }
+
+        if ($this->hasPembimbingSigned()) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
-     * Get verification URL untuk QR Code
+     * ✅ ALIAS untuk backward compatibility
      */
-    public function getVerificationUrlAttribute(): string
+    public function canBeFilledByPembimbing(int $dosenId): bool
     {
-        return route('document.verify', $this->verification_token);
+        return $this->canBeFilledAndSignedByPembimbing($dosenId);
     }
 
-    // ========== STATUS BADGE ==========
-
     /**
-     * Get badge untuk catatan kejadian
+     * ✅ UPDATE: Check apakah ketua bisa TTD
      */
+    public function canBeSignedByKetua(int $dosenId): bool
+    {
+        // 1. BA harus dalam status menunggu TTD ketua
+        if (!$this->isMenungguTtdKetua()) {
+            return false;
+        }
+
+        // 2. Pembimbing harus sudah TTD
+        if (!$this->hasPembimbingSigned()) {
+            return false;
+        }
+
+        // 3. User harus ketua penguji
+        $ketuaId = $this->jadwalSeminarProposal
+            ->dosenPenguji()
+            ->wherePivot('posisi', 'ketua')
+            ->first()?->id;
+
+        if ($ketuaId !== $dosenId) {
+            return false;
+        }
+
+        // 4. Ketua belum pernah TTD
+        if ($this->isSigned()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    // ========================================
+    // WORKFLOW MESSAGES
+    // ========================================
+
+    public function getWorkflowMessageAttribute(): string
+    {
+        return match ($this->status) {
+            'draft' => 'Draft berita acara',
+            'menunggu_ttd_pembahas' => 'Menunggu persetujuan dari dosen pembahas (' .
+            $this->getTtdPembahasProgress()['signed'] . '/' .
+            $this->getTtdPembahasProgress()['total'] . ' sudah TTD)',
+            'menunggu_ttd_pembimbing' => 'Menunggu dosen pembimbing/ketua mengisi & menandatangani',
+            'selesai' => 'Berita acara telah selesai dan ditandatangani',
+            default => 'Status tidak diketahui',
+        };
+    }
+
+    public function getStatusBadgeAttribute(): string
+    {
+        return match ($this->status) {
+            'draft' => '<span class="badge bg-label-secondary">
+                <i class="bx bx-edit me-1"></i>Draft
+            </span>',
+            'menunggu_ttd_pembahas' => '<span class="badge bg-label-info">
+                <i class="bx bx-time me-1"></i>Menunggu TTD Pembahas
+            </span>',
+            'menunggu_ttd_pembimbing' => '<span class="badge bg-label-primary">
+                <i class="bx bx-pen me-1"></i>Menunggu Pembimbing/Ketua
+            </span>',
+            'selesai' => '<span class="badge bg-label-success">
+                <i class="bx bx-check-circle me-1"></i>Selesai
+            </span>',
+            default => '<span class="badge bg-label-dark">Unknown</span>',
+        };
+    }
+
     public function getCatatanKejadianBadgeAttribute(): string
     {
-        $badges = [
-            'lancar' => '<span class="badge bg-label-success"><i class="bx bx-check-circle me-1"></i>Lancar</span>',
-            'perbaikan' => '<span class="badge bg-label-warning"><i class="bx bx-edit me-1"></i>Ada Perbaikan</span>',
-        ];
-
-        return $badges[$this->catatan_kejadian] ?? '<span class="badge bg-label-secondary">Unknown</span>';
-    }
-
-    /**
-     * Get badge untuk keputusan seminar
-     */
-    public function getKeputusanSeminarBadgeAttribute(): string
-    {
-        $badges = [
-            'layak' => '<span class="badge bg-label-success"><i class="bx bx-check-double me-1"></i>Layak</span>',
-            'layak_dengan_perbaikan' => '<span class="badge bg-label-warning"><i class="bx bx-revision me-1"></i>Layak dengan Perbaikan</span>',
-            'tidak_layak' => '<span class="badge bg-label-danger"><i class="bx bx-x-circle me-1"></i>Tidak Layak</span>',
-        ];
-
-        return $badges[$this->keputusan_seminar] ?? '<span class="badge bg-label-secondary">Unknown</span>';
-    }
-
-    // ========== STATUS CHECKS ==========
-
-    /**
-     * Check apakah seminar berjalan lancar
-     */
-    public function isLancar(): bool
-    {
-        return $this->catatan_kejadian === 'lancar';
-    }
-
-    /**
-     * Check apakah ada perbaikan
-     */
-    public function isPerbaikan(): bool
-    {
-        return $this->catatan_kejadian === 'perbaikan';
-    }
-
-    /**
-     * Check apakah layak
-     */
-    public function isLayak(): bool
-    {
-        return $this->keputusan_seminar === 'layak';
-    }
-
-    /**
-     * Check apakah layak dengan perbaikan
-     */
-    public function isLayakDenganPerbaikan(): bool
-    {
-        return $this->keputusan_seminar === 'layak_dengan_perbaikan';
-    }
-
-    /**
-     * Check apakah tidak layak
-     */
-    public function isTidakLayak(): bool
-    {
-        return $this->keputusan_seminar === 'tidak_layak';
-    }
-
-    /**
-     * Check apakah sudah memiliki file PDF
-     */
-    public function hasFile(): bool
-    {
-        return !is_null($this->file_path)
-            && Storage::disk('public')->exists($this->file_path);
-    }
-
-    // ========== HELPER METHODS ==========
-
-    /**
-     * Get semua dosen pembahas yang hadir sebagai collection
-     */
-    public function getDosenHadirAttribute(): array
-    {
-        $dosens = [];
-
-        if ($this->dosenPa) {
-            $dosens['ketua'] = $this->dosenPa;
+        if (!$this->catatan_kejadian) {
+            return '<span class="badge bg-label-secondary">Belum Diisi</span>';
         }
 
-        if ($this->pembahasSatu) {
-            $dosens['pembahas_1'] = $this->pembahasSatu;
+        return match ($this->catatan_kejadian) {
+            'Lancar' => '<span class="badge bg-label-success">
+                <i class="bx bx-check me-1"></i>Lancar
+            </span>',
+            'Ada beberapa perbaikan yang harus diubah' => '<span class="badge bg-label-warning">
+                <i class="bx bx-info-circle me-1"></i>Ada Perbaikan
+            </span>',
+            default => '<span class="badge bg-label-dark">-</span>',
+        };
+    }
+
+    public function getKeputusanBadgeAttribute(): string
+    {
+        if (!$this->keputusan) {
+            return '<span class="badge bg-label-secondary">Belum Diisi</span>';
         }
 
-        if ($this->pembahasDua) {
-            $dosens['pembahas_2'] = $this->pembahasDua;
-        }
-
-        if ($this->pembahasTiga) {
-            $dosens['pembahas_3'] = $this->pembahasTiga;
-        }
-
-        return $dosens;
+        return match ($this->keputusan) {
+            'Ya' => '<span class="badge bg-label-success">
+                <i class="bx bx-check-circle me-1"></i>Ya (Layak)
+            </span>',
+            'Ya, dengan perbaikan' => '<span class="badge bg-label-warning">
+                <i class="bx bx-edit me-1"></i>Ya, dengan Perbaikan
+            </span>',
+            'Tidak' => '<span class="badge bg-label-danger">
+                <i class="bx bx-x-circle me-1"></i>Tidak Layak
+            </span>',
+            default => '<span class="badge bg-label-dark">-</span>',
+        };
     }
 
-    /**
-     * Get jumlah dosen yang hadir
-     */
-    public function getJumlahDosenHadirAttribute(): int
+    public function getKeputusanDescriptionAttribute(): string
     {
-        return count($this->dosen_hadir);
+        return match ($this->keputusan) {
+            'Ya' => 'Proposal layak untuk dilanjutkan ke tahap penelitian',
+            'Ya, dengan perbaikan' => 'Proposal layak dengan catatan harus melakukan perbaikan',
+            'Tidak' => 'Proposal belum layak dan perlu revisi besar',
+            default => 'Kesimpulan belum ditentukan',
+        };
     }
 
-    /**
-     * Get mahasiswa dari jadwal
-     */
-    public function getMahasiswaAttribute()
+    // ========================================
+    // VERIFICATION
+    // ========================================
+
+    public function getVerificationUrlAttribute(): string
     {
-        return $this->jadwalSeminarProposal
-            ?->pendaftaranSeminarProposal
-                ?->user;
+        return route('berita-acara-sempro.verify', $this->verification_code);
     }
 
-    /**
-     * Get judul skripsi dari pendaftaran
-     */
-    public function getJudulSkripsiAttribute(): ?string
-    {
-        return $this->jadwalSeminarProposal
-            ?->pendaftaranSeminarProposal
-                ?->judul_skripsi;
-    }
-
-    /**
-     * Generate verification token
-     */
-    public static function generateVerificationToken(): string
-    {
-        do {
-            $token = Str::random(32);
-        } while (self::where('verification_token', $token)->exists());
-
-        return $token;
-    }
-
-    // ========== SCOPE QUERIES ==========
-
-    public function scopeLayak($query)
-    {
-        return $query->where('keputusan_seminar', 'layak');
-    }
-
-    public function scopeLayakDenganPerbaikan($query)
-    {
-        return $query->where('keputusan_seminar', 'layak_dengan_perbaikan');
-    }
-
-    public function scopeTidakLayak($query)
-    {
-        return $query->where('keputusan_seminar', 'tidak_layak');
-    }
-
-    public function scopeLancar($query)
-    {
-        return $query->where('catatan_kejadian', 'lancar');
-    }
-
-    public function scopePerbaikan($query)
-    {
-        return $query->where('catatan_kejadian', 'perbaikan');
-    }
-
-    public function scopeWithFile($query)
-    {
-        return $query->whereNotNull('file_path');
-    }
-
-    public function scopeWithoutFile($query)
-    {
-        return $query->whereNull('file_path');
-    }
-
-    public function scopeByTanggal($query, $tanggal)
-    {
-        return $query->whereDate('tanggal_seminar', $tanggal);
-    }
-
-    public function scopeByBulan($query, $bulan, $tahun)
-    {
-        return $query->whereMonth('tanggal_seminar', $bulan)
-            ->whereYear('tanggal_seminar', $tahun);
-    }
-
-    // ========== BOOT METHOD ==========
+    // ========================================
+    // BOOT
+    // ========================================
 
     protected static function boot()
     {
         parent::boot();
 
-        // Auto-generate verification token saat create
         static::creating(function ($model) {
-            if (empty($model->verification_token)) {
-                $model->verification_token = self::generateVerificationToken();
+            if (!$model->verification_code) {
+                $model->verification_code = 'BA-' . strtoupper(Str::random(12));
             }
         });
 
-        // Auto-delete file saat record dihapus
         static::deleting(function ($model) {
             if ($model->file_path && Storage::disk('public')->exists($model->file_path)) {
                 Storage::disk('public')->delete($model->file_path);

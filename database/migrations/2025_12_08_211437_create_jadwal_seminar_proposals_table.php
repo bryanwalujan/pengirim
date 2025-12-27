@@ -22,9 +22,9 @@ return new class extends Migration {
             $table->string('file_sk_proposal')->nullable();
 
             // Data Jadwal
-            $table->date('tanggal')->nullable();
-            $table->time('jam_mulai')->nullable();
-            $table->time('jam_selesai')->nullable();
+            $table->date('tanggal_ujian')->nullable();
+            $table->time('waktu_mulai')->nullable();
+            $table->time('waktu_selesai')->nullable();
             $table->string('ruangan')->nullable();
 
             // Status Penjadwalan
@@ -39,7 +39,7 @@ return new class extends Migration {
 
             // Index untuk performa query
             $table->index('status');
-            $table->index('tanggal');
+            $table->index('tanggal_ujian');
         });
     }
 

@@ -44,11 +44,22 @@ class PermissionSeeder extends Seeder
             ['name' => 'manage pendaftaran sempro', 'group' => 'Tugas Akhir'],
             ['name' => 'manage jadwal sempro', 'group' => 'Tugas Akhir'],
 
+            // ✅ NEW: Berita Acara & Lembar Catatan Sempro
+            ['name' => 'manage berita acara sempro', 'group' => 'Tugas Akhir'],
+            ['name' => 'sign berita acara sempro', 'group' => 'Tugas Akhir'],
+            ['name' => 'submit lembar catatan sempro', 'group' => 'Tugas Akhir'],
+            ['name' => 'view berita acara sempro', 'group' => 'Tugas Akhir'],
+
             // Komisi Proposal - Available for ALL dosen
             ['name' => 'manage komisi proposal', 'group' => 'Tugas Akhir'],
 
             // Komisi Hasil - Available for ALL dosen
             ['name' => 'manage komisi hasil', 'group' => 'Tugas Akhir'],
+
+            // ✅ NEW: Pendaftaran Hasil & Jadwal Hasil (untuk masa depan)
+            ['name' => 'manage pendaftaran hasil', 'group' => 'Tugas Akhir'],
+            ['name' => 'manage jadwal hasil', 'group' => 'Tugas Akhir'],
+            ['name' => 'manage berita acara hasil', 'group' => 'Tugas Akhir'],
 
             // User Management
             ['name' => 'manage students', 'group' => 'Pengguna'],
@@ -61,6 +72,12 @@ class PermissionSeeder extends Seeder
             // Tahun Ajaran & UKT
             ['name' => 'manage tahun ajaran', 'group' => 'Keuangan'],
             ['name' => 'manage ukt', 'group' => 'Keuangan'],
+
+            // Kop Surat
+            ['name' => 'manage kopsurat', 'group' => 'Template'],
+
+            // Academic Calendar
+            ['name' => 'manage academic calendar', 'group' => 'Akademik'],
         ];
 
         foreach ($permissions as $permission) {
@@ -83,13 +100,31 @@ class PermissionSeeder extends Seeder
         // Gunakan firstOrCreate
         $dosenRole = Role::firstOrCreate(['name' => 'dosen']);
 
-        // Daftar permission dasar untuk Dosen
         $dosenPermissions = [
             'view dashboard',
+
+            // Surat Permissions - ONLY for approval authority (Koordinator & Pimpinan)
+            'approve surat aktif kuliah',
+            'approve surat ijin survey',
+            'approve surat cuti akademik',
+            'approve surat pindah',
+
+            // Surat-surat yang bisa dikelola dosen (bukan approval)
+            'manage surat aktif kuliah',
+            'manage surat ijin survey',
+            'manage surat cuti akademik',
+            'manage surat pindah',
+
+            // Tugas Akhir - Terbatas sesuai peran
             'manage komisi proposal',
             'manage komisi hasil',
             'manage pendaftaran sempro',
             'manage jadwal sempro',
+
+            // ✅ Berita Acara - Dosen bisa view, sign, dan submit catatan
+            'view berita acara sempro',
+            'sign berita acara sempro',
+            'submit lembar catatan sempro',
         ];
 
         // Gunakan givePermissionTo (aman dijalankan berulang, tidak akan duplikat)

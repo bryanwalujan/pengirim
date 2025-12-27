@@ -347,7 +347,7 @@
                                             @if ($jadwal->isDijadwalkan() && $jadwal->hasJadwal())
                                                 @php
                                                     $batchCount = \App\Models\JadwalSeminarProposal::getScheduledCountByDate(
-                                                        $jadwal->tanggal,
+                                                        $jadwal->tanggal_ujian,
                                                     );
                                                 @endphp
                                                 @if ($batchCount > 1)
@@ -390,7 +390,7 @@
                                             <div class="d-flex flex-column gap-1">
                                                 <span class="badge bg-label-primary">
                                                     <i class="bx bx-calendar bx-xs me-1"></i>
-                                                    {{ $jadwal->tanggal->format('d M Y') }}
+                                                    {{ $jadwal->tanggal_ujian->format('d M Y') }}
                                                 </span>
                                                 <small class="text-muted">
                                                     <i class="bx bx-time bx-xs me-1"></i>
@@ -404,12 +404,12 @@
                                                 {{-- ✅ BATCH INFO BADGES --}}
                                                 @php
                                                     $batchDay = \App\Models\JadwalSeminarProposal::getScheduledCountByDate(
-                                                        $jadwal->tanggal,
+                                                        $jadwal->tanggal_ujian,
                                                     );
                                                     $batchTime = \App\Models\JadwalSeminarProposal::getScheduledCountByDateTime(
-                                                        $jadwal->tanggal,
-                                                        $jadwal->jam_mulai,
-                                                        $jadwal->jam_selesai,
+                                                        $jadwal->tanggal_ujian,
+                                                        $jadwal->waktu_mulai,
+                                                        $jadwal->waktu_selesai,
                                                     );
                                                 @endphp
 
@@ -468,9 +468,9 @@
                                                         data-mahasiswa-nama="{{ $jadwal->pendaftaranSeminarProposal->user->name }}"
                                                         data-mahasiswa-nim="{{ $jadwal->pendaftaranSeminarProposal->user->nim }}"
                                                         data-mahasiswa-judul="{{ $jadwal->pendaftaranSeminarProposal->judul_skripsi }}"
-                                                        data-tanggal="{{ $jadwal->tanggal?->format('Y-m-d') }}"
-                                                        data-jam-mulai="{{ $jadwal->jam_mulai }}"
-                                                        data-jam-selesai="{{ $jadwal->jam_selesai }}"
+                                                        data-tanggal_ujian="{{ $jadwal->tanggal_ujian?->format('Y-m-d') }}"
+                                                        data-jam-mulai="{{ $jadwal->waktu_mulai }}"
+                                                        data-jam-selesai="{{ $jadwal->waktu_selesai }}"
                                                         data-ruangan="{{ $jadwal->ruangan }}">
                                                         <i class="bx bx-calendar-edit me-1"></i>
                                                         {{ $jadwal->hasJadwal() ? 'Edit Jadwal' : 'Set Jadwal' }}
@@ -603,14 +603,14 @@
             if (scheduleModal) {
                 scheduleModal.addEventListener('show.bs.modal', function(event) {
                     const button = event.relatedTarget;
-                    const tanggal = button.getAttribute('data-tanggal');
+                    const tanggal_ujian = button.getAttribute('data-tanggal_ujian');
                     const jamMulai = button.getAttribute('data-jam-mulai');
                     const jamSelesai = button.getAttribute('data-jam-selesai');
                     const ruangan = button.getAttribute('data-ruangan');
 
-                    if (tanggal) document.getElementById('tanggal').value = tanggal;
-                    if (jamMulai) document.getElementById('jam_mulai').value = jamMulai;
-                    if (jamSelesai) document.getElementById('jam_selesai').value = jamSelesai;
+                    if (tanggal_ujian) document.getElementById('tanggal_ujian').value = tanggal_ujian;
+                    if (jamMulai) document.getElementById('waktu_mulai').value = jamMulai;
+                    if (jamSelesai) document.getElementById('waktu_selesai').value = jamSelesai;
                     if (ruangan) document.getElementById('ruangan').value = ruangan;
                 });
             }

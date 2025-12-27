@@ -936,6 +936,103 @@
             </li>
         @endcan
 
+        @if (auth()->user()->can('manage berita acara sempro') || auth()->user()->can('view berita acara sempro'))
+            @php
+                $beritaAcaraActiveStates = [
+                    'admin.berita-acara-sempro.index',
+                    'admin.berita-acara-sempro.show',
+                    'admin.berita-acara-sempro.create',
+                    'admin.berita-acara-sempro.edit',
+                    'admin.lembar-catatan-sempro.create',
+                    'admin.lembar-catatan-sempro.show',
+                    'admin.lembar-catatan-sempro.edit',
+                ];
+                $isBeritaAcaraActive = request()->routeIs($beritaAcaraActiveStates);
+            @endphp
+
+            <li class="menu-item {{ $isBeritaAcaraActive ? 'active open' : '' }}">
+                <a href="javascript:void(0);" class="menu-link menu-toggle">
+                    <i class="menu-icon tf-icons bx bx-file-blank"></i>
+                    <div>Berita Acara Sempro</div>
+                </a>
+                <ul class="menu-sub">
+                    {{-- Semua Berita Acara --}}
+                    <li
+                        class="menu-item {{ request()->routeIs('admin.berita-acara-sempro.index') && !request()->has('status') && !request()->has('keputusan') ? 'active' : '' }}">
+                        <a href="{{ route('admin.berita-acara-sempro.index') }}" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-list-ul"></i>
+                            <div>Semua Berita Acara</div>
+                        </a>
+                    </li>
+
+                    @can('manage berita acara sempro')
+                        {{-- Belum Ditandatangani - Hanya untuk Staff --}}
+                        <li
+                            class="menu-item {{ request()->routeIs('admin.berita-acara-sempro.index') && request()->input('status') === 'belum_ttd' ? 'active' : '' }}">
+                            <a href="{{ route('admin.berita-acara-sempro.index', ['status' => 'belum_ttd']) }}"
+                                class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-time-five"></i>
+                                <div>Belum Ditandatangani</div>
+                            </a>
+                        </li>
+
+                        {{-- Sudah Ditandatangani --}}
+                        <li
+                            class="menu-item {{ request()->routeIs('admin.berita-acara-sempro.index') && request()->input('status') === 'sudah_ttd' ? 'active' : '' }}">
+                            <a href="{{ route('admin.berita-acara-sempro.index', ['status' => 'sudah_ttd']) }}"
+                                class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-check-circle"></i>
+                                <div>Sudah Ditandatangani</div>
+                            </a>
+                        </li>
+                    @endcan
+
+                    @can('sign berita acara sempro')
+                        {{-- Menunggu Tanda Tangan Saya - Untuk Dosen Ketua Penguji --}}
+                        <li
+                            class="menu-item {{ request()->routeIs('admin.berita-acara-sempro.index') && request()->input('status') === 'menunggu_ttd_saya' ? 'active' : '' }}">
+                            <a href="{{ route('admin.berita-acara-sempro.index', ['status' => 'menunggu_ttd_saya']) }}"
+                                class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-pen"></i>
+                                <div>Menunggu TTD Saya</div>
+                            </a>
+                        </li>
+                    @endcan
+
+                    @can('submit lembar catatan sempro')
+                        {{-- Perlu Input Catatan - Untuk Dosen Penguji --}}
+                        <li
+                            class="menu-item {{ request()->routeIs('admin.berita-acara-sempro.index') && request()->input('status') === 'perlu_catatan' ? 'active' : '' }}">
+                            <a href="{{ route('admin.berita-acara-sempro.index', ['status' => 'perlu_catatan']) }}"
+                                class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-edit"></i>
+                                <div>Perlu Input Catatan</div>
+                            </a>
+                        </li>
+                    @endcan
+
+                    {{-- Berdasarkan Keputusan --}}
+                    <li
+                        class="menu-item {{ request()->routeIs('admin.berita-acara-sempro.index') && request()->input('keputusan') === 'Lulus' ? 'active' : '' }}">
+                        <a href="{{ route('admin.berita-acara-sempro.index', ['keputusan' => 'Lulus']) }}"
+                            class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-badge-check"></i>
+                            <div>Keputusan: Lulus</div>
+                        </a>
+                    </li>
+
+                    <li
+                        class="menu-item {{ request()->routeIs('admin.berita-acara-sempro.index') && request()->input('keputusan') === 'Lulus Bersyarat' ? 'active' : '' }}">
+                        <a href="{{ route('admin.berita-acara-sempro.index', ['keputusan' => 'Lulus Bersyarat']) }}"
+                            class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-error-circle"></i>
+                            <div>Keputusan: Lulus Bersyarat</div>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+        @endif
+
         {{-- 3. Komisi Hasil --}}
         @can('manage komisi hasil')
             <li class="menu-item {{ request()->routeIs('admin.komisi-hasil.*') ? 'active' : '' }}">
