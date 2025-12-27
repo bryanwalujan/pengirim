@@ -76,7 +76,7 @@
         </div>
 
         {{-- Form Pengisian --}}
-        <form action="{{ route('admin.berita-acara-sempro.store-fill-pembimbing', $beritaAcara) }}" method="POST"
+        <form action="{{ route('admin.berita-acara-sempro.store-fill-by-pembimbing', $beritaAcara) }}" method="POST"
             id="formFillBA">
             @csrf
 

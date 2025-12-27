@@ -159,7 +159,7 @@
                         {{-- ✅ TOMBOL UNTUK PEMBIMBING --}}
                         @if ($isPembimbing || $isKetua)
                             @if ($beritaAcara->canBeFilledAndSignedByPembimbing($user->id))
-                                <a href="{{ route('admin.berita-acara-sempro.fill-pembimbing', $beritaAcara) }}"
+                                <a href="{{ route('admin.berita-acara-sempro.fill-by-pembimbing', $beritaAcara) }}"
                                     class="btn btn-primary">
                                     <i class="bx bx-edit me-1"></i>
                                     Isi & Tanda Tangan BA
@@ -262,7 +262,7 @@
                             </div>
                             <div class="col-md-12">
                                 <label class="form-label fw-bold text-muted small">Judul Proposal</label>
-                                <div class="text-wrap">{{ $pendaftaran->judul_skripsi }}</div>
+                                <div class="text-wrap">{!! $pendaftaran->judul_skripsi !!}</div>
                             </div>
                         </div>
                     </div>

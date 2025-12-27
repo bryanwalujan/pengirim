@@ -408,73 +408,108 @@ class AdminBeritaAcaraSemproController extends Controller
         }
     }
 
-    /**
-     * Dosen pembahas memberikan persetujuan/TTD
-     */
-    public function signByPembahas(Request $request, BeritaAcaraSeminarProposal $beritaAcara)
-    {
-        $user = Auth::user();
+   /**
+ * ✅ FIXED: Dosen pembahas memberikan persetujuan/TTD
+ */
+public function signByPembahas(Request $request, BeritaAcaraSeminarProposal $beritaAcara)
+{
+    $user = Auth::user();
 
-        // Check permission
-        if (!$beritaAcara->canBeSignedByPembahas($user->id)) {
-            return back()->with('error', 'Anda tidak memiliki akses untuk menandatangani berita acara ini.');
-        }
+    // ✅ LOG: Request masuk
+    Log::info('📥 signByPembahas - Request received', [
+        'user_id' => $user->id,
+        'user_name' => $user->name,
+        'ba_id' => $beritaAcara->id,
+        'ba_status' => $beritaAcara->status,
+    ]);
 
-        try {
-            DB::beginTransaction();
+    // ✅ VALIDASI: Check permission
+    if (!$beritaAcara->canBeSignedByPembahas($user->id)) {
+        Log::warning('❌ User tidak bisa sign BA', [
+            'user_id' => $user->id,
+            'ba_id' => $beritaAcara->id,
+            'ba_status' => $beritaAcara->status,
+        ]);
 
-            // ✅ Tambahkan signature ke JSON array
-            $signatures = $beritaAcara->ttd_dosen_pembahas ?? [];
-
-            $signatures[] = [
-                'dosen_id' => $user->id,
-                'nama' => $user->name,
-                'nip' => $user->nip,
-                'posisi' => $beritaAcara->jadwalSeminarProposal->dosenPenguji()
-                    ->where('users.id', $user->id)
-                    ->first()
-                    ->pivot
-                    ->posisi,
-                'signed_at' => now()->toDateTimeString(),
-            ];
-
-            $beritaAcara->update([
-                'ttd_dosen_pembahas' => $signatures,
-            ]);
-
-            // ✅ Check apakah semua pembahas sudah TTD
-            if ($beritaAcara->fresh()->allPembahasHaveSigned()) {
-                // Update status ke menunggu pembimbing
-                $beritaAcara->update([
-                    'status' => 'menunggu_ttd_pembimbing',
-                ]);
-
-                Log::info('All Pembahas have signed, status updated to menunggu_ttd_pembimbing', [
-                    'ba_id' => $beritaAcara->id,
-                ]);
-            }
-
-            DB::commit();
-
-            Log::info('Pembahas signed Berita Acara', [
-                'ba_id' => $beritaAcara->id,
-                'dosen_id' => $user->id,
-                'total_signed' => count($signatures),
-            ]);
-
-            return back()->with('success', 'Persetujuan Anda berhasil dicatat. Terima kasih!');
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Failed to sign by pembahas', [
-                'ba_id' => $beritaAcara->id,
-                'user_id' => $user->id,
-                'error' => $e->getMessage(),
-            ]);
-
-            return back()->with('error', 'Gagal memberikan persetujuan: ' . $e->getMessage());
-        }
+        return back()->with('error', 'Anda tidak memiliki akses untuk menandatangani berita acara ini.');
     }
+
+    // ✅ VALIDASI: Checkbox confirmation
+    $request->validate([
+        'confirmation' => 'required|accepted',
+    ], [
+        'confirmation.required' => 'Anda harus menyetujui pernyataan untuk melanjutkan.',
+        'confirmation.accepted' => 'Anda harus mencentang checkbox persetujuan.',
+    ]);
+
+    try {
+        DB::beginTransaction();
+
+        // ✅ Tambahkan signature ke JSON array
+        $signatures = $beritaAcara->ttd_dosen_pembahas ?? [];
+
+        $newSignature = [
+            'dosen_id' => $user->id,
+            'dosen_name' => $user->name,
+            'signed_at' => now()->toDateTimeString(),
+        ];
+
+        $signatures[] = $newSignature;
+
+        $beritaAcara->update([
+            'ttd_dosen_pembahas' => $signatures,
+        ]);
+
+        Log::info('✅ Pembahas signature added', [
+            'ba_id' => $beritaAcara->id,
+            'dosen_id' => $user->id,
+            'total_signed' => count($signatures),
+        ]);
+
+        // ✅ REFRESH model untuk data terbaru
+        $beritaAcara->refresh();
+
+        // ✅ Check apakah semua pembahas sudah TTD
+        if ($beritaAcara->allPembahasHaveSigned()) {
+            // ✅ UBAH STATUS ke menunggu pembimbing
+            $beritaAcara->update([
+                'status' => 'menunggu_ttd_pembimbing',
+            ]);
+
+            Log::info('🎉 All pembahas have signed - status changed', [
+                'ba_id' => $beritaAcara->id,
+                'new_status' => 'menunggu_ttd_pembimbing',
+            ]);
+
+            // TODO: Kirim notifikasi ke Pembimbing/Ketua Penguji
+        }
+
+        DB::commit();
+
+        Log::info('✅✅✅ SIGN BY PEMBAHAS SUCCESS', [
+            'ba_id' => $beritaAcara->id,
+            'user_id' => $user->id,
+            'total_signatures' => count($signatures),
+            'all_signed' => $beritaAcara->fresh()->allPembahasHaveSigned(),
+        ]);
+
+        return redirect()
+            ->route('admin.berita-acara-sempro.show', $beritaAcara)
+            ->with('success', 'Persetujuan Anda berhasil dicatat. Terima kasih!');
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+
+        Log::error('❌❌❌ SIGN BY PEMBAHAS FAILED', [
+            'ba_id' => $beritaAcara->id,
+            'user_id' => $user->id,
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString(),
+        ]);
+
+        return back()->with('error', 'Gagal memberikan persetujuan: ' . $e->getMessage());
+    }
+}
 
     /**
      * Show approval form for pembahas (dosen penguji)

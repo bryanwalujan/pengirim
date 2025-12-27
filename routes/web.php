@@ -693,31 +693,6 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             Route::get('/{beritaAcara}', [AdminBeritaAcaraSemproController::class, 'show'])
                 ->name('show');
 
-            // ✅ PERBAIKI: Route approve pembahas HARUS DI ATAS route preview-signing
-            Route::get('/{beritaAcara}/approve-pembahas', [AdminBeritaAcaraSemproController::class, 'showApprovePembahas'])
-                ->name('approve-pembahas')
-                ->middleware('role:dosen');
-
-            Route::post('/{beritaAcara}/sign-pembahas', [AdminBeritaAcaraSemproController::class, 'signByPembahas'])
-                ->name('sign-pembahas')
-                ->middleware('role:dosen');
-
-            Route::get('/{beritaAcara}/fill-pembimbing', [AdminBeritaAcaraSemproController::class, 'fillByPembimbing'])
-                ->name('fill-pembimbing')
-                ->middleware('role:dosen');
-
-            Route::post('/{beritaAcara}/fill-pembimbing', [AdminBeritaAcaraSemproController::class, 'storeFillByPembimbing'])
-                ->name('store-fill-pembimbing')
-                ->middleware('role:dosen');
-
-            Route::get('/{beritaAcara}/preview-signing', [AdminBeritaAcaraSemproController::class, 'previewBeforeSigning'])
-                ->name('preview-signing')
-                ->middleware('role:dosen');
-
-            Route::post('/{beritaAcara}/sign-ketua', [AdminBeritaAcaraSemproController::class, 'signByKetua'])
-                ->name('sign-ketua')
-                ->middleware('role:dosen');
-
             Route::get('/{beritaAcara}/edit', [AdminBeritaAcaraSemproController::class, 'edit'])
                 ->name('edit')
                 ->middleware('role:staff|admin');
@@ -726,10 +701,51 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
                 ->name('update')
                 ->middleware('role:staff|admin');
 
+            // ✅ APPROVE BY PEMBAHAS - Dosen Only
+            Route::get('/{beritaAcara}/approve-pembahas', [AdminBeritaAcaraSemproController::class, 'showApprovePembahas'])
+                ->name('approve-pembahas')
+                ->middleware('role:dosen');
+
+            // ✅ TAMBAHKAN INI - Route yang HILANG!
+            Route::post('/{beritaAcara}/sign-pembahas', [AdminBeritaAcaraSemproController::class, 'signByPembahas'])
+                ->name('sign-pembahas')
+                ->middleware('role:dosen');
+
+            // ✅ FILL BY PEMBIMBING/KETUA
+            Route::get('/{beritaAcara}/fill-by-pembimbing', [AdminBeritaAcaraSemproController::class, 'fillByPembimbing'])
+                ->name('fill-by-pembimbing')
+                ->middleware('role:dosen');
+
+            Route::post('/{beritaAcara}/fill-by-pembimbing', [AdminBeritaAcaraSemproController::class, 'storeFillByPembimbing'])
+                ->name('store-fill-by-pembimbing')
+                ->middleware('role:dosen');
+
+            // ✅ SIGN BY KETUA (jika terpisah dari pembimbing)
+            Route::get('/{beritaAcara}/preview-signing', [AdminBeritaAcaraSemproController::class, 'previewBeforeSigning'])
+                ->name('preview-signing')
+                ->middleware('role:dosen');
+
+            Route::post('/{beritaAcara}/sign-ketua', [AdminBeritaAcaraSemproController::class, 'signByKetua'])
+                ->name('sign-ketua')
+                ->middleware('role:dosen');
+
+            // ✅ PDF OPERATIONS
+            Route::get('/{beritaAcara}/download-pdf', [AdminBeritaAcaraSemproController::class, 'downloadPdf'])
+                ->name('download-pdf');
+
+            Route::get('/{beritaAcara}/view-pdf', [AdminBeritaAcaraSemproController::class, 'viewPdf'])
+                ->name('view-pdf');
+
+            Route::post('/{beritaAcara}/generate-pdf', [AdminBeritaAcaraSemproController::class, 'generatePdf'])
+                ->name('generate-pdf')
+                ->middleware('role:staff|admin');
+
+            // ✅ RESET BA (Staff only)
             Route::post('/{beritaAcara}/reset', [AdminBeritaAcaraSemproController::class, 'resetBeritaAcara'])
                 ->name('reset')
                 ->middleware('role:staff|admin');
 
+            // ✅ DELETE BA (Staff only)
             Route::delete('/{beritaAcara}', [AdminBeritaAcaraSemproController::class, 'destroy'])
                 ->name('destroy')
                 ->middleware('role:staff|admin');

@@ -240,6 +240,7 @@
         @if ($beritaAcara->canBeSignedByPembahas(Auth::id()))
             <div class="card mt-4">
                 <div class="card-body">
+                    {{-- ✅ PASTIKAN route name BENAR --}}
                     <form action="{{ route('admin.berita-acara-sempro.sign-pembahas', $beritaAcara) }}" method="POST"
                         id="formApprovePembahas">
                         @csrf
