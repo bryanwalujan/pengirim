@@ -19,6 +19,148 @@ class AdminBeritaAcaraSemproController extends Controller
 {
     protected PelaksanaanUjianService $pelaksanaanUjianService;
 
+    public function previewPdf()
+    {
+        // ✅ PERBAIKAN: Buat dummy BeritaAcaraSeminarProposal sebagai COLLECTION/ARRAY
+        // Jangan gunakan stdClass karena akan error saat panggil method model
+    
+        $beritaAcara = [
+            'id' => 999,
+            'catatan_kejadian' => 'Ada beberapa perbaikan yang harus diubah',
+            'keputusan' => 'Ya, dengan perbaikan',
+            'catatan_tambahan' => 'Mahasiswa menunjukkan pemahaman yang baik terhadap topik penelitian. Presentasi disampaikan dengan jelas dan sistematis.',
+            'verification_code' => 'BA-SEMPRO-2025-001-' . strtoupper(substr(md5(time()), 0, 6)),
+            'ttd_ketua_penguji_at' => now(),
+            'is_signed' => true, // ✅ TAMBAHKAN: Flag untuk cek TTD di view
+        ];
+    
+        // Convert to object untuk konsistensi dengan view
+        $beritaAcara = (object) $beritaAcara;
+    
+        // Dummy Jadwal & Pendaftaran
+        $mahasiswa = (object) [
+            'name' => 'Budi Santoso',
+            'nim' => '21011101234',
+            'email' => 'budi.santoso@student.unsrat.ac.id',
+        ];
+    
+        $pembimbing = (object) [
+            'name' => 'Dr. Ir. Ahmad Rahman, S.T., M.T.',
+            'nip' => '198505152010121001',
+        ];
+    
+        $pendaftaran = (object) [
+            'user' => $mahasiswa,
+            'judul_skripsi' => 'Implementasi Algoritma Machine Learning untuk Deteksi Spam Email Menggunakan Naive Bayes Classifier',
+            'dosenPembimbing' => $pembimbing,
+        ];
+    
+        $jadwal = (object) [
+            'tanggal_ujian' => now()->subDays(3), // 3 hari lalu
+            'waktu_mulai' => '09:00:00',
+            'waktu_selesai' => '11:00:00',
+            'ruangan' => 'Ruang Lab Komputer A',
+            'batch' => 1,
+            'pendaftaranSeminarProposal' => $pendaftaran,
+            'dosenPenguji' => collect([
+                (object) [
+                    'id' => 1,
+                    'name' => 'Dr. Ir. Ahmad Rahman, S.T., M.T.',
+                    'nip' => '198505152010121001',
+                    'pivot' => (object) [
+                        'posisi' => 'Ketua Penguji',
+                        'status_kehadiran' => 'Hadir',
+                    ],
+                ],
+                (object) [
+                    'id' => 2,
+                    'name' => 'Dr. Siti Nurhaliza, S.Kom., M.Kom.',
+                    'nip' => '198803202012122002',
+                    'pivot' => (object) [
+                        'posisi' => 'Anggota Penguji 1',
+                        'status_kehadiran' => 'Hadir',
+                    ],
+                ],
+                (object) [
+                    'id' => 3,
+                    'name' => 'Ir. Muhammad Yusuf, S.T., M.T.',
+                    'nip' => '199001152015051001',
+                    'pivot' => (object) [
+                        'posisi' => 'Anggota Penguji 2',
+                        'status_kehadiran' => 'Hadir',
+                    ],
+                ],
+                (object) [
+                    'id' => 4,
+                    'name' => 'Dr. Eng. Andi Wijaya, S.T., M.Sc.',
+                    'nip' => '198706102014031002',
+                    'pivot' => (object) [
+                        'posisi' => 'Anggota Penguji 3',
+                        'status_kehadiran' => 'Hadir',
+                    ],
+                ],
+            ]),
+        ];
+    
+        // Tambahkan relasi ke beritaAcara
+        $beritaAcara->jadwalSeminarProposal = $jadwal;
+        $beritaAcara->ketuaPenguji = $pembimbing;
+    
+        // Dummy Lembar Catatan
+        $beritaAcara->lembarCatatan = collect([
+            (object) [
+                'dosen' => (object) [
+                    'name' => 'Dr. Siti Nurhaliza, S.Kom., M.Kom.',
+                    'nip' => '198803202012122002',
+                ],
+                'nilai_kebaruan' => 85,
+                'nilai_metode' => 80,
+                'nilai_data' => 90,
+                'total_nilai' => 85,
+                'catatan_umum' => 'Secara keseluruhan proposal sudah baik dan layak untuk dilanjutkan dengan perbaikan-perbaikan yang telah disebutkan.',
+            ],
+            (object) [
+                'dosen' => (object) [
+                    'name' => 'Ir. Muhammad Yusuf, S.T., M.T.',
+                    'nip' => '199001152015051001',
+                ],
+                'nilai_kebaruan' => 80,
+                'nilai_metode' => 85,
+                'nilai_data' => 85,
+                'total_nilai' => 83,
+                'catatan_umum' => 'Proposal menunjukkan pemahaman yang baik tentang topik penelitian. Good luck!',
+            ],
+        ]);
+    
+        // Generate verification URL
+        $verificationUrl = url('/verify/berita-acara-sempro/' . $beritaAcara->verification_code);
+    
+        // Generate QR Code
+        $qrCode = base64_encode(
+            \SimpleSoftwareIO\QrCode\Facades\QrCode::format('png')
+                ->size(200)
+                ->margin(1)
+                ->errorCorrection('H')
+                ->generate($verificationUrl)
+        );
+    
+        // Load view PDF
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.berita-acara-sempro.pdf', [
+            'beritaAcara' => $beritaAcara,
+            'jadwal' => $jadwal,
+            'pendaftaran' => $pendaftaran,
+            'qrCode' => $qrCode,
+            'verificationUrl' => $verificationUrl,
+        ])
+        ->setPaper('a4', 'portrait')
+        ->setOption('margin-top', '0.7in')
+        ->setOption('margin-bottom', '0.7in')
+        ->setOption('margin-left', '0.7in')
+        ->setOption('margin-right', '0.7in');
+    
+        return $pdf->stream('preview-berita-acara-sempro.pdf');
+    }
+
     public function __construct(PelaksanaanUjianService $pelaksanaanUjianService)
     {
         $this->pelaksanaanUjianService = $pelaksanaanUjianService;
@@ -408,108 +550,108 @@ class AdminBeritaAcaraSemproController extends Controller
         }
     }
 
-   /**
- * ✅ FIXED: Dosen pembahas memberikan persetujuan/TTD
- */
-public function signByPembahas(Request $request, BeritaAcaraSeminarProposal $beritaAcara)
-{
-    $user = Auth::user();
+    /**
+     * ✅ FIXED: Dosen pembahas memberikan persetujuan/TTD
+     */
+    public function signByPembahas(Request $request, BeritaAcaraSeminarProposal $beritaAcara)
+    {
+        $user = Auth::user();
 
-    // ✅ LOG: Request masuk
-    Log::info('📥 signByPembahas - Request received', [
-        'user_id' => $user->id,
-        'user_name' => $user->name,
-        'ba_id' => $beritaAcara->id,
-        'ba_status' => $beritaAcara->status,
-    ]);
-
-    // ✅ VALIDASI: Check permission
-    if (!$beritaAcara->canBeSignedByPembahas($user->id)) {
-        Log::warning('❌ User tidak bisa sign BA', [
+        // ✅ LOG: Request masuk
+        Log::info('📥 signByPembahas - Request received', [
             'user_id' => $user->id,
+            'user_name' => $user->name,
             'ba_id' => $beritaAcara->id,
             'ba_status' => $beritaAcara->status,
         ]);
 
-        return back()->with('error', 'Anda tidak memiliki akses untuk menandatangani berita acara ini.');
-    }
-
-    // ✅ VALIDASI: Checkbox confirmation
-    $request->validate([
-        'confirmation' => 'required|accepted',
-    ], [
-        'confirmation.required' => 'Anda harus menyetujui pernyataan untuk melanjutkan.',
-        'confirmation.accepted' => 'Anda harus mencentang checkbox persetujuan.',
-    ]);
-
-    try {
-        DB::beginTransaction();
-
-        // ✅ Tambahkan signature ke JSON array
-        $signatures = $beritaAcara->ttd_dosen_pembahas ?? [];
-
-        $newSignature = [
-            'dosen_id' => $user->id,
-            'dosen_name' => $user->name,
-            'signed_at' => now()->toDateTimeString(),
-        ];
-
-        $signatures[] = $newSignature;
-
-        $beritaAcara->update([
-            'ttd_dosen_pembahas' => $signatures,
-        ]);
-
-        Log::info('✅ Pembahas signature added', [
-            'ba_id' => $beritaAcara->id,
-            'dosen_id' => $user->id,
-            'total_signed' => count($signatures),
-        ]);
-
-        // ✅ REFRESH model untuk data terbaru
-        $beritaAcara->refresh();
-
-        // ✅ Check apakah semua pembahas sudah TTD
-        if ($beritaAcara->allPembahasHaveSigned()) {
-            // ✅ UBAH STATUS ke menunggu pembimbing
-            $beritaAcara->update([
-                'status' => 'menunggu_ttd_pembimbing',
-            ]);
-
-            Log::info('🎉 All pembahas have signed - status changed', [
+        // ✅ VALIDASI: Check permission
+        if (!$beritaAcara->canBeSignedByPembahas($user->id)) {
+            Log::warning('❌ User tidak bisa sign BA', [
+                'user_id' => $user->id,
                 'ba_id' => $beritaAcara->id,
-                'new_status' => 'menunggu_ttd_pembimbing',
+                'ba_status' => $beritaAcara->status,
             ]);
 
-            // TODO: Kirim notifikasi ke Pembimbing/Ketua Penguji
+            return back()->with('error', 'Anda tidak memiliki akses untuk menandatangani berita acara ini.');
         }
 
-        DB::commit();
-
-        Log::info('✅✅✅ SIGN BY PEMBAHAS SUCCESS', [
-            'ba_id' => $beritaAcara->id,
-            'user_id' => $user->id,
-            'total_signatures' => count($signatures),
-            'all_signed' => $beritaAcara->fresh()->allPembahasHaveSigned(),
+        // ✅ VALIDASI: Checkbox confirmation
+        $request->validate([
+            'confirmation' => 'required|accepted',
+        ], [
+            'confirmation.required' => 'Anda harus menyetujui pernyataan untuk melanjutkan.',
+            'confirmation.accepted' => 'Anda harus mencentang checkbox persetujuan.',
         ]);
 
-        return redirect()
-            ->route('admin.berita-acara-sempro.show', $beritaAcara)
-            ->with('success', 'Persetujuan Anda berhasil dicatat. Terima kasih!');
+        try {
+            DB::beginTransaction();
 
-    } catch (\Exception $e) {
-        DB::rollBack();
+            // ✅ Tambahkan signature ke JSON array
+            $signatures = $beritaAcara->ttd_dosen_pembahas ?? [];
 
-        Log::error('❌❌❌ SIGN BY PEMBAHAS FAILED', [
-            'ba_id' => $beritaAcara->id,
-            'user_id' => $user->id,
-            'error' => $e->getMessage(),
-            'trace' => $e->getTraceAsString(),
-        ]);
+            $newSignature = [
+                'dosen_id' => $user->id,
+                'dosen_name' => $user->name,
+                'signed_at' => now()->toDateTimeString(),
+            ];
 
-        return back()->with('error', 'Gagal memberikan persetujuan: ' . $e->getMessage());
+            $signatures[] = $newSignature;
+
+            $beritaAcara->update([
+                'ttd_dosen_pembahas' => $signatures,
+            ]);
+
+            Log::info('✅ Pembahas signature added', [
+                'ba_id' => $beritaAcara->id,
+                'dosen_id' => $user->id,
+                'total_signed' => count($signatures),
+            ]);
+
+            // ✅ REFRESH model untuk data terbaru
+            $beritaAcara->refresh();
+
+            // ✅ Check apakah semua pembahas sudah TTD
+            if ($beritaAcara->allPembahasHaveSigned()) {
+                // ✅ UBAH STATUS ke menunggu pembimbing
+                $beritaAcara->update([
+                    'status' => 'menunggu_ttd_pembimbing',
+                ]);
+
+                Log::info('🎉 All pembahas have signed - status changed', [
+                    'ba_id' => $beritaAcara->id,
+                    'new_status' => 'menunggu_ttd_pembimbing',
+                ]);
+
+                // TODO: Kirim notifikasi ke Pembimbing/Ketua Penguji
+            }
+
+            DB::commit();
+
+            Log::info('✅✅✅ SIGN BY PEMBAHAS SUCCESS', [
+                'ba_id' => $beritaAcara->id,
+                'user_id' => $user->id,
+                'total_signatures' => count($signatures),
+                'all_signed' => $beritaAcara->fresh()->allPembahasHaveSigned(),
+            ]);
+
+            return redirect()
+                ->route('admin.berita-acara-sempro.show', $beritaAcara)
+                ->with('success', 'Persetujuan Anda berhasil dicatat. Terima kasih!');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('❌❌❌ SIGN BY PEMBAHAS FAILED', [
+                'ba_id' => $beritaAcara->id,
+                'user_id' => $user->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return back()->with('error', 'Gagal memberikan persetujuan: ' . $e->getMessage());
+        }
     }
-}
 
     /**
      * Show approval form for pembahas (dosen penguji)
@@ -871,27 +1013,27 @@ public function signByPembahas(Request $request, BeritaAcaraSeminarProposal $ber
     public function managePembahas(BeritaAcaraSeminarProposal $beritaAcara)
     {
         $user = Auth::user();
-    
+
         if (!$this->canOverrideApproval($user)) {
             abort(403, 'Hanya staff yang dapat mengelola pembahas.');
         }
-    
+
         if ($beritaAcara->isSelesai()) {
             return redirect()
                 ->route('admin.berita-acara-sempro.show', $beritaAcara)
                 ->with('error', 'Berita acara sudah selesai, tidak dapat mengubah pembahas.');
         }
-    
+
         $jadwal = $beritaAcara->jadwalSeminarProposal;
         $pendaftaran = $jadwal->pendaftaranSeminarProposal;
         $pembimbing = $pendaftaran->dosenPembimbing;
-    
+
         // ✅ DEBUG: Log data awal
         Log::info('🔍 Manage Pembahas - Initial Data', [
             'ba_id' => $beritaAcara->id,
             'jadwal_id' => $jadwal->id,
         ]);
-    
+
         // ✅ PERBAIKAN: Get ALL penguji dengan ORDER BY yang benar
         $currentPenguji = $jadwal->dosenPenguji()
             ->withPivot('posisi', 'keterangan', 'dosen_id')
@@ -902,7 +1044,7 @@ public function signByPembahas(Request $request, BeritaAcaraSeminarProposal $ber
                 WHEN posisi = 'Anggota Penguji 3' THEN 4 
                 ELSE 5 END")
             ->get();
-    
+
         // ✅ DEBUG: Log all penguji
         Log::info('📋 All Penguji dari DB', [
             'total' => $currentPenguji->count(),
@@ -912,15 +1054,15 @@ public function signByPembahas(Request $request, BeritaAcaraSeminarProposal $ber
                 'posisi' => $d->pivot->posisi,
             ])->toArray(),
         ]);
-    
+
         // ✅ PERBAIKAN: Pisahkan Ketua dan Anggota - GUNAKAN NILAI DB ASLI
         $ketuaPembahasData = $currentPenguji->firstWhere('pivot.posisi', 'Ketua Penguji');
-    
+
         $anggotaPenguji = $currentPenguji->filter(function ($dosen) {
             // ✅ PERBAIKAN: Gunakan nilai DB yang benar
             return $dosen->pivot->posisi !== 'Ketua Penguji';
         })->values();
-    
+
         // ✅ DEBUG: Log filtered data
         Log::info('📊 Filtered Data', [
             'ketua_found' => !is_null($ketuaPembahasData),
@@ -932,23 +1074,23 @@ public function signByPembahas(Request $request, BeritaAcaraSeminarProposal $ber
                 'posisi' => $d->pivot->posisi,
             ])->toArray(),
         ]);
-    
+
         // ✅ Get available dosen (exclude pembimbing & yang sudah ditugaskan)
         $availableDosen = User::role('dosen')
             ->where('id', '!=', $pendaftaran->dosen_pembimbing_id)
             ->orderBy('name')
             ->get();
-    
+
         // ✅ Get signed dosen IDs
         $signedDosenIds = collect($beritaAcara->ttd_dosen_pembahas ?? [])
             ->pluck('dosen_id')
             ->toArray();
-    
+
         Log::info('✅ Data untuk View', [
             'available_dosen_count' => $availableDosen->count(),
             'signed_ids' => $signedDosenIds,
         ]);
-    
+
         return view('admin.berita-acara-sempro.manage-pembahas', compact(
             'beritaAcara',
             'jadwal',
@@ -965,22 +1107,22 @@ public function signByPembahas(Request $request, BeritaAcaraSeminarProposal $ber
     public function updatePembahas(Request $request, BeritaAcaraSeminarProposal $beritaAcara)
     {
         $user = Auth::user();
-    
+
         if (!$this->canOverrideApproval($user)) {
             abort(403, 'Hanya staff yang dapat mengelola pembahas.');
         }
-    
+
         if ($beritaAcara->isSelesai()) {
             return back()->with('error', 'Berita acara sudah selesai, tidak dapat mengubah pembahas.');
         }
-    
+
         // ✅ LOG: Request diterima
         Log::info('📥 updatePembahas - Request received', [
             'ba_id' => $beritaAcara->id,
             'all_input' => $request->all(),
             'pembahas_input' => $request->input('pembahas'),
         ]);
-    
+
         // ✅ VALIDASI
         try {
             $validated = $request->validate([
@@ -998,86 +1140,87 @@ public function signByPembahas(Request $request, BeritaAcaraSeminarProposal $ber
                 'pembahas.*.posisi.required' => 'Posisi wajib diisi.',
                 'pembahas.*.posisi.in' => 'Posisi harus Anggota Penguji 1, 2, atau 3.',
             ]);
-    
+
             Log::info('✅ Validation passed', ['validated' => $validated]);
-    
+
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error('❌ Validation failed', [
                 'errors' => $e->errors(),
             ]);
             throw $e;
         }
-    
+
         try {
             DB::beginTransaction();
-    
+
             $jadwal = $beritaAcara->jadwalSeminarProposal;
             $pendaftaran = $jadwal->pendaftaranSeminarProposal;
-    
+
             // ✅ Ambil signature yang sudah ada
             $existingSignatures = $beritaAcara->ttd_dosen_pembahas ?? [];
             $signedDosenIds = collect($existingSignatures)->pluck('dosen_id')->toArray();
-    
+
             Log::info('📝 Existing signatures', [
                 'signatures' => $existingSignatures,
                 'signed_ids' => $signedDosenIds,
             ]);
-    
+
             $replacements = [];
             $newPembahasData = [];
-    
+
             // ✅ STEP 1: Collect & Validate
             foreach ($request->input('pembahas', []) as $index => $pembahasData) {
                 $posisi = $pembahasData['posisi'];
                 $newDosenId = (int) $pembahasData['dosen_id'];
-    
+
                 Log::info("🔄 Processing pembahas [{$index}]", [
                     'posisi' => $posisi,
                     'new_dosen_id' => $newDosenId,
                 ]);
-    
+
                 // ✅ Cek dosen lama di posisi ini DARI PIVOT TABLE
                 $oldDosenPivot = DB::table('dosen_penguji_jadwal_sempro')
                     ->where('jadwal_seminar_proposal_id', $jadwal->id)
                     ->where('posisi', $posisi)
                     ->first();
-    
+
                 if ($oldDosenPivot) {
                     Log::info('👤 Found old dosen in pivot', [
                         'pivot_id' => $oldDosenPivot->id,
                         'old_dosen_id' => $oldDosenPivot->dosen_id,
                         'posisi' => $posisi,
                     ]);
-    
+
                     // Jika dosen berubah
                     if ($oldDosenPivot->dosen_id != $newDosenId) {
                         // Cek apakah dosen lama sudah TTD
                         if (in_array($oldDosenPivot->dosen_id, $signedDosenIds)) {
                             DB::rollBack();
-    
+
                             $oldDosen = User::find($oldDosenPivot->dosen_id);
-                            
+
                             Log::warning('🚫 Attempt to replace signed dosen', [
                                 'posisi' => $posisi,
                                 'old_dosen_id' => $oldDosenPivot->dosen_id,
                                 'old_dosen_name' => $oldDosen->name,
                                 'new_dosen_id' => $newDosenId,
                             ]);
-    
-                            return back()->with('error',
+
+                            return back()->with(
+                                'error',
                                 "Dosen {$oldDosen->name} di posisi {$posisi} sudah memberikan persetujuan (TTD), tidak dapat diganti."
                             );
                         }
-    
+
                         $oldDosen = User::find($oldDosenPivot->dosen_id);
                         $newDosen = User::find($newDosenId);
-                        
+
                         $replacements[] = [
                             'posisi' => $posisi,
                             'old_dosen' => $oldDosen->name,
                             'new_dosen' => $newDosen->name,
                         ];
-    
+
                         Log::info('✏️ Dosen will be replaced', [
                             'posisi' => $posisi,
                             'old_dosen' => $oldDosen->name,
@@ -1087,22 +1230,22 @@ public function signByPembahas(Request $request, BeritaAcaraSeminarProposal $ber
                 } else {
                     Log::warning('⚠️ No old dosen found at position', ['posisi' => $posisi]);
                 }
-    
+
                 $newPembahasData[$posisi] = $newDosenId;
             }
-    
+
             Log::info('📦 New pembahas data collected', [
                 'new_pembahas_data' => $newPembahasData,
                 'replacements_count' => count($replacements),
             ]);
-    
+
             // ✅ STEP 2: Update pivot table LANGSUNG dengan UPDATE query
             foreach ($newPembahasData as $posisi => $newDosenId) {
                 $existingPivot = DB::table('dosen_penguji_jadwal_sempro')
                     ->where('jadwal_seminar_proposal_id', $jadwal->id)
                     ->where('posisi', $posisi)
                     ->first();
-    
+
                 if ($existingPivot) {
                     if ($existingPivot->dosen_id != $newDosenId) {
                         // ✅ LANGSUNG UPDATE dengan DB query
@@ -1112,7 +1255,7 @@ public function signByPembahas(Request $request, BeritaAcaraSeminarProposal $ber
                                 'dosen_id' => $newDosenId,
                                 'updated_at' => now(),
                             ]);
-    
+
                         Log::info('✅ UPDATE pivot', [
                             'pivot_id' => $existingPivot->id,
                             'posisi' => $posisi,
@@ -1120,12 +1263,12 @@ public function signByPembahas(Request $request, BeritaAcaraSeminarProposal $ber
                             'new_dosen_id' => $newDosenId,
                             'rows_affected' => $affected,
                         ]);
-    
+
                         // ✅ VERIFY update
                         $verifyUpdate = DB::table('dosen_penguji_jadwal_sempro')
                             ->where('id', $existingPivot->id)
                             ->first();
-    
+
                         Log::info('🔎 VERIFY after UPDATE', [
                             'dosen_id_after' => $verifyUpdate->dosen_id,
                             'expected' => $newDosenId,
@@ -1146,18 +1289,18 @@ public function signByPembahas(Request $request, BeritaAcaraSeminarProposal $ber
                         'created_at' => now(),
                         'updated_at' => now(),
                     ]);
-    
+
                     Log::info('✅ INSERT new pivot', [
                         'posisi' => $posisi,
                         'dosen_id' => $newDosenId,
                     ]);
                 }
             }
-    
+
             // ✅ STEP 3: Update signatures - Hapus signature dosen yang diganti
             $newSignatures = [];
             $newDosenIds = array_values($newPembahasData);
-    
+
             foreach ($existingSignatures as $signature) {
                 if (in_array($signature['dosen_id'], $newDosenIds)) {
                     $newSignatures[] = $signature;
@@ -1167,37 +1310,37 @@ public function signByPembahas(Request $request, BeritaAcaraSeminarProposal $ber
                     ]);
                 }
             }
-    
+
             $beritaAcara->update([
                 'ttd_dosen_pembahas' => $newSignatures,
             ]);
-    
+
             Log::info('✅ Signatures updated', [
                 'old_count' => count($existingSignatures),
                 'new_count' => count($newSignatures),
             ]);
-    
+
             // ✅ COMMIT transaction
             DB::commit();
-    
+
             Log::info('✅✅✅ UPDATE PEMBAHAS SUCCESS', [
                 'ba_id' => $beritaAcara->id,
                 'jadwal_id' => $jadwal->id,
                 'replacements' => $replacements,
             ]);
-    
+
             $message = 'Daftar pembahas berhasil diperbarui.';
             if (count($replacements) > 0) {
                 $message .= ' ' . count($replacements) . ' dosen telah diganti.';
             }
-    
+
             return redirect()
                 ->route('admin.berita-acara-sempro.show', $beritaAcara)
                 ->with('success', $message);
-    
+
         } catch (\Exception $e) {
             DB::rollBack();
-    
+
             Log::error('❌❌❌ UPDATE PEMBAHAS FAILED', [
                 'ba_id' => $beritaAcara->id,
                 'error' => $e->getMessage(),
@@ -1205,7 +1348,7 @@ public function signByPembahas(Request $request, BeritaAcaraSeminarProposal $ber
                 'line' => $e->getLine(),
                 'trace' => $e->getTraceAsString(),
             ]);
-    
+
             return back()
                 ->withInput()
                 ->with('error', 'Gagal memperbarui pembahas: ' . $e->getMessage());

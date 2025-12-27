@@ -55,6 +55,10 @@ Route::get('/preview-surat-usulan-sempro-pdf', [AdminPendaftaranSeminarProposalC
     ->name('preview.surat-usulan-sempro.pdf')
     ->middleware('auth');
 
+Route::get('/preview-berita-acara-sempro-pdf', [AdminBeritaAcaraSemproController::class, 'previewPdf'])
+    ->name('preview.berita-acara-sempro.pdf')
+    ->middleware('auth');
+
 // Untuk User (Mahasiswa)
 Route::get('/', [HomeController::class, 'index'])->name('user.home.index');
 
