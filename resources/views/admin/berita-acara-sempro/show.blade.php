@@ -252,9 +252,12 @@
                                 <div class="fw-semibold">
                                     {{ $jadwal->tanggal_ujian->isoFormat('dddd, D MMMM Y') }}
                                 </div>
-                                <small class="text-muted">
-                                    {{ $jadwal->waktu_mulai }} - {{ $jadwal->waktu_selesai }}
-                                </small>
+                                <div class="mt-1">
+    <span class="badge bg-label-primary">
+        <i class="bx bx-time-five me-1"></i>
+        {{ \Carbon\Carbon::parse($jadwal->waktu_mulai)->format('H:i') }} - {{ \Carbon\Carbon::parse($jadwal->waktu_selesai)->format('H:i') }} WITA
+    </span>
+</div>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold text-muted small">Ruangan</label>
@@ -287,7 +290,18 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach ($pembahasHadir as $index => $dosen)
+                                    @php
+                                        // ✅ Sort dosen: Ketua Pembahas pertama, kemudian Anggota Pembahas berurutan
+                                        $sortedPembahas = $pembahasHadir->sortBy(function($dosen) {
+                                            if ($dosen->pivot->posisi === 'Ketua Pembahas') {
+                                                return 0; // Ketua Pembahas di urutan pertama
+                                            }
+                                            // Extract angka dari "Anggota Pembahas 1", "Anggota Pembahas 2", dst
+                                            preg_match('/\d+/', $dosen->pivot->posisi, $matches);
+                                            return isset($matches[0]) ? (int)$matches[0] : 999;
+                                        })->values(); // ✅ Reset keys agar index dimulai dari 0
+                                    @endphp
+                                    @foreach ($sortedPembahas as $index => $dosen)
                                         @php
                                             $hasSigned = $beritaAcara->hasSignedByPembahas($dosen->id);
                                             $isCurrentUser = $dosen->id === $user->id;
@@ -503,14 +517,6 @@
                                                 TTD</small>
                                         @endif
                                     </div>
-                                    @if ($beritaAcara->ttd_dosen_pembahas && count($beritaAcara->ttd_dosen_pembahas) > 0)
-                                        <p class="mb-0 small">
-                                            Terakhir:
-                                            {{ collect($beritaAcara->ttd_dosen_pembahas)->last()['nama'] ?? '-' }}
-                                        </p>
-                                    @else
-                                        <p class="mb-0 small text-muted">Menunggu...</p>
-                                    @endif
                                 </div>
                             </li>
 

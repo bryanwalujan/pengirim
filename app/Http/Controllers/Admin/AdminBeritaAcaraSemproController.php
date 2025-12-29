@@ -259,7 +259,7 @@ class AdminBeritaAcaraSemproController extends Controller
                 $query->where('status', 'menunggu_ttd_pembahas')
                     ->whereHas('jadwalSeminarProposal.dosenPenguji', function ($q) use ($userId) {
                         $q->where('users.id', $userId)
-                            ->where('posisi', '!=', 'Ketua Penguji');
+                            ->where('posisi', '!=', 'Ketua Pembahas');
                     })
                     ->where(function ($q) use ($userId) {
                         $q->whereNull('ttd_dosen_pembahas')
@@ -275,7 +275,7 @@ class AdminBeritaAcaraSemproController extends Controller
                         })
                             ->orWhereHas('dosenPenguji', function ($q2) use ($userId) {
                                 $q2->where('users.id', $userId)
-                                    ->where('posisi', 'Ketua Penguji');
+                                    ->where('posisi', 'Ketua Pembahas');
                             });
                     });
 
@@ -336,7 +336,7 @@ class AdminBeritaAcaraSemproController extends Controller
                 'menunggu_ttd_pembahas' => \App\Models\BeritaAcaraSeminarProposal::where('status', 'menunggu_ttd_pembahas')
                     ->whereHas('jadwalSeminarProposal.dosenPenguji', function ($q) use ($user) {
                         $q->where('users.id', $user->id)
-                            ->where('posisi', '!=', 'Ketua Penguji');
+                            ->where('posisi', '!=', 'Ketua Pembahas');
                     })
                     ->where(function ($q) use ($user) {
                         $q->whereNull('ttd_dosen_pembahas')
@@ -350,7 +350,7 @@ class AdminBeritaAcaraSemproController extends Controller
                         })
                             ->orWhereHas('dosenPenguji', function ($q2) use ($user) {
                                 $q2->where('users.id', $user->id)
-                                    ->where('posisi', 'Ketua Penguji');
+                                    ->where('posisi', 'Ketua Pembahas');
                             });
                     })
                     ->count(),
@@ -500,7 +500,7 @@ class AdminBeritaAcaraSemproController extends Controller
         // Check apakah user adalah ketua penguji
         $isKetua = false;
         $ketuaPenguji = $jadwal->dosenPenguji()
-            ->wherePivot('posisi', 'Ketua Penguji')
+            ->wherePivot('posisi', 'Ketua Pembahas')
             ->first();
 
         if ($ketuaPenguji) {
@@ -1079,10 +1079,10 @@ class AdminBeritaAcaraSemproController extends Controller
         $currentPenguji = $jadwal->dosenPenguji()
             ->withPivot('posisi', 'keterangan', 'dosen_id')
             ->orderByRaw("CASE 
-                WHEN posisi = 'Ketua Penguji' THEN 1 
-                WHEN posisi = 'Anggota Penguji 1' THEN 2 
-                WHEN posisi = 'Anggota Penguji 2' THEN 3 
-                WHEN posisi = 'Anggota Penguji 3' THEN 4 
+                WHEN posisi = 'Ketua Pembahas' THEN 1 
+                WHEN posisi = 'Anggota Pembahas 1' THEN 2 
+                WHEN posisi = 'Anggota Pembahas 2' THEN 3 
+                WHEN posisi = 'Anggota Pembahas 3' THEN 4 
                 ELSE 5 END")
             ->get();
 
@@ -1097,11 +1097,11 @@ class AdminBeritaAcaraSemproController extends Controller
         ]);
 
         // ✅ PERBAIKAN: Pisahkan Ketua dan Anggota - GUNAKAN NILAI DB ASLI
-        $ketuaPembahasData = $currentPenguji->firstWhere('pivot.posisi', 'Ketua Penguji');
+        $ketuaPembahasData = $currentPenguji->firstWhere('pivot.posisi', 'Ketua Pembahas');
 
         $anggotaPenguji = $currentPenguji->filter(function ($dosen) {
             // ✅ PERBAIKAN: Gunakan nilai DB yang benar
-            return $dosen->pivot->posisi !== 'Ketua Penguji';
+            return $dosen->pivot->posisi !== 'Ketua Pembahas';
         })->values();
 
         // ✅ DEBUG: Log filtered data
@@ -1172,14 +1172,14 @@ class AdminBeritaAcaraSemproController extends Controller
                 'pembahas.*.posisi' => [
                     'required',
                     'string',
-                    'in:Anggota Penguji 1,Anggota Penguji 2,Anggota Penguji 3'
+                    'in:Anggota Pembahas 1,Anggota Pembahas 2,Anggota Pembahas 3'
                 ],
             ], [
                 'pembahas.required' => 'Data pembahas wajib diisi.',
                 'pembahas.*.dosen_id.required' => 'Dosen wajib dipilih.',
                 'pembahas.*.dosen_id.exists' => 'Dosen tidak valid.',
                 'pembahas.*.posisi.required' => 'Posisi wajib diisi.',
-                'pembahas.*.posisi.in' => 'Posisi harus Anggota Penguji 1, 2, atau 3.',
+                'pembahas.*.posisi.in' => 'Posisi harus Anggota Pembahas 1, 2, atau 3.',
             ]);
 
             Log::info('✅ Validation passed', ['validated' => $validated]);

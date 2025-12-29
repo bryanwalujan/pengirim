@@ -236,7 +236,7 @@ class JadwalSeminarProposal extends Model
     public function getKetuaPenguji()
     {
         return $this->dosenPenguji()
-            ->wherePivot('posisi', 'Keguat Penguji')
+            ->wherePivot('posisi', 'Ketua Pembahas')
             ->first();
     }
 
@@ -255,7 +255,7 @@ class JadwalSeminarProposal extends Model
     public function getAnggotaPenguji()
     {
         return $this->dosenPenguji()
-            ->wherePivot('posisi', 'like', 'Anggota Penguji%')
+            ->wherePivot('posisi', 'like', 'Anggota Pembahas%')
             ->orderByRaw("CAST(SUBSTRING_INDEX(posisi, ' ', -1) AS UNSIGNED)")
             ->get();
     }
@@ -474,7 +474,7 @@ class JadwalSeminarProposal extends Model
                 // Pembimbing sebagai Ketua Penguji
                 if ($pendaftaran->dosen_pembimbing_id) {
                     $dosenData[$pendaftaran->dosen_pembimbing_id] = [
-                        'posisi' => 'Ketua Penguji', // ✅ Gunakan nilai yang konsisten
+                        'posisi' => 'Ketua Pembahas', // ✅ Gunakan nilai yang konsisten
                         'created_at' => now(),
                         'updated_at' => now(),
                     ];
@@ -487,7 +487,7 @@ class JadwalSeminarProposal extends Model
 
                 foreach ($pembahas as $index => $pb) {
                     $dosenData[$pb->dosen_id] = [
-                        'posisi' => 'Anggota Penguji ' . ($index + 1), // ✅ Konsisten dengan migration
+                        'posisi' => 'Anggota Pembahas ' . ($index + 1), // ✅ Konsisten dengan migration
                         'created_at' => now(),
                         'updated_at' => now(),
                     ];

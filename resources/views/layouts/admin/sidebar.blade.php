@@ -968,7 +968,7 @@
                     // ✅ Dosen sebagai Pembahas - yang menunggu TTD mereka
                     $asPembahas = \App\Models\BeritaAcaraSeminarProposal::where('status', 'menunggu_ttd_pembahas')
                         ->whereHas('jadwalSeminarProposal.dosenPenguji', function ($q) use ($userId) {
-                            $q->where('users.id', $userId)->where('posisi', '!=', 'Ketua Penguji');
+                            $q->where('users.id', $userId)->where('posisi', '!=', 'Ketua Pembahas');
                         })
                         ->where(function ($q) use ($userId) {
                             // Check JSON field - dosen belum TTD
@@ -985,7 +985,7 @@
                             $q->whereHas('pendaftaranSeminarProposal', function ($q2) use ($userId) {
                                 $q2->where('dosen_pembimbing_id', $userId);
                             })->orWhereHas('dosenPenguji', function ($q2) use ($userId) {
-                                $q2->where('users.id', $userId)->where('posisi', 'Ketua Penguji');
+                                $q2->where('users.id', $userId)->where('posisi', 'Ketua Pembahas');
                             });
                         })
                         ->count();
@@ -996,13 +996,10 @@
 
             <li class="menu-item {{ $isBeritaAcaraActive ? 'active' : '' }}">
                 @if (auth()->user()->hasRole('staff'))
-                    {{-- STAFF: Menu tunggal dengan badge --}}
+                    {{-- STAFF: Menu tunggal TANPA badge (badge hanya untuk dosen) --}}
                     <a href="{{ route('admin.berita-acara-sempro.index') }}" class="menu-link">
                         <i class="menu-icon tf-icons bx bx-file-blank"></i>
                         <div>Berita Acara Sempro</div>
-                        @if ($notifCount > 0)
-                            <span class="badge bg-danger rounded-pill ms-auto">{{ $notifCount }}</span>
-                        @endif
                     </a>
                 @else
                     {{-- DOSEN: Menu dengan dropdown --}}
@@ -1025,7 +1022,7 @@
                                     'menunggu_ttd_pembahas',
                                 )
                                     ->whereHas('jadwalSeminarProposal.dosenPenguji', function ($q) use ($userId) {
-                                        $q->where('users.id', $userId)->where('posisi', '!=', 'Ketua Penguji');
+                                        $q->where('users.id', $userId)->where('posisi', '!=', 'Ketua Pembahas');
                                     })
                                     ->where(function ($q) use ($userId) {
                                         $q->whereNull('ttd_dosen_pembahas')->orWhereRaw(
@@ -1038,7 +1035,7 @@
                                 // ✅ PERBAIKAN: Cek apakah dosen pernah jadi pembahas
                                 $isPembahas = \DB::table('dosen_penguji_jadwal_sempro')
                                     ->where('dosen_id', $userId)
-                                    ->where('posisi', '!=', 'Ketua Penguji')
+                                    ->where('posisi', '!=', 'Ketua Pembahas')
                                     ->exists();
                             @endphp
 
@@ -1072,7 +1069,7 @@
                                         $q->whereHas('pendaftaranSeminarProposal', function ($q2) use ($userId) {
                                             $q2->where('dosen_pembimbing_id', $userId);
                                         })->orWhereHas('dosenPenguji', function ($q2) use ($userId) {
-                                            $q2->where('users.id', $userId)->where('posisi', 'Ketua Penguji');
+                                            $q2->where('users.id', $userId)->where('posisi', 'Ketua Pembahas');
                                         });
                                     })
                                     ->count();
@@ -1085,7 +1082,7 @@
                                     )->exists() ||
                                     \DB::table('dosen_penguji_jadwal_sempro')
                                         ->where('dosen_id', $userId)
-                                        ->where('posisi', 'Ketua Penguji')
+                                        ->where('posisi', 'Ketua Pembahas')
                                         ->exists();
                             @endphp
 
