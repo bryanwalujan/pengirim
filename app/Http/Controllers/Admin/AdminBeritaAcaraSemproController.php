@@ -23,7 +23,7 @@ class AdminBeritaAcaraSemproController extends Controller
     {
         // ✅ PERBAIKAN: Buat dummy BeritaAcaraSeminarProposal sebagai COLLECTION/ARRAY
         // Jangan gunakan stdClass karena akan error saat panggil method model
-    
+
         $beritaAcara = [
             'id' => 999,
             'catatan_kejadian' => 'Ada beberapa perbaikan yang harus diubah',
@@ -33,28 +33,28 @@ class AdminBeritaAcaraSemproController extends Controller
             'ttd_ketua_penguji_at' => now(),
             'is_signed' => true, // ✅ TAMBAHKAN: Flag untuk cek TTD di view
         ];
-    
+
         // Convert to object untuk konsistensi dengan view
         $beritaAcara = (object) $beritaAcara;
-    
+
         // Dummy Jadwal & Pendaftaran
         $mahasiswa = (object) [
             'name' => 'Budi Santoso',
             'nim' => '21011101234',
             'email' => 'budi.santoso@student.unsrat.ac.id',
         ];
-    
+
         $pembimbing = (object) [
-            'name' => 'Dr. Ir. Ahmad Rahman, S.T., M.T.',
+            'name' => 'Cindy Pamela Cornelia Munaiseche, S.T., M.Eng',
             'nip' => '198505152010121001',
         ];
-    
+
         $pendaftaran = (object) [
             'user' => $mahasiswa,
-            'judul_skripsi' => 'Implementasi Algoritma Machine Learning untuk Deteksi Spam Email Menggunakan Naive Bayes Classifier',
+            'judul_skripsi' => 'Penerapan Algoritma K- Means Pada Sistem Pencarian Berbasis Gambar di Repositori Elektronik Program Studi Teknik Informatika Universitas Negeri Manado',
             'dosenPembimbing' => $pembimbing,
         ];
-    
+
         $jadwal = (object) [
             'tanggal_ujian' => now()->subDays(3), // 3 hari lalu
             'waktu_mulai' => '09:00:00',
@@ -65,7 +65,7 @@ class AdminBeritaAcaraSemproController extends Controller
             'dosenPenguji' => collect([
                 (object) [
                     'id' => 1,
-                    'name' => 'Dr. Ir. Ahmad Rahman, S.T., M.T.',
+                    'name' => 'Cindy Pamela Cornelia Munaiseche, S.T., M.Eng',
                     'nip' => '198505152010121001',
                     'pivot' => (object) [
                         'posisi' => 'Ketua Penguji',
@@ -101,11 +101,11 @@ class AdminBeritaAcaraSemproController extends Controller
                 ],
             ]),
         ];
-    
+
         // Tambahkan relasi ke beritaAcara
         $beritaAcara->jadwalSeminarProposal = $jadwal;
         $beritaAcara->ketuaPenguji = $pembimbing;
-    
+
         // Dummy Lembar Catatan
         $beritaAcara->lembarCatatan = collect([
             (object) [
@@ -131,10 +131,10 @@ class AdminBeritaAcaraSemproController extends Controller
                 'catatan_umum' => 'Proposal menunjukkan pemahaman yang baik tentang topik penelitian. Good luck!',
             ],
         ]);
-    
+
         // Generate verification URL
         $verificationUrl = url('/verify/berita-acara-sempro/' . $beritaAcara->verification_code);
-    
+
         // Generate QR Code
         $qrCode = base64_encode(
             \SimpleSoftwareIO\QrCode\Facades\QrCode::format('png')
@@ -143,7 +143,7 @@ class AdminBeritaAcaraSemproController extends Controller
                 ->errorCorrection('H')
                 ->generate($verificationUrl)
         );
-    
+
         // Load view PDF
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.berita-acara-sempro.pdf', [
             'beritaAcara' => $beritaAcara,
@@ -152,12 +152,12 @@ class AdminBeritaAcaraSemproController extends Controller
             'qrCode' => $qrCode,
             'verificationUrl' => $verificationUrl,
         ])
-        ->setPaper('a4', 'portrait')
-        ->setOption('margin-top', '0.7in')
-        ->setOption('margin-bottom', '0.7in')
-        ->setOption('margin-left', '0.7in')
-        ->setOption('margin-right', '0.7in');
-    
+            ->setPaper('a4', 'portrait')
+            ->setOption('margin-top', '0.7in')
+            ->setOption('margin-bottom', '0.7in')
+            ->setOption('margin-left', '0.7in')
+            ->setOption('margin-right', '0.7in');
+
         return $pdf->stream('preview-berita-acara-sempro.pdf');
     }
 
@@ -249,20 +249,51 @@ class AdminBeritaAcaraSemproController extends Controller
             'lembarCatatan',
         ]);
 
-        // ✅ Filter berdasarkan role
+        // ✅ FILTER BERDASARKAN ROLE & PARAMETER
         if ($user->hasRole('dosen')) {
-            $query->whereHas('jadwalSeminarProposal', function ($q) use ($user) {
-                $q->whereHas('pendaftaranSeminarProposal', function ($q2) use ($user) {
-                    // Sebagai pembimbing
-                    $q2->where('dosen_pembimbing_id', $user->id);
-                })->orWhereHas('dosenPenguji', function ($q3) use ($user) {
-                    // Sebagai pembahas/ketua
-                    $q3->where('dosen_id', $user->id);
-                });
-            });
+            $filter = $request->input('filter');
+            $userId = $user->id;
+
+            if ($filter === 'pembahas') {
+                // ✅ Dosen sebagai pembahas - yang menunggu TTD mereka
+                $query->where('status', 'menunggu_ttd_pembahas')
+                    ->whereHas('jadwalSeminarProposal.dosenPenguji', function ($q) use ($userId) {
+                        $q->where('users.id', $userId)
+                            ->where('posisi', '!=', 'Ketua Penguji');
+                    })
+                    ->where(function ($q) use ($userId) {
+                        $q->whereNull('ttd_dosen_pembahas')
+                            ->orWhereRaw("NOT JSON_CONTAINS(ttd_dosen_pembahas, JSON_OBJECT('dosen_id', ?), '$')", [$userId]);
+                    });
+
+            } elseif ($filter === 'pembimbing') {
+                // ✅ Dosen sebagai pembimbing/ketua - yang perlu diisi
+                $query->where('status', 'menunggu_ttd_pembimbing')
+                    ->whereHas('jadwalSeminarProposal', function ($q) use ($userId) {
+                        $q->whereHas('pendaftaranSeminarProposal', function ($q2) use ($userId) {
+                            $q2->where('dosen_pembimbing_id', $userId);
+                        })
+                            ->orWhereHas('dosenPenguji', function ($q2) use ($userId) {
+                                $q2->where('users.id', $userId)
+                                    ->where('posisi', 'Ketua Penguji');
+                            });
+                    });
+
+            } else {
+                // ✅ PERBAIKAN: Default (Riwayat) - HANYA BA yang dosen ini sudah approve
+                $query->where('status', 'selesai')
+                    ->where(function ($q) use ($userId) {
+                        // BA yang dosen ini sudah TTD sebagai pembahas
+                        $q->whereRaw("JSON_CONTAINS(ttd_dosen_pembahas, JSON_OBJECT('dosen_id', ?), '$')", [$userId])
+                            // ATAU BA yang dosen ini sudah TTD sebagai pembimbing
+                            ->orWhere('ttd_pembimbing_by', $userId)
+                            // ATAU BA yang dosen ini sudah TTD sebagai ketua
+                            ->orWhere('ttd_ketua_penguji_by', $userId);
+                    });
+            }
         }
 
-        // Filter by status
+        // Filter by status (untuk staff)
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
@@ -292,36 +323,46 @@ class AdminBeritaAcaraSemproController extends Controller
 
         $beritaAcaras = $query->latest()->paginate(20)->withQueryString();
 
-        // ✅ Statistics
+        // ✅ Statistics untuk Dosen
         if ($user->hasRole('dosen')) {
-            $baseQuery = BeritaAcaraSeminarProposal::whereHas('jadwalSeminarProposal', function ($q) use ($user) {
-                $q->whereHas('pendaftaranSeminarProposal', function ($q2) use ($user) {
-                    $q2->where('dosen_pembimbing_id', $user->id);
-                })->orWhereHas('dosenPenguji', function ($q3) use ($user) {
-                    $q3->where('dosen_id', $user->id);
-                });
-            });
-
             $stats = [
-                'total' => $baseQuery->count(),
-                'draft' => (clone $baseQuery)->where('status', 'draft')->count(),
-                'menunggu_ttd_pembahas' => (clone $baseQuery)->where('status', 'menunggu_ttd_pembahas')->count(),
-                'menunggu_ttd_pembimbing' => (clone $baseQuery)->where('status', 'menunggu_ttd_pembimbing')->count(),
-                'selesai' => (clone $baseQuery)->where('status', 'selesai')->count(),
-                'lulus' => (clone $baseQuery)->where('keputusan', 'Ya')->count(),
-                'lulus_bersyarat' => (clone $baseQuery)->where('keputusan', 'Ya, dengan perbaikan')->count(),
-                'tidak_lulus' => (clone $baseQuery)->where('keputusan', 'Tidak')->count(),
+                'total' => \App\Models\BeritaAcaraSeminarProposal::where('status', 'selesai')
+                    ->where(function ($q) use ($user) {
+                        $q->whereRaw("JSON_CONTAINS(ttd_dosen_pembahas, JSON_OBJECT('dosen_id', ?), '$')", [$user->id])
+                            ->orWhere('ttd_pembimbing_by', $user->id)
+                            ->orWhere('ttd_ketua_penguji_by', $user->id);
+                    })
+                    ->count(),
+                'menunggu_ttd_pembahas' => \App\Models\BeritaAcaraSeminarProposal::where('status', 'menunggu_ttd_pembahas')
+                    ->whereHas('jadwalSeminarProposal.dosenPenguji', function ($q) use ($user) {
+                        $q->where('users.id', $user->id)
+                            ->where('posisi', '!=', 'Ketua Penguji');
+                    })
+                    ->where(function ($q) use ($user) {
+                        $q->whereNull('ttd_dosen_pembahas')
+                            ->orWhereRaw("NOT JSON_CONTAINS(ttd_dosen_pembahas, JSON_OBJECT('dosen_id', ?), '$')", [$user->id]);
+                    })
+                    ->count(),
+                'menunggu_ttd_pembimbing' => \App\Models\BeritaAcaraSeminarProposal::where('status', 'menunggu_ttd_pembimbing')
+                    ->whereHas('jadwalSeminarProposal', function ($q) use ($user) {
+                        $q->whereHas('pendaftaranSeminarProposal', function ($q2) use ($user) {
+                            $q2->where('dosen_pembimbing_id', $user->id);
+                        })
+                            ->orWhereHas('dosenPenguji', function ($q2) use ($user) {
+                                $q2->where('users.id', $user->id)
+                                    ->where('posisi', 'Ketua Penguji');
+                            });
+                    })
+                    ->count(),
             ];
         } else {
+            // Statistics untuk Staff
             $stats = [
-                'total' => BeritaAcaraSeminarProposal::count(),
-                'draft' => BeritaAcaraSeminarProposal::where('status', 'draft')->count(),
-                'menunggu_ttd_pembahas' => BeritaAcaraSeminarProposal::where('status', 'menunggu_ttd_pembahas')->count(),
-                'menunggu_ttd_pembimbing' => BeritaAcaraSeminarProposal::where('status', 'menunggu_ttd_pembimbing')->count(),
-                'selesai' => BeritaAcaraSeminarProposal::where('status', 'selesai')->count(),
-                'lulus' => BeritaAcaraSeminarProposal::where('keputusan', 'Ya')->count(),
-                'lulus_bersyarat' => BeritaAcaraSeminarProposal::where('keputusan', 'Ya, dengan perbaikan')->count(),
-                'tidak_lulus' => BeritaAcaraSeminarProposal::where('keputusan', 'Tidak')->count(),
+                'total' => \App\Models\BeritaAcaraSeminarProposal::count(),
+                'draft' => \App\Models\BeritaAcaraSeminarProposal::where('status', 'draft')->count(),
+                'menunggu_ttd_pembahas' => \App\Models\BeritaAcaraSeminarProposal::where('status', 'menunggu_ttd_pembahas')->count(),
+                'menunggu_ttd_pembimbing' => \App\Models\BeritaAcaraSeminarProposal::where('status', 'menunggu_ttd_pembimbing')->count(),
+                'selesai' => \App\Models\BeritaAcaraSeminarProposal::where('status', 'selesai')->count(),
             ];
         }
 

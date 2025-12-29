@@ -89,7 +89,7 @@
         <div class="card mb-4">
             <div class="card-header">
                 <h5 class="mb-0">
-                    <i class="bx bx-group me-2"></i>Dewan Penguji
+                    <i class="bx bx-group me-2"></i>Pembimbing & Pembahas Ujian Seminar Proposal
                 </h5>
             </div>
             <div class="card-body">
@@ -112,8 +112,8 @@
                                     </td>
                                     <td>
                                         <span
-                                            class="badge {{ $dosen->pivot->posisi === 'Ketua Penguji' ? 'bg-label-success' : 'bg-label-primary' }}">
-                                            @if ($dosen->pivot->posisi === 'Ketua Penguji')
+                                            class="badge {{ $dosen->pivot->posisi === 'Ketua Pembahas' ? 'bg-label-success' : 'bg-label-primary' }}">
+                                            @if ($dosen->pivot->posisi === 'Ketua Pembahas')
                                                 <i class="bx bx-star me-1"></i>
                                             @else
                                                 <i class="bx bx-user me-1"></i>

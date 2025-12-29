@@ -122,6 +122,24 @@ class KomisiProposalController extends Controller
                 'dosen_pembimbing_id.exists' => 'Pembimbing Akademik yang dipilih tidak valid.',
             ]);
 
+            // ✅ VALIDASI TAMBAHAN: Cegah judul ALL CAPS
+            $judul = trim($validated['judul_skripsi']);
+            if (strlen($judul) >= 10) {
+                preg_match_all('/[A-Z]/', $judul, $uppercaseMatches);
+                preg_match_all('/[a-z]/', $judul, $lowercaseMatches);
+                
+                $uppercaseCount = count($uppercaseMatches[0]);
+                $lowercaseCount = count($lowercaseMatches[0]);
+                $totalLetters = $uppercaseCount + $lowercaseCount;
+                
+                // Jika lebih dari 80% huruf adalah kapital, tolak
+                if ($totalLetters > 0 && ($uppercaseCount / $totalLetters) > 0.8) {
+                    return back()
+                        ->withInput()
+                        ->withErrors(['judul_skripsi' => 'Judul skripsi tidak boleh ditulis dengan huruf kapital semua (ALL CAPS). Gunakan huruf kapital hanya di awal kata yang sesuai.']);
+                }
+            }
+
             // STEP 4: Validasi dosen yang dipilih
             $dosen = User::lockForUpdate()->find($request->dosen_pembimbing_id);
 

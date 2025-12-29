@@ -45,8 +45,7 @@
             text-align: center;
             font-weight: bold;
             font-size: 12pt;
-            margin: 15px 0;
-            text-decoration: underline;
+            margin: 10px 0;
         }
 
         /* Tabel Data Mahasiswa */
@@ -80,34 +79,31 @@
             background-color: #ffffff;
         }
 
-        /* ✅ PERBAIKAN: Checkbox Styling - Sesuai Screenshot */
-        .checkbox-container {
-            margin-top: 15px;
-            margin-bottom: 10px;
+        /* ✅ BARU: Tabel Checkbox - Lebih Mudah Diatur */
+        .checkbox-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 5px 0;
         }
 
-        .section-label {
-            font-weight: bold;
-            margin-bottom: 8px;
-            display: block;
+        .checkbox-table td {
+            padding: 4px 6px;
+            vertical-align: middle;
         }
 
-        .checkbox-group {
-            margin-left: 0;
-            line-height: 1.8;
+        .checkbox-table td.label-col {
+            width: 55%;
+            vertical-align: top;
         }
 
-        .checkbox-item {
-            display: block;
-            margin-bottom: 6px;
-            padding-left: 25px;
-            position: relative;
+        .checkbox-table .checkbox-cell {
+            width: 18px;
+            text-align: center;
+            vertical-align: top;
+            padding-top: 6px;
         }
 
-        .checkbox-box {
-            position: absolute;
-            left: 0;
-            top: 2px;
+        .checkbox-table .checkbox-box {
             display: inline-block;
             width: 14px;
             height: 14px;
@@ -118,14 +114,20 @@
             font-size: 11pt;
             font-weight: bold;
             background-color: #fff;
+            vertical-align: middle;
+        }
+
+        .checkbox-table .text-col {
+            vertical-align: top;
+            font-weight: bold;
         }
 
         /* Signature Section */
         .signature-wrapper {
-            margin-top: 30px;
+            margin-top: 15px;
             float: right;
-            width: 280px;
-            text-align: center;
+            width: 320px;
+            text-align: start;
         }
 
         .signature-space {
@@ -146,6 +148,15 @@
             display: table;
             clear: both;
         }
+
+        .footer {
+            position: fixed;
+            bottom: -0.4in;
+            width: 100%;
+            text-align: center;
+            font-size: 8pt;
+            color: #666;
+        }
     </style>
 </head>
 
@@ -165,18 +176,17 @@
 
     <div class="content">
         <p class="text-justify">
-            Pada hari ini, <strong>{{ $jadwal->tanggal_ujian->translatedFormat('l') }}</strong>,
-            tanggal <strong>{{ $jadwal->tanggal_ujian->translatedFormat('d F Y') }}</strong> bertempat di
-            <strong>{{ $jadwal->ruangan }}</strong> telah dilaksanakan seminar proposal skripsi/karya inovatif atas nama
-            mahasiswa
-            dibawah ini:
+            Pada hari ini, {{ $jadwal->tanggal_ujian->translatedFormat('l') }},
+            tanggal {{ $jadwal->tanggal_ujian->translatedFormat('d F Y') }} bertempat di
+            {{ $jadwal->ruangan }} telah dilaksanakan seminar proposal skripsi/karya inovatif atas nama
+            mahasiswa dibawah ini:
         </p>
 
         <table class="info-table">
             <tr>
                 <td style="width: 22%;">Nama</td>
                 <td style="width: 2%;">:</td>
-                <td class="font-bold">{{ $mahasiswa->name }}</td>
+                <td>{{ $mahasiswa->name }}</td>
             </tr>
             <tr>
                 <td>NIM</td>
@@ -191,7 +201,7 @@
             <tr>
                 <td>Judul Proposal</td>
                 <td>:</td>
-                <td class="text-justify italic">"{{ $pendaftaran->judul_skripsi }}"</td>
+                <td >{!! $pendaftaran->judul_skripsi !!}</td>
             </tr>
         </table>
 
@@ -201,8 +211,8 @@
             <thead>
                 <tr>
                     <th style="width: 5%;">NO</th>
-                    <th style="width: 45%;">Nama</th>
-                    <th style="width: 30%;">Jabatan</th>
+                    <th style="width: 50%;">Nama</th>
+                    <th style="width: 25%;">Jabatan</th>
                     <th style="width: 20%;">Tanda Tangan</th>
                 </tr>
             </thead>
@@ -224,63 +234,73 @@
             </tbody>
         </table>
 
-        {{-- ✅ PERBAIKAN: Checkbox Catatan Kejadian --}}
-        <div class="checkbox-container">
-            <span class="section-label">Catatan Kejadian Selama Seminar: </span>
-            <div class="checkbox-group">
-                <div class="checkbox-item">
+        {{-- ✅ PERBAIKAN: Catatan Kejadian dengan TABEL --}}
+        <table class="checkbox-table">
+            <tr>
+                <td class="label-col">Catatan Kejadian Selama Seminar <span style="margin-left: 7rem">:</span></td>
+                <td class="checkbox-cell">
                     <span class="checkbox-box">
                         @if ($beritaAcara->catatan_kejadian === 'Lancar')
                             ✓
                         @endif
                     </span>
-                    <strong>Lancar</strong>
-                </div>
-                <div class="checkbox-item">
+                </td>
+                <td class="text-col">Lancar</td>
+            </tr>
+            <tr>
+                <td></td>
+                <td class="checkbox-cell">
                     <span class="checkbox-box">
                         @if ($beritaAcara->catatan_kejadian === 'Ada beberapa perbaikan yang harus diubah')
                             ✓
                         @endif
                     </span>
-                    <strong>Ada beberapa perbaikan yang harus diubah</strong>
-                </div>
-            </div>
-        </div>
+                </td>
+                <td class="text-col">Ada beberapa perbaikan yang harus diubah</td>
+            </tr>
+        </table>
 
-        {{-- ✅ PERBAIKAN: Checkbox Kesimpulan Kelayakan --}}
-        <div class="checkbox-container">
-            <span class="section-label">Kesimpulan Kelayakan Seminar Proposal Skripsi:</span>
-            <div class="checkbox-group">
-                <div class="checkbox-item">
+        {{-- ✅ PERBAIKAN: Kesimpulan Kelayakan dengan TABEL --}}
+        <table class="checkbox-table">
+            <tr>
+                <td class="label-col">Kesimpulan Kelayakan Seminar Proposal Skripsi<span
+                        style="margin-left: 1.4rem">:</span></td>
+                <td class="checkbox-cell">
                     <span class="checkbox-box">
                         @if ($beritaAcara->keputusan === 'Ya')
                             ✓
                         @endif
                     </span>
-                    <strong>Ya</strong>
-                </div>
-                <div class="checkbox-item">
+                </td>
+                <td class="text-col"><strong>Ya</strong></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td class="checkbox-cell">
                     <span class="checkbox-box">
                         @if ($beritaAcara->keputusan === 'Ya, dengan perbaikan')
                             ✓
                         @endif
                     </span>
-                    <strong>Ya, Dengan Perbaikan</strong>
-                </div>
-                <div class="checkbox-item">
+                </td>
+                <td class="text-col"><strong>Ya, Dengan Perbaikan</strong></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td class="checkbox-cell">
                     <span class="checkbox-box">
                         @if ($beritaAcara->keputusan === 'Tidak')
                             ✓
                         @endif
                     </span>
-                    <strong>Tidak</strong>
-                </div>
-            </div>
-        </div>
+                </td>
+                <td class="text-col"><strong>Tidak</strong></td>
+            </tr>
+        </table>
 
     </div>
 
-    {{-- ✅ PERBAIKAN: Signature Section --}}
+    {{-- Signature Section --}}
     <div class="signature-wrapper clearfix">
         <p style="margin-bottom: 3px;">Tondano,
             {{ ($beritaAcara->ttd_ketua_penguji_at ?? now())->translatedFormat('d F Y') }}</p>
@@ -293,22 +313,12 @@
             @endif
         </div>
 
-        <p class="underline font-bold" style="margin-bottom: 2px; margin-top: 0;">
+        <p class="underline " style="margin-bottom: 2px; margin-top: 0;">
             {{ $beritaAcara->ketuaPenguji->name ?? ($jadwal->getKetuaPenguji()->name ?? '-') }}
         </p>
         <p style="margin-top: 0;">NIP.
             {{ $beritaAcara->ketuaPenguji->nip ?? ($jadwal->getKetuaPenguji()->nip ?? '-') }}</p>
     </div>
-
-    {{-- ✅ TAMBAHAN: Verification Footer (Optional) --}}
-    @if (isset($beritaAcara->verification_code))
-        <div class="footer">
-            <p style="margin: 0; font-size: 7pt;">
-                Dokumen ini telah ditandatangani secara digital.
-                Kode Verifikasi: <strong>{{ $beritaAcara->verification_code }}</strong>
-            </p>
-        </div>
-    @endif
 
 </body>
 

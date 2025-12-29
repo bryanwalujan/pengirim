@@ -389,12 +389,18 @@
                     <div class="mb-4">
                         <label for="judul_skripsi" class="form-label">Judul Skripsi <span
                                 class="text-danger">*</span></label>
-                        <!-- Hidden input untuk menyimpan data -->
-                        <input id="judul_skripsi" type="hidden" name="judul_skripsi" value="{{ old('judul_skripsi') }}">
-                        <!-- Trix Editor yang akan menampilkan konten -->
-                        <trix-editor input="judul_skripsi" class="form-control @error('judul_skripsi') is-invalid @enderror"
-                            placeholder="Masukkan judul lengkap skripsi Anda"></trix-editor>
-                        <div class="form-text mt-2">Pastikan judul skripsi sudah disetujui oleh calon pembimbing</div>
+                        <textarea id="judul_skripsi" name="judul_skripsi" rows="4" 
+                            class="form-control @error('judul_skripsi') is-invalid @enderror"
+                            placeholder="Contoh: Implementasi Algoritma Machine Learning untuk Prediksi Cuaca di Kota Manado" required>{{ old('judul_skripsi') }}</textarea>
+                        <div class="form-text mt-2">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Pastikan judul skripsi sudah disetujui oleh pembimbing. 
+                            <strong class="text-danger">Tidak boleh menggunakan huruf kapital semua (ALL CAPS)</strong>.
+                        </div>
+                        <div id="caps-warning" class="text-danger mt-1" style="display: none;">
+                            <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                            <strong>Peringatan:</strong> Judul tidak boleh ditulis dengan huruf kapital semua. Gunakan huruf kapital hanya di awal kata yang sesuai.
+                        </div>
                         @error('judul_skripsi')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -497,9 +503,68 @@
             offset: 100
         });
 
+        // Validasi judul skripsi - cegah ALL CAPS
+        const judulInput = document.getElementById('judul_skripsi');
+        const capsWarning = document.getElementById('caps-warning');
+        
+        judulInput.addEventListener('input', function() {
+            const value = this.value.trim();
+            
+            // Cek apakah semua huruf adalah kapital (minimal 10 karakter untuk validasi)
+            if (value.length >= 10) {
+                const uppercaseCount = (value.match(/[A-Z]/g) || []).length;
+                const lowercaseCount = (value.match(/[a-z]/g) || []).length;
+                const totalLetters = uppercaseCount + lowercaseCount;
+                
+                // Jika lebih dari 80% huruf adalah kapital, tampilkan warning
+                if (totalLetters > 0 && (uppercaseCount / totalLetters) > 0.8) {
+                    capsWarning.style.display = 'block';
+                    this.classList.add('is-invalid');
+                } else {
+                    capsWarning.style.display = 'none';
+                    this.classList.remove('is-invalid');
+                }
+            } else {
+                capsWarning.style.display = 'none';
+                this.classList.remove('is-invalid');
+            }
+        });
+
         // Form submission handler with confirmation
         document.getElementById('proposal-form').addEventListener('submit', function(e) {
             e.preventDefault();
+            
+            // Validasi ALL CAPS sebelum submit
+            const judulValue = judulInput.value.trim();
+            if (judulValue.length >= 10) {
+                const uppercaseCount = (judulValue.match(/[A-Z]/g) || []).length;
+                const lowercaseCount = (judulValue.match(/[a-z]/g) || []).length;
+                const totalLetters = uppercaseCount + lowercaseCount;
+                
+                if (totalLetters > 0 && (uppercaseCount / totalLetters) > 0.8) {
+                    Swal.fire({
+                        title: '<strong>Judul Tidak Valid</strong>',
+                        html: `
+                            <div class="text-start">
+                                <p class="mb-3">Judul skripsi tidak boleh ditulis dengan huruf kapital semua (ALL CAPS).</p>
+                                <div class="alert alert-danger mb-0">
+                                    <small>
+                                        <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                                        <strong>Saran:</strong> Gunakan huruf kapital hanya di awal kata yang sesuai dengan aturan penulisan judul ilmiah.
+                                    </small>
+                                </div>
+                            </div>
+                        `,
+                        icon: 'error',
+                        confirmButtonText: '<i class="bi bi-check me-1"></i>Mengerti',
+                        customClass: {
+                            confirmButton: 'btn btn-danger'
+                        },
+                        buttonsStyling: false
+                    });
+                    return;
+                }
+            }
 
             Swal.fire({
                 title: '<strong>Konfirmasi Pengajuan</strong>',

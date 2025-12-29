@@ -167,6 +167,36 @@
                                                 </div>
                                             </div>
                                         </div>
+
+                                        {{-- ✅ TAMBAHAN: Call-to-Action untuk Pendaftaran Seminar Proposal --}}
+                                        <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-xl p-5 mt-4 shadow-md">
+                                            <div class="flex items-start gap-4">
+                                                <div class="flex-shrink-0">
+                                                    <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+                                                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+                                                            <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm9.707 5.707a1 1 0 00-1.414-1.414L9 12.586l-1.293-1.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                                        </svg>
+                                                    </div>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <h4 class="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
+                                                        <span>Langkah Selanjutnya</span>
+                                                    </h4>
+                                                    <p class="text-gray-700 text-sm mb-4 leading-relaxed">
+                                                        Komisi proposal Anda telah disetujui! Sekarang Anda dapat melanjutkan ke tahap berikutnya dengan 
+                                                        <strong class="text-blue-700">mendaftar Seminar Proposal</strong>.
+                                                    </p>
+                                                    <a href="{{ route('user.pendaftaran-seminar-proposal.index') }}" 
+                                                       class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-bold rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 hover:from-blue-700 hover:to-indigo-700">
+                                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd"/>
+                                                        </svg>
+                                                        Daftar Seminar Proposal
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
                                     @elseif($latestProposal->status === 'rejected')
                                         <div class="bg-red-50 border border-red-200 rounded-xl p-4">
                                             <div class="flex items-start gap-3 text-sm">

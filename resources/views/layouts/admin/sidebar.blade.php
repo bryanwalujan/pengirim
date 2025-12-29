@@ -936,7 +936,11 @@
             </li>
         @endcan
 
-        @if (auth()->user()->can('manage berita acara sempro') || auth()->user()->can('view berita acara sempro'))
+        @if (auth()->user()->can('manage berita acara sempro') ||
+                auth()->user()->can('view berita acara sempro') ||
+                auth()->user()->can('sign berita acara sempro') ||
+                auth()->user()->can('submit lembar catatan sempro'))
+
             @php
                 $beritaAcaraActiveStates = [
                     'admin.berita-acara-sempro.index',
@@ -948,88 +952,191 @@
                     'admin.lembar-catatan-sempro.edit',
                 ];
                 $isBeritaAcaraActive = request()->routeIs($beritaAcaraActiveStates);
+
+                // Hitung notifikasi berdasarkan role
+                $notifCount = 0;
+
+                if (auth()->user()->hasRole('staff')) {
+                    // Staff: Hitung BA yang perlu diproses
+                    $notifCount = \App\Models\BeritaAcaraSeminarProposal::whereIn('status', [
+                        'draft',
+                        'menunggu_ttd_pembahas',
+                    ])->count();
+                } elseif (auth()->user()->hasRole('dosen')) {
+                    $userId = auth()->id();
+
+                    // ✅ Dosen sebagai Pembahas - yang menunggu TTD mereka
+                    $asPembahas = \App\Models\BeritaAcaraSeminarProposal::where('status', 'menunggu_ttd_pembahas')
+                        ->whereHas('jadwalSeminarProposal.dosenPenguji', function ($q) use ($userId) {
+                            $q->where('users.id', $userId)->where('posisi', '!=', 'Ketua Penguji');
+                        })
+                        ->where(function ($q) use ($userId) {
+                            // Check JSON field - dosen belum TTD
+                            $q->whereNull('ttd_dosen_pembahas')->orWhereRaw(
+                                "NOT JSON_CONTAINS(ttd_dosen_pembahas, JSON_OBJECT('dosen_id', ?), '$')",
+                                [$userId],
+                            );
+                        })
+                        ->count();
+
+                    // ✅ Dosen sebagai Pembimbing/Ketua - yang menunggu pengisian mereka
+                    $asPembimbing = \App\Models\BeritaAcaraSeminarProposal::where('status', 'menunggu_ttd_pembimbing')
+                        ->whereHas('jadwalSeminarProposal', function ($q) use ($userId) {
+                            $q->whereHas('pendaftaranSeminarProposal', function ($q2) use ($userId) {
+                                $q2->where('dosen_pembimbing_id', $userId);
+                            })->orWhereHas('dosenPenguji', function ($q2) use ($userId) {
+                                $q2->where('users.id', $userId)->where('posisi', 'Ketua Penguji');
+                            });
+                        })
+                        ->count();
+
+                    $notifCount = $asPembahas + $asPembimbing;
+                }
             @endphp
 
-            <li class="menu-item {{ $isBeritaAcaraActive ? 'active open' : '' }}">
-                <a href="javascript:void(0);" class="menu-link menu-toggle">
-                    <i class="menu-icon tf-icons bx bx-file-blank"></i>
-                    <div>Berita Acara Sempro</div>
-                </a>
-                <ul class="menu-sub">
-                    {{-- Semua Berita Acara --}}
-                    <li
-                        class="menu-item {{ request()->routeIs('admin.berita-acara-sempro.index') && !request()->has('status') && !request()->has('keputusan') ? 'active' : '' }}">
-                        <a href="{{ route('admin.berita-acara-sempro.index') }}" class="menu-link">
-                            <i class="menu-icon tf-icons bx bx-list-ul"></i>
-                            <div>Semua Berita Acara</div>
-                        </a>
-                    </li>
+            <li class="menu-item {{ $isBeritaAcaraActive ? 'active' : '' }}">
+                @if (auth()->user()->hasRole('staff'))
+                    {{-- STAFF: Menu tunggal dengan badge --}}
+                    <a href="{{ route('admin.berita-acara-sempro.index') }}" class="menu-link">
+                        <i class="menu-icon tf-icons bx bx-file-blank"></i>
+                        <div>Berita Acara Sempro</div>
+                        @if ($notifCount > 0)
+                            <span class="badge bg-danger rounded-pill ms-auto">{{ $notifCount }}</span>
+                        @endif
+                    </a>
+                @else
+                    {{-- DOSEN: Menu dengan dropdown --}}
+                    <a href="javascript:void(0);" class="menu-link menu-toggle">
+                        <i class="menu-icon tf-icons bx bx-file-blank"></i>
+                        <div>Berita Acara Sempro</div>
+                        @if ($notifCount > 0)
+                            <span class="badge bg-danger rounded-pill ms-auto">{{ $notifCount }}</span>
+                        @endif
+                    </a>
+                    <ul class="menu-sub">
+                        {{-- ✅ Menu untuk Dosen Pembahas (Anggota Penguji) - SELALU TAMPIL jika ada permission --}}
+                        @can('sign berita acara sempro')
+                            @php
+                                // Hitung pembahas yang menunggu TTD
+                                $userId = auth()->id();
 
-                    @can('manage berita acara sempro')
-                        {{-- Belum Ditandatangani - Hanya untuk Staff --}}
+                                $pembahasCount = \App\Models\BeritaAcaraSeminarProposal::where(
+                                    'status',
+                                    'menunggu_ttd_pembahas',
+                                )
+                                    ->whereHas('jadwalSeminarProposal.dosenPenguji', function ($q) use ($userId) {
+                                        $q->where('users.id', $userId)->where('posisi', '!=', 'Ketua Penguji');
+                                    })
+                                    ->where(function ($q) use ($userId) {
+                                        $q->whereNull('ttd_dosen_pembahas')->orWhereRaw(
+                                            "NOT JSON_CONTAINS(ttd_dosen_pembahas, JSON_OBJECT('dosen_id', ?), '$')",
+                                            [$userId],
+                                        );
+                                    })
+                                    ->count();
+
+                                // ✅ PERBAIKAN: Cek apakah dosen pernah jadi pembahas
+                                $isPembahas = \DB::table('dosen_penguji_jadwal_sempro')
+                                    ->where('dosen_id', $userId)
+                                    ->where('posisi', '!=', 'Ketua Penguji')
+                                    ->exists();
+                            @endphp
+
+                            @if ($isPembahas)
+                                <li
+                                    class="menu-item {{ request()->routeIs('admin.berita-acara-sempro.index') && request()->input('filter') === 'pembahas' ? 'active' : '' }}">
+                                    <a href="{{ route('admin.berita-acara-sempro.index', ['filter' => 'pembahas']) }}"
+                                        class="menu-link">
+                                        <i class="menu-icon tf-icons bx bx-pen"></i>
+                                        <div>Menunggu TTD Saya</div>
+                                        @if ($pembahasCount > 0)
+                                            <span
+                                                class="badge bg-danger rounded-pill ms-auto">{{ $pembahasCount }}</span>
+                                        @endif
+                                    </a>
+                                </li>
+                            @endif
+                        @endcan
+
+                        {{-- ✅ Menu untuk Dosen Pembimbing/Ketua Penguji - SELALU TAMPIL jika ada permission --}}
+                        @can('manage berita acara sempro')
+                            @php
+                                // Hitung BA yang menunggu pembimbing/ketua
+                                $userId = auth()->id();
+
+                                $pembimbingCount = \App\Models\BeritaAcaraSeminarProposal::where(
+                                    'status',
+                                    'menunggu_ttd_pembimbing',
+                                )
+                                    ->whereHas('jadwalSeminarProposal', function ($q) use ($userId) {
+                                        $q->whereHas('pendaftaranSeminarProposal', function ($q2) use ($userId) {
+                                            $q2->where('dosen_pembimbing_id', $userId);
+                                        })->orWhereHas('dosenPenguji', function ($q2) use ($userId) {
+                                            $q2->where('users.id', $userId)->where('posisi', 'Ketua Penguji');
+                                        });
+                                    })
+                                    ->count();
+
+                                // ✅ PERBAIKAN: Cek apakah dosen pernah jadi pembimbing/ketua
+                                $isPembimbingOrKetua =
+                                    \App\Models\PendaftaranSeminarProposal::where(
+                                        'dosen_pembimbing_id',
+                                        $userId,
+                                    )->exists() ||
+                                    \DB::table('dosen_penguji_jadwal_sempro')
+                                        ->where('dosen_id', $userId)
+                                        ->where('posisi', 'Ketua Penguji')
+                                        ->exists();
+                            @endphp
+
+                            @if ($isPembimbingOrKetua)
+                                <li
+                                    class="menu-item {{ request()->routeIs('admin.berita-acara-sempro.index') && request()->input('filter') === 'pembimbing' ? 'active' : '' }}">
+                                    <a href="{{ route('admin.berita-acara-sempro.index', ['filter' => 'pembimbing']) }}"
+                                        class="menu-link">
+                                        <i class="menu-icon tf-icons bx bx-edit"></i>
+                                        <div>Perlu Saya Isi</div>
+                                        @if ($pembimbingCount > 0)
+                                            <span
+                                                class="badge bg-danger rounded-pill ms-auto">{{ $pembimbingCount }}</span>
+                                        @endif
+                                    </a>
+                                </li>
+                            @endif
+                        @endcan
+
+                        {{-- ✅ Riwayat - HANYA BA yang sudah di-approve oleh dosen ini --}}
+                        @php
+                            $userId = auth()->id();
+
+                            // Hitung riwayat BA yang sudah di-approve
+                            $riwayatCount = \App\Models\BeritaAcaraSeminarProposal::where('status', 'selesai')
+                                ->where(function ($q) use ($userId) {
+                                    // BA yang dosen ini sudah TTD sebagai pembahas
+                                    $q->whereRaw("JSON_CONTAINS(ttd_dosen_pembahas, JSON_OBJECT('dosen_id', ?), '$')", [
+                                        $userId,
+                                    ])
+                                        // ATAU BA yang dosen ini sudah TTD sebagai pembimbing
+                                        ->orWhere('ttd_pembimbing_by', $userId)
+                                        // ATAU BA yang dosen ini sudah TTD sebagai ketua
+                                        ->orWhere('ttd_ketua_penguji_by', $userId);
+                                })
+                                ->count();
+                        @endphp
+
                         <li
-                            class="menu-item {{ request()->routeIs('admin.berita-acara-sempro.index') && request()->input('status') === 'belum_ttd' ? 'active' : '' }}">
-                            <a href="{{ route('admin.berita-acara-sempro.index', ['status' => 'belum_ttd']) }}"
-                                class="menu-link">
-                                <i class="menu-icon tf-icons bx bx-time-five"></i>
-                                <div>Belum Ditandatangani</div>
+                            class="menu-item {{ request()->routeIs('admin.berita-acara-sempro.index') && !request()->has('filter') ? 'active' : '' }}">
+                            <a href="{{ route('admin.berita-acara-sempro.index') }}" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-history"></i>
+                                <div>Riwayat Berita Acara</div>
+                                @if ($riwayatCount > 0)
+                                    <span
+                                        class="badge bg-label-secondary rounded-pill ms-auto">{{ $riwayatCount }}</span>
+                                @endif
                             </a>
                         </li>
-
-                        {{-- Sudah Ditandatangani --}}
-                        <li
-                            class="menu-item {{ request()->routeIs('admin.berita-acara-sempro.index') && request()->input('status') === 'sudah_ttd' ? 'active' : '' }}">
-                            <a href="{{ route('admin.berita-acara-sempro.index', ['status' => 'sudah_ttd']) }}"
-                                class="menu-link">
-                                <i class="menu-icon tf-icons bx bx-check-circle"></i>
-                                <div>Sudah Ditandatangani</div>
-                            </a>
-                        </li>
-                    @endcan
-
-                    @can('sign berita acara sempro')
-                        {{-- Menunggu Tanda Tangan Saya - Untuk Dosen Ketua Penguji --}}
-                        <li
-                            class="menu-item {{ request()->routeIs('admin.berita-acara-sempro.index') && request()->input('status') === 'menunggu_ttd_saya' ? 'active' : '' }}">
-                            <a href="{{ route('admin.berita-acara-sempro.index', ['status' => 'menunggu_ttd_saya']) }}"
-                                class="menu-link">
-                                <i class="menu-icon tf-icons bx bx-pen"></i>
-                                <div>Menunggu TTD Saya</div>
-                            </a>
-                        </li>
-                    @endcan
-
-                    @can('submit lembar catatan sempro')
-                        {{-- Perlu Input Catatan - Untuk Dosen Penguji --}}
-                        <li
-                            class="menu-item {{ request()->routeIs('admin.berita-acara-sempro.index') && request()->input('status') === 'perlu_catatan' ? 'active' : '' }}">
-                            <a href="{{ route('admin.berita-acara-sempro.index', ['status' => 'perlu_catatan']) }}"
-                                class="menu-link">
-                                <i class="menu-icon tf-icons bx bx-edit"></i>
-                                <div>Perlu Input Catatan</div>
-                            </a>
-                        </li>
-                    @endcan
-
-                    {{-- Berdasarkan Keputusan --}}
-                    <li
-                        class="menu-item {{ request()->routeIs('admin.berita-acara-sempro.index') && request()->input('keputusan') === 'Lulus' ? 'active' : '' }}">
-                        <a href="{{ route('admin.berita-acara-sempro.index', ['keputusan' => 'Lulus']) }}"
-                            class="menu-link">
-                            <i class="menu-icon tf-icons bx bx-badge-check"></i>
-                            <div>Keputusan: Lulus</div>
-                        </a>
-                    </li>
-
-                    <li
-                        class="menu-item {{ request()->routeIs('admin.berita-acara-sempro.index') && request()->input('keputusan') === 'Lulus Bersyarat' ? 'active' : '' }}">
-                        <a href="{{ route('admin.berita-acara-sempro.index', ['keputusan' => 'Lulus Bersyarat']) }}"
-                            class="menu-link">
-                            <i class="menu-icon tf-icons bx bx-error-circle"></i>
-                            <div>Keputusan: Lulus Bersyarat</div>
-                        </a>
-                    </li>
-                </ul>
+                    </ul>
+                @endif
             </li>
         @endif
 

@@ -399,6 +399,26 @@ class BeritaAcaraSeminarProposal extends Model
             }
         });
 
+        // ✅ TAMBAHAN: Auto-update status jadwal menjadi 'selesai' 
+        // ketika berita acara sudah selesai dan PDF sudah ada
+        static::updated(function ($model) {
+            // Cek apakah status berubah menjadi 'selesai' dan PDF sudah tergenerate
+            if ($model->status === 'selesai' && !is_null($model->file_path)) {
+                $jadwal = $model->jadwalSeminarProposal;
+                
+                // Update status jadwal menjadi selesai jika belum
+                if ($jadwal && $jadwal->status !== 'selesai') {
+                    $jadwal->update(['status' => 'selesai']);
+                    
+                    Log::info('✅ Auto-update jadwal sempro status to selesai', [
+                        'jadwal_id' => $jadwal->id,
+                        'berita_acara_id' => $model->id,
+                        'file_path' => $model->file_path,
+                    ]);
+                }
+            }
+        });
+
         static::deleting(function ($model) {
             if ($model->file_path && Storage::disk('public')->exists($model->file_path)) {
                 Storage::disk('public')->delete($model->file_path);
