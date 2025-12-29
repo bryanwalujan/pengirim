@@ -85,17 +85,17 @@ class PembahasService
 
         // Attach pembimbing sebagai Ketua Penguji
         $jadwal->dosenPenguji()->attach($pendaftaran->dosen_pembimbing_id, [
-            'posisi' => 'Ketua Penguji',
+            'posisi' => 'Ketua Pembahas',
         ]);
 
         // Attach pembahas 1, 2, 3
         foreach ($pendaftaran->proposalPembahas as $index => $pembahas) {
             $jadwal->dosenPenguji()->attach($pembahas->dosen_id, [
-                'posisi' => 'Anggota Penguji ' . ($index + 1),
+                'posisi' => 'Anggota Pembahas ' . ($index + 1),
             ]);
         }
 
-        Log::info('Penguji synced to jadwal', [
+        Log::info('Pemmbahas synced to jadwal', [
             'jadwal_id' => $jadwal->id,
             'total_penguji' => $jadwal->dosenPenguji()->count(),
         ]);

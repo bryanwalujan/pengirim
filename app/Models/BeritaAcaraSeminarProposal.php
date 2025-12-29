@@ -121,7 +121,7 @@ class BeritaAcaraSeminarProposal extends Model
 
         // Count semua pembahas (exclude Ketua Penguji)
         $totalPembahas = $jadwal->dosenPenguji()
-            ->where('posisi', '!=', 'Ketua Penguji')
+            ->where('posisi', '!=', 'Ketua Pembahas')
             ->count();
 
         $signedPembahas = count($this->ttd_dosen_pembahas ?? []);
@@ -154,7 +154,7 @@ class BeritaAcaraSeminarProposal extends Model
         $signedIds = collect($this->ttd_dosen_pembahas ?? [])->pluck('dosen_id')->toArray();
 
         return $jadwal->dosenPenguji()
-            ->where('posisi', '!=', 'Ketua Penguji')
+            ->where('posisi', '!=', 'Ketua Pembahas')
             ->whereNotIn('users.id', $signedIds)
             ->get();
     }
@@ -167,7 +167,7 @@ class BeritaAcaraSeminarProposal extends Model
         $jadwal = $this->jadwalSeminarProposal;
 
         $total = $jadwal->dosenPenguji()
-            ->where('posisi', '!=', 'Ketua Penguji')
+            ->where('posisi', '!=', 'Ketua Pembahas')
             ->count();
 
         $signed = count($this->ttd_dosen_pembahas ?? []);
@@ -204,7 +204,7 @@ class BeritaAcaraSeminarProposal extends Model
         $isPembahas = $this->jadwalSeminarProposal
             ->dosenPenguji()
             ->where('users.id', $dosenId)
-            ->where('posisi', '!=', 'Ketua Penguji')
+            ->where('posisi', '!=', 'Ketua Pembahas')
             ->exists();
 
         if (!$isPembahas) {
@@ -238,7 +238,7 @@ class BeritaAcaraSeminarProposal extends Model
 
         $isKetuaPenguji = $jadwal->dosenPenguji()
             ->where('users.id', $dosenId)
-            ->where('posisi', 'Ketua Penguji')
+            ->where('posisi', 'Ketua Pembahas')
             ->exists();
 
         if (!$isPembimbing && !$isKetuaPenguji) {
