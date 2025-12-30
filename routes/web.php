@@ -715,6 +715,11 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
                 ->name('sign-pembahas')
                 ->middleware('role:dosen');
 
+            // ✅ NEW: Staff approve on behalf of pembahas
+            Route::post('/{beritaAcara}/approve-on-behalf', [AdminBeritaAcaraSemproController::class, 'approveOnBehalfOfPembahas'])
+                ->name('approve-on-behalf')
+                ->middleware('role:staff|admin');
+
             // ✅ FILL BY PEMBIMBING/KETUA
             Route::get('/{beritaAcara}/fill-by-pembimbing', [AdminBeritaAcaraSemproController::class, 'fillByPembimbing'])
                 ->name('fill-by-pembimbing')

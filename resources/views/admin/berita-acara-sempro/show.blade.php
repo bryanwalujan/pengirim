@@ -193,12 +193,11 @@
                                 </button>
                             @endif
 
-                            @if (!$beritaAcara->isSigned())
-                                <button type="button" class="btn btn-outline-danger btn-sm"
-                                    onclick="deleteBeritaAcara({{ $beritaAcara->id }})">
-                                    <i class="bx bx-trash me-1"></i> Hapus
-                                </button>
-                            @endif
+                            {{-- Tombol Hapus - Bisa hapus semua status --}}
+                            <button type="button" class="btn btn-outline-danger btn-sm"
+                                onclick="deleteBeritaAcara({{ $beritaAcara->id }}, '{{ addslashes($mahasiswa->name) }}', '{{ $beritaAcara->status }}')">
+                                <i class="bx bx-trash me-1"></i> Hapus
+                            </button>
                         @endif
 
                         {{-- ✅ TOMBOL DOWNLOAD PDF (jika sudah selesai) --}}
@@ -253,11 +252,11 @@
                                     {{ $jadwal->tanggal_ujian->isoFormat('dddd, D MMMM Y') }}
                                 </div>
                                 <div class="mt-1">
-    <span class="badge bg-label-primary">
-        <i class="bx bx-time-five me-1"></i>
-        {{ \Carbon\Carbon::parse($jadwal->waktu_mulai)->format('H:i') }} - {{ \Carbon\Carbon::parse($jadwal->waktu_selesai)->format('H:i') }} WITA
-    </span>
-</div>
+                                    <span class="badge bg-label-primary">
+                                        <i class="bx bx-time-five me-1"></i>
+                                        {{ \Carbon\Carbon::parse($jadwal->waktu_mulai)->format('H:i') }} - {{ \Carbon\Carbon::parse($jadwal->waktu_selesai)->format('H:i') }} WITA
+                                    </span>
+                                </div>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold text-muted small">Ruangan</label>
@@ -287,6 +286,9 @@
                                         <th>Nama Dosen</th>
                                         <th>Posisi</th>
                                         <th width="25%">Status Persetujuan</th>
+                                        @if ($isStaff && $beritaAcara->isMenungguTtdPembahas())
+                                            <th width="15%">Aksi</th>
+                                        @endif
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -328,19 +330,47 @@
                                                         $signature = collect(
                                                             $beritaAcara->ttd_dosen_pembahas,
                                                         )->firstWhere('dosen_id', $dosen->id);
+                                                        $isStaffApproval = $signature['approved_by_staff'] ?? false;
                                                     @endphp
-                                                    <span class="badge bg-success">
-                                                        <i class="bx bx-check-circle me-1"></i>Sudah TTD
-                                                    </span>
+                                                    <div>
+                                                        <span class="badge bg-success">
+                                                            <i class="bx bx-check-circle me-1"></i>Sudah TTD
+                                                        </span>
+                                                        @if ($isStaffApproval)
+                                                            <span class="badge bg-label-info ms-1" 
+                                                                  data-bs-toggle="tooltip" 
+                                                                  title="Disetujui oleh {{ $signature['staff_name'] ?? 'Staff' }}">
+                                                                <i class="bx bx-user-check me-1"></i>via Staff
+                                                            </span>
+                                                        @endif
+                                                    </div>
                                                     <div class="small text-muted mt-1">
                                                         {{ \Carbon\Carbon::parse($signature['signed_at'])->isoFormat('D/M/Y HH:mm') }}
                                                     </div>
+                                                    @if ($isStaffApproval && isset($signature['approval_reason']))
+                                                        <div class="small text-muted fst-italic mt-1">
+                                                            <i class="bx bx-info-circle me-1"></i>{{ $signature['approval_reason'] }}
+                                                        </div>
+                                                    @endif
                                                 @else
                                                     <span class="badge bg-warning">
                                                         <i class="bx bx-time me-1"></i>Belum TTD
                                                     </span>
                                                 @endif
                                             </td>
+                                            @if ($isStaff && $beritaAcara->isMenungguTtdPembahas())
+                                                <td>
+                                                    @if (!$hasSigned)
+                                                        <button type="button" 
+                                                                class="btn btn-sm btn-outline-primary"
+                                                                onclick="showApproveOnBehalfModal({{ $dosen->id }}, '{{ addslashes($dosen->name) }}')">
+                                                            <i class="bx bx-user-check me-1"></i>Approve
+                                                        </button>
+                                                    @else
+                                                        <span class="text-muted small">-</span>
+                                                    @endif
+                                                </td>
+                                            @endif
                                         </tr>
                                     @endforeach
                                 </tbody>
@@ -579,10 +609,87 @@
             </div>
         </div>
     </div>
+
+    {{-- Modal: Approve On Behalf of Pembahas --}}
+    <div class="modal fade" id="approveOnBehalfModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="" method="POST" id="approveOnBehalfForm">
+                    @csrf
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="bx bx-user-check me-2"></i>Approve Atas Nama Dosen
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" name="dosen_id" id="modal_dosen_id">
+                        
+                        <div class="alert alert-info">
+                            <i class="bx bx-info-circle me-2"></i>
+                            <strong>Informasi:</strong> Anda akan memberikan persetujuan atas nama dosen yang tidak dapat mengakses sistem.
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Dosen Pembahas</label>
+                            <input type="text" class="form-control" id="modal_dosen_name" readonly>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="alasan" class="form-label">
+                                Alasan <small class="text-muted">(Opsional)</small>
+                            </label>
+                            <textarea class="form-control" 
+                                      id="alasan" 
+                                      name="alasan" 
+                                      rows="3" 
+                                      placeholder="Contoh: Dosen sedang dinas luar kota, tidak bisa akses sistem, dll."
+                                      maxlength="500"></textarea>
+                            <div class="form-text">Maksimal 500 karakter</div>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="confirmation" id="confirmation" required>
+                            <label class="form-check-label" for="confirmation">
+                                Saya menyatakan bahwa persetujuan ini dilakukan atas nama dosen yang bersangkutan dan akan tercatat dalam sistem untuk keperluan audit.
+                            </label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="bx bx-x me-1"></i>Batal
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bx bx-check me-1"></i>Approve Sekarang
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')
     <script>
+        // Function to show approve on behalf modal
+        function showApproveOnBehalfModal(dosenId, dosenName) {
+            // Set form action
+            const form = document.getElementById('approveOnBehalfForm');
+            form.action = `/admin/berita-acara-sempro/{{ $beritaAcara->id }}/approve-on-behalf`;
+            
+            // Set dosen info
+            document.getElementById('modal_dosen_id').value = dosenId;
+            document.getElementById('modal_dosen_name').value = dosenName;
+            
+            // Reset alasan
+            document.getElementById('alasan').value = '';
+            document.getElementById('confirmation').checked = false;
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('approveOnBehalfModal'));
+            modal.show();
+        }
+
         function resetBeritaAcara(id) {
             Swal.fire({
                 title: 'Reset Berita Acara?',
@@ -611,38 +718,124 @@
             });
         }
 
-        function deleteBeritaAcara(id) {
+        function deleteBeritaAcara(id, mahasiswaName, status) {
+            // Mapping status ke bahasa Indonesia
+            const statusText = {
+                'draft': 'Draft',
+                'menunggu_ttd_pembahas': 'Menunggu TTD Pembahas',
+                'menunggu_ttd_pembimbing': 'Menunggu TTD Pembimbing',
+                'selesai': 'Selesai'
+            };
+
+            // Pesan warning berbeda untuk status selesai
+            const isSelesai = status === 'selesai';
+            const warningMessage = isSelesai 
+                ? `<div class="alert alert-danger mt-3 mb-0">
+                        <i class="bx bx-error-circle me-2"></i>
+                        <strong>PERINGATAN KERAS!</strong> Berita acara ini sudah <strong>SELESAI</strong> dan memiliki PDF resmi. 
+                        Penghapusan akan menghilangkan semua data dan dokumen terkait secara permanen!
+                   </div>`
+                : `<div class="alert alert-warning mt-3 mb-0">
+                        <i class="bx bx-error-circle me-2"></i>
+                        <strong>Perhatian:</strong> Data berita acara dan semua lembar catatan terkait akan dihapus permanen!
+                   </div>`;
+
             Swal.fire({
-                title: 'Hapus Berita Acara?',
-                text: 'Data berita acara akan dihapus permanen!',
-                icon: 'warning',
+                title: isSelesai ? '⚠️ Hapus Berita Acara Selesai?' : 'Hapus Berita Acara?',
+                html: `
+                    <div class="text-start">
+                        <p class="mb-2">Anda akan menghapus berita acara dengan detail:</p>
+                        <ul class="list-unstyled ps-3">
+                            <li><i class="bx bx-user text-primary me-2"></i><strong>Mahasiswa:</strong> ${mahasiswaName}</li>
+                            <li><i class="bx bx-info-circle ${isSelesai ? 'text-danger' : 'text-info'} me-2"></i><strong>Status:</strong> <span class="${isSelesai ? 'text-danger fw-bold' : ''}">${statusText[status] || status}</span></li>
+                        </ul>
+                        ${warningMessage}
+                    </div>
+                `,
+                icon: isSelesai ? 'error' : 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'Ya, Hapus',
-                cancelButtonText: 'Batal',
+                confirmButtonText: '<i class="bx bx-trash me-1"></i> Ya, Hapus Permanen',
+                cancelButtonText: '<i class="bx bx-x me-1"></i> Batal',
                 confirmButtonColor: '#d33',
-                cancelButtonColor: '#6c757d'
+                cancelButtonColor: '#6c757d',
+                reverseButtons: true,
+                focusCancel: true,
+                customClass: {
+                    confirmButton: 'btn btn-danger',
+                    cancelButton: 'btn btn-secondary'
+                }
             }).then((result) => {
                 if (result.isConfirmed) {
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = `/admin/berita-acara-sempro/${id}`;
-
-                    const csrfToken = document.createElement('input');
-                    csrfToken.type = 'hidden';
-                    csrfToken.name = '_token';
-                    csrfToken.value = '{{ csrf_token() }}';
-
-                    const methodField = document.createElement('input');
-                    methodField.type = 'hidden';
-                    methodField.name = '_method';
-                    methodField.value = 'DELETE';
-
-                    form.appendChild(csrfToken);
-                    form.appendChild(methodField);
-                    document.body.appendChild(form);
-                    form.submit();
+                    // Jika status selesai, minta konfirmasi kedua
+                    if (isSelesai) {
+                        Swal.fire({
+                            title: 'Konfirmasi Akhir',
+                            html: `
+                                <div class="text-start">
+                                    <p class="text-danger fw-bold mb-3">
+                                        <i class="bx bx-error-circle me-2"></i>
+                                        Apakah Anda benar-benar yakin ingin menghapus berita acara yang sudah selesai?
+                                    </p>
+                                    <p class="mb-2">Ketik <strong class="text-danger">HAPUS</strong> untuk melanjutkan:</p>
+                                </div>
+                            `,
+                            input: 'text',
+                            inputPlaceholder: 'Ketik HAPUS',
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonText: '<i class="bx bx-trash me-1"></i> Hapus Sekarang',
+                            cancelButtonText: '<i class="bx bx-x me-1"></i> Batalkan',
+                            confirmButtonColor: '#d33',
+                            cancelButtonColor: '#6c757d',
+                            reverseButtons: true,
+                            preConfirm: (value) => {
+                                if (value !== 'HAPUS') {
+                                    Swal.showValidationMessage('Anda harus mengetik "HAPUS" untuk melanjutkan');
+                                    return false;
+                                }
+                                return true;
+                            }
+                        }).then((finalResult) => {
+                            if (finalResult.isConfirmed) {
+                                submitDeleteForm(id);
+                            }
+                        });
+                    } else {
+                        submitDeleteForm(id);
+                    }
                 }
             });
+        }
+
+        function submitDeleteForm(id) {
+            // Show loading
+            Swal.fire({
+                title: 'Menghapus...',
+                html: 'Mohon tunggu sebentar',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/admin/berita-acara-sempro/${id}`;
+
+            const csrfToken = document.createElement('input');
+            csrfToken.type = 'hidden';
+            csrfToken.name = '_token';
+            csrfToken.value = '{{ csrf_token() }}';
+
+            const methodField = document.createElement('input');
+            methodField.type = 'hidden';
+            methodField.name = '_method';
+            methodField.value = 'DELETE';
+
+            form.appendChild(csrfToken);
+            form.appendChild(methodField);
+            document.body.appendChild(form);
+            form.submit();
         }
     </script>
 @endpush

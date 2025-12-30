@@ -947,9 +947,13 @@
                     'admin.berita-acara-sempro.show',
                     'admin.berita-acara-sempro.create',
                     'admin.berita-acara-sempro.edit',
+                    'admin.berita-acara-sempro.fill-by-pembimbing',
+                    'admin.berita-acara-sempro.manage-pembahas',
+                    'admin.berita-acara-sempro.approve-pembahas',
                     'admin.lembar-catatan-sempro.create',
                     'admin.lembar-catatan-sempro.show',
                     'admin.lembar-catatan-sempro.edit',
+                
                 ];
                 $isBeritaAcaraActive = request()->routeIs($beritaAcaraActiveStates);
 
@@ -957,7 +961,6 @@
                 $notifCount = 0;
 
                 if (auth()->user()->hasRole('staff')) {
-                    // Staff: Hitung BA yang perlu diproses
                     $notifCount = \App\Models\BeritaAcaraSeminarProposal::whereIn('status', [
                         'draft',
                         'menunggu_ttd_pembahas',
@@ -965,13 +968,11 @@
                 } elseif (auth()->user()->hasRole('dosen')) {
                     $userId = auth()->id();
 
-                    // ✅ Dosen sebagai Pembahas - yang menunggu TTD mereka
                     $asPembahas = \App\Models\BeritaAcaraSeminarProposal::where('status', 'menunggu_ttd_pembahas')
                         ->whereHas('jadwalSeminarProposal.dosenPenguji', function ($q) use ($userId) {
                             $q->where('users.id', $userId)->where('posisi', '!=', 'Ketua Pembahas');
                         })
                         ->where(function ($q) use ($userId) {
-                            // Check JSON field - dosen belum TTD
                             $q->whereNull('ttd_dosen_pembahas')->orWhereRaw(
                                 "NOT JSON_CONTAINS(ttd_dosen_pembahas, JSON_OBJECT('dosen_id', ?), '$')",
                                 [$userId],
@@ -979,7 +980,6 @@
                         })
                         ->count();
 
-                    // ✅ Dosen sebagai Pembimbing/Ketua - yang menunggu pengisian mereka
                     $asPembimbing = \App\Models\BeritaAcaraSeminarProposal::where('status', 'menunggu_ttd_pembimbing')
                         ->whereHas('jadwalSeminarProposal', function ($q) use ($userId) {
                             $q->whereHas('pendaftaranSeminarProposal', function ($q2) use ($userId) {
@@ -994,15 +994,13 @@
                 }
             @endphp
 
-            <li class="menu-item {{ $isBeritaAcaraActive ? 'active' : '' }}">
+            <li class="menu-item {{ $isBeritaAcaraActive ? 'active' . (auth()->user()->hasRole('dosen') ? ' open' : '') : '' }}">
                 @if (auth()->user()->hasRole('staff'))
-                    {{-- STAFF: Menu tunggal TANPA badge (badge hanya untuk dosen) --}}
                     <a href="{{ route('admin.berita-acara-sempro.index') }}" class="menu-link">
                         <i class="menu-icon tf-icons bx bx-file-blank"></i>
                         <div>Berita Acara Sempro</div>
                     </a>
                 @else
-                    {{-- DOSEN: Menu dengan dropdown --}}
                     <a href="javascript:void(0);" class="menu-link menu-toggle">
                         <i class="menu-icon tf-icons bx bx-file-blank"></i>
                         <div>Berita Acara Sempro</div>
@@ -1011,16 +1009,10 @@
                         @endif
                     </a>
                     <ul class="menu-sub">
-                        {{-- ✅ Menu untuk Dosen Pembahas (Anggota Penguji) - SELALU TAMPIL jika ada permission --}}
                         @can('sign berita acara sempro')
                             @php
-                                // Hitung pembahas yang menunggu TTD
                                 $userId = auth()->id();
-
-                                $pembahasCount = \App\Models\BeritaAcaraSeminarProposal::where(
-                                    'status',
-                                    'menunggu_ttd_pembahas',
-                                )
+                                $pembahasCount = \App\Models\BeritaAcaraSeminarProposal::where('status', 'menunggu_ttd_pembahas')
                                     ->whereHas('jadwalSeminarProposal.dosenPenguji', function ($q) use ($userId) {
                                         $q->where('users.id', $userId)->where('posisi', '!=', 'Ketua Pembahas');
                                     })
@@ -1032,7 +1024,6 @@
                                     })
                                     ->count();
 
-                                // ✅ PERBAIKAN: Cek apakah dosen pernah jadi pembahas
                                 $isPembahas = \DB::table('dosen_penguji_jadwal_sempro')
                                     ->where('dosen_id', $userId)
                                     ->where('posisi', '!=', 'Ketua Pembahas')
@@ -1040,31 +1031,22 @@
                             @endphp
 
                             @if ($isPembahas)
-                                <li
-                                    class="menu-item {{ request()->routeIs('admin.berita-acara-sempro.index') && request()->input('filter') === 'pembahas' ? 'active' : '' }}">
-                                    <a href="{{ route('admin.berita-acara-sempro.index', ['filter' => 'pembahas']) }}"
-                                        class="menu-link">
+                                <li class="menu-item {{ request()->routeIs('admin.berita-acara-sempro.index') && request()->input('filter') === 'pembahas' ? 'active' : '' }}">
+                                    <a href="{{ route('admin.berita-acara-sempro.index', ['filter' => 'pembahas']) }}" class="menu-link">
                                         <i class="menu-icon tf-icons bx bx-pen"></i>
                                         <div>Menunggu TTD Saya</div>
                                         @if ($pembahasCount > 0)
-                                            <span
-                                                class="badge bg-danger rounded-pill ms-auto">{{ $pembahasCount }}</span>
+                                            <span class="badge bg-danger rounded-pill ms-auto">{{ $pembahasCount }}</span>
                                         @endif
                                     </a>
                                 </li>
                             @endif
                         @endcan
 
-                        {{-- ✅ Menu untuk Dosen Pembimbing/Ketua Penguji - SELALU TAMPIL jika ada permission --}}
                         @can('manage berita acara sempro')
                             @php
-                                // Hitung BA yang menunggu pembimbing/ketua
                                 $userId = auth()->id();
-
-                                $pembimbingCount = \App\Models\BeritaAcaraSeminarProposal::where(
-                                    'status',
-                                    'menunggu_ttd_pembimbing',
-                                )
+                                $pembimbingCount = \App\Models\BeritaAcaraSeminarProposal::where('status', 'menunggu_ttd_pembimbing')
                                     ->whereHas('jadwalSeminarProposal', function ($q) use ($userId) {
                                         $q->whereHas('pendaftaranSeminarProposal', function ($q2) use ($userId) {
                                             $q2->where('dosen_pembimbing_id', $userId);
@@ -1074,61 +1056,40 @@
                                     })
                                     ->count();
 
-                                // ✅ PERBAIKAN: Cek apakah dosen pernah jadi pembimbing/ketua
-                                $isPembimbingOrKetua =
-                                    \App\Models\PendaftaranSeminarProposal::where(
-                                        'dosen_pembimbing_id',
-                                        $userId,
-                                    )->exists() ||
-                                    \DB::table('dosen_penguji_jadwal_sempro')
-                                        ->where('dosen_id', $userId)
-                                        ->where('posisi', 'Ketua Pembahas')
-                                        ->exists();
+                                $isPembimbingOrKetua = \App\Models\PendaftaranSeminarProposal::where('dosen_pembimbing_id', $userId)->exists() ||
+                                    \DB::table('dosen_penguji_jadwal_sempro')->where('dosen_id', $userId)->where('posisi', 'Ketua Pembahas')->exists();
                             @endphp
 
                             @if ($isPembimbingOrKetua)
-                                <li
-                                    class="menu-item {{ request()->routeIs('admin.berita-acara-sempro.index') && request()->input('filter') === 'pembimbing' ? 'active' : '' }}">
-                                    <a href="{{ route('admin.berita-acara-sempro.index', ['filter' => 'pembimbing']) }}"
-                                        class="menu-link">
+                                <li class="menu-item {{ request()->routeIs('admin.berita-acara-sempro.index') && request()->input('filter') === 'pembimbing' ? 'active' : '' }}">
+                                    <a href="{{ route('admin.berita-acara-sempro.index', ['filter' => 'pembimbing']) }}" class="menu-link">
                                         <i class="menu-icon tf-icons bx bx-edit"></i>
                                         <div>Perlu Saya Isi</div>
                                         @if ($pembimbingCount > 0)
-                                            <span
-                                                class="badge bg-danger rounded-pill ms-auto">{{ $pembimbingCount }}</span>
+                                            <span class="badge bg-danger rounded-pill ms-auto">{{ $pembimbingCount }}</span>
                                         @endif
                                     </a>
                                 </li>
                             @endif
                         @endcan
 
-                        {{-- ✅ Riwayat - HANYA BA yang sudah di-approve oleh dosen ini --}}
                         @php
                             $userId = auth()->id();
-
-                            // Hitung riwayat BA yang sudah di-approve
                             $riwayatCount = \App\Models\BeritaAcaraSeminarProposal::where('status', 'selesai')
                                 ->where(function ($q) use ($userId) {
-                                    // BA yang dosen ini sudah TTD sebagai pembahas
-                                    $q->whereRaw("JSON_CONTAINS(ttd_dosen_pembahas, JSON_OBJECT('dosen_id', ?), '$')", [
-                                        $userId,
-                                    ])
-                                        // ATAU BA yang dosen ini sudah TTD sebagai pembimbing
+                                    $q->whereRaw("JSON_CONTAINS(ttd_dosen_pembahas, JSON_OBJECT('dosen_id', ?), '$')", [$userId])
                                         ->orWhere('ttd_pembimbing_by', $userId)
-                                        // ATAU BA yang dosen ini sudah TTD sebagai ketua
                                         ->orWhere('ttd_ketua_penguji_by', $userId);
                                 })
                                 ->count();
                         @endphp
 
-                        <li
-                            class="menu-item {{ request()->routeIs('admin.berita-acara-sempro.index') && !request()->has('filter') ? 'active' : '' }}">
+                        <li class="menu-item {{ request()->routeIs('admin.berita-acara-sempro.index') && !request()->has('filter') ? 'active' : '' }}">
                             <a href="{{ route('admin.berita-acara-sempro.index') }}" class="menu-link">
                                 <i class="menu-icon tf-icons bx bx-history"></i>
                                 <div>Riwayat Berita Acara</div>
                                 @if ($riwayatCount > 0)
-                                    <span
-                                        class="badge bg-label-secondary rounded-pill ms-auto">{{ $riwayatCount }}</span>
+                                    <span class="badge bg-label-secondary rounded-pill ms-auto">{{ $riwayatCount }}</span>
                                 @endif
                             </a>
                         </li>

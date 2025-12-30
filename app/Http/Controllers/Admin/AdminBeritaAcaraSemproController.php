@@ -764,6 +764,131 @@ class AdminBeritaAcaraSemproController extends Controller
     }
 
     /**
+     * ✅ NEW: Staff approve on behalf of dosen pembahas
+     */
+    public function approveOnBehalfOfPembahas(Request $request, BeritaAcaraSeminarProposal $beritaAcara)
+    {
+        $user = Auth::user();
+
+        // Validasi: Hanya staff/admin yang bisa
+        if (!$this->canOverrideApproval($user)) {
+            abort(403, 'Hanya staff yang dapat melakukan approval atas nama dosen.');
+        }
+
+        // Validasi input
+        $validated = $request->validate([
+            'dosen_id' => 'required|exists:users,id',
+            'alasan' => 'nullable|string|max:500',
+            'confirmation' => 'required|accepted',
+        ], [
+            'dosen_id.required' => 'Dosen harus dipilih.',
+            'dosen_id.exists' => 'Dosen tidak valid.',
+            'alasan.max' => 'Alasan maksimal 500 karakter.',
+            'confirmation.required' => 'Anda harus menyetujui pernyataan untuk melanjutkan.',
+            'confirmation.accepted' => 'Anda harus mencentang checkbox persetujuan.',
+        ]);
+
+        $dosenId = $validated['dosen_id'];
+        $alasan = $validated['alasan'] ?? null;
+
+        // Validasi: BA harus dalam status menunggu TTD pembahas
+        if (!$beritaAcara->isMenungguTtdPembahas()) {
+            return back()->with('error', 'Berita acara tidak dalam status menunggu persetujuan pembahas.');
+        }
+
+        // Validasi: Dosen harus adalah pembahas yang valid
+        $isPembahas = $beritaAcara->jadwalSeminarProposal
+            ->dosenPenguji()
+            ->where('users.id', $dosenId)
+            ->where('posisi', '!=', 'Ketua Pembahas')
+            ->exists();
+
+        if (!$isPembahas) {
+            return back()->with('error', 'Dosen yang dipilih bukan pembahas untuk ujian ini.');
+        }
+
+        // Validasi: Dosen belum sign
+        if ($beritaAcara->hasSignedByPembahas($dosenId)) {
+            return back()->with('error', 'Dosen ini sudah memberikan persetujuan.');
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // Get dosen info
+            $dosen = User::findOrFail($dosenId);
+
+            // Tambahkan signature dengan flag approved_by_staff
+            $signatures = $beritaAcara->ttd_dosen_pembahas ?? [];
+
+            $newSignature = [
+                'dosen_id' => $dosen->id,
+                'dosen_name' => $dosen->name,
+                'signed_at' => now()->toDateTimeString(),
+                'approved_by_staff' => true,
+                'staff_id' => $user->id,
+                'staff_name' => $user->name,
+            ];
+
+            // Tambahkan alasan jika ada
+            if ($alasan) {
+                $newSignature['approval_reason'] = $alasan;
+            }
+
+            $signatures[] = $newSignature;
+
+            $beritaAcara->update([
+                'ttd_dosen_pembahas' => $signatures,
+            ]);
+
+            // Log untuk audit trail
+            Log::info('✅ Staff approved on behalf of pembahas', [
+                'ba_id' => $beritaAcara->id,
+                'dosen_id' => $dosen->id,
+                'dosen_name' => $dosen->name,
+                'staff_id' => $user->id,
+                'staff_name' => $user->name,
+                'alasan' => $alasan,
+                'total_signed' => count($signatures),
+            ]);
+
+            // Refresh model
+            $beritaAcara->refresh();
+
+            // Check apakah semua pembahas sudah TTD
+            if ($beritaAcara->allPembahasHaveSigned()) {
+                $beritaAcara->update([
+                    'status' => 'menunggu_ttd_pembimbing',
+                ]);
+
+                Log::info('🎉 All pembahas signed (including staff override) - status changed', [
+                    'ba_id' => $beritaAcara->id,
+                    'new_status' => 'menunggu_ttd_pembimbing',
+                ]);
+            }
+
+            DB::commit();
+
+            return redirect()
+                ->route('admin.berita-acara-sempro.show', $beritaAcara)
+                ->with('success', "Persetujuan atas nama {$dosen->name} berhasil dicatat.");
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('❌ Failed to approve on behalf of pembahas', [
+                'ba_id' => $beritaAcara->id,
+                'dosen_id' => $dosenId,
+                'staff_id' => $user->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return back()->with('error', 'Gagal memberikan persetujuan: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * ✅ Show form for Dosen Pembimbing to fill BA
      */
     public function fillByPembimbing(BeritaAcaraSeminarProposal $beritaAcara)
@@ -1516,13 +1641,14 @@ class AdminBeritaAcaraSemproController extends Controller
             abort(403, 'Hanya staff yang dapat menghapus berita acara.');
         }
 
-        // Tidak bisa delete jika sudah ditandatangani
-        if ($beritaAcara->isSigned()) {
-            return back()->with('error', 'Berita acara yang sudah ditandatangani tidak dapat dihapus. Gunakan fitur Reset jika perlu.');
-        }
-
         DB::beginTransaction();
         try {
+            // Simpan info untuk logging
+            $jadwalInfo = $beritaAcara->jadwalSeminarProposal;
+            $mahasiswaName = $jadwalInfo->pendaftaranSeminarProposal->user->name ?? 'Unknown';
+            $wasSelesai = $beritaAcara->isSelesai();
+            $oldJadwalStatus = $jadwalInfo->status;
+            
             // Hapus file PDF jika ada
             if ($beritaAcara->file_path && Storage::disk('local')->exists($beritaAcara->file_path)) {
                 Storage::disk('local')->delete($beritaAcara->file_path);
@@ -1534,21 +1660,46 @@ class AdminBeritaAcaraSemproController extends Controller
             // Delete BA
             $beritaAcara->delete();
 
+            // ✅ PERBAIKAN: Jika BA yang dihapus statusnya selesai, kembalikan status jadwal ke menunggu_sk
+            if ($wasSelesai && $jadwalInfo->status === 'selesai') {
+                $jadwalInfo->update([
+                    'status' => 'menunggu_sk',
+                ]);
+
+                Log::info('✅ Jadwal status reset to menunggu_sk after BA deletion', [
+                    'jadwal_id' => $jadwalInfo->id,
+                    'old_status' => $oldJadwalStatus,
+                    'new_status' => 'menunggu_sk',
+                    'ba_was_selesai' => $wasSelesai,
+                ]);
+            }
+
             DB::commit();
 
             Log::info('Berita Acara deleted', [
                 'ba_id' => $beritaAcara->id,
+                'mahasiswa' => $mahasiswaName,
+                'ba_was_selesai' => $wasSelesai,
+                'jadwal_status_reset' => $wasSelesai && $oldJadwalStatus === 'selesai',
                 'deleted_by' => $user->id,
+                'deleted_by_name' => $user->name,
             ]);
+
+            $successMessage = 'Berita acara berhasil dihapus.';
+            if ($wasSelesai && $oldJadwalStatus === 'selesai') {
+                $successMessage .= ' Status jadwal dikembalikan ke "Menunggu SK".';
+            }
 
             return redirect()
                 ->route('admin.berita-acara-sempro.index')
-                ->with('success', 'Berita acara berhasil dihapus.');
+                ->with('success', $successMessage);
 
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Failed to delete Berita Acara', [
+                'ba_id' => $beritaAcara->id,
                 'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return back()->with('error', 'Gagal menghapus berita acara: ' . $e->getMessage());
