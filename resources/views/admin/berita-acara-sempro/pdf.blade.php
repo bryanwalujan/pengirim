@@ -218,21 +218,25 @@
             </thead>
             <tbody>
                 @php
-                    // ✅ Sort dosen: Ketua Pembahas pertama, kemudian Anggota Pembahas berurutan
                     $sortedDosen = $jadwal->dosenPenguji->sortBy(function($dosen) {
                         if ($dosen->pivot->posisi === 'Ketua Pembahas') {
-                            return 0; // Ketua Pembahas di urutan pertama
+                            return 0;
                         }
-                        // Extract angka dari "Anggota Pembahas 1", "Anggota Pembahas 2", dst
                         preg_match('/\d+/', $dosen->pivot->posisi, $matches);
                         return isset($matches[0]) ? (int)$matches[0] : 999;
-                    })->values(); // ✅ Reset keys agar index dimulai dari 0
+                    })->values();
                 @endphp
                 @foreach ($sortedDosen as $index => $dosen)
                     <tr>
                         <td class="text-center">{{ $index + 1 }}.</td>
                         <td>{{ $dosen->name }}</td>
-                        <td>{{ $dosen->pivot->posisi }}</td>
+                        <td>
+                            @if ($dosen->pivot->posisi === 'Ketua Pembahas')
+                                Dosen P.A / Ketua
+                            @else
+                                Anggota
+                            @endif
+                        </td>
                         <td class="text-center" style="color: #ccc;">
                             @if ($dosen->pivot->status_kehadiran == 'Hadir')
                                 <span style="color: #000; font-size: 8pt;">(Hadir)</span>

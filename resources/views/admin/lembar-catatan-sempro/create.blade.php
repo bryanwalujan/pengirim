@@ -86,66 +86,66 @@
             @endif
 
             <div class="row">
-                {{-- Penilaian Aspek --}}
-                <div class="col-md-4">
+                {{-- Aspek Penilaian --}}
+                <div class="col-md-12">
                     <div class="card mb-4">
                         <div class="card-header">
-                            <h5 class="mb-0">Penilaian Aspek</h5>
+                            <h5 class="mb-0"><i class="bx bx-check-square me-2"></i>Aspek Penilaian</h5>
                         </div>
                         <div class="card-body">
+                            {{-- Kebaruan Penelitian --}}
                             <div class="mb-3">
-                                <label for="nilai_kebaruan" class="form-label">
-                                    Kebaruan Penelitian
-                                    <small class="text-muted">(0-100)</small>
+                                <label for="catatan_kebaruan" class="form-label fw-bold">
+                                    <i class="bx bx-bulb me-1"></i>Kebaruan Penelitian
                                 </label>
-                                <input type="number" class="form-control @error('nilai_kebaruan') is-invalid @enderror"
-                                    id="nilai_kebaruan" name="nilai_kebaruan" min="0" max="100"
-                                    value="{{ old('nilai_kebaruan', $catatan->nilai_kebaruan ?? '') }}" placeholder="0-100">
-                                @error('nilai_kebaruan')
+                                <textarea class="form-control @error('catatan_kebaruan') is-invalid @enderror" 
+                                          id="catatan_kebaruan" name="catatan_kebaruan" 
+                                          rows="4" 
+                                          placeholder="Berikan catatan tentang kebaruan dan orisinalitas penelitian...">{{ old('catatan_kebaruan', $catatan->catatan_kebaruan ?? '') }}</textarea>
+                                <small class="text-muted">Karakter: <span id="count_kebaruan">0</span>/5000</small>
+                                <div class="form-text">Catatan tentang aspek kebaruan dan orisinalitas penelitian</div>
+                                @error('catatan_kebaruan')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
 
+                            {{-- Metode Penelitian --}}
                             <div class="mb-3">
-                                <label for="nilai_metode" class="form-label">
-                                    Metode Penelitian
-                                    <small class="text-muted">(0-100)</small>
+                                <label for="catatan_metode" class="form-label fw-bold">
+                                    <i class="bx bx-cog me-1"></i>Metode Penelitian
                                 </label>
-                                <input type="number" class="form-control @error('nilai_metode') is-invalid @enderror"
-                                    id="nilai_metode" name="nilai_metode" min="0" max="100"
-                                    value="{{ old('nilai_metode', $catatan->nilai_metode ?? '') }}" placeholder="0-100">
-                                @error('nilai_metode')
+                                <textarea class="form-control @error('catatan_metode') is-invalid @enderror" 
+                                          id="catatan_metode" name="catatan_metode" 
+                                          rows="4" 
+                                          placeholder="Berikan catatan tentang metode penelitian yang digunakan...">{{ old('catatan_metode', $catatan->catatan_metode ?? '') }}</textarea>
+                                <small class="text-muted">Karakter: <span id="count_metode">0</span>/5000</small>
+                                <div class="form-text">Catatan tentang metodologi yang digunakan</div>
+                                @error('catatan_metode')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
 
-                            <div class="mb-3">
-                                <label for="nilai_ketersediaan_data" class="form-label">
-                                    Ketersediaan Data
-                                    <small class="text-muted">(0-100)</small>
+                            {{-- Ketersediaan Data/Software/Hardware --}}
+                            <div class="mb-0">
+                                <label for="catatan_ketersediaan_data" class="form-label fw-bold">
+                                    <i class="bx bx-data me-1"></i>Ketersediaan Data/Software/Hardware
                                 </label>
-                                <input type="number"
-                                    class="form-control @error('nilai_ketersediaan_data') is-invalid @enderror"
-                                    id="nilai_ketersediaan_data" name="nilai_ketersediaan_data" min="0"
-                                    max="100"
-                                    value="{{ old('nilai_ketersediaan_data', $catatan->nilai_ketersediaan_data ?? '') }}"
-                                    placeholder="0-100">
-                                @error('nilai_ketersediaan_data')
+                                <textarea class="form-control @error('catatan_ketersediaan_data') is-invalid @enderror" 
+                                          id="catatan_ketersediaan_data" name="catatan_ketersediaan_data" 
+                                          rows="4" 
+                                          placeholder="Berikan catatan tentang ketersediaan data, software, hardware yang diperlukan...">{{ old('catatan_ketersediaan_data', $catatan->catatan_ketersediaan_data ?? '') }}</textarea>
+                                <small class="text-muted">Karakter: <span id="count_ketersediaan">0</span>/5000</small>
+                                <div class="form-text">Catatan tentang ketersediaan dan kesiapan data, software, dan hardware</div>
+                                @error('catatan_ketersediaan_data')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                            </div>
-
-                            {{-- Rata-rata nilai --}}
-                            <div class="alert alert-secondary mb-0">
-                                <strong>Rata-rata:</strong>
-                                <h4 class="mb-0" id="rata-rata-nilai">-</h4>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 {{-- Catatan Per Bab --}}
-                <div class="col-md-8">
+                <div class="col-md-12">
                     <div class="card mb-4">
                         <div class="card-header">
                             <h5 class="mb-0">Catatan Revisi Per Bab</h5>
@@ -267,6 +267,18 @@
 
             // ========== CHARACTER COUNTER ==========
             const textareas = {
+                'catatan_kebaruan': {
+                    max: 5000,
+                    counter: 'count_kebaruan'
+                },
+                'catatan_metode': {
+                    max: 5000,
+                    counter: 'count_metode'
+                },
+                'catatan_ketersediaan_data': {
+                    max: 5000,
+                    counter: 'count_ketersediaan'
+                },
                 'catatan_bab1': {
                     max: 5000,
                     counter: 'count_bab1'
@@ -317,53 +329,6 @@
                     });
                 }
             });
-
-            // ========== AUTO CALCULATE AVERAGE ==========
-            const nilaiInputs = ['nilai_kebaruan', 'nilai_metode', 'nilai_ketersediaan_data'];
-            const rataRataDisplay = document.getElementById('rata-rata-nilai');
-
-            function calculateAverage() {
-                let total = 0;
-                let count = 0;
-
-                nilaiInputs.forEach(id => {
-                    const input = document.getElementById(id);
-                    const value = parseInt(input.value);
-
-                    if (!isNaN(value) && value >= 0) {
-                        total += value;
-                        count++;
-                    }
-                });
-
-                if (count > 0) {
-                    const avg = (total / count).toFixed(2);
-                    rataRataDisplay.textContent = avg;
-
-                    // Color based on average
-                    rataRataDisplay.className = 'mb-0';
-                    if (avg >= 80) {
-                        rataRataDisplay.classList.add('text-success');
-                    } else if (avg >= 60) {
-                        rataRataDisplay.classList.add('text-warning');
-                    } else {
-                        rataRataDisplay.classList.add('text-danger');
-                    }
-                } else {
-                    rataRataDisplay.textContent = '-';
-                    rataRataDisplay.className = 'mb-0';
-                }
-            }
-
-            nilaiInputs.forEach(id => {
-                const input = document.getElementById(id);
-                if (input) {
-                    input.addEventListener('input', calculateAverage);
-                }
-            });
-
-            // Initial calculation
-            calculateAverage();
 
             // ========== AUTO-SAVE TO LOCALSTORAGE ==========
             const formInputs = document.querySelectorAll('textarea, input[type="number"]');

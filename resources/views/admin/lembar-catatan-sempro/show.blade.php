@@ -14,138 +14,38 @@
         @endphp
 
         {{-- Header --}}
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h4 class="fw-bold mb-0">
-                    <span class="text-muted fw-light">Lembar Catatan /</span> Detail
-                </h4>
-                <p class="text-muted mb-0">{{ $mahasiswa->name }} ({{ $mahasiswa->nim }})</p>
-            </div>
-            <div class="btn-group">
-                @if ($dosen->id === Auth::id() && !$beritaAcara->isSigned())
-                    <a href="{{ route('admin.lembar-catatan-sempro.edit', $lembarCatatan) }}" class="btn btn-primary">
-                        <i class="bx bx-edit me-1"></i> Edit
-                    </a>
-                @endif
-                <a href="{{ route('admin.lembar-catatan-sempro.download-pdf', $lembarCatatan) }}"
-                    class="btn btn-outline-primary">
-                    <i class="bx bx-download me-1"></i> Download PDF
-                </a>
-                <a href="{{ route('admin.berita-acara-sempro.show', $beritaAcara) }}" class="btn btn-outline-secondary">
-                    <i class="bx bx-arrow-back me-1"></i> Kembali
-                </a>
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h4 class="mb-1">
+                                    <i class="bx bx-file-blank me-2"></i>Detail Lembar Catatan Penguji
+                                </h4>
+                                <p class="text-muted mb-0">
+                                    <i class="bx bx-user me-1"></i>{{ $mahasiswa->name }} ({{ $mahasiswa->nim }})
+                                </p>
+                            </div>
+                            <div class="btn-group">
+                                @if ($dosen->id === Auth::id() && !$beritaAcara->isSigned())
+                                    <a href="{{ route('admin.lembar-catatan-sempro.edit', $lembarCatatan) }}" class="btn btn-warning">
+                                        <i class="bx bx-edit me-1"></i> Edit
+                                    </a>
+                                @endif
+                                <a href="{{ route('admin.berita-acara-sempro.show', $beritaAcara) }}" class="btn btn-primary">
+                                    <i class="bx bx-arrow-back me-1"></i> Kembali ke Berita Acara
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
         <div class="row">
-            {{-- Info & Nilai --}}
-            <div class="col-md-4">
-                {{-- Info Dosen --}}
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5 class="mb-0">Penguji</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="text-center mb-3">
-                            <div class="avatar avatar-xl mb-2">
-                                <span class="avatar-initial rounded-circle bg-label-primary">
-                                    {{ strtoupper(substr($dosen->name, 0, 2)) }}
-                                </span>
-                            </div>
-                            <h5 class="mb-0">{{ $dosen->name }}</h5>
-                            <small class="text-muted">NIP: {{ $dosen->nip ?? '-' }}</small>
-                        </div>
-                        <hr>
-                        <small class="text-muted">Diisi pada:</small>
-                        <p class="mb-0">{{ $lembarCatatan->created_at->translatedFormat('d F Y H:i') }}</p>
-                        @if ($lembarCatatan->updated_at != $lembarCatatan->created_at)
-                            <small class="text-muted">Terakhir diupdate:</small>
-                            <p class="mb-0">{{ $lembarCatatan->updated_at->translatedFormat('d F Y H:i') }}</p>
-                        @endif
-                    </div>
-                </div>
-
-                {{-- Penilaian --}}
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5 class="mb-0">Penilaian Aspek</h5>
-                    </div>
-                    <div class="card-body">
-                        @php
-                            $getNilaiClass = function ($nilai) {
-                                if ($nilai >= 80) {
-                                    return 'success';
-                                }
-                                if ($nilai >= 60) {
-                                    return 'warning';
-                                }
-                                return 'danger';
-                            };
-                        @endphp
-
-                        <div class="mb-3">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <small class="text-muted">Kebaruan Penelitian</small>
-                                <strong
-                                    class="text-{{ $lembarCatatan->nilai_kebaruan ? $getNilaiClass($lembarCatatan->nilai_kebaruan) : 'muted' }}">
-                                    {{ $lembarCatatan->nilai_kebaruan ?? '-' }}
-                                </strong>
-                            </div>
-                            @if ($lembarCatatan->nilai_kebaruan)
-                                <div class="progress" style="height: 6px;">
-                                    <div class="progress-bar bg-{{ $getNilaiClass($lembarCatatan->nilai_kebaruan) }}"
-                                        style="width: {{ $lembarCatatan->nilai_kebaruan }}%"></div>
-                                </div>
-                            @endif
-                        </div>
-
-                        <div class="mb-3">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <small class="text-muted">Metode Penelitian</small>
-                                <strong
-                                    class="text-{{ $lembarCatatan->nilai_metode ? $getNilaiClass($lembarCatatan->nilai_metode) : 'muted' }}">
-                                    {{ $lembarCatatan->nilai_metode ?? '-' }}
-                                </strong>
-                            </div>
-                            @if ($lembarCatatan->nilai_metode)
-                                <div class="progress" style="height: 6px;">
-                                    <div class="progress-bar bg-{{ $getNilaiClass($lembarCatatan->nilai_metode) }}"
-                                        style="width: {{ $lembarCatatan->nilai_metode }}%"></div>
-                                </div>
-                            @endif
-                        </div>
-
-                        <div class="mb-3">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <small class="text-muted">Ketersediaan Data</small>
-                                <strong
-                                    class="text-{{ $lembarCatatan->nilai_ketersediaan_data ? $getNilaiClass($lembarCatatan->nilai_ketersediaan_data) : 'muted' }}">
-                                    {{ $lembarCatatan->nilai_ketersediaan_data ?? '-' }}
-                                </strong>
-                            </div>
-                            @if ($lembarCatatan->nilai_ketersediaan_data)
-                                <div class="progress" style="height: 6px;">
-                                    <div class="progress-bar bg-{{ $getNilaiClass($lembarCatatan->nilai_ketersediaan_data) }}"
-                                        style="width: {{ $lembarCatatan->nilai_ketersediaan_data }}%"></div>
-                                </div>
-                            @endif
-                        </div>
-
-                        <hr>
-
-                        <div class="text-center">
-                            <small class="text-muted d-block">Rata-rata</small>
-                            <h3
-                                class="mb-0 text-{{ $lembarCatatan->total_nilai ? $getNilaiClass($lembarCatatan->total_nilai) : 'muted' }}">
-                                {{ $lembarCatatan->total_nilai ?? '-' }}
-                            </h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             {{-- Catatan --}}
-            <div class="col-md-8">
+            <div class="col-md-12">
                 <div class="card">
                     <div class="card-header">
                         <h5 class="mb-0">Catatan Revisi</h5>

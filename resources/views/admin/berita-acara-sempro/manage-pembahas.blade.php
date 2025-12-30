@@ -232,8 +232,8 @@
                                                 <input type="hidden" name="pembahas[{{ $index }}][posisi]"
                                                     value="{{ $dosen->pivot->posisi }}">
                                                 <div class="d-flex align-items-center">
-                                                    <div class="avatar avatar-sm bg-success rounded me-3">
-                                                        <span class="avatar-initial fw-bold text-white">
+                                                    <div class="avatar avatar-sm me-3">
+                                                        <span class="avatar-initial bg-info rounded fw-bold text-white">
                                                             {{ strtoupper(substr($dosen->name, 0, 1)) }}
                                                         </span>
                                                     </div>

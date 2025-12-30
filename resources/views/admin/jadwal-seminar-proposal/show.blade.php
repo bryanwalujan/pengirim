@@ -652,7 +652,7 @@
                             </a>
                         </div>
                         <div class="card-body">
-                            <div class="row g-3">
+                            <div class="row g-3 mt-2">
                                 <div class="col-md-4">
                                     <div class="p-3 bg-light rounded text-center">
                                         <label class="form-label text-muted mb-1 d-block small">Keputusan</label>
@@ -663,10 +663,10 @@
                                     </div>
                                 </div>
                                 <div class="col-md-4">
-                                    <div class="p-3 bg-light rounded text-center">
+                                    <div class="p-3 bg-light rounded text-center h-100">
                                         <label class="form-label text-muted mb-1 d-block small">Catatan Kejadian</label>
                                         <span
-                                            class="badge bg-{{ $beritaAcara->catatan_kejadian === 'Lancar' ? 'success' : 'warning' }} fs-6">
+                                            class="badge bg-{{ $beritaAcara->catatan_kejadian === 'Lancar' ? 'success' : 'warning' }} fs-6 text-wrap lh-base">
                                             {{ $beritaAcara->catatan_kejadian }}
                                         </span>
                                     </div>

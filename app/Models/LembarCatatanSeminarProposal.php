@@ -10,9 +10,9 @@ class LembarCatatanSeminarProposal extends Model
     protected $fillable = [
         'berita_acara_seminar_proposal_id',
         'dosen_id',
-        'nilai_kebaruan',
-        'nilai_metode',
-        'nilai_ketersediaan_data',
+        'catatan_kebaruan',
+        'catatan_metode',
+        'catatan_ketersediaan_data',
         'catatan_bab1',
         'catatan_bab2',
         'catatan_bab3',
@@ -21,11 +21,7 @@ class LembarCatatanSeminarProposal extends Model
         'catatan_umum',
     ];
 
-    protected $casts = [
-        'nilai_kebaruan' => 'integer',
-        'nilai_metode' => 'integer',
-        'nilai_ketersediaan_data' => 'integer',
-    ];
+
 
     // ========== RELATIONS ==========
 
@@ -39,21 +35,7 @@ class LembarCatatanSeminarProposal extends Model
         return $this->belongsTo(User::class, 'dosen_id');
     }
 
-    // ========== HELPER METHODS ==========
 
-    /**
-     * Get total nilai rata-rata
-     */
-    public function getTotalNilaiAttribute(): float
-    {
-        $total = collect([
-            $this->nilai_kebaruan,
-            $this->nilai_metode,
-            $this->nilai_ketersediaan_data,
-        ])->filter()->avg();
-
-        return round($total, 2);
-    }
 
     /**
      * Check if has any catatan
@@ -69,11 +51,14 @@ class LembarCatatanSeminarProposal extends Model
     }
 
     /**
-     * Get formatted catatan for PDF
+     * Get formatted catatan for display
      */
     public function getFormattedCatatanAttribute(): array
     {
         return [
+            'Kebaruan Penelitian' => $this->catatan_kebaruan,
+            'Metode Penelitian' => $this->catatan_metode,
+            'Ketersediaan Data/Software/Hardware' => $this->catatan_ketersediaan_data,
             'Bab I (Pendahuluan)' => $this->catatan_bab1,
             'Bab II (Tinjauan Pustaka)' => $this->catatan_bab2,
             'Bab III (Metodologi)' => $this->catatan_bab3,

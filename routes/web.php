@@ -816,10 +816,6 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             Route::delete('/{lembarCatatan}', [LembarCatatanSemproController::class, 'destroy'])
                 ->name('destroy')
                 ->middleware('role:dosen|staff|admin');
-
-            // Download PDF Lembar Catatan
-            Route::get('/{lembarCatatan}/download-pdf', [LembarCatatanSemproController::class, 'downloadPdf'])
-                ->name('download-pdf');
         });
     });
 

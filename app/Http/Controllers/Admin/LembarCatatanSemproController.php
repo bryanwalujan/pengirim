@@ -35,7 +35,6 @@ class LembarCatatanSemproController extends Controller
         $isPenguji = $beritaAcara->jadwalSeminarProposal
             ->dosenPenguji()
             ->where('users.id', $user->id)
-            ->wherePivot('status_kehadiran', 'Hadir')
             ->exists();
 
         if (!$isPenguji) {
@@ -69,7 +68,6 @@ class LembarCatatanSemproController extends Controller
         $isPenguji = $beritaAcara->jadwalSeminarProposal
             ->dosenPenguji()
             ->where('users.id', $user->id)
-            ->wherePivot('status_kehadiran', 'Hadir')
             ->exists();
 
         if (!$isPenguji) {
@@ -77,9 +75,9 @@ class LembarCatatanSemproController extends Controller
         }
 
         $validated = $request->validate([
-            'nilai_kebaruan' => 'nullable|integer|min:0|max:100',
-            'nilai_metode' => 'nullable|integer|min:0|max:100',
-            'nilai_ketersediaan_data' => 'nullable|integer|min:0|max:100',
+            'catatan_kebaruan' => 'nullable|string|max:5000',
+            'catatan_metode' => 'nullable|string|max:5000',
+            'catatan_ketersediaan_data' => 'nullable|string|max:5000',
             'catatan_bab1' => 'nullable|string|max:5000',
             'catatan_bab2' => 'nullable|string|max:5000',
             'catatan_bab3' => 'nullable|string|max:5000',
@@ -87,9 +85,9 @@ class LembarCatatanSemproController extends Controller
             'catatan_referensi' => 'nullable|string|max:2000',
             'catatan_umum' => 'nullable|string|max:3000',
         ], [
-            'nilai_kebaruan.max' => 'Nilai maksimal 100',
-            'nilai_metode.max' => 'Nilai maksimal 100',
-            'nilai_ketersediaan_data.max' => 'Nilai maksimal 100',
+            'catatan_kebaruan.max' => 'Catatan kebaruan maksimal 5000 karakter',
+            'catatan_metode.max' => 'Catatan metode maksimal 5000 karakter',
+            'catatan_ketersediaan_data.max' => 'Catatan ketersediaan data maksimal 5000 karakter',
             'catatan_bab1.max' => 'Catatan BAB I maksimal 5000 karakter',
             'catatan_bab2.max' => 'Catatan BAB II maksimal 5000 karakter',
             'catatan_bab3.max' => 'Catatan BAB III maksimal 5000 karakter',
@@ -177,9 +175,9 @@ class LembarCatatanSemproController extends Controller
         }
 
         $validated = $request->validate([
-            'nilai_kebaruan' => 'nullable|integer|min:0|max:100',
-            'nilai_metode' => 'nullable|integer|min:0|max:100',
-            'nilai_ketersediaan_data' => 'nullable|integer|min:0|max:100',
+            'catatan_kebaruan' => 'nullable|string|max:5000',
+            'catatan_metode' => 'nullable|string|max:5000',
+            'catatan_ketersediaan_data' => 'nullable|string|max:5000',
             'catatan_bab1' => 'nullable|string|max:5000',
             'catatan_bab2' => 'nullable|string|max:5000',
             'catatan_bab3' => 'nullable|string|max:5000',
@@ -228,50 +226,6 @@ class LembarCatatanSemproController extends Controller
 
         } catch (\Exception $e) {
             return back()->with('error', 'Gagal menghapus lembar catatan.');
-        }
-    }
-
-    /**
-     * Download PDF individual lembar catatan
-     */
-    public function downloadPdf(LembarCatatanSeminarProposal $lembarCatatan)
-    {
-        try {
-            $lembarCatatan->load([
-                'beritaAcara.jadwalSeminarProposal.pendaftaranSeminarProposal.user',
-                'beritaAcara.jadwalSeminarProposal.pendaftaranSeminarProposal.komisiProposal',
-                'dosen',
-            ]);
-
-            $pdf = Pdf::loadView('pdf.lembar-catatan-sempro', [
-                'lembarCatatan' => $lembarCatatan,
-            ])
-                ->setPaper('a4', 'portrait')
-                ->setOption('margin-top', '1cm')
-                ->setOption('margin-bottom', '1cm')
-                ->setOption('margin-left', '1.5cm')
-                ->setOption('margin-right', '1.5cm');
-
-            $mahasiswa = $lembarCatatan->beritaAcara
-                ->jadwalSeminarProposal
-                ->pendaftaranSeminarProposal
-                ->user;
-
-            $filename = sprintf(
-                'Lembar_Catatan_%s_%s.pdf',
-                $mahasiswa->nim,
-                str_replace(' ', '_', $lembarCatatan->dosen->name)
-            );
-
-            return $pdf->download($filename);
-
-        } catch (\Exception $e) {
-            Log::error('Gagal generate PDF lembar catatan', [
-                'lembar_catatan_id' => $lembarCatatan->id,
-                'error' => $e->getMessage(),
-            ]);
-
-            return back()->with('error', 'Gagal generate PDF: ' . $e->getMessage());
         }
     }
 }

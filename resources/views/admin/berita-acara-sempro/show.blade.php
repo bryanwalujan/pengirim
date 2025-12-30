@@ -305,7 +305,15 @@
                                     @endphp
                                     @foreach ($sortedPembahas as $index => $dosen)
                                         @php
+                                            // ✅ PERBAIKAN: Untuk Ketua Pembahas, cek juga ttd_ketua_penguji_at
+                                            $isKetuaPembahas = $dosen->pivot->posisi === 'Ketua Pembahas';
                                             $hasSigned = $beritaAcara->hasSignedByPembahas($dosen->id);
+                                            
+                                            // Jika Ketua Pembahas, cek juga field ttd_ketua_penguji_by
+                                            if ($isKetuaPembahas && !$hasSigned) {
+                                                $hasSigned = $beritaAcara->ttd_ketua_penguji_by == $dosen->id;
+                                            }
+                                            
                                             $isCurrentUser = $dosen->id === $user->id;
                                         @endphp
                                         <tr class="{{ $isCurrentUser ? 'table-active' : '' }}">
@@ -327,10 +335,17 @@
                                             <td>
                                                 @if ($hasSigned)
                                                     @php
-                                                        $signature = collect(
-                                                            $beritaAcara->ttd_dosen_pembahas,
-                                                        )->firstWhere('dosen_id', $dosen->id);
-                                                        $isStaffApproval = $signature['approved_by_staff'] ?? false;
+                                                        // Cek apakah TTD dari array atau dari field ketua
+                                                        if ($isKetuaPembahas && $beritaAcara->ttd_ketua_penguji_by == $dosen->id) {
+                                                            // TTD Ketua dari field ttd_ketua_penguji_at
+                                                            $signedAt = $beritaAcara->ttd_ketua_penguji_at;
+                                                            $isStaffApproval = false;
+                                                        } else {
+                                                            // TTD dari array ttd_dosen_pembahas
+                                                            $signature = collect($beritaAcara->ttd_dosen_pembahas)->firstWhere('dosen_id', $dosen->id);
+                                                            $signedAt = $signature['signed_at'] ?? null;
+                                                            $isStaffApproval = $signature['approved_by_staff'] ?? false;
+                                                        }
                                                     @endphp
                                                     <div>
                                                         <span class="badge bg-success">
@@ -344,9 +359,11 @@
                                                             </span>
                                                         @endif
                                                     </div>
-                                                    <div class="small text-muted mt-1">
-                                                        {{ \Carbon\Carbon::parse($signature['signed_at'])->isoFormat('D/M/Y HH:mm') }}
-                                                    </div>
+                                                    @if ($signedAt)
+                                                        <div class="small text-muted mt-1">
+                                                            {{ \Carbon\Carbon::parse($signedAt)->isoFormat('D/M/Y HH:mm') }}
+                                                        </div>
+                                                    @endif
                                                     @if ($isStaffApproval && isset($signature['approval_reason']))
                                                         <div class="small text-muted fst-italic mt-1">
                                                             <i class="bx bx-info-circle me-1"></i>{{ $signature['approval_reason'] }}
