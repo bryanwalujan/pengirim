@@ -65,7 +65,10 @@
                     <div class="col-md-6 mb-3">
                         <label class="form-label fw-bold text-muted small">Tanggal Ujian</label>
                         <div>{{ $jadwal->tanggal_ujian->isoFormat('dddd, D MMMM Y') }}</div>
-                        <small class="text-muted">{{ $jadwal->waktu_mulai }} - {{ $jadwal->waktu_selesai }}</small>
+                        <span class="badge bg-label-primary">
+                            <i class="bx bx-time-five me-1"></i>
+                            {{ \Carbon\Carbon::parse($jadwal->waktu_mulai)->format('H:i') }} - {{ \Carbon\Carbon::parse($jadwal->waktu_selesai)->format('H:i') }} WITA
+                        </span>
                     </div>
                     <div class="col-md-12">
                         <label class="form-label fw-bold text-muted small">Judul Proposal</label>

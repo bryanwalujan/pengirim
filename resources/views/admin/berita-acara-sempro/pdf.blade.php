@@ -318,7 +318,7 @@
         <p style="margin-bottom: 5px; margin-top: 0;">Ketua Pembahas,</p>
 
         <div class="signature-space">
-            @if (isset($beritaAcara->is_signed) && $beritaAcara->is_signed && isset($qrCode))
+            @if ($beritaAcara->isSelesai() && isset($qrCode))
                 <img src="data:image/png;base64,{{ $qrCode }}" alt="QR Code Digital Signature"
                     class="qr-code-img">
             @endif
