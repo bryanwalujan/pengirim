@@ -1629,6 +1629,34 @@ class AdminBeritaAcaraSemproController extends Controller
         ]);
     }
 
+       /**
+     * Download PDF from public verification page
+     */
+    public function verifyAndDownload(string $code)
+    {
+        $beritaAcara = BeritaAcaraSeminarProposal::where('verification_code', $code)
+            ->with(['jadwalSeminarProposal.pendaftaranSeminarProposal.user'])
+            ->first();
+        if (!$beritaAcara) {
+            abort(404, 'Dokumen tidak ditemukan.');
+        }
+        if (!$beritaAcara->file_path || !Storage::disk('local')->exists($beritaAcara->file_path)) {
+            return redirect()
+                ->route('berita-acara-sempro.verify', $code)
+                ->with('error', 'File PDF tidak tersedia untuk diunduh.');
+        }
+        $mahasiswa = $beritaAcara->jadwalSeminarProposal->pendaftaranSeminarProposal->user;
+        $fileName = "BA_Sempro_{$mahasiswa->nim}_{$mahasiswa->name}.pdf";
+        Log::info('Public download of Berita Acara', [
+            'verification_code' => $code,
+            'ba_id' => $beritaAcara->id,
+        ]);
+        return response()->download(
+            Storage::disk('local')->path($beritaAcara->file_path),
+            $fileName
+        );
+    }
+
     /**
      * Delete berita acara
      */

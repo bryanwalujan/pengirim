@@ -228,20 +228,23 @@
                 @endphp
                 @foreach ($sortedDosen as $index => $dosen)
                     <tr>
-                        <td class="text-center">{{ $index + 1 }}.</td>
-                        <td>{{ $dosen->name }}</td>
-                        <td>
-                            @if ($dosen->pivot->posisi === 'Ketua Pembahas')
-                                Dosen P.A / Ketua
+                        <td class="text-center">
+                            @php
+                                $hasSigned = false;
+                                $signatures = $beritaAcara->ttd_dosen_pembahas ?? [];
+                                if (is_array($signatures)) {
+                                    foreach ($signatures as $sig) {
+                                        if (isset($sig['dosen_id']) && $sig['dosen_id'] == $dosen->id) {
+                                            $hasSigned = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                            @endphp
+                            @if ($hasSigned)
+                                <span style="color: #000; font-size: 9pt; font-weight: bold;">✓</span>
                             @else
-                                Anggota
-                            @endif
-                        </td>
-                        <td class="text-center" style="color: #ccc;">
-                            @if ($dosen->pivot->status_kehadiran == 'Hadir')
-                                <span style="color: #000; font-size: 8pt;">(Hadir)</span>
-                            @else
-                                ........
+                               <span style="color: #999; font-size: 8pt;">-</span>
                             @endif
                         </td>
                     </tr>
