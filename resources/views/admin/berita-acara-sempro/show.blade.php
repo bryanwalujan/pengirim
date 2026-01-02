@@ -249,8 +249,8 @@
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold text-muted small">Tanggal & Waktu</label>
                                 <div class="fw-semibold">
-                                    {{ $jadwal->tanggal_ujian->isoFormat('dddd, D MMMM Y') }}
-                                </div>
+    {{ $jadwal->tanggal_ujian ? \Carbon\Carbon::parse($jadwal->tanggal_ujian)->isoFormat('dddd, D MMMM Y') : '-' }}
+</div>
                                 <div class="mt-1">
                                     <span class="badge bg-label-primary">
                                         <i class="bx bx-time-five me-1"></i>

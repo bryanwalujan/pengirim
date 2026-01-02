@@ -154,7 +154,7 @@
                         </label>
                     </div>
 
-                    <div class="form-check">
+                    <div class="form-check mb-3">
                         <input class="form-check-input @error('keputusan') is-invalid @enderror" type="radio"
                             name="keputusan" id="keputusan_tidak" value="Tidak"
                             {{ old('keputusan') === 'Tidak' ? 'checked' : '' }}>
@@ -162,6 +162,24 @@
                             <strong class="text-danger">Tidak</strong>
                             <div class="text-muted small">Proposal belum layak dan perlu revisi besar</div>
                         </label>
+                    </div>
+
+                    {{-- Warning untuk keputusan Tidak --}}
+                    <div class="alert alert-danger d-none" id="alertTidakLayak" role="alert">
+                        <h6 class="alert-heading mb-2">
+                            <i class="bx bx-error-circle me-1"></i>Perhatian: Proposal Tidak Layak
+                        </h6>
+                        <p class="mb-2">Jika Anda memilih <strong>"Tidak"</strong>, maka:</p>
+                        <ul class="mb-2">
+                            <li>Berita acara akan ditandai sebagai <strong>DITOLAK</strong></li>
+                            <li>Mahasiswa <strong>HARUS mengikuti ujian seminar proposal ulang</strong></li>
+                            <li>Staff akan melakukan <strong>penjadwalan ulang</strong> untuk ujian berikutnya</li>
+                            <li>Jadwal ujian sebelumnya akan direset</li>
+                        </ul>
+                        <p class="mb-0">
+                            <i class="bx bx-info-circle me-1"></i>
+                            <small>Pastikan keputusan ini sudah dipertimbangkan dengan matang bersama tim penguji.</small>
+                        </p>
                     </div>
 
                     @error('keputusan')
@@ -219,7 +237,30 @@
 
 @push('scripts')
     <script>
-        // Form validation before submit
+        // ========== SHOW/HIDE WARNING ALERT ==========
+        const radioTidak = document.getElementById('keputusan_tidak');
+        const radioYa = document.getElementById('keputusan_ya');
+        const radioYaPerbaikan = document.getElementById('keputusan_ya_perbaikan');
+        const alertTidakLayak = document.getElementById('alertTidakLayak');
+
+        // Function to toggle alert
+        function toggleAlert() {
+            if (radioTidak.checked) {
+                alertTidakLayak.classList.remove('d-none');
+            } else {
+                alertTidakLayak.classList.add('d-none');
+            }
+        }
+
+        // Add event listeners
+        if (radioTidak) radioTidak.addEventListener('change', toggleAlert);
+        if (radioYa) radioYa.addEventListener('change', toggleAlert);
+        if (radioYaPerbaikan) radioYaPerbaikan.addEventListener('change', toggleAlert);
+
+        // Check on page load (for old() values)
+        toggleAlert();
+
+        // ========== FORM VALIDATION BEFORE SUBMIT ==========
         document.getElementById('formFillBA').addEventListener('submit', function(e) {
             const catatanKejadian = document.querySelector('input[name="catatan_kejadian"]:checked');
             const keputusan = document.querySelector('input[name="keputusan"]:checked');
@@ -240,27 +281,60 @@
             // Confirmation before submit
             e.preventDefault();
 
-            Swal.fire({
-                title: 'Konfirmasi Submit',
-                html: `
+            // Different confirmation message based on keputusan
+            let confirmTitle = 'Konfirmasi Submit';
+            let confirmIcon = 'warning';
+            let confirmHtml = '';
+
+            if (keputusan.value === 'Tidak') {
+                confirmTitle = '⚠️ Konfirmasi Penolakan Proposal';
+                confirmIcon = 'error';
+                confirmHtml = `
+                    <div class="text-start">
+                        <div class="alert alert-danger mb-3">
+                            <strong>PERHATIAN:</strong> Anda akan menolak proposal mahasiswa ini!
+                        </div>
+                        <p>Data yang akan disimpan:</p>
+                        <ul>
+                            <li><strong>Catatan Kejadian:</strong> ${catatanKejadian.value}</li>
+                            <li><strong>Kesimpulan:</strong> <span class="text-danger"><strong>${keputusan.value}</strong></span></li>
+                        </ul>
+                        <div class="alert alert-warning mb-0">
+                            <p class="mb-2"><strong>Konsekuensi:</strong></p>
+                            <ul class="mb-0">
+                                <li>Berita acara akan ditandai sebagai <strong>DITOLAK</strong></li>
+                                <li>Mahasiswa harus mengikuti <strong>ujian seminar proposal ulang</strong></li>
+                                <li>Staff akan melakukan <strong>penjadwalan ulang</strong></li>
+                            </ul>
+                        </div>
+                    </div>
+                `;
+            } else {
+                confirmHtml = `
                     <div class="text-start">
                         <p>Anda akan mengirimkan berita acara dengan data:</p>
                         <ul>
                             <li><strong>Catatan Kejadian:</strong> ${catatanKejadian.value}</li>
                             <li><strong>Kesimpulan:</strong> ${keputusan.value}</li>
                         </ul>
-                        <p class="text-warning mb-0">
-                            <i class="bx bx-info-circle me-1"></i>
-                            Setelah submit, berita acara akan dikirim ke Ketua Penguji untuk ditandatangani.
+                        <p class="text-success mb-0">
+                            <i class="bx bx-check-circle me-1"></i>
+                            Setelah submit, berita acara akan selesai dan PDF akan ter-generate otomatis.
                         </p>
                     </div>
-                `,
-                icon: 'warning',
+                `;
+            }
+
+            Swal.fire({
+                title: confirmTitle,
+                html: confirmHtml,
+                icon: confirmIcon,
                 showCancelButton: true,
-                confirmButtonText: 'Ya, Submit',
+                confirmButtonText: keputusan.value === 'Tidak' ? 'Ya, Tolak Proposal' : 'Ya, Submit',
                 cancelButtonText: 'Batal',
-                confirmButtonColor: '#28a745',
-                cancelButtonColor: '#6c757d'
+                confirmButtonColor: keputusan.value === 'Tidak' ? '#dc3545' : '#28a745',
+                cancelButtonColor: '#6c757d',
+                reverseButtons: true
             }).then((result) => {
                 if (result.isConfirmed) {
                     this.submit();

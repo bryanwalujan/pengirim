@@ -26,6 +26,8 @@ class BeritaAcaraSeminarProposal extends Model
         'ttd_ketua_penguji_at',
         'ttd_ketua_penguji_by',
         'dibuat_oleh_id',
+        'alasan_ditolak',
+        'ditolak_at',
     ];
 
     protected $casts = [
@@ -33,6 +35,7 @@ class BeritaAcaraSeminarProposal extends Model
         'ttd_pembimbing_at' => 'datetime',
         'ttd_ketua_penguji_at' => 'datetime',
         'ttd_dosen_pembahas' => 'array',
+        'ditolak_at' => 'datetime',
     ];
 
     // ========================================
@@ -96,6 +99,22 @@ class BeritaAcaraSeminarProposal extends Model
     public function isSelesai(): bool
     {
         return $this->status === 'selesai';
+    }
+
+    /**
+     * ✅ NEW: Check apakah BA ditolak (keputusan 'Tidak')
+     */
+    public function isDitolak(): bool
+    {
+        return $this->status === 'ditolak';
+    }
+
+    /**
+     * Check apakah BA perlu dijadwalkan ulang
+     */
+    public function needsReschedule(): bool
+    {
+        return $this->status === 'ditolak' && $this->keputusan === 'Tidak';
     }
 
     public function isFilledByPembimbing(): bool
@@ -306,6 +325,7 @@ class BeritaAcaraSeminarProposal extends Model
             $this->getTtdPembahasProgress()['total'] . ' sudah TTD)',
             'menunggu_ttd_pembimbing' => 'Menunggu dosen pembimbing/ketua mengisi & menandatangani',
             'selesai' => 'Berita acara telah selesai dan ditandatangani',
+            'ditolak' => 'Proposal tidak layak - mahasiswa perlu dijadwalkan ulang untuk seminar proposal',
             default => 'Status tidak diketahui',
         };
     }
@@ -324,6 +344,9 @@ class BeritaAcaraSeminarProposal extends Model
             </span>',
             'selesai' => '<span class="badge bg-label-success">
                 <i class="bx bx-check-circle me-1"></i>Selesai
+            </span>',
+            'ditolak' => '<span class="badge bg-label-danger">
+                <i class="bx bx-x-circle me-1"></i>Ditolak - Perlu Dijadwalkan Ulang
             </span>',
             default => '<span class="badge bg-label-dark">Unknown</span>',
         };

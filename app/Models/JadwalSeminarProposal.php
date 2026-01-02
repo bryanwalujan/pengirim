@@ -28,12 +28,45 @@ class JadwalSeminarProposal extends Model
         return $this->belongsTo(PendaftaranSeminarProposal::class);
     }
 
+
     /**
      * Relasi ke BeritaAcaraSeminarProposal (One-to-One)
+     * ⚠️ DEPRECATED: Gunakan beritaAcaraAktif() untuk mendapatkan BA yang sedang aktif
+     * Relasi ini tetap ada untuk backward compatibility
      */
     public function beritaAcaraSeminarProposal()
     {
         return $this->hasOne(BeritaAcaraSeminarProposal::class);
+    }
+
+    /**
+     * ✅ NEW: Relasi ke semua Berita Acara (termasuk yang ditolak)
+     * Satu jadwal bisa punya multiple BA jika ada ujian ulangan
+     */
+    public function beritaAcaras()
+    {
+        return $this->hasMany(BeritaAcaraSeminarProposal::class, 'jadwal_seminar_proposal_id');
+    }
+
+    /**
+     * ✅ NEW: Relasi ke Berita Acara yang AKTIF (bukan yang ditolak)
+     * Ini adalah BA untuk ujian yang sedang berjalan
+     */
+    public function beritaAcaraAktif()
+    {
+        return $this->hasOne(BeritaAcaraSeminarProposal::class)
+            ->whereNotIn('status', ['ditolak'])
+            ->latest();
+    }
+
+    /**
+     * ✅ NEW: Relasi ke Berita Acara yang DITOLAK (arsip)
+     */
+    public function beritaAcarasDitolak()
+    {
+        return $this->hasMany(BeritaAcaraSeminarProposal::class, 'jadwal_seminar_proposal_id')
+            ->where('status', 'ditolak')
+            ->orderBy('ditolak_at', 'desc');
     }
 
 
@@ -60,11 +93,19 @@ class JadwalSeminarProposal extends Model
     }
 
     /**
-     * Check apakah sudah memiliki berita acara
+     * ✅ UPDATED: Check apakah sudah memiliki berita acara AKTIF (bukan yang ditolak)
      */
     public function hasBeritaAcara(): bool
     {
-        return $this->beritaAcaraSeminarProposal()->exists();
+        return $this->beritaAcaraAktif()->exists();
+    }
+
+    /**
+     * ✅ NEW: Check apakah pernah ditolak (punya BA dengan status ditolak)
+     */
+    public function hasRejectedBeritaAcara(): bool
+    {
+        return $this->beritaAcarasDitolak()->exists();
     }
 
     /**

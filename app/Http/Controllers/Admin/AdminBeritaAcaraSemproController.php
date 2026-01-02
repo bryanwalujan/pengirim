@@ -295,7 +295,14 @@ class AdminBeritaAcaraSemproController extends Controller
 
         // Filter by status (untuk staff)
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            $status = $request->status;
+            
+            // Handle combined status for 'menunggu_ttd'
+            if ($status === 'menunggu_ttd') {
+                $query->whereIn('status', ['menunggu_ttd_pembahas', 'menunggu_ttd_pembimbing']);
+            } else {
+                $query->where('status', $status);
+            }
         }
 
         // Filter by keputusan
@@ -363,6 +370,11 @@ class AdminBeritaAcaraSemproController extends Controller
                 'menunggu_ttd_pembahas' => \App\Models\BeritaAcaraSeminarProposal::where('status', 'menunggu_ttd_pembahas')->count(),
                 'menunggu_ttd_pembimbing' => \App\Models\BeritaAcaraSeminarProposal::where('status', 'menunggu_ttd_pembimbing')->count(),
                 'selesai' => \App\Models\BeritaAcaraSeminarProposal::where('status', 'selesai')->count(),
+                'ditolak' => \App\Models\BeritaAcaraSeminarProposal::where('status', 'ditolak')->count(),
+                // Statistik berdasarkan keputusan
+                'lulus' => \App\Models\BeritaAcaraSeminarProposal::where('keputusan', 'Ya')->count(),
+                'lulus_bersyarat' => \App\Models\BeritaAcaraSeminarProposal::where('keputusan', 'Ya, dengan perbaikan')->count(),
+                'tidak_lulus' => \App\Models\BeritaAcaraSeminarProposal::where('keputusan', 'Tidak')->count(),
             ];
         }
 
@@ -385,11 +397,31 @@ class AdminBeritaAcaraSemproController extends Controller
             return back()->with('error', 'Berita acara hanya dapat dibuat untuk jadwal yang sudah dijadwalkan.');
         }
 
-        // Check sudah ada BA
-        if ($jadwal->beritaAcaraSeminarProposal()->exists()) {
+        // ✅ PERBAIKAN: Check sudah ada BA yang AKTIF (bukan yang ditolak)
+        // BA dengan status 'ditolak' adalah arsip ujian sebelumnya yang gagal
+        // Staff boleh membuat BA baru untuk ujian ulangan
+        $existingActiveBA = $jadwal->beritaAcaraSeminarProposal()
+            ->whereNotIn('status', ['ditolak'])
+            ->first();
+
+        if ($existingActiveBA) {
             return redirect()
-                ->route('admin.berita-acara-sempro.show', $jadwal->beritaAcaraSeminarProposal)
+                ->route('admin.berita-acara-sempro.show', $existingActiveBA)
                 ->with('info', 'Berita acara sudah dibuat untuk jadwal ini.');
+        }
+
+        // ✅ INFO: Jika ada BA dengan status 'ditolak', itu adalah arsip ujian sebelumnya
+        // BA baru akan dibuat sebagai dokumen terpisah untuk ujian ulangan
+        $rejectedBA = $jadwal->beritaAcaraSeminarProposal()
+            ->where('status', 'ditolak')
+            ->first();
+
+        if ($rejectedBA) {
+            Log::info('Creating new BA for rescheduled exam (previous BA was rejected)', [
+                'jadwal_id' => $jadwal->id,
+                'rejected_ba_id' => $rejectedBA->id,
+                'rejected_at' => $rejectedBA->ditolak_at,
+            ]);
         }
 
         // ✅ PERBAIKAN: Tidak perlu cek tanggal H lagi
@@ -938,6 +970,7 @@ class AdminBeritaAcaraSemproController extends Controller
             'keputusan.required' => 'Kesimpulan kelayakan wajib dipilih.',
         ]);
 
+
         // ✅ MANUAL VALIDATION: Cek nilai keputusan
         $validKeputusan = ['Ya', 'Ya, dengan perbaikan', 'Tidak'];
         if (!in_array($validated['keputusan'], $validKeputusan)) {
@@ -948,53 +981,126 @@ class AdminBeritaAcaraSemproController extends Controller
 
         DB::beginTransaction();
         try {
-            // ✅ UPDATE: BA langsung selesai setelah pembimbing/ketua TTD
-            $beritaAcara->update([
-                'catatan_kejadian' => $validated['catatan_kejadian'],
-                'keputusan' => $validated['keputusan'],
-                'catatan_tambahan' => $validated['catatan_tambahan'] ?? $beritaAcara->catatan_tambahan,
-                'diisi_oleh_pembimbing_id' => $user->id,
-                'diisi_pembimbing_at' => now(),
-                'ttd_pembimbing_by' => $user->id,
-                'ttd_pembimbing_at' => now(),
-                'ttd_ketua_penguji_by' => $user->id,     // ✅ Sekaligus TTD sebagai ketua
-                'ttd_ketua_penguji_at' => now(),
-                'status' => 'selesai',
-            ]);
+            $jadwal = $beritaAcara->jadwalSeminarProposal;
 
-            Log::info('Berita Acara updated - before PDF generation', [
-                'ba_id' => $beritaAcara->id,
-                'catatan_kejadian' => $validated['catatan_kejadian'],
-                'keputusan' => $validated['keputusan'],
-            ]);
+            // ✅ CEK: Apakah keputusan adalah DITOLAK (Tidak)
+            $isRejected = $validated['keputusan'] === 'Tidak';
 
-            // ✅ Generate PDF langsung
-            $pdfPath = $this->pelaksanaanUjianService->generateBeritaAcaraPdf($beritaAcara);
-
-            if ($pdfPath) {
-                $beritaAcara->update(['file_path' => $pdfPath]);
-
-                Log::info('PDF generated successfully', [
-                    'pdf_path' => $pdfPath,
+            if ($isRejected) {
+                // ========================================
+                // ❌ FLOW DITOLAK: Proposal Tidak Layak
+                // ========================================
+                
+                // ✅ CATATAN PENTING:
+                // - Berita acara LAMA tetap disimpan dengan status 'ditolak' (untuk dokumentasi/arsip)
+                // - Berita acara BARU akan dibuat oleh staff setelah jadwal ulang diatur
+                // - Ini memastikan setiap ujian punya berita acara terpisah dengan persetujuan masing-masing
+                
+                $beritaAcara->update([
+                    'catatan_kejadian' => $validated['catatan_kejadian'],
+                    'keputusan' => $validated['keputusan'],
+                    'catatan_tambahan' => $validated['catatan_tambahan'] ?? $beritaAcara->catatan_tambahan,
+                    'diisi_oleh_pembimbing_id' => $user->id,
+                    'diisi_pembimbing_at' => now(),
+                    'ttd_pembimbing_by' => $user->id,
+                    'ttd_pembimbing_at' => now(),
+                    'ttd_ketua_penguji_by' => $user->id,
+                    'ttd_ketua_penguji_at' => now(),
+                    'status' => 'ditolak',
+                    'alasan_ditolak' => $validated['catatan_tambahan'] ?? 'Proposal tidak layak berdasarkan hasil ujian seminar proposal.',
+                    'ditolak_at' => now(),
                 ]);
-            } else {
-                Log::warning('PDF generation returned null', [
+
+                // ✅ Generate PDF dokumentasi penolakan (untuk arsip)
+                $pdfPath = $this->pelaksanaanUjianService->generateBeritaAcaraPdf($beritaAcara);
+                if ($pdfPath) {
+                    $beritaAcara->update(['file_path' => $pdfPath]);
+                }
+
+                // ✅ PENTING: Reset jadwal agar staff bisa menjadwalkan ulang
+                // Status diubah ke 'menunggu_jadwal' - jadwal akan dikosongkan
+                // Berita acara lama TIDAK dihapus, hanya ditandai sebagai 'ditolak'
+                $jadwal->update([
+                    'status' => 'menunggu_jadwal',
+                    'tanggal_ujian' => null,
+                    'waktu_mulai' => null,
+                    'waktu_selesai' => null,
+                    'ruangan' => null,
+                ]);
+
+                // ✅ CATATAN: Berita acara lama tetap terhubung ke jadwal ini
+                // Ketika staff membuat jadwal baru dan klik "Buat Berita Acara",
+                // sistem akan mengecek: jika sudah ada BA dengan status 'ditolak',
+                // maka akan membuat BA BARU (bukan update yang lama)
+                
+                Log::info('❌ PROPOSAL DITOLAK - Jadwal direset untuk penjadwalan ulang', [
                     'ba_id' => $beritaAcara->id,
+                    'ba_status' => 'ditolak',
+                    'jadwal_id' => $jadwal->id,
+                    'user_id' => $user->id,
+                    'keputusan' => 'Tidak',
+                    'jadwal_new_status' => 'menunggu_jadwal',
+                    'note' => 'BA lama tetap ada untuk dokumentasi, BA baru akan dibuat setelah jadwal ulang',
                 ]);
+
+                DB::commit();
+
+                return redirect()
+                    ->route('admin.berita-acara-sempro.show', $beritaAcara)
+                    ->with('warning', 'Berita acara telah diselesaikan dengan keputusan TIDAK LAYAK. Mahasiswa perlu dijadwalkan ulang untuk seminar proposal berikutnya. Setelah dijadwalkan, staff dapat membuat berita acara BARU untuk ujian ulangan.');
+
+            } else {
+                // ========================================
+                // ✅ FLOW DITERIMA: Ya / Ya dengan perbaikan
+                // ========================================
+                
+                $beritaAcara->update([
+                    'catatan_kejadian' => $validated['catatan_kejadian'],
+                    'keputusan' => $validated['keputusan'],
+                    'catatan_tambahan' => $validated['catatan_tambahan'] ?? $beritaAcara->catatan_tambahan,
+                    'diisi_oleh_pembimbing_id' => $user->id,
+                    'diisi_pembimbing_at' => now(),
+                    'ttd_pembimbing_by' => $user->id,
+                    'ttd_pembimbing_at' => now(),
+                    'ttd_ketua_penguji_by' => $user->id,
+                    'ttd_ketua_penguji_at' => now(),
+                    'status' => 'selesai',
+                ]);
+
+                Log::info('Berita Acara updated - before PDF generation', [
+                    'ba_id' => $beritaAcara->id,
+                    'catatan_kejadian' => $validated['catatan_kejadian'],
+                    'keputusan' => $validated['keputusan'],
+                ]);
+
+                // ✅ Generate PDF langsung
+                $pdfPath = $this->pelaksanaanUjianService->generateBeritaAcaraPdf($beritaAcara);
+
+                if ($pdfPath) {
+                    $beritaAcara->update(['file_path' => $pdfPath]);
+
+                    Log::info('PDF generated successfully', [
+                        'pdf_path' => $pdfPath,
+                    ]);
+                } else {
+                    Log::warning('PDF generation returned null', [
+                        'ba_id' => $beritaAcara->id,
+                    ]);
+                }
+
+                DB::commit();
+
+                Log::info('Berita Acara filled & signed by Pembimbing/Ketua - FINAL', [
+                    'ba_id' => $beritaAcara->id,
+                    'user_id' => $user->id,
+                    'keputusan' => $validated['keputusan'],
+                    'pdf_generated' => !is_null($pdfPath),
+                ]);
+
+                return redirect()
+                    ->route('admin.berita-acara-sempro.show', $beritaAcara)
+                    ->with('success', 'Berita acara berhasil diisi, ditandatangani, dan PDF telah digenerate!');
             }
-
-            DB::commit();
-
-            Log::info('Berita Acara filled & signed by Pembimbing/Ketua - FINAL', [
-                'ba_id' => $beritaAcara->id,
-                'user_id' => $user->id,
-                'keputusan' => $validated['keputusan'],
-                'pdf_generated' => !is_null($pdfPath),
-            ]);
-
-            return redirect()
-                ->route('admin.berita-acara-sempro.show', $beritaAcara)
-                ->with('success', 'Berita acara berhasil diisi, ditandatangani, dan PDF telah digenerate!');
 
         } catch (\Exception $e) {
             DB::rollBack();

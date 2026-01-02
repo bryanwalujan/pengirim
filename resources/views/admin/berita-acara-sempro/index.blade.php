@@ -242,6 +242,13 @@
                             <span class="d-none d-sm-inline">Selesai</span>
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a href="{{ route('admin.berita-acara-sempro.index', ['status' => 'ditolak']) }}"
+                            class="nav-link {{ request('status') === 'ditolak' ? 'active' : '' }}">
+                            <i class="bx bx-x-circle bx-xs me-1"></i>
+                            <span class="d-none d-sm-inline">Ditolak</span>
+                        </a>
+                    </li>
                 </ul>
             </div>
 
@@ -337,7 +344,7 @@
                                     <div class="d-flex flex-column gap-1">
                                         <span class="badge bg-label-primary">
                                             <i class="bx bx-calendar bx-xs me-1"></i>
-                                            {{ $jadwal->tanggal_ujian->isoFormat('D MMM Y') }}
+                                        {{ $jadwal->tanggal_ujian ? \Carbon\Carbon::parse($jadwal->tanggal_ujian)->isoFormat('dddd, D MMMM Y') : '-' }}
                                         </span>
                                         <small class="text-muted">
                                             <i class="bx bx-time bx-xs me-1"></i>
