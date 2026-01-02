@@ -37,6 +37,7 @@ use App\Http\Controllers\User\PeminjamanLaboratoriumController;
 use App\Http\Controllers\Admin\AdminBeritaAcaraSemproController;
 use App\Http\Controllers\Admin\AdminSuratCutiAkademikController;
 use App\Http\Controllers\Admin\AdminPeminjamanProyektorController;
+use App\Http\Controllers\User\BeritaAcaraSeminarProposalController;
 use App\Http\Controllers\User\PendaftaranSeminarProposalController;
 use App\Http\Controllers\Admin\AdminJadwalSeminarProposalController;
 use App\Http\Controllers\Admin\AdminPendaftaranUjianHasilController;
@@ -213,6 +214,25 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa', 'check.ukt'])->group(fu
         Route::get('/create', [PendaftaranUjianHasilController::class, 'create'])->name('create');
         Route::post('/', [PendaftaranUjianHasilController::class, 'store'])->name('store');
         Route::get('/{pendaftaran_ujian_hasil}', [PendaftaranUjianHasilController::class, 'show'])->name('show');
+    });
+
+    // Layanan Berita Acara Seminar Proposal (TAMBAHKAN INI)
+    Route::prefix('berita-acara-sempro')->name('user.berita-acara-sempro.')->group(function () {
+        // List berita acara
+        Route::get('/', [BeritaAcaraSeminarProposalController::class, 'index'])
+            ->name('index');
+
+        // Show detail berita acara
+        Route::get('/{beritaAcara}', [BeritaAcaraSeminarProposalController::class, 'show'])
+            ->name('show');
+
+        // Download PDF berita acara
+        Route::get('/{beritaAcara}/download-pdf', [BeritaAcaraSeminarProposalController::class, 'downloadPdf'])
+            ->name('download');
+
+        // View PDF inline
+        Route::get('/{beritaAcara}/view-pdf', [BeritaAcaraSeminarProposalController::class, 'viewPdf'])
+            ->name('view-pdf');
     });
 
     // Layanan Komisi Proposal

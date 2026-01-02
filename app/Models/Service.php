@@ -41,6 +41,7 @@ class Service extends Model
             // Layanan Akademik
             'pendaftaran-seminar-proposal' => 'user.pendaftaran-seminar-proposal.index',
             'jadwal-seminar-proposal' => 'user.jadwal-seminar-proposal.index',
+            'berita-acara-sempro' => 'user.berita-acara-sempro.index',
             'pendaftaran-ujian-hasil' => 'user.pendaftaran-ujian-hasil.index',
             'komisi-proposal' => 'user.komisi-proposal.index',
             'komisi-hasil' => 'user.komisi-hasil.index',
