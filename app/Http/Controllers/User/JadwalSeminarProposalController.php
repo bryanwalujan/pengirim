@@ -193,7 +193,7 @@ class JadwalSeminarProposalController extends Controller
     }
 
     /**
-     * Delete SK Proposal (jika masih dalam status menunggu_jadwal)
+     * Delete SK Proposal (jika masih dalam status menunggu_jadwal atau dijadwalkan tanpa berita acara)
      */
     public function deleteSkProposal(JadwalSeminarProposal $jadwal)
     {
@@ -202,9 +202,14 @@ class JadwalSeminarProposalController extends Controller
             abort(403, 'Anda tidak memiliki akses untuk menghapus file ini.');
         }
 
-        // Validasi status - hanya bisa hapus jika masih menunggu_jadwal
-        if ($jadwal->status !== 'menunggu_jadwal') {
-            return back()->with('error', 'SK Proposal tidak dapat dihapus karena sudah dijadwalkan.');
+        // ✅ PERBAIKAN: Allow deletion if:
+        // 1. Status is 'menunggu_jadwal' (original behavior)
+        // 2. Status is 'dijadwalkan' BUT no berita acara exists (staff deleted it)
+        $canDelete = $jadwal->status === 'menunggu_jadwal' || 
+                     ($jadwal->status === 'dijadwalkan' && !$jadwal->hasBeritaAcara());
+
+        if (!$canDelete) {
+            return back()->with('error', 'SK Proposal tidak dapat dihapus karena sudah dijadwalkan atau sudah ada berita acara.');
         }
 
         try {

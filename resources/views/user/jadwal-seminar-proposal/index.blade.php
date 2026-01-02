@@ -201,7 +201,14 @@
                                     </a>
                                 </div>
 
-                                @if ($jadwal->status === 'menunggu_jadwal')
+
+                                @php
+                                    // ✅ PERBAIKAN: Allow delete if status is 'menunggu_jadwal' OR 'dijadwalkan' without berita acara
+                                    $canDelete = $jadwal->status === 'menunggu_jadwal' || 
+                                                 ($jadwal->status === 'dijadwalkan' && !$jadwal->hasBeritaAcara());
+                                @endphp
+
+                                @if ($canDelete)
                                     <form action="{{ route('user.jadwal-seminar-proposal.delete-sk', $jadwal) }}"
                                         method="POST">
                                         @csrf

@@ -420,8 +420,27 @@ class BeritaAcaraSeminarProposal extends Model
         });
 
         static::deleting(function ($model) {
+            // Delete PDF file if exists
             if ($model->file_path && Storage::disk('public')->exists($model->file_path)) {
                 Storage::disk('public')->delete($model->file_path);
+            }
+
+            // ✅ PERBAIKAN: Reset jadwal status when berita acara is deleted
+            // This allows students to upload new SK Proposal after berita acara is deleted by staff
+            $jadwal = $model->jadwalSeminarProposal;
+            
+            if ($jadwal) {
+                // Reset status back to 'dijadwalkan' so student can re-upload SK if needed
+                if ($jadwal->status === 'selesai') {
+                    $jadwal->update(['status' => 'dijadwalkan']);
+                    
+                    Log::info('✅ Auto-reset jadwal sempro status after berita acara deleted', [
+                        'jadwal_id' => $jadwal->id,
+                        'berita_acara_id' => $model->id,
+                        'old_status' => 'selesai',
+                        'new_status' => 'dijadwalkan',
+                    ]);
+                }
             }
         });
     }
