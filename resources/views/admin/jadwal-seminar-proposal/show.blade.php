@@ -716,7 +716,7 @@
                                         <small class="text-muted d-block">Lembar Catatan</small>
                                         <span class="badge bg-label-info">
                                             {{ $beritaAcara->lembarCatatan->count() }} dari
-                                            {{ $jadwal->dosenPenguji()->wherePivot('status_kehadiran', 'Hadir')->count() }}
+                                            {{ $jadwal->dosenPenguji()->count() }}
                                             dosen
                                         </span>
                                     </div>

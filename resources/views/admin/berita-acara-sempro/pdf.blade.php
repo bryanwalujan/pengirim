@@ -228,23 +228,41 @@
                 @endphp
                 @foreach ($sortedDosen as $index => $dosen)
                     <tr>
+                        {{-- Column 1: NO --}}
+                        <td class="text-center">{{ $index + 1 }}</td>
+                        
+                        {{-- Column 2: Nama --}}
+                        <td>{{ $dosen->name }}</td>
+                        
+                        {{-- Column 3: Jabatan/Posisi --}}
+                        <td class="text-center">{{ $dosen->pivot->posisi }}</td>
+                        
+                        {{-- Column 4: Tanda Tangan (with checkmark logic) --}}
                         <td class="text-center">
                             @php
                                 $hasSigned = false;
-                                $signatures = $beritaAcara->ttd_dosen_pembahas ?? [];
-                                if (is_array($signatures)) {
-                                    foreach ($signatures as $sig) {
-                                        if (isset($sig['dosen_id']) && $sig['dosen_id'] == $dosen->id) {
-                                            $hasSigned = true;
-                                            break;
+                                $isKetuaPembahas = $dosen->pivot->posisi === 'Ketua Pembahas';
+                                
+                                if ($isKetuaPembahas) {
+                                    // Ketua Pembahas: Check ttd_ketua_penguji_by field
+                                    $hasSigned = $beritaAcara->ttd_ketua_penguji_by == $dosen->id;
+                                } else {
+                                    // Anggota Pembahas: Check ttd_dosen_pembahas array
+                                    $signatures = $beritaAcara->ttd_dosen_pembahas ?? [];
+                                    if (is_array($signatures)) {
+                                        foreach ($signatures as $sig) {
+                                            if (isset($sig['dosen_id']) && $sig['dosen_id'] == $dosen->id) {
+                                                $hasSigned = true;
+                                                break;
+                                            }
                                         }
                                     }
                                 }
                             @endphp
                             @if ($hasSigned)
-                                <span style="color: #000; font-size: 9pt; font-weight: bold;">✓</span>
+                                <span style="font-family: DejaVu Sans, sans-serif; color: #000; font-size: 10pt; font-weight: bold;">&#10003;</span>
                             @else
-                               <span style="color: #999; font-size: 8pt;">-</span>
+                                <span style="color: #999; font-size: 8pt;">-</span>
                             @endif
                         </td>
                     </tr>

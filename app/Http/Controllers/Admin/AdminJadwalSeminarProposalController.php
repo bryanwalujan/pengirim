@@ -173,6 +173,26 @@ class AdminJadwalSeminarProposalController extends Controller
                 'status' => 'dijadwalkan',
             ]);
 
+            // ✅ FITUR BARU: Auto-create Berita Acara baru jika ini jadwal ulang (ada BA ditolak sebelumnya)
+            $hasRejectedBA = $jadwal->hasRejectedBeritaAcara();
+            $hasActiveBA = $jadwal->hasBeritaAcara();
+            
+            if ($hasRejectedBA && !$hasActiveBA) {
+                // Buat Berita Acara baru untuk jadwal ulang
+                $newBeritaAcara = \App\Models\BeritaAcaraSeminarProposal::create([
+                    'jadwal_seminar_proposal_id' => $jadwal->id,
+                    'dibuat_oleh_id' => Auth::id(),
+                    'status' => 'menunggu_ttd_pembahas',
+                ]);
+
+                Log::info('✅ Auto-created new Berita Acara for rescheduled exam', [
+                    'jadwal_id' => $jadwal->id,
+                    'new_ba_id' => $newBeritaAcara->id,
+                    'previous_rejected_ba_count' => $jadwal->beritaAcarasDitolak()->count(),
+                    'created_by' => Auth::user()->name,
+                ]);
+            }
+
             // Get batch info
             $scheduledCountTotal = JadwalSeminarProposal::getScheduledCountByDate($validated['tanggal_ujian']);
             $scheduledCountSameTime = JadwalSeminarProposal::getScheduledCountByDateTime(
@@ -197,6 +217,11 @@ class AdminJadwalSeminarProposalController extends Controller
             $message = "✅ Jadwal seminar proposal berhasil " . ($isNewSchedule ? 'dibuat' : 'diperbarui') . ".<br>";
             $message .= "📅 <strong>{$scheduledCountTotal} mahasiswa</strong> terjadwal pada <strong>{$tanggalFormatted}</strong><br>";
             $message .= "🕐 <strong>{$scheduledCountSameTime} mahasiswa</strong> pada jam <strong>{$jamFormatted}</strong>";
+            
+            // ✅ Tambahkan info jika BA baru dibuat otomatis
+            if ($hasRejectedBA && !$hasActiveBA && isset($newBeritaAcara)) {
+                $message .= "<br>📋 <strong>Berita Acara baru</strong> telah dibuat otomatis untuk jadwal ulang ini.";
+            }
 
             return redirect()
                 ->route('admin.jadwal-seminar-proposal.show', $jadwal)
@@ -426,6 +451,35 @@ class AdminJadwalSeminarProposalController extends Controller
                 }
             }
 
+            // ✅ FITUR BARU: Auto-delete Berita Acara yang terkait (kecuali yang sudah selesai)
+            $beritaAcarasToDelete = $jadwal->beritaAcaras()
+                ->whereNotIn('status', ['selesai']) // Jangan hapus BA yang sudah selesai
+                ->get();
+
+            $deletedBACount = 0;
+            foreach ($beritaAcarasToDelete as $ba) {
+                try {
+                    $baId = $ba->id;
+                    $baStatus = $ba->status;
+                    
+                    // Delete akan trigger model event yang akan hapus PDF juga
+                    $ba->delete();
+                    
+                    $deletedBACount++;
+                    
+                    Log::info('✅ Berita Acara auto-deleted with jadwal', [
+                        'ba_id' => $baId,
+                        'ba_status' => $baStatus,
+                        'jadwal_id' => $jadwal->id,
+                    ]);
+                } catch (\Exception $e) {
+                    Log::warning('⚠️ Gagal hapus Berita Acara', [
+                        'ba_id' => $ba->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+
             $jadwal->update([
                 'file_sk_proposal' => null,
                 'tanggal_ujian' => null,
@@ -445,13 +499,20 @@ class AdminJadwalSeminarProposalController extends Controller
                 'status_sekarang' => 'menunggu_sk',
                 'jadwal_sebelumnya' => $jadwalSebelumnya,
                 'file_sk_dihapus' => $fileSkDihapus,
+                'berita_acara_dihapus' => $deletedBACount,
                 'reset_by' => Auth::user()->name,
                 'reset_at' => now(),
             ]);
 
+            $successMessage = "Jadwal untuk {$mahasiswaNama} ({$mahasiswaNim}) berhasil dihapus.";
+            if ($deletedBACount > 0) {
+                $successMessage .= " {$deletedBACount} Berita Acara terkait juga telah dihapus.";
+            }
+            $successMessage .= " Mahasiswa sekarang dapat mengupload SK baru.";
+
             return redirect()
                 ->route('admin.jadwal-seminar-proposal.index', ['status' => 'menunggu_sk'])
-                ->with('success', "Jadwal untuk {$mahasiswaNama} ({$mahasiswaNim}) berhasil dihapus. Mahasiswa sekarang dapat mengupload SK baru.");
+                ->with('success', $successMessage);
 
         } catch (\Exception $e) {
             DB::rollBack();

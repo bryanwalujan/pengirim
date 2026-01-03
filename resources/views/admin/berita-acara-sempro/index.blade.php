@@ -222,13 +222,6 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="{{ route('admin.berita-acara-sempro.index', ['status' => 'draft']) }}"
-                            class="nav-link {{ request('status') === 'draft' ? 'active' : '' }}">
-                            <i class="bx bx-file bx-xs me-1"></i>
-                            <span class="d-none d-sm-inline">Draft</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
                         <a href="{{ route('admin.berita-acara-sempro.index', ['status' => 'menunggu_ttd']) }}"
                             class="nav-link {{ request('status') === 'menunggu_ttd' ? 'active' : '' }}">
                             <i class="bx bx-time bx-xs me-1"></i>
@@ -402,7 +395,7 @@
                                                 </a>
                                             @endif
 
-                                            @can('manage jadwal sempro')
+                                            @if(Auth::user()->hasRole('staff') || Auth::user()->hasRole('admin'))
                                                 @if (!$ba->isSigned())
                                                     <div class="dropdown-divider"></div>
                                                     <a class="dropdown-item"
@@ -414,7 +407,7 @@
                                                         <i class="bx bx-trash me-2"></i>Hapus
                                                     </button>
                                                 @endif
-                                            @endcan
+                                            @endif
                                         </div>
                                     </div>
                                 </td>

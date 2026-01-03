@@ -1,5 +1,3 @@
-{{-- filepath: /c:/laragon/www/eservice-app/resources/views/verification/surat-usulan-proposal.blade.php --}}
-
 @extends('layouts.verification')
 
 @section('title', 'Verifikasi Surat Usulan Seminar Proposal')

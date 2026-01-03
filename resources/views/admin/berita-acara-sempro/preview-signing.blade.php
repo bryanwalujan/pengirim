@@ -181,7 +181,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach ($jadwal->dosenPenguji()->wherePivot('status_kehadiran', 'Hadir')->get() as $index => $dosen)
+                                    @foreach ($jadwal->dosenPenguji()->get() as $index => $dosen)
                                         <tr>
                                             <td class="text-center">{{ $index + 1 }}</td>
                                             <td>

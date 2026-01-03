@@ -207,6 +207,20 @@ class BeritaAcaraSeminarProposal extends Model
         return !is_null($this->ttd_pembimbing_at);
     }
 
+    /**
+     * ✅ NEW: Check apakah semua dosen penguji sudah mengisi lembar catatan
+     */
+    public function hasAllCatatan(): bool
+    {
+        $jadwal = $this->jadwalSeminarProposal;
+        if (!$jadwal) return false;
+
+        $totalDosen = $jadwal->dosenPenguji()->count();
+        $totalCatatan = $this->lembarCatatan()->count();
+
+        return $totalDosen > 0 && $totalCatatan >= $totalDosen;
+    }
+
     // ========================================
     // PERMISSION CHECKERS
     // ========================================

@@ -30,13 +30,15 @@ class JadwalSeminarProposal extends Model
 
 
     /**
-     * Relasi ke BeritaAcaraSeminarProposal (One-to-One)
-     * ⚠️ DEPRECATED: Gunakan beritaAcaraAktif() untuk mendapatkan BA yang sedang aktif
-     * Relasi ini tetap ada untuk backward compatibility
+     * ✅ UPDATED: Relasi ke BeritaAcaraSeminarProposal (One-to-One)
+     * Selalu mengambil BA yang AKTIF (bukan yang ditolak)
+     * Untuk backward compatibility dengan kode yang sudah ada
      */
     public function beritaAcaraSeminarProposal()
     {
-        return $this->hasOne(BeritaAcaraSeminarProposal::class);
+        return $this->hasOne(BeritaAcaraSeminarProposal::class)
+            ->whereNotIn('status', ['ditolak'])
+            ->latest();
     }
 
     /**
@@ -51,6 +53,7 @@ class JadwalSeminarProposal extends Model
     /**
      * ✅ NEW: Relasi ke Berita Acara yang AKTIF (bukan yang ditolak)
      * Ini adalah BA untuk ujian yang sedang berjalan
+     * ALIAS dari beritaAcaraSeminarProposal() untuk konsistensi
      */
     public function beritaAcaraAktif()
     {
