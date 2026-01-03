@@ -262,7 +262,7 @@
             <div class="verification-footer">
                 <a href="{{ route('user.home.index') }}" class="btn-custom">
                     <i class='bx bx-arrow-back'></i>
-                    Kembali ke Berand
+                    Kembali ke Beranda
                 </a>
             </div>
         </div>

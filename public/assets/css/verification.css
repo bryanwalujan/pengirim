@@ -259,7 +259,6 @@ body {
     border-bottom: none;
 }
 
-
 .info-label {
     flex: 0 0 160px;
     font-weight: 600;
@@ -477,6 +476,20 @@ body {
 .approval-info strong {
     color: #1f2937;
     font-size: 0.85rem;
+}
+
+.approval-timestamp {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    color: #4b5563;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.approval-timestamp i {
+    font-size: 0.9rem;
+    color: #10b981;
 }
 
 .approval-date {

@@ -1,488 +1,306 @@
-{{-- filepath: resources/views/public/verify-berita-acara.blade.php --}}
-<!DOCTYPE html>
-<html lang="id">
+@extends('layouts.verification')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verifikasi Dokumen - Berita Acara Seminar Proposal</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+@section('title', 'Verifikasi Berita Acara Seminar Proposal')
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 600px;
-            width: 100%;
-        }
-
-        .card {
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            overflow: hidden;
-        }
-
-        /* Valid Document Header */
-        .header-valid {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-
-        /* Invalid Document Header */
-        .header-invalid {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-
-        .header-icon {
-            font-size: 60px;
-            margin-bottom: 15px;
-        }
-
-        .header-title {
-            font-size: 22px;
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
-
-        .header-subtitle {
-            font-size: 14px;
-            opacity: 0.9;
-        }
-
-        .content {
-            padding: 30px;
-        }
-
-        .info-section {
-            margin-bottom: 25px;
-        }
-
-        .info-section-title {
-            font-size: 12px;
-            font-weight: 600;
-            color: #6b7280;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 12px;
-            padding-bottom: 8px;
-            border-bottom: 2px solid #f3f4f6;
-        }
-
-        .info-row {
-            display: flex;
-            padding: 10px 0;
-            border-bottom: 1px solid #f3f4f6;
-        }
-
-        .info-row:last-child {
-            border-bottom: none;
-        }
-
-        .info-label {
-            width: 40%;
-            font-size: 13px;
-            color: #6b7280;
-        }
-
-        .info-value {
-            width: 60%;
-            font-size: 13px;
-            font-weight: 500;
-            color: #1f2937;
-        }
-
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .status-selesai {
-            background: #d1fae5;
-            color: #065f46;
-        }
-
-        .status-proses {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-        .keputusan-badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 600;
-        }
-
-        .keputusan-ya {
-            background: #d1fae5;
-            color: #065f46;
-        }
-
-        .keputusan-perbaikan {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-        .keputusan-tidak {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        .verification-code {
-            background: #f3f4f6;
-            border-radius: 8px;
-            padding: 12px 16px;
-            font-family: 'Courier New', monospace;
-            font-size: 16px;
-            font-weight: 600;
-            letter-spacing: 2px;
-            color: #374151;
-            text-align: center;
-            margin: 15px 0;
-        }
-
-        .download-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            width: 100%;
-            padding: 14px 24px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            margin-top: 20px;
-        }
-
-        .download-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
-        }
-
-        .footer {
-            background: #f9fafb;
-            padding: 20px 30px;
-            text-align: center;
-            border-top: 1px solid #e5e7eb;
-        }
-
-        .footer-text {
-            font-size: 12px;
-            color: #6b7280;
-        }
-
-        .footer-link {
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        /* Error State */
-        .error-message {
-            padding: 30px;
-            text-align: center;
-        }
-
-        .error-text {
-            font-size: 15px;
-            color: #6b7280;
-            line-height: 1.6;
-        }
-
-        /* Dosen List */
-        .dosen-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .dosen-item {
-            display: flex;
-            align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid #f3f4f6;
-        }
-
-        .dosen-item:last-child {
-            border-bottom: none;
-        }
-
-        .dosen-icon {
-            width: 32px;
-            height: 32px;
-            background: #e0e7ff;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 12px;
-            color: #4f46e5;
-            font-size: 14px;
-        }
-
-        .dosen-info {
-            flex: 1;
-        }
-
-        .dosen-name {
-            font-size: 13px;
-            font-weight: 500;
-            color: #1f2937;
-        }
-
-        .dosen-role {
-            font-size: 11px;
-            color: #6b7280;
-        }
-
-        .signed-badge {
-            font-size: 10px;
-            padding: 3px 8px;
-            border-radius: 10px;
-            font-weight: 500;
-        }
-
-        .signed-yes {
-            background: #d1fae5;
-            color: #065f46;
-        }
-
-        @media (max-width: 480px) {
-            .info-row {
-                flex-direction: column;
-            }
-
-            .info-label,
-            .info-value {
-                width: 100%;
-            }
-
-            .info-label {
-                margin-bottom: 4px;
-            }
-        }
-    </style>
-</head>
-
-<body>
-    <div class="container">
-        <div class="card">
+@section('content')
+    <div class="verification-container">
+        <div class="verification-card">
             @if ($valid)
-                {{-- Valid Document --}}
-                <div class="header-valid">
-                    <i class="bx bx-check-shield header-icon"></i>
-                    <h1 class="header-title">Dokumen Terverifikasi</h1>
-                    <p class="header-subtitle">Berita Acara Seminar Proposal ini sah dan valid</p>
+                <!-- Header -->
+                <div class="verification-header {{ $beritaAcara->isSelesai() ? '' : 'pending' }}">
+                    <div class="icon-container">
+                        @if ($beritaAcara->isSelesai())
+                            <i class='bx bxs-shield-alt-2'></i>
+                        @else
+                            <i class='bx bxs-time-five'></i>
+                        @endif
+                    </div>
+                    <h1>
+                        @if ($beritaAcara->isSelesai())
+                            Dokumen Terverifikasi
+                        @else
+                            Dokumen Dalam Proses
+                        @endif
+                    </h1>
+                    <p class="mb-0">
+                        @if ($beritaAcara->isSelesai())
+                            Dokumen ini telah divalidasi dan ditandatangani lengkap
+                        @else
+                            Dokumen sedang dalam proses persetujuan
+                        @endif
+                    </p>
+                    <span class="document-type">
+                        <i class='bx bx-file-blank'></i>
+                        Berita Acara Seminar Proposal
+                    </span>
                 </div>
 
-                <div class="content">
-                    {{-- Verification Code --}}
-                    <div class="info-section">
-                        <div class="info-section-title">Kode Verifikasi</div>
-                        <div class="verification-code">{{ $beritaAcara->verification_code }}</div>
-                    </div>
-
-                    {{-- Document Info --}}
-                    <div class="info-section">
-                        <div class="info-section-title">Informasi Dokumen</div>
-
-                        <div class="info-row">
-                            <span class="info-label">Jenis Dokumen</span>
-                            <span class="info-value">Berita Acara Seminar Proposal</span>
+                <!-- Content -->
+                <div class="verification-content">
+                    <!-- Verification Status Banner -->
+                    <div class="status-banner {{ $beritaAcara->isSelesai() ? 'success' : 'warning' }}">
+                        <div class="status-icon">
+                            @if ($beritaAcara->isSelesai())
+                                <i class='bx bxs-check-shield'></i>
+                            @else
+                                <i class='bx bxs-hourglass'></i>
+                            @endif
                         </div>
-
-                        <div class="info-row">
-                            <span class="info-label">Status</span>
-                            <span class="info-value">
+                        <div class="status-text">
+                            <h3>
                                 @if ($beritaAcara->isSelesai())
-                                    <span class="status-badge status-selesai">
-                                        <i class="bx bx-check-circle" style="margin-right: 4px;"></i>
-                                        Selesai & Ditandatangani
-                                    </span>
+                                    Dokumen Valid
                                 @else
-                                    <span class="status-badge status-proses">
-                                        <i class="bx bx-time" style="margin-right: 4px;"></i>
-                                        Dalam Proses
-                                    </span>
+                                    Menunggu Tanda Tangan
                                 @endif
-                            </span>
+                            </h3>
+                            <p>Diverifikasi pada {{ now()->translatedFormat('d F Y, H:i') }} WITA</p>
                         </div>
+                    </div>
 
-                        @if ($beritaAcara->keputusan)
+                    <!-- Document Information -->
+                    <div class="info-card">
+                        <div class="info-card-header">
+                            <i class='bx bxs-file-doc'></i>
+                            <span>Informasi Dokumen</span>
+                        </div>
+                        <div class="info-card-body">
                             <div class="info-row">
-                                <span class="info-label">Kesimpulan</span>
-                                <span class="info-value">
-                                    @if ($beritaAcara->keputusan === 'Ya')
-                                        <span class="keputusan-badge keputusan-ya">✓ Layak (Ya)</span>
-                                    @elseif($beritaAcara->keputusan === 'Ya, dengan perbaikan')
-                                        <span class="keputusan-badge keputusan-perbaikan">✓ Ya, Dengan Perbaikan</span>
-                                    @else
-                                        <span class="keputusan-badge keputusan-tidak">✗ Tidak Layak</span>
-                                    @endif
-                                </span>
+                                <div class="info-label">Tanggal Ujian</div>
+                                <div class="info-value">
+                                    {{ $beritaAcara->jadwalSeminarProposal->tanggal_ujian?->translatedFormat('l, d F Y') ?? '-' }}
+                                </div>
                             </div>
-                        @endif
-
-                        <div class="info-row">
-                            <span class="info-label">Tanggal Ujian</span>
-                            <span class="info-value">
-                                {{ $beritaAcara->jadwalSeminarProposal->tanggal_ujian?->translatedFormat('l, d F Y') ?? '-' }}
-                            </span>
+                            <div class="info-row">
+                                <div class="info-label">Status Dokumen</div>
+                                <div class="info-value">
+                                    @if ($beritaAcara->isSelesai())
+                                        <span class="status-badge success">
+                                            <i class='bx bxs-check-circle'></i>
+                                            Selesai & Ditandatangani
+                                        </span>
+                                    @else
+                                        <span class="status-badge warning">
+                                            <i class='bx bxs-time-five'></i>
+                                            Dalam Proses
+                                        </span>
+                                    @endif
+                                </div>
+                            </div>
+                            @if ($beritaAcara->keputusan)
+                                <div class="info-row">
+                                    <div class="info-label">Kesimpulan</div>
+                                    <div class="info-value">
+                                        @if ($beritaAcara->keputusan === 'Ya')
+                                            <span class="status-badge success">✓ Layak (Ya)</span>
+                                        @elseif($beritaAcara->keputusan === 'Ya, dengan perbaikan')
+                                            <span class="status-badge warning"
+                                                style="color: #92400e; background: #fef3c7;">✓ Ya, Dengan Perbaikan</span>
+                                        @else
+                                            <span class="status-badge danger">✗ Tidak Layak</span>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endif
                         </div>
                     </div>
 
-                    {{-- Student Info --}}
-                    <div class="info-section">
-                        <div class="info-section-title">Data Mahasiswa</div>
-
-                        <div class="info-row">
-                            <span class="info-label">Nama</span>
-                            <span class="info-value">
-                                {{ $beritaAcara->jadwalSeminarProposal->pendaftaranSeminarProposal->user->name ?? '-' }}
-                            </span>
+                    <!-- Student Information -->
+                    <div class="info-card">
+                        <div class="info-card-header">
+                            <i class='bx bxs-user-circle'></i>
+                            <span>Informasi Mahasiswa</span>
                         </div>
-
-                        <div class="info-row">
-                            <span class="info-label">NIM</span>
-                            <span class="info-value">
-                                {{ $beritaAcara->jadwalSeminarProposal->pendaftaranSeminarProposal->user->nim ?? '-' }}
-                            </span>
-                        </div>
-
-                        <div class="info-row">
-                            <span class="info-label">Program Studi</span>
-                            <span class="info-value">Teknik Informatika</span>
+                        <div class="info-card-body">
+                            <div class="info-row">
+                                <div class="info-label">Nama Lengkap</div>
+                                <div class="info-value">
+                                    <strong>{{ $beritaAcara->jadwalSeminarProposal->pendaftaranSeminarProposal->user->name ?? '-' }}</strong>
+                                </div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">NIM</div>
+                                <div class="info-value">
+                                    {{ $beritaAcara->jadwalSeminarProposal->pendaftaranSeminarProposal->user->nim ?? '-' }}
+                                </div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Program Studi</div>
+                                <div class="info-value">S1 Teknik Informatika</div>
+                            </div>
                         </div>
                     </div>
 
-                    {{-- Examiner Info --}}
-                    <div class="info-section">
-                        <div class="info-section-title">Tim Penguji</div>
+                    <!-- Proposal Information -->
+                    <div class="info-card">
+                        <div class="info-card-header">
+                            <i class='bx bxs-book-content'></i>
+                            <span>Informasi Proposal</span>
+                        </div>
+                        <div class="info-card-body">
+                            <div class="info-row">
+                                <div class="info-label">Judul Skripsi</div>
+                                <div class="info-value judul-skripsi">
+                                    {{ $beritaAcara->jadwalSeminarProposal->pendaftaranSeminarProposal->judul_skripsi ?? '-' }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-                        <ul class="dosen-list">
-                            @php
-                                $dosenPenguji = $beritaAcara->jadwalSeminarProposal->dosenPenguji ?? collect();
-                                $sortedDosen = $dosenPenguji->sortBy(function ($dosen) {
-                                    if ($dosen->pivot->posisi === 'Ketua Pembahas') {
-                                        return 0;
-                                    }
-                                    preg_match('/\d+/', $dosen->pivot->posisi, $matches);
-                                    return isset($matches[0]) ? (int) $matches[0] : 999;
-                                });
-                            @endphp
+                    <!-- Approval Information (Tim Penguji) -->
+                    <div class="info-card">
+                        <div class="info-card-header">
+                            <i class='bx bxs-pen'></i>
+                            <span>Tim Penguji & Tanda Tangan</span>
+                        </div>
+                        <div class="info-card-body">
+                            <div class="approval-grid">
+                                @php
+                                    $dosenPenguji = $beritaAcara->jadwalSeminarProposal->dosenPenguji ?? collect();
+                                    $sortedDosen = $dosenPenguji->sortBy(function ($dosen) {
+                                        if ($dosen->pivot->posisi === 'Ketua Pembahas') {
+                                            return 0;
+                                        }
+                                        preg_match('/\d+/', $dosen->pivot->posisi, $matches);
+                                        return isset($matches[0]) ? (int) $matches[0] : 999;
+                                    });
+                                @endphp
 
-                            @forelse($sortedDosen as $dosen)
-                                <li class="dosen-item">
-                                    <div class="dosen-icon">
-                                        <i class="bx bxs-user"></i>
-                                    </div>
-                                    <div class="dosen-info">
-                                        <div class="dosen-name">{{ $dosen->name }}</div>
-                                        <div class="dosen-role">{{ $dosen->pivot->posisi }}</div>
-                                    </div>
+                                @forelse($sortedDosen as $dosen)
                                     @php
                                         $isKetuaPembahas = $dosen->pivot->posisi === 'Ketua Pembahas';
                                         $hasSigned = false;
+                                        $signedAt = null;
 
                                         if ($isKetuaPembahas) {
                                             $hasSigned = $beritaAcara->ttd_ketua_penguji_by == $dosen->id;
+                                            $signedAt = $hasSigned ? $beritaAcara->ttd_ketua_penguji_at : null;
                                         } else {
                                             $signatures = $beritaAcara->ttd_dosen_pembahas ?? [];
                                             if (is_array($signatures)) {
                                                 foreach ($signatures as $sig) {
                                                     if (isset($sig['dosen_id']) && $sig['dosen_id'] == $dosen->id) {
                                                         $hasSigned = true;
+                                                        $signedAt = isset($sig['signed_at']) ? \Carbon\Carbon::parse($sig['signed_at']) : null;
                                                         break;
                                                     }
                                                 }
                                             }
                                         }
                                     @endphp
-                                    @if ($hasSigned)
-                                        <span class="signed-badge signed-yes">✓ Signed</span>
-                                    @endif
-                                </li>
-                            @empty
-                                <li class="dosen-item">
-                                    <span class="info-value">Tidak ada data penguji</span>
-                                </li>
-                            @endforelse
-                        </ul>
+
+                                    <div class="approval-card {{ $hasSigned ? 'approved' : 'pending' }}">
+                                        <div class="approval-header">
+                                            <div class="approval-icon {{ $hasSigned ? 'approved' : 'waiting' }}">
+                                                @if ($hasSigned)
+                                                    <i class='bx bx-check'></i>
+                                                @else
+                                                    <i class='bx bx-time'></i>
+                                                @endif
+                                            </div>
+                                            <div class="approval-title">
+                                                <h5>{{ $dosen->pivot->posisi }}</h5>
+                                                <p class="approval-status {{ $hasSigned ? '' : 'pending' }}">
+                                                    {{ $hasSigned ? 'Ditandatangani' : 'Menunggu Tanda Tangan' }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="approval-body">
+                                            <div class="approval-info">
+                                                <strong>{{ $dosen->name }}</strong>
+                                                @if ($dosen->nip)
+                                                    <span class="text-muted-custom">NIP: {{ $dosen->nip }}</span>
+                                                @endif
+                                            </div>
+                                            @if ($hasSigned && $signedAt)
+                                                <div class="approval-timestamp mt-2">
+                                                    <i class='bx bx-time-five'></i>
+                                                    <span>{{ $signedAt->translatedFormat('d F Y, H:i') }} WITA</span>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                @empty
+                                    <div class="alert alert-info">Belum ada data penguji.</div>
+                                @endforelse
+                            </div>
+                        </div>
                     </div>
 
-                    {{-- Download Button --}}
-                    @if ($beritaAcara->isSelesai() && $beritaAcara->file_path)
-                        <a href="{{ route('berita-acara-sempro.verify.download', $beritaAcara->verification_code) }}"
-                            class="download-btn">
-                            <i class="bx bx-download"></i>
-                            Download Dokumen PDF
-                        </a>
-                    @endif
+                    <!-- Verification Code -->
+                    <div class="verification-code-box">
+                        <div class="verification-code-header">
+                            <i class='bx bx-qr'></i>
+                            <span>Kode Verifikasi</span>
+                        </div>
+                        <div class="verification-code">
+                            {{ $beritaAcara->verification_code }}
+                        </div>
+                        <div class="verification-note">
+                            Kode ini dapat digunakan untuk memverifikasi keaslian dokumen
+                        </div>
+                    </div>
+
+
+
+                    <!-- Important Notice -->
+                    <div class="notice-box">
+                        <div class="notice-icon">
+                            <i class='bx bxs-info-circle'></i>
+                        </div>
+                        <div class="notice-content">
+                            <h5>Informasi Penting</h5>
+                            <p>
+                                Dokumen ini merupakan hasil verifikasi otomatis sistem E-Service Program Studi Teknik
+                                Informatika UNIMA.
+                                @if ($beritaAcara->isSelesai())
+                                    Berita Acara ini telah ditandatangani oleh seluruh tim penguji dan sah digunakan.
+                                @else
+                                    Berita Acara ini sedang dalam proses sirkulasi tanda tangan tim penguji.
+                                @endif
+                            </p>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="footer">
-                    <p class="footer-text">
-                        Dokumen ini diverifikasi oleh sistem
-                        <a href="{{ url('/') }}" class="footer-link">E-Service Teknik Informatika Unima</a>
-                    </p>
+                <!-- Footer -->
+                <div class="verification-footer">
+                    <a href="{{ route('user.home.index') }}" class="btn-custom">
+                        <i class='bx bx-arrow-back'></i>
+                        Kembali ke Beranda
+                    </a>
                 </div>
             @else
-                {{-- Invalid Document --}}
-                <div class="header-invalid">
-                    <i class="bx bx-shield-x header-icon"></i>
-                    <h1 class="header-title">Dokumen Tidak Valid</h1>
-                    <p class="header-subtitle">Dokumen tidak dapat diverifikasi</p>
+                <!-- Invalid Document Header -->
+                <div class="verification-header error">
+                    <div class="icon-container">
+                        <i class='bx bx-shield-x'></i>
+                    </div>
+                    <h1>Dokumen Tidak Valid</h1>
+                    <p class="mb-0">Dokumen tidak dapat diverifikasi oleh sistem</p>
                 </div>
 
-                <div class="error-message">
-                    <p class="error-text">
-                        {{ $message ?? 'Kode verifikasi tidak ditemukan atau dokumen tidak valid.' }}
-                        <br><br>
-                        Pastikan Anda memindai QR Code yang benar atau hubungi admin jika Anda yakin ini adalah
-                        kesalahan.
-                    </p>
+                <!-- Content -->
+                <div class="verification-content">
+                    <div class="alert alert-danger text-center">
+                        <i class='bx bxs-error-circle' style="font-size: 48px; margin-bottom: 1rem; display: block;"></i>
+                        <p class="error-text mb-0">
+                            {{ $message ?? 'Kode verifikasi tidak ditemukan atau dokumen tidak valid.' }}
+                            <br><br>
+                            Pastikan Anda memindai QR Code yang benar atau hubungi admin jika Anda yakin ini adalah
+                            kesalahan.
+                        </p>
+                    </div>
                 </div>
 
-                <div class="footer">
-                    <p class="footer-text">
-                        <a href="{{ url('/') }}" class="footer-link">Kembali ke Halaman Utama</a>
-                    </p>
+                <!-- Footer -->
+                <div class="verification-footer">
+                    <a href="{{ route('user.home.index') }}" class="btn-custom">
+                        <i class='bx bx-arrow-back'></i>
+                        Kembali ke Beranda
+                    </a>
                 </div>
             @endif
         </div>
     </div>
-</body>
-
-</html>
+@endsection
