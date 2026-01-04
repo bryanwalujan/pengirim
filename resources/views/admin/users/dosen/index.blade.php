@@ -70,7 +70,13 @@
                                 <td>{{ $loop->iteration + ($users->currentPage() - 1) * $users->perPage() }}</td>
                                 <td>{{ $user->nip }}</td>
                                 <td>{{ $user->name }}</td>
-                                <td>{{ $user->jabatan ?? '-' }}</td>
+                                <td>
+                                    @if($user->jabatan)
+                                        <span class="badge bg-label-info">{{ ucwords($user->jabatan) }}</span>
+                                    @else
+                                        -
+                                    @endif
+                                </td>
                                 <td>{{ $user->email }}</td>
                                 <td>
                                     <div class="dropdown">
@@ -103,7 +109,13 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center">Tidak ada data dosen</td>
+                                <td colspan="6" class="text-center py-5">
+                                    <div class="d-flex flex-column align-items-center">
+                                        <i class="bx bx-user-x text-muted" style="font-size: 4rem;"></i>
+                                        <h5 class="mt-3 text-muted">Tidak ada data dosen ditemukan</h5>
+                                        <p class="text-muted mb-0">Silakan tambahkan data dosen baru.</p>
+                                    </div>
+                                </td>
                             </tr>
                         @endforelse
                     </tbody>

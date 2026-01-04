@@ -64,20 +64,46 @@ class UserController extends Controller
     /**
      * Display a listing of dosen users
      */
-    public function dosen()
+    /**
+     * Display a listing of dosen users
+     */
+    public function dosen(Request $request)
     {
         $this->authorize('manage lecturers');
-        $users = User::role('dosen')->paginate(10); // 10 items per page
+        $search = $request->input('search');
+
+        $query = User::role('dosen')->latest();
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                    ->orWhere('email', 'like', '%' . $search . '%')
+                    ->orWhere('nip', 'like', '%' . $search . '%');
+            });
+        }
+
+        $users = $query->paginate(15)->withQueryString();
         return view('admin.users.dosen.index', compact('users'));
     }
 
     /**
      * Display a listing of staff users
      */
-    public function staff()
+    public function staff(Request $request)
     {
         $this->authorize('manage staff');
-        $users = User::role('staff')->paginate(10); // 10 items per page
+        $search = $request->input('search');
+
+        $query = User::role('staff')->latest();
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                    ->orWhere('email', 'like', '%' . $search . '%');
+            });
+        }
+
+        $users = $query->paginate(15)->withQueryString();
         return view('admin.users.staff.index', compact('users'));
     }
 
@@ -111,22 +137,29 @@ class UserController extends Controller
     public function storeMahasiswa(Request $request)
     {
         $request->validate([
-            'name' => 'required',
-            'email' => 'required|email|unique:users',
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
             'password' => 'required|min:8',
-            'nim' => 'required|unique:users'
+            'nim' => 'required|string|unique:users,nim'
         ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'nim' => $request->nim,
-            'password' => Hash::make($request->password)
-        ]);
+        DB::beginTransaction();
+        try {
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'nim' => $request->nim,
+                'password' => Hash::make($request->password)
+            ]);
 
-        $user->assignRole('mahasiswa');
-
-        return redirect()->route('admin.users.mahasiswa')->with('success', 'Mahasiswa berhasil ditambahkan');
+            $user->assignRole('mahasiswa');
+            
+            DB::commit();
+            return redirect()->route('admin.users.mahasiswa')->with('success', 'Mahasiswa berhasil ditambahkan');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Gagal menambahkan mahasiswa: ' . $e->getMessage())->withInput();
+        }
     }
 
     /**
@@ -135,34 +168,41 @@ class UserController extends Controller
     public function storeDosen(Request $request)
     {
         $request->validate([
-            'name' => 'required',
-            'email' => 'required|email|unique:users',
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
             'password' => 'required|min:8',
-            'nip' => 'required|unique:users',
+            'nip' => 'required|string|unique:users,nip',
             'jabatan' => 'required|string|max:255'
         ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'nip' => $request->nip,
-            'jabatan' => strtolower($request->jabatan), // Normalize to lowercase
-            'password' => Hash::make($request->password)
-        ]);
-
-        $user->assignRole('dosen');
-
-        // Auto-assign approval permissions for certain jabatan
-        if ($user->isDosenWithApprovalAuthority()) {
-            $user->givePermissionTo([
-                'approve surat aktif kuliah',
-                'approve surat ijin survey',
-                'approve surat cuti akademik',
-                'approve surat pindah',
+        DB::beginTransaction();
+        try {
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'nip' => $request->nip,
+                'jabatan' => strtolower($request->jabatan),
+                'password' => Hash::make($request->password)
             ]);
-        }
 
-        return redirect()->route('admin.users.dosen')->with('success', 'Dosen berhasil ditambahkan');
+            $user->assignRole('dosen');
+
+            // Auto-assign approval permissions based on new logic in User model
+            if ($user->isDosenWithApprovalAuthority()) {
+                $user->givePermissionTo([
+                    'approve surat aktif kuliah',
+                    'approve surat ijin survey',
+                    'approve surat cuti akademik',
+                    'approve surat pindah',
+                ]);
+            }
+
+            DB::commit();
+            return redirect()->route('admin.users.dosen')->with('success', 'Dosen berhasil ditambahkan');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Gagal menambahkan dosen: ' . $e->getMessage())->withInput();
+        }
     }
 
     /**
@@ -171,19 +211,27 @@ class UserController extends Controller
     public function storeStaff(Request $request)
     {
         $request->validate([
-            'name' => 'required',
-            'email' => 'required|email|unique:users',
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
             'password' => 'required|min:8',
         ]);
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password)
-        ]);
 
-        $user->assignRole('staff');
+        DB::beginTransaction();
+        try {
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password)
+            ]);
 
-        return redirect()->route('admin.users.staff')->with('success', 'Staff berhasil ditambahkan');
+            $user->assignRole('staff');
+
+            DB::commit();
+            return redirect()->route('admin.users.staff')->with('success', 'Staff berhasil ditambahkan');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Gagal menambahkan staff: ' . $e->getMessage())->withInput();
+        }
     }
 
     /**

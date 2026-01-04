@@ -86,7 +86,7 @@
         <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
             <div class="me-3">
                 <h4 class="fw-bold mb-1">
-                    <i class="bx bx-file-blank me-2 text-primary"></i>Berita Acara Seminar Proposal
+                    <i class="bx bxs-file me-2 text-primary"></i>Berita Acara Seminar Proposal
                 </h4>
                 <p class="text-muted mb-0">Kelola dan monitor berita acara seminar proposal mahasiswa</p>
             </div>
@@ -131,7 +131,7 @@
                         <div class="d-flex align-items-center mb-2 pb-1">
                             <div class="avatar me-2">
                                 <span class="avatar-initial rounded bg-label-primary">
-                                    <i class="bx bx-file bx-sm"></i>
+                                    <i class="bx bxs-file bx-sm"></i>
                                 </span>
                             </div>
                             <h4 class="ms-1 mb-0">{{ $stats['total'] }}</h4>
@@ -416,7 +416,7 @@
                             <tr>
                                 <td colspan="7" class="text-center py-5">
                                     <div class="d-flex flex-column align-items-center">
-                                        <i class="bx bx-file-blank display-4 text-muted mb-3"></i>
+                                        <i class="bx bxs-file display-4 text-muted mb-3"></i>
                                         <h5 class="text-muted">Tidak ada data berita acara</h5>
                                         <p class="text-muted mb-0">Belum ada berita acara untuk filter ini</p>
                                     </div>

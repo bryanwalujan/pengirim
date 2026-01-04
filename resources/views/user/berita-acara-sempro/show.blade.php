@@ -319,6 +319,10 @@
                                             <span class="font-bold">Selesai</span>
                                         @break
 
+                                        @case('ditolak')
+                                            <span class="font-bold text-red-200">Ditolak (Perlu Ujian Ulang)</span>
+                                        @break
+
                                         @default
                                             <span class="font-bold">{{ $beritaAcara->status }}</span>
                                     @endswitch
@@ -350,6 +354,59 @@
                         </div>
                     </div>
                 </div>
+
+                {{-- ✅ NEW: ALERT PENOLAKAN (Muncul jika status ditolak atau keputusan Tidak) --}}
+                @if ($beritaAcara->status === 'ditolak' || $beritaAcara->keputusan === 'Tidak')
+                    <div class="bento-item bento-status bg-red-50" data-aos="fade-up"
+                        data-aos-delay="150">
+                        <div class="p-6">
+                            <div class="flex flex-col md:flex-row items-start gap-4">
+                                <div class="flex-shrink-0">
+                                    <div class="w-14 h-14 bg-red-500 rounded-2xl flex items-center justify-center shadow-lg">
+                                        <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd"
+                                                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                                clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="text-xl font-extrabold text-red-800 mb-1 flex items-center gap-2">
+                                        Proposal Dinyatakan Tidak Layak
+                                        <span
+                                            class="bg-red-200 text-red-800 text-xs px-2 py-1 rounded-lg uppercase tracking-wider font-bold">Ujian
+                                            Ulang</span>
+                                    </h3>
+                                    <p class="text-red-700 font-semibold leading-relaxed mb-4">
+                                        Berdasarkan hasil sidang seminar proposal, dewan penguji memutuskan bahwa proposal
+                                        Anda <span class="underline decoration-2">belum layak</span> untuk dilanjutkan ke
+                                        tahap penelitian. Anda diwajibkan untuk merevisi proposal dan <strong
+                                            class="text-red-900">menjadwalkan ulang</strong> seminar proposal berikutnya.
+                                    </p>
+
+                                    <div class="bg-white rounded-xl p-5 border-2 border-red-200 shadow-sm">
+                                        <label
+                                            class="text-xs font-bold text-red-600 uppercase tracking-widest block mb-1">Alasan
+                                            Penolakan / Catatan Tambahan:</label>
+                                        <div class="text-gray-900 font-bold whitespace-pre-line leading-relaxed italic">
+                                            "{{ $beritaAcara->alasan_ditolak ?: ($beritaAcara->catatan_tambahan ?: 'Tidak ada alasan spesifik yang dicantumkan oleh penguji.') }}"
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-4 flex items-center gap-2 text-xs font-semibold text-red-600">
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd"
+                                                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                                                clip-rule="evenodd" />
+                                        </svg>
+                                        Silakan hubungi Dosen Pembimbing untuk arahan revisi lebih lanjut.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
 
                 {{-- 2. DATA MAHASISWA (Left Column) --}}
                 <div class="bento-item bento-mahasiswa" data-aos="fade-up" data-aos-delay="200">
@@ -657,11 +714,18 @@
                                                             d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
                                                             clip-rule="evenodd" />
                                                     </svg>
-                                                    Tidak Layak
+                                                    Tidak Layak (Ujian Ulang)
                                                 </span>
                                             @break
                                         @endswitch
                                     </div>
+                                    
+                                    @if ($beritaAcara->status === 'ditolak' && $beritaAcara->alasan_ditolak)
+                                        <div class="mt-3 p-4 bg-red-50 rounded-lg border border-red-100">
+                                            <label class="text-xs font-extrabold text-red-700 uppercase block mb-1">Catatan Penolakan:</label>
+                                            <p class="text-sm text-red-900 font-semibold">{{ $beritaAcara->alasan_ditolak }}</p>
+                                        </div>
+                                    @endif
                                 </div>
                             @endif
 

@@ -997,7 +997,7 @@
             <li class="menu-item {{ $isBeritaAcaraActive ? 'active' . (auth()->user()->hasRole('dosen') ? ' open' : '') : '' }}">
                 @if (auth()->user()->hasRole('staff'))
                     <a href="{{ route('admin.berita-acara-sempro.index') }}" class="menu-link">
-                        <i class="menu-icon tf-icons bx bx-file-blank"></i>
+                        <i class="menu-icon tf-icons bx bxs-file"></i>
                         <div>Berita Acara Sempro</div>
                     </a>
                 @else

@@ -33,6 +33,8 @@
                         'pendaftaran-ujian-hasil*', // Ujian Hasil
                         'komisi-proposal*', // Komisi Proposal
                         'komisi-hasil*', // Komisi Hasil
+                        'jadwal-seminar-proposal*', // Jadwal Sempro
+                        'berita-acara-sempro*', // Berita Acara Sempro
                     ];
                 @endphp
 
