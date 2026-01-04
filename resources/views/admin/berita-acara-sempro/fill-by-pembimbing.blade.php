@@ -67,7 +67,8 @@
                         <div>{{ $jadwal->tanggal_ujian->isoFormat('dddd, D MMMM Y') }}</div>
                         <span class="badge bg-label-primary">
                             <i class="bx bx-time-five me-1"></i>
-                            {{ \Carbon\Carbon::parse($jadwal->waktu_mulai)->format('H:i') }} - {{ \Carbon\Carbon::parse($jadwal->waktu_selesai)->format('H:i') }} WITA
+                            {{ \Carbon\Carbon::parse($jadwal->waktu_mulai)->format('H:i') }} -
+                            {{ \Carbon\Carbon::parse($jadwal->waktu_selesai)->format('H:i') }} WITA
                         </span>
                     </div>
                     <div class="col-md-12">
@@ -137,17 +138,18 @@
                     <div class="form-check mb-3">
                         <input class="form-check-input @error('keputusan') is-invalid @enderror" type="radio"
                             name="keputusan" id="keputusan_ya" value="Ya"
-                            {{ old('keputusan') === 'Ya' ? 'checked' : '' }}>
+                            {{ old('keputusan') === 'Ya' ? 'checked' : '' }} required>
                         <label class="form-check-label" for="keputusan_ya">
                             <strong class="text-success">Ya</strong>
                             <div class="text-muted small">Proposal layak dilanjutkan tanpa syarat</div>
                         </label>
                     </div>
 
+                    {{-- ✅ PERBAIKAN: Value harus PERSIS dengan enum database --}}
                     <div class="form-check mb-3">
                         <input class="form-check-input @error('keputusan') is-invalid @enderror" type="radio"
                             name="keputusan" id="keputusan_ya_perbaikan" value="Ya, dengan perbaikan"
-                            {{ old('keputusan') === 'Ya, dengan perbaikan' ? 'checked' : '' }}>
+                            {{ old('keputusan') === 'Ya, dengan perbaikan' ? 'checked' : '' }} required>
                         <label class="form-check-label" for="keputusan_ya_perbaikan">
                             <strong class="text-warning">Ya, dengan perbaikan</strong>
                             <div class="text-muted small">Proposal layak dengan catatan harus ada perbaikan</div>
@@ -157,7 +159,7 @@
                     <div class="form-check mb-3">
                         <input class="form-check-input @error('keputusan') is-invalid @enderror" type="radio"
                             name="keputusan" id="keputusan_tidak" value="Tidak"
-                            {{ old('keputusan') === 'Tidak' ? 'checked' : '' }}>
+                            {{ old('keputusan') === 'Tidak' ? 'checked' : '' }} required>
                         <label class="form-check-label" for="keputusan_tidak">
                             <strong class="text-danger">Tidak</strong>
                             <div class="text-muted small">Proposal belum layak dan perlu revisi besar</div>
@@ -237,59 +239,74 @@
 
 @push('scripts')
     <script>
-        // ========== SHOW/HIDE WARNING ALERT ==========
-        const radioTidak = document.getElementById('keputusan_tidak');
-        const radioYa = document.getElementById('keputusan_ya');
-        const radioYaPerbaikan = document.getElementById('keputusan_ya_perbaikan');
-        const alertTidakLayak = document.getElementById('alertTidakLayak');
+        document.addEventListener('DOMContentLoaded', function() {
+            // ========== SHOW/HIDE WARNING ALERT ==========
+            const radioTidak = document.getElementById('keputusan_tidak');
+            const radioYa = document.getElementById('keputusan_ya');
+            const radioYaPerbaikan = document.getElementById('keputusan_ya_perbaikan');
+            const alertTidakLayak = document.getElementById('alertTidakLayak');
 
-        // Function to toggle alert
-        function toggleAlert() {
-            if (radioTidak.checked) {
-                alertTidakLayak.classList.remove('d-none');
-            } else {
-                alertTidakLayak.classList.add('d-none');
+            function toggleAlert() {
+                if (radioTidak && radioTidak.checked) {
+                    alertTidakLayak.classList.remove('d-none');
+                } else {
+                    alertTidakLayak.classList.add('d-none');
+                }
             }
-        }
 
-        // Add event listeners
-        if (radioTidak) radioTidak.addEventListener('change', toggleAlert);
-        if (radioYa) radioYa.addEventListener('change', toggleAlert);
-        if (radioYaPerbaikan) radioYaPerbaikan.addEventListener('change', toggleAlert);
+            // Add event listeners
+            if (radioTidak) radioTidak.addEventListener('change', toggleAlert);
+            if (radioYa) radioYa.addEventListener('change', toggleAlert);
+            if (radioYaPerbaikan) radioYaPerbaikan.addEventListener('change', toggleAlert);
 
-        // Check on page load (for old() values)
-        toggleAlert();
+            // Check on page load
+            toggleAlert();
 
-        // ========== FORM VALIDATION BEFORE SUBMIT ==========
-        document.getElementById('formFillBA').addEventListener('submit', function(e) {
-            const catatanKejadian = document.querySelector('input[name="catatan_kejadian"]:checked');
-            const keputusan = document.querySelector('input[name="keputusan"]:checked');
+            // ========== FORM VALIDATION & CONFIRMATION ==========
+            const form = document.getElementById('formFillBA');
+            const btnSubmit = document.getElementById('btnSubmit');
 
-            if (!catatanKejadian || !keputusan) {
+            form.addEventListener('submit', function(e) {
                 e.preventDefault();
 
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Form Belum Lengkap',
-                    text: 'Mohon lengkapi semua pilihan yang diperlukan (Catatan Kejadian dan Kesimpulan Kelayakan)',
-                    confirmButtonText: 'OK'
+                const catatanKejadian = document.querySelector('input[name="catatan_kejadian"]:checked');
+                const keputusan = document.querySelector('input[name="keputusan"]:checked');
+
+                // Validation
+                if (!catatanKejadian || !keputusan) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Form Belum Lengkap',
+                        text: 'Mohon lengkapi semua pilihan yang diperlukan (Catatan Kejadian dan Kesimpulan Kelayakan)',
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#3085d6'
+                    });
+                    return false;
+                }
+
+                // Log untuk debugging
+                console.log('Form data:', {
+                    catatan_kejadian: catatanKejadian.value,
+                    keputusan: keputusan.value,
+                    keputusan_length: keputusan.value.length
                 });
 
-                return false;
-            }
+                // Disable button to prevent double submit
+                btnSubmit.disabled = true;
+                btnSubmit.innerHTML =
+                    '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Processing...';
 
-            // Confirmation before submit
-            e.preventDefault();
+                // Different confirmation based on keputusan
+                let confirmTitle = 'Konfirmasi Submit';
+                let confirmIcon = 'warning';
+                let confirmHtml = '';
+                let confirmButtonColor = '#28a745';
 
-            // Different confirmation message based on keputusan
-            let confirmTitle = 'Konfirmasi Submit';
-            let confirmIcon = 'warning';
-            let confirmHtml = '';
-
-            if (keputusan.value === 'Tidak') {
-                confirmTitle = '⚠️ Konfirmasi Penolakan Proposal';
-                confirmIcon = 'error';
-                confirmHtml = `
+                if (keputusan.value === 'Tidak') {
+                    confirmTitle = '⚠️ Konfirmasi Penolakan Proposal';
+                    confirmIcon = 'error';
+                    confirmButtonColor = '#dc3545';
+                    confirmHtml = `
                     <div class="text-start">
                         <div class="alert alert-danger mb-3">
                             <strong>PERHATIAN:</strong> Anda akan menolak proposal mahasiswa ini!
@@ -309,13 +326,13 @@
                         </div>
                     </div>
                 `;
-            } else {
-                confirmHtml = `
+                } else {
+                    confirmHtml = `
                     <div class="text-start">
                         <p>Anda akan mengirimkan berita acara dengan data:</p>
                         <ul>
                             <li><strong>Catatan Kejadian:</strong> ${catatanKejadian.value}</li>
-                            <li><strong>Kesimpulan:</strong> ${keputusan.value}</li>
+                            <li><strong>Kesimpulan:</strong> <span class="text-success"><strong>${keputusan.value}</strong></span></li>
                         </ul>
                         <p class="text-success mb-0">
                             <i class="bx bx-check-circle me-1"></i>
@@ -323,36 +340,56 @@
                         </p>
                     </div>
                 `;
+                }
+
+                Swal.fire({
+                    title: confirmTitle,
+                    html: confirmHtml,
+                    icon: confirmIcon,
+                    showCancelButton: true,
+                    confirmButtonText: keputusan.value === 'Tidak' ? 'Ya, Tolak Proposal' :
+                        'Ya, Submit',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: confirmButtonColor,
+                    cancelButtonColor: '#6c757d',
+                    reverseButtons: true,
+                    allowOutsideClick: false
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Show loading
+                        Swal.fire({
+                            title: 'Memproses...',
+                            text: 'Mohon tunggu, sedang menyimpan data dan generate PDF',
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+
+                        // Submit form
+                        form.submit();
+                    } else {
+                        // Re-enable button if cancelled
+                        btnSubmit.disabled = false;
+                        btnSubmit.innerHTML =
+                            '<i class="bx bx-check-double me-1"></i>Submit & Selesaikan BA';
+                    }
+                });
+            });
+
+            // Character counter
+            const textarea = document.getElementById('catatan_tambahan');
+            if (textarea) {
+                textarea.addEventListener('input', function() {
+                    const maxLength = 1000;
+                    const currentLength = this.value.length;
+
+                    if (currentLength > maxLength) {
+                        this.value = this.value.substring(0, maxLength);
+                    }
+                });
             }
-
-            Swal.fire({
-                title: confirmTitle,
-                html: confirmHtml,
-                icon: confirmIcon,
-                showCancelButton: true,
-                confirmButtonText: keputusan.value === 'Tidak' ? 'Ya, Tolak Proposal' : 'Ya, Submit',
-                cancelButtonText: 'Batal',
-                confirmButtonColor: keputusan.value === 'Tidak' ? '#dc3545' : '#28a745',
-                cancelButtonColor: '#6c757d',
-                reverseButtons: true
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    this.submit();
-                }
-            });
         });
-
-        // Character counter
-        const textarea = document.getElementById('catatan_tambahan');
-        if (textarea) {
-            textarea.addEventListener('input', function() {
-                const maxLength = 1000;
-                const currentLength = this.value.length;
-
-                if (currentLength > maxLength) {
-                    this.value = this.value.substring(0, maxLength);
-                }
-            });
-        }
     </script>
 @endpush

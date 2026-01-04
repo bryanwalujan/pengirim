@@ -61,17 +61,6 @@
                             </tr>
                         </table>
                     </div>
-                    <div class="col-md-4">
-                        <div class="alert alert-info mb-0">
-                            <i class="bx bx-info-circle me-2"></i>
-                            <strong>Catatan:</strong><br>
-                            <small>
-                                • Isi nilai dan catatan sesuai hasil ujian<br>
-                                • Data dapat diedit sebelum ditandatangani<br>
-                                • Auto-save ke localStorage
-                            </small>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>

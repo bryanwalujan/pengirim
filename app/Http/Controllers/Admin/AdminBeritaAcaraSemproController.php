@@ -3,238 +3,46 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Actions\BeritaAcaraSempro\{
+    CreateBeritaAcaraAction,
+    SignByPembahasAction,
+    ApproveOnBehalfAction,
+    FillByPembimbingAction,
+    UpdatePembahasAction,
+    DeleteBeritaAcaraAction
+};
 use App\Http\Controllers\Controller;
-use App\Models\JadwalSeminarProposal;
-use App\Models\BeritaAcaraSeminarProposal;
-use App\Models\LembarCatatanSeminarProposal;
-use App\Models\User;
+use App\Http\Requests\BeritaAcaraSempro\{
+    StoreBeritaAcaraRequest,
+    UpdateBeritaAcaraRequest,
+    SignPembahasRequest,
+    ApproveOnBehalfRequest,
+    FillByPembimbingRequest,
+    UpdatePembahasRequest
+};
+use App\Models\{BeritaAcaraSeminarProposal, JadwalSeminarProposal, User};
 use App\Services\PelaksanaanUjianService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\{Auth, Log, Storage};
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class AdminBeritaAcaraSemproController extends Controller
 {
-    protected PelaksanaanUjianService $pelaksanaanUjianService;
 
-    public function previewPdf()
-    {
-        // ✅ PERBAIKAN: Buat dummy BeritaAcaraSeminarProposal sebagai COLLECTION/ARRAY
-        // Jangan gunakan stdClass karena akan error saat panggil method model
+    use AuthorizesRequests;
 
-        $beritaAcara = [
-            'id' => 999,
-            'catatan_kejadian' => 'Ada beberapa perbaikan yang harus diubah',
-            'keputusan' => 'Ya, dengan perbaikan',
-            'catatan_tambahan' => 'Mahasiswa menunjukkan pemahaman yang baik terhadap topik penelitian. Presentasi disampaikan dengan jelas dan sistematis.',
-            'verification_code' => 'BA-SEMPRO-2025-001-' . strtoupper(substr(md5(time()), 0, 6)),
-            'ttd_ketua_penguji_at' => now(),
-            'is_signed' => true, // ✅ TAMBAHKAN: Flag untuk cek TTD di view
-        ];
-
-        // Convert to object untuk konsistensi dengan view
-        $beritaAcara = (object) $beritaAcara;
-
-        // Dummy Jadwal & Pendaftaran
-        $mahasiswa = (object) [
-            'name' => 'Budi Santoso',
-            'nim' => '21011101234',
-            'email' => 'budi.santoso@student.unsrat.ac.id',
-        ];
-
-        $pembimbing = (object) [
-            'name' => 'Cindy Pamela Cornelia Munaiseche, S.T., M.Eng',
-            'nip' => '198505152010121001',
-        ];
-
-        $pendaftaran = (object) [
-            'user' => $mahasiswa,
-            'judul_skripsi' => 'Penerapan Algoritma K- Means Pada Sistem Pencarian Berbasis Gambar di Repositori Elektronik Program Studi Teknik Informatika Universitas Negeri Manado',
-            'dosenPembimbing' => $pembimbing,
-        ];
-
-        $jadwal = (object) [
-            'tanggal_ujian' => now()->subDays(3), // 3 hari lalu
-            'waktu_mulai' => '09:00:00',
-            'waktu_selesai' => '11:00:00',
-            'ruangan' => 'Ruang Lab Komputer A',
-            'batch' => 1,
-            'pendaftaranSeminarProposal' => $pendaftaran,
-            'dosenPenguji' => collect([
-                (object) [
-                    'id' => 1,
-                    'name' => 'Cindy Pamela Cornelia Munaiseche, S.T., M.Eng',
-                    'nip' => '198505152010121001',
-                    'pivot' => (object) [
-                        'posisi' => 'Ketua Penguji',
-                        'status_kehadiran' => 'Hadir',
-                    ],
-                ],
-                (object) [
-                    'id' => 2,
-                    'name' => 'Dr. Siti Nurhaliza, S.Kom., M.Kom.',
-                    'nip' => '198803202012122002',
-                    'pivot' => (object) [
-                        'posisi' => 'Anggota Penguji 1',
-                        'status_kehadiran' => 'Hadir',
-                    ],
-                ],
-                (object) [
-                    'id' => 3,
-                    'name' => 'Ir. Muhammad Yusuf, S.T., M.T.',
-                    'nip' => '199001152015051001',
-                    'pivot' => (object) [
-                        'posisi' => 'Anggota Penguji 2',
-                        'status_kehadiran' => 'Hadir',
-                    ],
-                ],
-                (object) [
-                    'id' => 4,
-                    'name' => 'Dr. Eng. Andi Wijaya, S.T., M.Sc.',
-                    'nip' => '198706102014031002',
-                    'pivot' => (object) [
-                        'posisi' => 'Anggota Penguji 3',
-                        'status_kehadiran' => 'Hadir',
-                    ],
-                ],
-            ]),
-        ];
-
-        // Tambahkan relasi ke beritaAcara
-        $beritaAcara->jadwalSeminarProposal = $jadwal;
-        $beritaAcara->ketuaPenguji = $pembimbing;
-
-        // Dummy Lembar Catatan
-        $beritaAcara->lembarCatatan = collect([
-            (object) [
-                'dosen' => (object) [
-                    'name' => 'Dr. Siti Nurhaliza, S.Kom., M.Kom.',
-                    'nip' => '198803202012122002',
-                ],
-                'nilai_kebaruan' => 85,
-                'nilai_metode' => 80,
-                'nilai_data' => 90,
-                'total_nilai' => 85,
-                'catatan_umum' => 'Secara keseluruhan proposal sudah baik dan layak untuk dilanjutkan dengan perbaikan-perbaikan yang telah disebutkan.',
-            ],
-            (object) [
-                'dosen' => (object) [
-                    'name' => 'Ir. Muhammad Yusuf, S.T., M.T.',
-                    'nip' => '199001152015051001',
-                ],
-                'nilai_kebaruan' => 80,
-                'nilai_metode' => 85,
-                'nilai_data' => 85,
-                'total_nilai' => 83,
-                'catatan_umum' => 'Proposal menunjukkan pemahaman yang baik tentang topik penelitian. Good luck!',
-            ],
-        ]);
-
-        // Generate verification URL
-        $verificationUrl = url('/verify/berita-acara-sempro/' . $beritaAcara->verification_code);
-
-        // Generate QR Code
-        $qrCode = base64_encode(
-            \SimpleSoftwareIO\QrCode\Facades\QrCode::format('png')
-                ->size(200)
-                ->margin(1)
-                ->errorCorrection('H')
-                ->generate($verificationUrl)
-        );
-
-        // Load view PDF
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.berita-acara-sempro.pdf', [
-            'beritaAcara' => $beritaAcara,
-            'jadwal' => $jadwal,
-            'pendaftaran' => $pendaftaran,
-            'qrCode' => $qrCode,
-            'verificationUrl' => $verificationUrl,
-        ])
-            ->setPaper('a4', 'portrait')
-            ->setOption('margin-top', '0.7in')
-            ->setOption('margin-bottom', '0.7in')
-            ->setOption('margin-left', '0.7in')
-            ->setOption('margin-right', '0.7in');
-
-        return $pdf->stream('preview-berita-acara-sempro.pdf');
+    public function __construct(
+        private readonly PelaksanaanUjianService $pelaksanaanUjianService,
+        private readonly CreateBeritaAcaraAction $createAction,
+        private readonly SignByPembahasAction $signAction,
+        private readonly ApproveOnBehalfAction $approveAction,
+        private readonly FillByPembimbingAction $fillAction,
+        private readonly UpdatePembahasAction $updatePembahasAction,
+        private readonly DeleteBeritaAcaraAction $deleteAction
+    ) {
     }
 
-    public function __construct(PelaksanaanUjianService $pelaksanaanUjianService)
-    {
-        $this->pelaksanaanUjianService = $pelaksanaanUjianService;
-    }
-
-
-    /**
-     * ✅ Check if user is Dosen Pembimbing (berdasarkan data mahasiswa)
-     */
-    private function isPembimbingFor(User $user, JadwalSeminarProposal $jadwal): bool
-    {
-        if (!$user->hasRole('dosen')) {
-            return false;
-        }
-
-        $pembimbing = $jadwal->pendaftaranSeminarProposal->dosenPembimbing;
-
-        return $pembimbing && $pembimbing->id === $user->id;
-    }
-
-    /**
-     * ✅ Check if user is Ketua Penguji untuk jadwal tertentu
-     */
-    private function isKetuaPengujiFor(User $user, JadwalSeminarProposal $jadwal): bool
-    {
-        if (!$user->hasRole('dosen')) {
-            return false;
-        }
-
-        $ketuaPenguji = $jadwal->getKetuaPenguji();
-
-        return $ketuaPenguji && $ketuaPenguji->id === $user->id;
-    }
-
-    /**
-     * ✅ Check if user is Staff yang bisa override
-     */
-    private function canOverrideApproval(User $user): bool
-    {
-        return $user->hasRole(['staff', 'admin']);
-    }
-
-    /**
-     * ✅ Check if user dapat melihat BA ini
-     */
-    private function canViewBeritaAcara(User $user, BeritaAcaraSeminarProposal $beritaAcara): bool
-    {
-        // Staff/Admin bisa lihat semua
-        if ($user->hasRole(['staff', 'admin'])) {
-            return true;
-        }
-
-        // Dosen harus terlibat dalam ujian ini
-        if ($user->hasRole('dosen')) {
-            $jadwal = $beritaAcara->jadwalSeminarProposal;
-
-            // Cek apakah pembimbing
-            if ($this->isPembimbingFor($user, $jadwal)) {
-                return true;
-            }
-
-            // Cek apakah salah satu penguji
-            $isPenguji = $jadwal->dosenPenguji()->where('dosen_id', $user->id)->exists();
-            if ($isPenguji) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Display listing of berita acara
-     */
+    // ==================== INDEX ====================
     public function index(Request $request)
     {
         $user = User::find(Auth::id());
@@ -243,61 +51,31 @@ class AdminBeritaAcaraSemproController extends Controller
             'jadwalSeminarProposal.pendaftaranSeminarProposal.user',
             'jadwalSeminarProposal.pendaftaranSeminarProposal.dosenPembimbing',
             'jadwalSeminarProposal.dosenPenguji',
-            'dosenPembimbingPengisi',
-            'dosenPembimbingPenandatangan',
-            'ketuaPenguji',
             'lembarCatatan',
         ]);
 
-        // ✅ FILTER BERDASARKAN ROLE & PARAMETER
+        // Filter untuk dosen
         if ($user->hasRole('dosen')) {
             $filter = $request->input('filter');
-            $userId = $user->id;
 
             if ($filter === 'pembahas') {
-                // ✅ Dosen sebagai pembahas - yang menunggu TTD mereka
                 $query->where('status', 'menunggu_ttd_pembahas')
-                    ->whereHas('jadwalSeminarProposal.dosenPenguji', function ($q) use ($userId) {
-                        $q->where('users.id', $userId)
-                            ->where('posisi', '!=', 'Ketua Pembahas');
-                    })
-                    ->where(function ($q) use ($userId) {
-                        $q->whereNull('ttd_dosen_pembahas')
-                            ->orWhereRaw("NOT JSON_CONTAINS(ttd_dosen_pembahas, JSON_OBJECT('dosen_id', ?), '$')", [$userId]);
-                    });
-
+                    ->whereHas('jadwalSeminarProposal.dosenPenguji', fn($q) => $q->where('dosen_id', $user->id));
             } elseif ($filter === 'pembimbing') {
-                // ✅ Dosen sebagai pembimbing/ketua - yang perlu diisi
                 $query->where('status', 'menunggu_ttd_pembimbing')
-                    ->whereHas('jadwalSeminarProposal', function ($q) use ($userId) {
-                        $q->whereHas('pendaftaranSeminarProposal', function ($q2) use ($userId) {
-                            $q2->where('dosen_pembimbing_id', $userId);
-                        })
-                            ->orWhereHas('dosenPenguji', function ($q2) use ($userId) {
-                                $q2->where('users.id', $userId)
-                                    ->where('posisi', 'Ketua Pembahas');
-                            });
-                    });
-
+                    ->whereHas('jadwalSeminarProposal.pendaftaranSeminarProposal', fn($q) => $q->where('dosen_pembimbing_id', $user->id));
             } else {
-                // ✅ PERBAIKAN: Default (Riwayat) - HANYA BA yang dosen ini sudah approve
                 $query->where('status', 'selesai')
-                    ->where(function ($q) use ($userId) {
-                        // BA yang dosen ini sudah TTD sebagai pembahas
-                        $q->whereRaw("JSON_CONTAINS(ttd_dosen_pembahas, JSON_OBJECT('dosen_id', ?), '$')", [$userId])
-                            // ATAU BA yang dosen ini sudah TTD sebagai pembimbing
-                            ->orWhere('ttd_pembimbing_by', $userId)
-                            // ATAU BA yang dosen ini sudah TTD sebagai ketua
-                            ->orWhere('ttd_ketua_penguji_by', $userId);
+                    ->where(function ($q) use ($user) {
+                        $q->whereHas('jadwalSeminarProposal.dosenPenguji', fn($sub) => $sub->where('dosen_id', $user->id))
+                            ->orWhereHas('jadwalSeminarProposal.pendaftaranSeminarProposal', fn($sub) => $sub->where('dosen_pembimbing_id', $user->id));
                     });
             }
         }
 
-        // Filter by status (untuk staff)
+        // Filters untuk staff
         if ($request->filled('status')) {
             $status = $request->status;
-            
-            // Handle combined status for 'menunggu_ttd'
             if ($status === 'menunggu_ttd') {
                 $query->whereIn('status', ['menunggu_ttd_pembahas', 'menunggu_ttd_pembimbing']);
             } else {
@@ -305,261 +83,64 @@ class AdminBeritaAcaraSemproController extends Controller
             }
         }
 
-        // Filter by keputusan
         if ($request->filled('keputusan')) {
             $query->where('keputusan', $request->keputusan);
         }
 
-        // Filter by signed status
-        if ($request->filled('signed')) {
-            if ($request->signed === 'yes') {
-                $query->whereNotNull('ttd_ketua_penguji_at');
-            } else {
-                $query->whereNull('ttd_ketua_penguji_at');
-            }
-        }
-
-        // Search
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->whereHas('jadwalSeminarProposal.pendaftaranSeminarProposal.user', function ($q) use ($search) {
-                $q->where('name', 'like', '%' . $search . '%')
-                    ->orWhere('nim', 'like', '%' . $search . '%');
-            });
+            $query->whereHas(
+                'jadwalSeminarProposal.pendaftaranSeminarProposal.user',
+                fn($q) =>
+                $q->where('name', 'like', "%{$search}%")->orWhere('nim', 'like', "%{$search}%")
+            );
         }
 
         $beritaAcaras = $query->latest()->paginate(20)->withQueryString();
 
-        // ✅ Statistics untuk Dosen
+        // Statistics
         if ($user->hasRole('dosen')) {
             $stats = [
-                'total' => \App\Models\BeritaAcaraSeminarProposal::where('status', 'selesai')
-                    ->where(function ($q) use ($user) {
-                        $q->whereRaw("JSON_CONTAINS(ttd_dosen_pembahas, JSON_OBJECT('dosen_id', ?), '$')", [$user->id])
-                            ->orWhere('ttd_pembimbing_by', $user->id)
-                            ->orWhere('ttd_ketua_penguji_by', $user->id);
-                    })
-                    ->count(),
-                'menunggu_ttd_pembahas' => \App\Models\BeritaAcaraSeminarProposal::where('status', 'menunggu_ttd_pembahas')
-                    ->whereHas('jadwalSeminarProposal.dosenPenguji', function ($q) use ($user) {
-                        $q->where('users.id', $user->id)
-                            ->where('posisi', '!=', 'Ketua Pembahas');
-                    })
-                    ->where(function ($q) use ($user) {
-                        $q->whereNull('ttd_dosen_pembahas')
-                            ->orWhereRaw("NOT JSON_CONTAINS(ttd_dosen_pembahas, JSON_OBJECT('dosen_id', ?), '$')", [$user->id]);
-                    })
-                    ->count(),
-                'menunggu_ttd_pembimbing' => \App\Models\BeritaAcaraSeminarProposal::where('status', 'menunggu_ttd_pembimbing')
-                    ->whereHas('jadwalSeminarProposal', function ($q) use ($user) {
-                        $q->whereHas('pendaftaranSeminarProposal', function ($q2) use ($user) {
-                            $q2->where('dosen_pembimbing_id', $user->id);
-                        })
-                            ->orWhereHas('dosenPenguji', function ($q2) use ($user) {
-                                $q2->where('users.id', $user->id)
-                                    ->where('posisi', 'Ketua Pembahas');
-                            });
-                    })
-                    ->count(),
+                'total' => BeritaAcaraSeminarProposal::where('status', 'selesai')->count(),
+                'menunggu_ttd_pembahas' => BeritaAcaraSeminarProposal::where('status', 'menunggu_ttd_pembahas')->count(),
+                'menunggu_ttd_pembimbing' => BeritaAcaraSeminarProposal::where('status', 'menunggu_ttd_pembimbing')->count(),
             ];
         } else {
-            // Statistics untuk Staff
             $stats = [
-                'total' => \App\Models\BeritaAcaraSeminarProposal::count(),
-                'draft' => \App\Models\BeritaAcaraSeminarProposal::where('status', 'draft')->count(),
-                'menunggu_ttd_pembahas' => \App\Models\BeritaAcaraSeminarProposal::where('status', 'menunggu_ttd_pembahas')->count(),
-                'menunggu_ttd_pembimbing' => \App\Models\BeritaAcaraSeminarProposal::where('status', 'menunggu_ttd_pembimbing')->count(),
-                'selesai' => \App\Models\BeritaAcaraSeminarProposal::where('status', 'selesai')->count(),
-                'ditolak' => \App\Models\BeritaAcaraSeminarProposal::where('status', 'ditolak')->count(),
-                // Statistik berdasarkan keputusan
-                'lulus' => \App\Models\BeritaAcaraSeminarProposal::where('keputusan', 'Ya')->count(),
-                'lulus_bersyarat' => \App\Models\BeritaAcaraSeminarProposal::where('keputusan', 'Ya, dengan perbaikan')->count(),
-                'tidak_lulus' => \App\Models\BeritaAcaraSeminarProposal::where('keputusan', 'Tidak')->count(),
+                'total' => BeritaAcaraSeminarProposal::count(),
+                'draft' => BeritaAcaraSeminarProposal::where('status', 'draft')->count(),
+                'menunggu_ttd_pembahas' => BeritaAcaraSeminarProposal::where('status', 'menunggu_ttd_pembahas')->count(),
+                'menunggu_ttd_pembimbing' => BeritaAcaraSeminarProposal::where('status', 'menunggu_ttd_pembimbing')->count(),
+                'selesai' => BeritaAcaraSeminarProposal::where('status', 'selesai')->count(),
+                'ditolak' => BeritaAcaraSeminarProposal::where('status', 'ditolak')->count(),
             ];
         }
 
         return view('admin.berita-acara-sempro.index', compact('beritaAcaras', 'stats'));
     }
 
-    /**
-     * Show form to create berita acara (HANYA STAFF)
-     */
-    public function create(JadwalSeminarProposal $jadwal)
-    {
-        $user = Auth::user();
-
-        if (!$this->canOverrideApproval($user)) {
-            abort(403, 'Hanya staff yang dapat membuat berita acara.');
-        }
-
-        // ✅ PERBAIKAN: Check jadwal sudah dijadwalkan (tidak perlu selesai)
-        if ($jadwal->status !== 'dijadwalkan') {
-            return back()->with('error', 'Berita acara hanya dapat dibuat untuk jadwal yang sudah dijadwalkan.');
-        }
-
-        // ✅ PERBAIKAN: Check sudah ada BA yang AKTIF (bukan yang ditolak)
-        // BA dengan status 'ditolak' adalah arsip ujian sebelumnya yang gagal
-        // Staff boleh membuat BA baru untuk ujian ulangan
-        $existingActiveBA = $jadwal->beritaAcaraSeminarProposal()
-            ->whereNotIn('status', ['ditolak'])
-            ->first();
-
-        if ($existingActiveBA) {
-            return redirect()
-                ->route('admin.berita-acara-sempro.show', $existingActiveBA)
-                ->with('info', 'Berita acara sudah dibuat untuk jadwal ini.');
-        }
-
-        // ✅ INFO: Jika ada BA dengan status 'ditolak', itu adalah arsip ujian sebelumnya
-        // BA baru akan dibuat sebagai dokumen terpisah untuk ujian ulangan
-        $rejectedBA = $jadwal->beritaAcaraSeminarProposal()
-            ->where('status', 'ditolak')
-            ->first();
-
-        if ($rejectedBA) {
-            Log::info('Creating new BA for rescheduled exam (previous BA was rejected)', [
-                'jadwal_id' => $jadwal->id,
-                'rejected_ba_id' => $rejectedBA->id,
-                'rejected_at' => $rejectedBA->ditolak_at,
-            ]);
-        }
-
-        // ✅ PERBAIKAN: Tidak perlu cek tanggal H lagi
-        // Staff bisa buat BA kapan saja setelah jadwal dibuat
-
-        $jadwal->load([
-            'pendaftaranSeminarProposal.user',
-            'pendaftaranSeminarProposal.dosenPembimbing',
-            'dosenPenguji',
-        ]);
-
-        return view('admin.berita-acara-sempro.create', compact('jadwal'));
-    }
-
-    public function store(Request $request, JadwalSeminarProposal $jadwal)
-    {
-        $user = Auth::user();
-
-        if (!$this->canOverrideApproval($user)) {
-            abort(403, 'Hanya staff yang dapat membuat berita acara.');
-        }
-
-        // Validate
-        $request->validate([
-            'catatan_tambahan' => 'nullable|string|max:1000',
-        ]);
-
-        try {
-            DB::beginTransaction();
-
-            // ✅ PERBAIKAN: Create BA dengan status menunggu_ttd_pembahas (bukan draft)
-            $beritaAcara = BeritaAcaraSeminarProposal::create([
-                'jadwal_seminar_proposal_id' => $jadwal->id,
-                'catatan_tambahan' => $request->catatan_tambahan,
-                'dibuat_oleh_id' => $user->id,
-                'status' => 'menunggu_ttd_pembahas',  // ✅ UBAH: langsung menunggu TTD pembahas
-            ]);
-
-            DB::commit();
-
-            Log::info('Berita Acara Sempro created (menunggu TTD pembahas)', [
-                'ba_id' => $beritaAcara->id,
-                'jadwal_id' => $jadwal->id,
-                'created_by' => $user->id,
-            ]);
-
-
-            return redirect()
-                ->route('admin.berita-acara-sempro.show', $beritaAcara)
-                ->with('success', 'Berita acara berhasil dibuat. Menunggu persetujuan dari dosen pembahas.');
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Failed to create Berita Acara', [
-                'jadwal_id' => $jadwal->id,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-
-            return back()
-                ->withInput()
-                ->with('error', 'Gagal membuat berita acara: ' . $e->getMessage());
-        }
-    }
-
-
-    /**
-     * Show berita acara detail
-     */
+    // ==================== SHOW ====================
     public function show(BeritaAcaraSeminarProposal $beritaAcara)
     {
+        $this->authorize('view', $beritaAcara);
+
         $user = User::find(Auth::id());
 
-        // Load semua relasi yang diperlukan
         $beritaAcara->load([
             'jadwalSeminarProposal.pendaftaranSeminarProposal.user',
             'jadwalSeminarProposal.pendaftaranSeminarProposal.dosenPembimbing',
             'jadwalSeminarProposal.dosenPenguji',
-            'dosenPembimbingPengisi',
-            'dosenPembimbingPenandatangan',
-            'ketuaPenguji',
             'lembarCatatan.dosen',
         ]);
 
         $jadwal = $beritaAcara->jadwalSeminarProposal;
-        $pendaftaran = $jadwal->pendaftaranSeminarProposal;
-
-        // ✅ PERSIAPKAN DATA UNTUK VIEW
-
-        // Role checks
         $isDosen = $user->hasRole('dosen');
-        $isStaff = $user->hasRole('staff') || $user->hasRole('admin');
+        $isStaff = $user->hasRole(['staff', 'admin']);
+        $isPembahas = $isDosen && $jadwal->dosenPenguji()->where('dosen_id', $user->id)->exists();
+        $isPembimbing = $isDosen && $jadwal->pendaftaranSeminarProposal->dosen_pembimbing_id === $user->id;
+        $isKetua = $isDosen && $jadwal->dosenPenguji()->wherePivot('posisi', 'Ketua Pembahas')->where('dosen_id', $user->id)->exists();
+        $pembahasHadir = $jadwal->dosenPenguji()->get();
 
-        // Check apakah user adalah pembahas
-        $isPembahas = false;
-        if ($isDosen) {
-            $isPembahas = $jadwal->dosenPenguji()
-                ->where('dosen_id', $user->id)
-                ->exists();
-        }
-
-        // Check apakah user adalah pembimbing
-        $isPembimbing = false;
-        if ($isDosen) {
-            $isPembimbing = $pendaftaran->dosen_pembimbing_id === $user->id;
-        }
-
-        // Check apakah user adalah ketua penguji
-        $isKetua = false;
-        $ketuaPenguji = $jadwal->dosenPenguji()
-            ->wherePivot('posisi', 'Ketua Pembahas')
-            ->first();
-
-        if ($ketuaPenguji) {
-            $isKetua = $ketuaPenguji->id === $user->id;
-        }
-
-        // Get daftar pembahas yang hadir
-        $pembahasHadir = $jadwal->dosenPenguji()
-            ->get();
-
-        // ✅ DEBUG LOG
-        Log::info('Berita Acara Show - User Access', [
-            'user_id' => $user->id,
-            'user_name' => $user->name,
-            'user_roles' => $user->roles->pluck('name'),
-            'ba_id' => $beritaAcara->id,
-            'ba_status' => $beritaAcara->status,
-            'is_dosen' => $isDosen,
-            'is_staff' => $isStaff,
-            'is_pembahas' => $isPembahas,
-            'is_pembimbing' => $isPembimbing,
-            'is_ketua' => $isKetua,
-            'can_sign_pembahas' => $isPembahas && $beritaAcara->canBeSignedByPembahas($user->id),
-            'has_signed_pembahas' => $isPembahas && $beritaAcara->hasSignedByPembahas($user->id),
-        ]);
-
-        // Return view dengan semua data yang diperlukan
         return view('admin.berita-acara-sempro.show', compact(
             'beritaAcara',
             'isDosen',
@@ -571,366 +152,105 @@ class AdminBeritaAcaraSemproController extends Controller
         ));
     }
 
-    /**
-     * Edit berita acara (before signing)
-     */
-    public function edit(BeritaAcaraSeminarProposal $beritaAcara)
+    // ==================== CREATE & STORE ====================
+    public function create(JadwalSeminarProposal $jadwal)
     {
-        if ($beritaAcara->isSigned()) {
-            return back()->with('error', 'Berita acara yang sudah ditandatangani tidak dapat diubah.');
+        $this->authorize('create', BeritaAcaraSeminarProposal::class);
+
+        if ($jadwal->status !== 'dijadwalkan') {
+            return back()->with('error', 'Berita acara hanya dapat dibuat untuk jadwal yang sudah dijadwalkan.');
         }
 
-        $beritaAcara->load([
-            'jadwalSeminarProposal.pendaftaranSeminarProposal.user',
-            'jadwalSeminarProposal.pendaftaranSeminarProposal.dosenPembimbing',
-            'jadwalSeminarProposal.dosenPenguji',
-            'dosenPembimbingPengisi',
-            'lembarCatatan.dosen',
+        $existingActiveBA = $jadwal->beritaAcaraSeminarProposal()->whereNotIn('status', ['ditolak'])->first();
+        if ($existingActiveBA) {
+            return redirect()->route('admin.berita-acara-sempro.show', $existingActiveBA)
+                ->with('info', 'Berita acara sudah dibuat untuk jadwal ini.');
+        }
+
+        $jadwal->load([
+            'pendaftaranSeminarProposal.user',
+            'pendaftaranSeminarProposal.dosenPembimbing',
+            'dosenPenguji',
         ]);
 
-        return view('admin.berita-acara-sempro.edit', compact('beritaAcara'));
+        return view('admin.berita-acara-sempro.create', compact('jadwal'));
     }
 
-    public function update(Request $request, BeritaAcaraSeminarProposal $beritaAcara)
+    public function store(StoreBeritaAcaraRequest $request, JadwalSeminarProposal $jadwal)
     {
-        if ($beritaAcara->isSigned()) {
-            return back()->with('error', 'Berita acara yang sudah ditandatangani tidak dapat diedit.');
+        $result = $this->createAction->execute($jadwal, Auth::user(), $request->validated());
+
+        if (!$result['success']) {
+            return back()->withInput()->with('error', $result['message']);
         }
 
-        // ✅ Update validasi untuk nilai yang baru
-        $validated = $request->validate([
-            'catatan_kejadian' => 'required|in:Lancar,Ada beberapa perbaikan yang harus diubah',
-            'keputusan' => 'required|in:Ya,Ya, dengan perbaikan,Tidak',
-            'catatan_tambahan' => 'nullable|string|max:1000',
-        ], [
-            'catatan_kejadian.required' => 'Catatan kejadian wajib dipilih.',
-            'catatan_kejadian.in' => 'Catatan kejadian tidak valid.',
-            'keputusan.required' => 'Keputusan wajib dipilih.',
-            'keputusan.in' => 'Keputusan tidak valid.',
-        ]);
-
-        try {
-            $beritaAcara->update($validated);
-
-            return redirect()
-                ->route('admin.berita-acara-sempro.show', $beritaAcara)
-                ->with('success', 'Berita acara berhasil diperbarui.');
-
-        } catch (\Exception $e) {
-            return back()
-                ->withInput()
-                ->with('error', 'Gagal memperbarui berita acara.');
-        }
+        return redirect()
+            ->route('admin.berita-acara-sempro.show', $result['beritaAcara'])
+            ->with('success', $result['message']);
     }
 
-    /**
-     * ✅ FIXED: Dosen pembahas memberikan persetujuan/TTD
-     */
-    public function signByPembahas(Request $request, BeritaAcaraSeminarProposal $beritaAcara)
-    {
-        $user = Auth::user();
-
-        // ✅ LOG: Request masuk
-        Log::info('📥 signByPembahas - Request received', [
-            'user_id' => $user->id,
-            'user_name' => $user->name,
-            'ba_id' => $beritaAcara->id,
-            'ba_status' => $beritaAcara->status,
-        ]);
-
-        // ✅ VALIDASI: Check permission
-        if (!$beritaAcara->canBeSignedByPembahas($user->id)) {
-            Log::warning('❌ User tidak bisa sign BA', [
-                'user_id' => $user->id,
-                'ba_id' => $beritaAcara->id,
-                'ba_status' => $beritaAcara->status,
-            ]);
-
-            return back()->with('error', 'Anda tidak memiliki akses untuk menandatangani berita acara ini.');
-        }
-
-        // ✅ VALIDASI: Checkbox confirmation
-        $request->validate([
-            'confirmation' => 'required|accepted',
-        ], [
-            'confirmation.required' => 'Anda harus menyetujui pernyataan untuk melanjutkan.',
-            'confirmation.accepted' => 'Anda harus mencentang checkbox persetujuan.',
-        ]);
-
-        try {
-            DB::beginTransaction();
-
-            // ✅ Tambahkan signature ke JSON array
-            $signatures = $beritaAcara->ttd_dosen_pembahas ?? [];
-
-            $newSignature = [
-                'dosen_id' => $user->id,
-                'dosen_name' => $user->name,
-                'signed_at' => now()->toDateTimeString(),
-            ];
-
-            $signatures[] = $newSignature;
-
-            $beritaAcara->update([
-                'ttd_dosen_pembahas' => $signatures,
-            ]);
-
-            Log::info('✅ Pembahas signature added', [
-                'ba_id' => $beritaAcara->id,
-                'dosen_id' => $user->id,
-                'total_signed' => count($signatures),
-            ]);
-
-            // ✅ REFRESH model untuk data terbaru
-            $beritaAcara->refresh();
-
-            // ✅ Check apakah semua pembahas sudah TTD
-            if ($beritaAcara->allPembahasHaveSigned()) {
-                // ✅ UBAH STATUS ke menunggu pembimbing
-                $beritaAcara->update([
-                    'status' => 'menunggu_ttd_pembimbing',
-                ]);
-
-                Log::info('🎉 All pembahas have signed - status changed', [
-                    'ba_id' => $beritaAcara->id,
-                    'new_status' => 'menunggu_ttd_pembimbing',
-                ]);
-
-                // TODO: Kirim notifikasi ke Pembimbing/Ketua Penguji
-            }
-
-            DB::commit();
-
-            Log::info('✅✅✅ SIGN BY PEMBAHAS SUCCESS', [
-                'ba_id' => $beritaAcara->id,
-                'user_id' => $user->id,
-                'total_signatures' => count($signatures),
-                'all_signed' => $beritaAcara->fresh()->allPembahasHaveSigned(),
-            ]);
-
-            return redirect()
-                ->route('admin.berita-acara-sempro.show', $beritaAcara)
-                ->with('success', 'Persetujuan Anda berhasil dicatat. Terima kasih!');
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            Log::error('❌❌❌ SIGN BY PEMBAHAS FAILED', [
-                'ba_id' => $beritaAcara->id,
-                'user_id' => $user->id,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-
-            return back()->with('error', 'Gagal memberikan persetujuan: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * Show approval form for pembahas (dosen penguji)
-     */
+    // ==================== SIGN BY PEMBAHAS ====================
     public function showApprovePembahas(BeritaAcaraSeminarProposal $beritaAcara)
     {
         $user = Auth::user();
 
-        // Load relasi yang diperlukan
-        $beritaAcara->load([
-            'jadwalSeminarProposal.pendaftaranSeminarProposal.user',
-            'jadwalSeminarProposal.pendaftaranSeminarProposal.dosenPembimbing',
-            'jadwalSeminarProposal.dosenPenguji',
-            'lembarCatatan.dosen',
-        ]);
-
-        $jadwal = $beritaAcara->jadwalSeminarProposal;
-
-        // ✅ CEK: Apakah user adalah pembahas untuk jadwal ini?
-        $isPembahas = $jadwal->dosenPenguji()
-            ->where('dosen_id', $user->id)
-            ->exists();
-
-        if (!$isPembahas) {
-            Log::warning('User bukan pembahas', [
-                'user_id' => $user->id,
-                'ba_id' => $beritaAcara->id,
-            ]);
-
-            return back()->with('error', 'Anda bukan pembahas untuk ujian ini.');
-        }
-
-        // ✅ CEK: Apakah BA dalam status yang tepat?
-        if (!$beritaAcara->isMenungguTtdPembahas()) {
-            Log::warning('BA bukan dalam status menunggu TTD pembahas', [
-                'user_id' => $user->id,
-                'ba_id' => $beritaAcara->id,
-                'ba_status' => $beritaAcara->status,
-            ]);
-
-            return back()->with('error', 'Berita acara tidak dalam status menunggu persetujuan pembahas. Status saat ini: ' . $beritaAcara->status);
-        }
-
-        // ✅ CEK: Apakah user sudah sign?
-        if ($beritaAcara->hasSignedByPembahas($user->id)) {
-            Log::info('User sudah memberikan persetujuan', [
-                'user_id' => $user->id,
-                'ba_id' => $beritaAcara->id,
-            ]);
-
-            return back()->with('info', 'Anda sudah menyetujui berita acara ini.');
-        }
-
-        // Get daftar pembahas yang hadir
-        $pembahasHadir = $jadwal->dosenPenguji()
-            ->get();
-
-        // Debug log
-        Log::info('Dosen accessing approve pembahas page', [
-            'dosen_id' => $user->id,
-            'dosen_name' => $user->name,
-            'ba_id' => $beritaAcara->id,
-            'ba_status' => $beritaAcara->status,
-            'is_pembahas' => $isPembahas,
-            'pembahas_hadir_count' => $pembahasHadir->count(),
-        ]);
-
-        return view('admin.berita-acara-sempro.approve-pembahas', compact('beritaAcara', 'pembahasHadir'));
-    }
-
-    /**
-     * ✅ NEW: Staff approve on behalf of dosen pembahas
-     */
-    public function approveOnBehalfOfPembahas(Request $request, BeritaAcaraSeminarProposal $beritaAcara)
-    {
-        $user = Auth::user();
-
-        // Validasi: Hanya staff/admin yang bisa
-        if (!$this->canOverrideApproval($user)) {
-            abort(403, 'Hanya staff yang dapat melakukan approval atas nama dosen.');
-        }
-
-        // Validasi input
-        $validated = $request->validate([
-            'dosen_id' => 'required|exists:users,id',
-            'alasan' => 'nullable|string|max:500',
-            'confirmation' => 'required|accepted',
-        ], [
-            'dosen_id.required' => 'Dosen harus dipilih.',
-            'dosen_id.exists' => 'Dosen tidak valid.',
-            'alasan.max' => 'Alasan maksimal 500 karakter.',
-            'confirmation.required' => 'Anda harus menyetujui pernyataan untuk melanjutkan.',
-            'confirmation.accepted' => 'Anda harus mencentang checkbox persetujuan.',
-        ]);
-
-        $dosenId = $validated['dosen_id'];
-        $alasan = $validated['alasan'] ?? null;
-
-        // Validasi: BA harus dalam status menunggu TTD pembahas
         if (!$beritaAcara->isMenungguTtdPembahas()) {
             return back()->with('error', 'Berita acara tidak dalam status menunggu persetujuan pembahas.');
         }
 
-        // Validasi: Dosen harus adalah pembahas yang valid
-        $isPembahas = $beritaAcara->jadwalSeminarProposal
-            ->dosenPenguji()
-            ->where('users.id', $dosenId)
-            ->where('posisi', '!=', 'Ketua Pembahas')
-            ->exists();
-
-        if (!$isPembahas) {
-            return back()->with('error', 'Dosen yang dipilih bukan pembahas untuk ujian ini.');
+        if ($beritaAcara->hasSignedByPembahas($user->id)) {
+            return back()->with('info', 'Anda sudah menyetujui berita acara ini.');
         }
 
-        // Validasi: Dosen belum sign
-        if ($beritaAcara->hasSignedByPembahas($dosenId)) {
-            return back()->with('error', 'Dosen ini sudah memberikan persetujuan.');
-        }
+        $beritaAcara->load([
+            'jadwalSeminarProposal.pendaftaranSeminarProposal.user',
+            'jadwalSeminarProposal.dosenPenguji',
+            'lembarCatatan.dosen',
+        ]);
 
-        try {
-            DB::beginTransaction();
+        $pembahasHadir = $beritaAcara->jadwalSeminarProposal->dosenPenguji()->get();
 
-            // Get dosen info
-            $dosen = User::findOrFail($dosenId);
-
-            // Tambahkan signature dengan flag approved_by_staff
-            $signatures = $beritaAcara->ttd_dosen_pembahas ?? [];
-
-            $newSignature = [
-                'dosen_id' => $dosen->id,
-                'dosen_name' => $dosen->name,
-                'signed_at' => now()->toDateTimeString(),
-                'approved_by_staff' => true,
-                'staff_id' => $user->id,
-                'staff_name' => $user->name,
-            ];
-
-            // Tambahkan alasan jika ada
-            if ($alasan) {
-                $newSignature['approval_reason'] = $alasan;
-            }
-
-            $signatures[] = $newSignature;
-
-            $beritaAcara->update([
-                'ttd_dosen_pembahas' => $signatures,
-            ]);
-
-            // Log untuk audit trail
-            Log::info('✅ Staff approved on behalf of pembahas', [
-                'ba_id' => $beritaAcara->id,
-                'dosen_id' => $dosen->id,
-                'dosen_name' => $dosen->name,
-                'staff_id' => $user->id,
-                'staff_name' => $user->name,
-                'alasan' => $alasan,
-                'total_signed' => count($signatures),
-            ]);
-
-            // Refresh model
-            $beritaAcara->refresh();
-
-            // Check apakah semua pembahas sudah TTD
-            if ($beritaAcara->allPembahasHaveSigned()) {
-                $beritaAcara->update([
-                    'status' => 'menunggu_ttd_pembimbing',
-                ]);
-
-                Log::info('🎉 All pembahas signed (including staff override) - status changed', [
-                    'ba_id' => $beritaAcara->id,
-                    'new_status' => 'menunggu_ttd_pembimbing',
-                ]);
-            }
-
-            DB::commit();
-
-            return redirect()
-                ->route('admin.berita-acara-sempro.show', $beritaAcara)
-                ->with('success', "Persetujuan atas nama {$dosen->name} berhasil dicatat.");
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            Log::error('❌ Failed to approve on behalf of pembahas', [
-                'ba_id' => $beritaAcara->id,
-                'dosen_id' => $dosenId,
-                'staff_id' => $user->id,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-
-            return back()->with('error', 'Gagal memberikan persetujuan: ' . $e->getMessage());
-        }
+        return view('admin.berita-acara-sempro.approve-pembahas', compact('beritaAcara', 'pembahasHadir'));
     }
 
-    /**
-     * ✅ Show form for Dosen Pembimbing to fill BA
-     */
+    public function signByPembahas(SignPembahasRequest $request, BeritaAcaraSeminarProposal $beritaAcara)
+    {
+        $result = $this->signAction->execute(Auth::user(), $beritaAcara);
+
+        if (!$result['success']) {
+            return back()->with('error', $result['message']);
+        }
+
+        return redirect()
+            ->route('admin.berita-acara-sempro.show', $beritaAcara)
+            ->with('success', $result['message']);
+    }
+
+    // ==================== APPROVE ON BEHALF ====================
+    public function approveOnBehalfOfPembahas(ApproveOnBehalfRequest $request, BeritaAcaraSeminarProposal $beritaAcara)
+    {
+        $validated = $request->validated();
+
+        $result = $this->approveAction->execute(
+            Auth::user(),
+            $beritaAcara,
+            $validated['dosen_id'],
+            $validated['alasan'] ?? null
+        );
+
+        if (!$result['success']) {
+            return back()->with('error', $result['message']);
+        }
+
+        return redirect()
+            ->route('admin.berita-acara-sempro.show', $beritaAcara)
+            ->with('success', $result['message']);
+    }
+
+    // ==================== FILL BY PEMBIMBING ====================
     public function fillByPembimbing(BeritaAcaraSeminarProposal $beritaAcara)
     {
-        $user = Auth::user();
-
-        // Validasi permission
-        if (!$beritaAcara->canBeFilledByPembimbing($user->id)) {
-            return back()->with('error', 'Anda tidak memiliki akses untuk mengisi berita acara ini.');
-        }
+        $this->authorize('fillAsPembimbing', $beritaAcara);
 
         $beritaAcara->load([
             'jadwalSeminarProposal.pendaftaranSeminarProposal.user',
@@ -940,375 +260,31 @@ class AdminBeritaAcaraSemproController extends Controller
         return view('admin.berita-acara-sempro.fill-by-pembimbing', compact('beritaAcara'));
     }
 
-    /**
-     * ✅ FIXED: Store data filled by Dosen Pembimbing/Ketua
-     */
-
-    public function storeFillByPembimbing(Request $request, BeritaAcaraSeminarProposal $beritaAcara)
+    public function storeFillByPembimbing(FillByPembimbingRequest $request, BeritaAcaraSeminarProposal $beritaAcara)
     {
-        $user = Auth::user();
+        $result = $this->fillAction->execute(Auth::user(), $beritaAcara, $request->validated());
 
-        // Validasi permission
-        if (!$beritaAcara->canBeFilledByPembimbing($user->id)) {
-            Log::error('User tidak memiliki akses fill BA', [
-                'user_id' => $user->id,
-                'ba_id' => $beritaAcara->id,
-                'ba_status' => $beritaAcara->status,
-            ]);
-
-            return back()->with('error', 'Anda tidak memiliki akses untuk mengisi berita acara ini.');
+        if (!$result['success']) {
+            return back()->withInput()->with('error', $result['message']);
         }
 
-        // ✅ FIX: Validasi input - PERBAIKI escape koma
-        $validated = $request->validate([
-            'catatan_kejadian' => 'required|in:Lancar,Ada beberapa perbaikan yang harus diubah',
-            'keputusan' => 'required|string', // ✅ UBAH: Gunakan string validation dulu
-            'catatan_tambahan' => 'nullable|string|max:1000',
-        ], [
-            'catatan_kejadian.required' => 'Catatan kejadian wajib dipilih.',
-            'catatan_kejadian.in' => 'Catatan kejadian tidak valid.',
-            'keputusan.required' => 'Kesimpulan kelayakan wajib dipilih.',
-        ]);
+        $messageType = $result['isRejected'] ? 'warning' : 'success';
 
-
-        // ✅ MANUAL VALIDATION: Cek nilai keputusan
-        $validKeputusan = ['Ya', 'Ya, dengan perbaikan', 'Tidak'];
-        if (!in_array($validated['keputusan'], $validKeputusan)) {
-            return back()
-                ->withInput()
-                ->withErrors(['keputusan' => 'Kesimpulan kelayakan tidak valid.']);
-        }
-
-        DB::beginTransaction();
-        try {
-            $jadwal = $beritaAcara->jadwalSeminarProposal;
-
-            // ✅ CEK: Apakah keputusan adalah DITOLAK (Tidak)
-            $isRejected = $validated['keputusan'] === 'Tidak';
-
-            if ($isRejected) {
-                // ========================================
-                // ❌ FLOW DITOLAK: Proposal Tidak Layak
-                // ========================================
-                
-                // ✅ CATATAN PENTING:
-                // - Berita acara LAMA tetap disimpan dengan status 'ditolak' (untuk dokumentasi/arsip)
-                // - Berita acara BARU akan dibuat oleh staff setelah jadwal ulang diatur
-                // - Ini memastikan setiap ujian punya berita acara terpisah dengan persetujuan masing-masing
-                
-                $beritaAcara->update([
-                    'catatan_kejadian' => $validated['catatan_kejadian'],
-                    'keputusan' => $validated['keputusan'],
-                    'catatan_tambahan' => $validated['catatan_tambahan'] ?? $beritaAcara->catatan_tambahan,
-                    'diisi_oleh_pembimbing_id' => $user->id,
-                    'diisi_pembimbing_at' => now(),
-                    'ttd_pembimbing_by' => $user->id,
-                    'ttd_pembimbing_at' => now(),
-                    'ttd_ketua_penguji_by' => $user->id,
-                    'ttd_ketua_penguji_at' => now(),
-                    'status' => 'ditolak',
-                    'alasan_ditolak' => $validated['catatan_tambahan'] ?? 'Proposal tidak layak berdasarkan hasil ujian seminar proposal.',
-                    'ditolak_at' => now(),
-                ]);
-
-                // ✅ Generate PDF dokumentasi penolakan (untuk arsip)
-                $pdfPath = $this->pelaksanaanUjianService->generateBeritaAcaraPdf($beritaAcara);
-                if ($pdfPath) {
-                    $beritaAcara->update(['file_path' => $pdfPath]);
-                }
-
-                // ✅ PENTING: Reset jadwal agar staff bisa menjadwalkan ulang
-                // Status diubah ke 'menunggu_jadwal' - jadwal akan dikosongkan
-                // Berita acara lama TIDAK dihapus, hanya ditandai sebagai 'ditolak'
-                $jadwal->update([
-                    'status' => 'menunggu_jadwal',
-                    'tanggal_ujian' => null,
-                    'waktu_mulai' => null,
-                    'waktu_selesai' => null,
-                    'ruangan' => null,
-                ]);
-
-                // ✅ CATATAN: Berita acara lama tetap terhubung ke jadwal ini
-                // Ketika staff membuat jadwal baru dan klik "Buat Berita Acara",
-                // sistem akan mengecek: jika sudah ada BA dengan status 'ditolak',
-                // maka akan membuat BA BARU (bukan update yang lama)
-                
-                Log::info('❌ PROPOSAL DITOLAK - Jadwal direset untuk penjadwalan ulang', [
-                    'ba_id' => $beritaAcara->id,
-                    'ba_status' => 'ditolak',
-                    'jadwal_id' => $jadwal->id,
-                    'user_id' => $user->id,
-                    'keputusan' => 'Tidak',
-                    'jadwal_new_status' => 'menunggu_jadwal',
-                    'note' => 'BA lama tetap ada untuk dokumentasi, BA baru akan dibuat setelah jadwal ulang',
-                ]);
-
-                DB::commit();
-
-                return redirect()
-                    ->route('admin.berita-acara-sempro.show', $beritaAcara)
-                    ->with('warning', 'Berita acara telah diselesaikan dengan keputusan TIDAK LAYAK. Mahasiswa perlu dijadwalkan ulang untuk seminar proposal berikutnya. Setelah dijadwalkan, staff dapat membuat berita acara BARU untuk ujian ulangan.');
-
-            } else {
-                // ========================================
-                // ✅ FLOW DITERIMA: Ya / Ya dengan perbaikan
-                // ========================================
-                
-                $beritaAcara->update([
-                    'catatan_kejadian' => $validated['catatan_kejadian'],
-                    'keputusan' => $validated['keputusan'],
-                    'catatan_tambahan' => $validated['catatan_tambahan'] ?? $beritaAcara->catatan_tambahan,
-                    'diisi_oleh_pembimbing_id' => $user->id,
-                    'diisi_pembimbing_at' => now(),
-                    'ttd_pembimbing_by' => $user->id,
-                    'ttd_pembimbing_at' => now(),
-                    'ttd_ketua_penguji_by' => $user->id,
-                    'ttd_ketua_penguji_at' => now(),
-                    'status' => 'selesai',
-                ]);
-
-                Log::info('Berita Acara updated - before PDF generation', [
-                    'ba_id' => $beritaAcara->id,
-                    'catatan_kejadian' => $validated['catatan_kejadian'],
-                    'keputusan' => $validated['keputusan'],
-                ]);
-
-                // ✅ Generate PDF langsung
-                $pdfPath = $this->pelaksanaanUjianService->generateBeritaAcaraPdf($beritaAcara);
-
-                if ($pdfPath) {
-                    $beritaAcara->update(['file_path' => $pdfPath]);
-
-                    Log::info('PDF generated successfully', [
-                        'pdf_path' => $pdfPath,
-                    ]);
-                } else {
-                    Log::warning('PDF generation returned null', [
-                        'ba_id' => $beritaAcara->id,
-                    ]);
-                }
-
-                DB::commit();
-
-                Log::info('Berita Acara filled & signed by Pembimbing/Ketua - FINAL', [
-                    'ba_id' => $beritaAcara->id,
-                    'user_id' => $user->id,
-                    'keputusan' => $validated['keputusan'],
-                    'pdf_generated' => !is_null($pdfPath),
-                ]);
-
-                return redirect()
-                    ->route('admin.berita-acara-sempro.show', $beritaAcara)
-                    ->with('success', 'Berita acara berhasil diisi, ditandatangani, dan PDF telah digenerate!');
-            }
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            Log::error('Failed to fill & sign Berita Acara by Pembimbing/Ketua', [
-                'ba_id' => $beritaAcara->id,
-                'user_id' => $user->id,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-
-            return back()
-                ->withInput()
-                ->with('error', 'Gagal menyimpan data: ' . $e->getMessage());
-        }
+        return redirect()
+            ->route('admin.berita-acara-sempro.show', $beritaAcara)
+            ->with($messageType, $result['message']);
     }
 
-    /**
-     * Preview PDF sebelum TTD oleh Ketua
-     */
-    public function previewBeforeSigning(BeritaAcaraSeminarProposal $beritaAcara)
-    {
-        $user = Auth::user();
-
-        // Check permission
-        if (!$beritaAcara->canBeSignedByKetua($user->id)) {
-            return back()->with('error', 'Anda tidak memiliki akses untuk menandatangani berita acara ini.');
-        }
-
-        $beritaAcara->load([
-            'jadwalSeminarProposal.pendaftaranSeminarProposal.user',
-            'jadwalSeminarProposal.pendaftaranSeminarProposal.dosenPembimbing',
-            'jadwalSeminarProposal.dosenPenguji',
-            'dosenPembimbingPengisi',
-            'dosenPembimbingPenandatangan',
-            'lembarCatatan.dosen',
-        ]);
-
-        $jadwal = $beritaAcara->jadwalSeminarProposal;
-
-        // Generate preview PDF
-        try {
-            $pdfPreview = $this->pelaksanaanUjianService->generateBeritaAcaraPdfPreview($beritaAcara);
-
-            return view('admin.berita-acara-sempro.preview-signing', compact('beritaAcara', 'jadwal', 'pdfPreview'));
-
-        } catch (\Exception $e) {
-            Log::error('Failed to generate PDF preview', [
-                'ba_id' => $beritaAcara->id,
-                'error' => $e->getMessage(),
-            ]);
-
-            return back()->with('error', 'Gagal membuat preview PDF: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * Ketua Penguji menandatangani BA
-     */
-    public function signByKetua(Request $request, BeritaAcaraSeminarProposal $beritaAcara)
-    {
-        $user = Auth::user();
-
-        // Check permission
-        if (!$beritaAcara->canBeSignedByKetua($user->id)) {
-            return back()->with('error', 'Anda tidak memiliki akses untuk menandatangani berita acara ini.');
-        }
-
-        try {
-            DB::beginTransaction();
-
-            // ✅ Sign by Ketua
-            $beritaAcara->update([
-                'ttd_ketua_penguji_by' => $user->id,
-                'ttd_ketua_penguji_at' => now(),
-                'status' => 'selesai',
-            ]);
-
-            // ✅ Generate final PDF
-            $pdfPath = $this->pelaksanaanUjianService->generateBeritaAcaraPdf($beritaAcara);
-
-            if ($pdfPath) {
-                $beritaAcara->update(['file_path' => $pdfPath]);
-            }
-
-            DB::commit();
-
-            Log::info('Ketua signed Berita Acara - FINAL', [
-                'ba_id' => $beritaAcara->id,
-                'ketua_id' => $user->id,
-                'pdf_path' => $pdfPath,
-            ]);
-
-            return redirect()
-                ->route('admin.berita-acara-sempro.show', $beritaAcara)
-                ->with('success', 'Berita acara berhasil ditandatangani! PDF final telah digenerate.');
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Failed to sign by ketua', [
-                'ba_id' => $beritaAcara->id,
-                'error' => $e->getMessage(),
-            ]);
-
-            return back()->with('error', 'Gagal menandatangani: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * ✅ Cancel/Reset BA (by Staff/Admin only)
-     */
-    public function resetBeritaAcara(BeritaAcaraSeminarProposal $beritaAcara)
-    {
-        $user = Auth::user();
-
-        // Hanya staff/admin yang bisa reset
-        if (!$this->canOverrideApproval($user)) {
-            return back()->with('error', 'Anda tidak memiliki akses untuk reset berita acara.');
-        }
-
-        if ($beritaAcara->isSelesai()) {
-            return back()->with('error', 'Berita acara yang sudah selesai tidak dapat direset.');
-        }
-
-        DB::beginTransaction();
-        try {
-            // Reset ke draft
-            $beritaAcara->update([
-                'catatan_kejadian' => null,
-                'keputusan' => null,
-                'diisi_oleh_pembimbing_id' => null,
-                'diisi_pembimbing_at' => null,
-                'status' => 'draft',
-            ]);
-
-            DB::commit();
-
-            Log::info('Berita Acara reset to draft', [
-                'ba_id' => $beritaAcara->id,
-                'reset_by' => $user->id,
-            ]);
-
-            return back()->with('success', 'Berita acara berhasil direset ke status draft.');
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Failed to reset Berita Acara', [
-                'error' => $e->getMessage(),
-            ]);
-
-            return back()->with('error', 'Gagal mereset berita acara.');
-        }
-    }
-
-    /**
-     * Sign berita acara (by Ketua Penguji)
-     */
-    public function sign(Request $request, BeritaAcaraSeminarProposal $beritaAcara)
-    {
-        $user = Auth::user();
-
-        // Validate that current user is ketua penguji
-        $ketuaPenguji = $beritaAcara->jadwalSeminarProposal->getKetuaPenguji();
-
-        if (!$ketuaPenguji || $ketuaPenguji->id !== $user->id) {
-            return back()->with('error', 'Anda tidak memiliki akses untuk menandatangani berita acara ini.');
-        }
-
-        if ($beritaAcara->isSigned()) {
-            return back()->with('error', 'Berita acara sudah ditandatangani.');
-        }
-
-        $success = $this->pelaksanaanUjianService->signBeritaAcara($beritaAcara, $user->id);
-
-        if ($success) {
-            return back()->with('success', 'Berita acara berhasil ditandatangani.');
-        }
-
-        return back()->with('error', 'Gagal menandatangani berita acara.');
-    }
-
+    // ==================== MANAGE PEMBAHAS ====================
     public function managePembahas(BeritaAcaraSeminarProposal $beritaAcara)
     {
-        $user = Auth::user();
-
-        if (!$this->canOverrideApproval($user)) {
-            abort(403, 'Hanya staff yang dapat mengelola pembahas.');
-        }
-
-        if ($beritaAcara->isSelesai()) {
-            return redirect()
-                ->route('admin.berita-acara-sempro.show', $beritaAcara)
-                ->with('error', 'Berita acara sudah selesai, tidak dapat mengubah pembahas.');
-        }
+        $this->authorize('managePembahas', $beritaAcara);
 
         $jadwal = $beritaAcara->jadwalSeminarProposal;
         $pendaftaran = $jadwal->pendaftaranSeminarProposal;
-        $pembimbing = $pendaftaran->dosenPembimbing;
 
-        // ✅ DEBUG: Log data awal
-        Log::info('🔍 Manage Pembahas - Initial Data', [
-            'ba_id' => $beritaAcara->id,
-            'jadwal_id' => $jadwal->id,
-        ]);
-
-        // ✅ PERBAIKAN: Get ALL penguji dengan ORDER BY yang benar
         $currentPenguji = $jadwal->dosenPenguji()
-            ->withPivot('posisi', 'keterangan', 'dosen_id')
+            ->withPivot('posisi', 'dosen_id')
             ->orderByRaw("CASE 
                 WHEN posisi = 'Ketua Pembahas' THEN 1 
                 WHEN posisi = 'Anggota Pembahas 1' THEN 2 
@@ -1317,366 +293,64 @@ class AdminBeritaAcaraSemproController extends Controller
                 ELSE 5 END")
             ->get();
 
-        // ✅ DEBUG: Log all penguji
-        Log::info('📋 All Penguji dari DB', [
-            'total' => $currentPenguji->count(),
-            'data' => $currentPenguji->map(fn($d) => [
-                'id' => $d->id,
-                'name' => $d->name,
-                'posisi' => $d->pivot->posisi,
-            ])->toArray(),
-        ]);
-
-        // ✅ PERBAIKAN: Pisahkan Ketua dan Anggota - GUNAKAN NILAI DB ASLI
         $ketuaPembahasData = $currentPenguji->firstWhere('pivot.posisi', 'Ketua Pembahas');
+        $anggotaPenguji = $currentPenguji->filter(fn($d) => $d->pivot->posisi !== 'Ketua Pembahas')->values();
 
-        $anggotaPenguji = $currentPenguji->filter(function ($dosen) {
-            // ✅ PERBAIKAN: Gunakan nilai DB yang benar
-            return $dosen->pivot->posisi !== 'Ketua Pembahas';
-        })->values();
-
-        // ✅ DEBUG: Log filtered data
-        Log::info('📊 Filtered Data', [
-            'ketua_found' => !is_null($ketuaPembahasData),
-            'ketua_name' => $ketuaPembahasData->name ?? 'NULL',
-            'anggota_count' => $anggotaPenguji->count(),
-            'anggota_list' => $anggotaPenguji->map(fn($d) => [
-                'id' => $d->id,
-                'name' => $d->name,
-                'posisi' => $d->pivot->posisi,
-            ])->toArray(),
-        ]);
-
-        // ✅ Get available dosen (exclude pembimbing & yang sudah ditugaskan)
         $availableDosen = User::role('dosen')
             ->where('id', '!=', $pendaftaran->dosen_pembimbing_id)
             ->orderBy('name')
             ->get();
 
-        // ✅ Get signed dosen IDs
-        $signedDosenIds = collect($beritaAcara->ttd_dosen_pembahas ?? [])
-            ->pluck('dosen_id')
-            ->toArray();
-
-        Log::info('✅ Data untuk View', [
-            'available_dosen_count' => $availableDosen->count(),
-            'signed_ids' => $signedDosenIds,
-        ]);
+        $signedDosenIds = collect($beritaAcara->ttd_dosen_pembahas ?? [])->pluck('dosen_id')->toArray();
 
         return view('admin.berita-acara-sempro.manage-pembahas', compact(
             'beritaAcara',
             'jadwal',
             'pendaftaran',
-            'pembimbing',
             'currentPenguji',
             'ketuaPembahasData',
             'anggotaPenguji',
             'availableDosen',
-            'signedDosenIds',
+            'signedDosenIds'
         ));
     }
 
-    public function updatePembahas(Request $request, BeritaAcaraSeminarProposal $beritaAcara)
+    public function updatePembahas(UpdatePembahasRequest $request, BeritaAcaraSeminarProposal $beritaAcara)
     {
-        $user = Auth::user();
+        $result = $this->updatePembahasAction->execute($beritaAcara, $request->validated()['pembahas']);
 
-        if (!$this->canOverrideApproval($user)) {
-            abort(403, 'Hanya staff yang dapat mengelola pembahas.');
+        if (!$result['success']) {
+            return back()->withInput()->with('error', $result['message']);
         }
 
-        if ($beritaAcara->isSelesai()) {
-            return back()->with('error', 'Berita acara sudah selesai, tidak dapat mengubah pembahas.');
-        }
-
-        // ✅ LOG: Request diterima
-        Log::info('📥 updatePembahas - Request received', [
-            'ba_id' => $beritaAcara->id,
-            'all_input' => $request->all(),
-            'pembahas_input' => $request->input('pembahas'),
-        ]);
-
-        // ✅ VALIDASI
-        try {
-            $validated = $request->validate([
-                'pembahas' => 'required|array|min:1',
-                'pembahas.*.dosen_id' => 'required|exists:users,id',
-                'pembahas.*.posisi' => [
-                    'required',
-                    'string',
-                    'in:Anggota Pembahas 1,Anggota Pembahas 2,Anggota Pembahas 3'
-                ],
-            ], [
-                'pembahas.required' => 'Data pembahas wajib diisi.',
-                'pembahas.*.dosen_id.required' => 'Dosen wajib dipilih.',
-                'pembahas.*.dosen_id.exists' => 'Dosen tidak valid.',
-                'pembahas.*.posisi.required' => 'Posisi wajib diisi.',
-                'pembahas.*.posisi.in' => 'Posisi harus Anggota Pembahas 1, 2, atau 3.',
-            ]);
-
-            Log::info('✅ Validation passed', ['validated' => $validated]);
-
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            Log::error('❌ Validation failed', [
-                'errors' => $e->errors(),
-            ]);
-            throw $e;
-        }
-
-        try {
-            DB::beginTransaction();
-
-            $jadwal = $beritaAcara->jadwalSeminarProposal;
-            $pendaftaran = $jadwal->pendaftaranSeminarProposal;
-
-            // ✅ Ambil signature yang sudah ada
-            $existingSignatures = $beritaAcara->ttd_dosen_pembahas ?? [];
-            $signedDosenIds = collect($existingSignatures)->pluck('dosen_id')->toArray();
-
-            Log::info('📝 Existing signatures', [
-                'signatures' => $existingSignatures,
-                'signed_ids' => $signedDosenIds,
-            ]);
-
-            $replacements = [];
-            $newPembahasData = [];
-
-            // ✅ STEP 1: Collect & Validate
-            foreach ($request->input('pembahas', []) as $index => $pembahasData) {
-                $posisi = $pembahasData['posisi'];
-                $newDosenId = (int) $pembahasData['dosen_id'];
-
-                Log::info("🔄 Processing pembahas [{$index}]", [
-                    'posisi' => $posisi,
-                    'new_dosen_id' => $newDosenId,
-                ]);
-
-                // ✅ Cek dosen lama di posisi ini DARI PIVOT TABLE
-                $oldDosenPivot = DB::table('dosen_penguji_jadwal_sempro')
-                    ->where('jadwal_seminar_proposal_id', $jadwal->id)
-                    ->where('posisi', $posisi)
-                    ->first();
-
-                if ($oldDosenPivot) {
-                    Log::info('👤 Found old dosen in pivot', [
-                        'pivot_id' => $oldDosenPivot->id,
-                        'old_dosen_id' => $oldDosenPivot->dosen_id,
-                        'posisi' => $posisi,
-                    ]);
-
-                    // Jika dosen berubah
-                    if ($oldDosenPivot->dosen_id != $newDosenId) {
-                        // Cek apakah dosen lama sudah TTD
-                        if (in_array($oldDosenPivot->dosen_id, $signedDosenIds)) {
-                            DB::rollBack();
-
-                            $oldDosen = User::find($oldDosenPivot->dosen_id);
-
-                            Log::warning('🚫 Attempt to replace signed dosen', [
-                                'posisi' => $posisi,
-                                'old_dosen_id' => $oldDosenPivot->dosen_id,
-                                'old_dosen_name' => $oldDosen->name,
-                                'new_dosen_id' => $newDosenId,
-                            ]);
-
-                            return back()->with(
-                                'error',
-                                "Dosen {$oldDosen->name} di posisi {$posisi} sudah memberikan persetujuan (TTD), tidak dapat diganti."
-                            );
-                        }
-
-                        $oldDosen = User::find($oldDosenPivot->dosen_id);
-                        $newDosen = User::find($newDosenId);
-
-                        $replacements[] = [
-                            'posisi' => $posisi,
-                            'old_dosen' => $oldDosen->name,
-                            'new_dosen' => $newDosen->name,
-                        ];
-
-                        Log::info('✏️ Dosen will be replaced', [
-                            'posisi' => $posisi,
-                            'old_dosen' => $oldDosen->name,
-                            'new_dosen' => $newDosen->name,
-                        ]);
-                    }
-                } else {
-                    Log::warning('⚠️ No old dosen found at position', ['posisi' => $posisi]);
-                }
-
-                $newPembahasData[$posisi] = $newDosenId;
-            }
-
-            Log::info('📦 New pembahas data collected', [
-                'new_pembahas_data' => $newPembahasData,
-                'replacements_count' => count($replacements),
-            ]);
-
-            // ✅ STEP 2: Update pivot table LANGSUNG dengan UPDATE query
-            foreach ($newPembahasData as $posisi => $newDosenId) {
-                $existingPivot = DB::table('dosen_penguji_jadwal_sempro')
-                    ->where('jadwal_seminar_proposal_id', $jadwal->id)
-                    ->where('posisi', $posisi)
-                    ->first();
-
-                if ($existingPivot) {
-                    if ($existingPivot->dosen_id != $newDosenId) {
-                        // ✅ LANGSUNG UPDATE dengan DB query
-                        $affected = DB::table('dosen_penguji_jadwal_sempro')
-                            ->where('id', $existingPivot->id)
-                            ->update([
-                                'dosen_id' => $newDosenId,
-                                'updated_at' => now(),
-                            ]);
-
-                        Log::info('✅ UPDATE pivot', [
-                            'pivot_id' => $existingPivot->id,
-                            'posisi' => $posisi,
-                            'old_dosen_id' => $existingPivot->dosen_id,
-                            'new_dosen_id' => $newDosenId,
-                            'rows_affected' => $affected,
-                        ]);
-
-                        // ✅ VERIFY update
-                        $verifyUpdate = DB::table('dosen_penguji_jadwal_sempro')
-                            ->where('id', $existingPivot->id)
-                            ->first();
-
-                        Log::info('🔎 VERIFY after UPDATE', [
-                            'dosen_id_after' => $verifyUpdate->dosen_id,
-                            'expected' => $newDosenId,
-                            'match' => ($verifyUpdate->dosen_id == $newDosenId) ? 'YES ✅' : 'NO ❌',
-                        ]);
-                    } else {
-                        Log::info('⏭️ Skip update - dosen sama', [
-                            'posisi' => $posisi,
-                            'dosen_id' => $newDosenId,
-                        ]);
-                    }
-                } else {
-                    // INSERT (seharusnya tidak terjadi)
-                    DB::table('dosen_penguji_jadwal_sempro')->insert([
-                        'jadwal_seminar_proposal_id' => $jadwal->id,
-                        'dosen_id' => $newDosenId,
-                        'posisi' => $posisi,
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ]);
-
-                    Log::info('✅ INSERT new pivot', [
-                        'posisi' => $posisi,
-                        'dosen_id' => $newDosenId,
-                    ]);
-                }
-            }
-
-            // ✅ STEP 3: Update signatures - Hapus signature dosen yang diganti
-            $newSignatures = [];
-            $newDosenIds = array_values($newPembahasData);
-
-            foreach ($existingSignatures as $signature) {
-                if (in_array($signature['dosen_id'], $newDosenIds)) {
-                    $newSignatures[] = $signature;
-                } else {
-                    Log::info('🗑️ Remove signature', [
-                        'dosen_id' => $signature['dosen_id'],
-                    ]);
-                }
-            }
-
-            $beritaAcara->update([
-                'ttd_dosen_pembahas' => $newSignatures,
-            ]);
-
-            Log::info('✅ Signatures updated', [
-                'old_count' => count($existingSignatures),
-                'new_count' => count($newSignatures),
-            ]);
-
-            // ✅ COMMIT transaction
-            DB::commit();
-
-            Log::info('✅✅✅ UPDATE PEMBAHAS SUCCESS', [
-                'ba_id' => $beritaAcara->id,
-                'jadwal_id' => $jadwal->id,
-                'replacements' => $replacements,
-            ]);
-
-            $message = 'Daftar pembahas berhasil diperbarui.';
-            if (count($replacements) > 0) {
-                $message .= ' ' . count($replacements) . ' dosen telah diganti.';
-            }
-
-            return redirect()
-                ->route('admin.berita-acara-sempro.show', $beritaAcara)
-                ->with('success', $message);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            Log::error('❌❌❌ UPDATE PEMBAHAS FAILED', [
-                'ba_id' => $beritaAcara->id,
-                'error' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-
-            return back()
-                ->withInput()
-                ->with('error', 'Gagal memperbarui pembahas: ' . $e->getMessage());
-        }
+        return redirect()
+            ->route('admin.berita-acara-sempro.show', $beritaAcara)
+            ->with('success', $result['message']);
     }
 
-    /**
-     * Generate/Regenerate PDF
-     */
+    // ==================== PDF OPERATIONS ====================
     public function generatePdf(BeritaAcaraSeminarProposal $beritaAcara)
     {
-        $user = Auth::user();
-
-        if (!$this->canOverrideApproval($user)) {
-            abort(403, 'Hanya staff yang dapat generate PDF.');
-        }
+        $this->authorize('update', $beritaAcara);
 
         if (!$beritaAcara->isFilledByPembimbing()) {
             return back()->with('error', 'Berita acara belum diisi oleh dosen pembimbing.');
         }
 
-        try {
-            $pdfPath = $this->pelaksanaanUjianService->generateBeritaAcaraPdf($beritaAcara);
+        $pdfPath = $this->pelaksanaanUjianService->generateBeritaAcaraPdf($beritaAcara);
 
-            if (!$pdfPath) {
-                throw new \Exception('Gagal generate PDF.');
-            }
-
-            $beritaAcara->update(['file_path' => $pdfPath]);
-
-            Log::info('PDF regenerated for Berita Acara', [
-                'ba_id' => $beritaAcara->id,
-                'generated_by' => $user->id,
-            ]);
-
-            return back()->with('success', 'PDF berhasil digenerate.');
-
-        } catch (\Exception $e) {
-            Log::error('Failed to generate PDF', [
-                'error' => $e->getMessage(),
-            ]);
-
-            return back()->with('error', 'Gagal generate PDF: ' . $e->getMessage());
+        if (!$pdfPath) {
+            return back()->with('error', 'Gagal generate PDF.');
         }
+
+        $beritaAcara->update(['file_path' => $pdfPath]);
+
+        return back()->with('success', 'PDF berhasil digenerate.');
     }
 
-    /**
-     * Download PDF
-     */
     public function downloadPdf(BeritaAcaraSeminarProposal $beritaAcara)
     {
-        $user = Auth::user();
-
-        if (!$this->canViewBeritaAcara($user, $beritaAcara)) {
-            abort(403, 'Anda tidak memiliki akses untuk download berita acara ini.');
-        }
+        $this->authorize('view', $beritaAcara);
 
         if (!$beritaAcara->file_path || !Storage::disk('local')->exists($beritaAcara->file_path)) {
             return back()->with('error', 'File PDF tidak ditemukan.');
@@ -1688,16 +362,9 @@ class AdminBeritaAcaraSemproController extends Controller
         return response()->download(Storage::disk('local')->path($beritaAcara->file_path), $fileName);
     }
 
-    /**
-     * View PDF (inline)
-     */
     public function viewPdf(BeritaAcaraSeminarProposal $beritaAcara)
     {
-        $user = Auth::user();
-
-        if (!$this->canViewBeritaAcara($user, $beritaAcara)) {
-            abort(403, 'Anda tidak memiliki akses untuk melihat berita acara ini.');
-        }
+        $this->authorize('view', $beritaAcara);
 
         if (!$beritaAcara->file_path || !Storage::disk('local')->exists($beritaAcara->file_path)) {
             return back()->with('error', 'File PDF tidak ditemukan.');
@@ -1709,9 +376,23 @@ class AdminBeritaAcaraSemproController extends Controller
         );
     }
 
-    /**
-     * Verify berita acara (public)
-     */
+    // ==================== DELETE ====================
+    public function destroy(BeritaAcaraSeminarProposal $beritaAcara)
+    {
+        $this->authorize('delete', $beritaAcara);
+
+        $result = $this->deleteAction->execute(Auth::user(), $beritaAcara);
+
+        if (!$result['success']) {
+            return back()->with('error', $result['message']);
+        }
+
+        return redirect()
+            ->route('admin.berita-acara-sempro.index')
+            ->with('success', $result['message']);
+    }
+
+    // ==================== PUBLIC VERIFICATION ====================
     public function verify(string $code)
     {
         $beritaAcara = BeritaAcaraSeminarProposal::where('verification_code', $code)
@@ -1735,108 +416,33 @@ class AdminBeritaAcaraSemproController extends Controller
         ]);
     }
 
-       /**
-     * Download PDF from public verification page
-     */
     public function verifyAndDownload(string $code)
     {
         $beritaAcara = BeritaAcaraSeminarProposal::where('verification_code', $code)
             ->with(['jadwalSeminarProposal.pendaftaranSeminarProposal.user'])
             ->first();
+
         if (!$beritaAcara) {
             abort(404, 'Dokumen tidak ditemukan.');
         }
+
         if (!$beritaAcara->file_path || !Storage::disk('local')->exists($beritaAcara->file_path)) {
-            return redirect()
-                ->route('berita-acara-sempro.verify', $code)
+            return redirect()->route('berita-acara-sempro.verify', $code)
                 ->with('error', 'File PDF tidak tersedia untuk diunduh.');
         }
+
         $mahasiswa = $beritaAcara->jadwalSeminarProposal->pendaftaranSeminarProposal->user;
         $fileName = "BA_Sempro_{$mahasiswa->nim}_{$mahasiswa->name}.pdf";
+
         Log::info('Public download of Berita Acara', [
             'verification_code' => $code,
             'ba_id' => $beritaAcara->id,
         ]);
+
         return response()->download(
             Storage::disk('local')->path($beritaAcara->file_path),
             $fileName
         );
     }
 
-    /**
-     * Delete berita acara
-     */
-    public function destroy(BeritaAcaraSeminarProposal $beritaAcara)
-    {
-        $user = Auth::user();
-
-        // Validasi permission
-        if (!$this->canOverrideApproval($user)) {
-            abort(403, 'Hanya staff yang dapat menghapus berita acara.');
-        }
-
-        DB::beginTransaction();
-        try {
-            // Simpan info untuk logging
-            $jadwalInfo = $beritaAcara->jadwalSeminarProposal;
-            $mahasiswaName = $jadwalInfo->pendaftaranSeminarProposal->user->name ?? 'Unknown';
-            $wasSelesai = $beritaAcara->isSelesai();
-            $oldJadwalStatus = $jadwalInfo->status;
-            
-            // Hapus file PDF jika ada
-            if ($beritaAcara->file_path && Storage::disk('local')->exists($beritaAcara->file_path)) {
-                Storage::disk('local')->delete($beritaAcara->file_path);
-            }
-
-            // Delete lembar catatan terkait
-            $beritaAcara->lembarCatatan()->delete();
-
-            // Delete BA
-            $beritaAcara->delete();
-
-            // ✅ PERBAIKAN: Jika BA yang dihapus statusnya selesai, kembalikan status jadwal ke menunggu_sk
-            if ($wasSelesai && $jadwalInfo->status === 'selesai') {
-                $jadwalInfo->update([
-                    'status' => 'menunggu_sk',
-                ]);
-
-                Log::info('✅ Jadwal status reset to menunggu_sk after BA deletion', [
-                    'jadwal_id' => $jadwalInfo->id,
-                    'old_status' => $oldJadwalStatus,
-                    'new_status' => 'menunggu_sk',
-                    'ba_was_selesai' => $wasSelesai,
-                ]);
-            }
-
-            DB::commit();
-
-            Log::info('Berita Acara deleted', [
-                'ba_id' => $beritaAcara->id,
-                'mahasiswa' => $mahasiswaName,
-                'ba_was_selesai' => $wasSelesai,
-                'jadwal_status_reset' => $wasSelesai && $oldJadwalStatus === 'selesai',
-                'deleted_by' => $user->id,
-                'deleted_by_name' => $user->name,
-            ]);
-
-            $successMessage = 'Berita acara berhasil dihapus.';
-            if ($wasSelesai && $oldJadwalStatus === 'selesai') {
-                $successMessage .= ' Status jadwal dikembalikan ke "Menunggu SK".';
-            }
-
-            return redirect()
-                ->route('admin.berita-acara-sempro.index')
-                ->with('success', $successMessage);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Failed to delete Berita Acara', [
-                'ba_id' => $beritaAcara->id,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-
-            return back()->with('error', 'Gagal menghapus berita acara: ' . $e->getMessage());
-        }
-    }
 }
