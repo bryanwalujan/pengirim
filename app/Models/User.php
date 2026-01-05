@@ -103,6 +103,30 @@ class User extends Authenticatable
         return $this->hasMany(PembayaranUkt::class, 'mahasiswa_id');
     }
 
+    /**
+     * Statistik pembimbing skripsi per tahun ajaran
+     */
+    public function statistikPembimbing()
+    {
+        return $this->hasMany(StatistikPembimbingSkripsi::class, 'dosen_id');
+    }
+
+    /**
+     * Pengajuan SK dimana user adalah PS1
+     */
+    public function pengajuanSkSebagaiPs1()
+    {
+        return $this->hasMany(PengajuanSkPembimbing::class, 'dosen_pembimbing_1_id');
+    }
+
+    /**
+     * Pengajuan SK dimana user adalah PS2
+     */
+    public function pengajuanSkSebagaiPs2()
+    {
+        return $this->hasMany(PengajuanSkPembimbing::class, 'dosen_pembimbing_2_id');
+    }
+
     public function isMahasiswa()
     {
         return $this->hasRole('mahasiswa');

@@ -15,6 +15,7 @@ use App\Http\Controllers\User\KomisiHasilController;
 use App\Http\Controllers\User\SuratPindahController;
 use App\Http\Controllers\User\UserServiceController;
 use App\Http\Controllers\Admin\TahunAjaranController;
+use App\Http\Controllers\User\SkPembimbingController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\User\TrackingSuratController;
 use App\Http\Controllers\Admin\PembayaranUktController;
@@ -26,6 +27,7 @@ use App\Http\Controllers\Admin\AcademicCalendarController;
 use App\Http\Controllers\Admin\AdminKomisiHasilController;
 use App\Http\Controllers\Admin\AdminSuratPindahController;
 use App\Http\Controllers\User\SuratCutiAkademikController;
+use App\Http\Controllers\Admin\AdminSkPembimbingController;
 use App\Http\Controllers\User\PeminjamanProyektorController;
 use App\Http\Controllers\Admin\AdminKomisiProposalController;
 use App\Http\Controllers\Admin\LembarCatatanSemproController;
@@ -90,7 +92,11 @@ Route::get('/verify/berita-acara-sempro/{code}', [AdminBeritaAcaraSemproControll
 
 Route::get('/verify/berita-acara-sempro/{code}/download', [AdminBeritaAcaraSemproController::class, 'verifyAndDownload'])
     ->name('berita-acara-sempro.verify.download'); // ← Ubah nama route
-// Route untuk role mahasiswa
+
+Route::get('/verify/sk-pembimbing/{code}', [AdminSkPembimbingController::class, 'verify'])
+    ->name('sk-pembimbing.verify');
+
+// ========== USER ROUTES (Mahasiswa) ==========
 Route::middleware(['auth', 'verified', 'role:mahasiswa', 'check.ukt'])->group(function () {
 
     // Layanan-layanan E-Service 
@@ -163,6 +169,15 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa', 'check.ukt'])->group(fu
         Route::put('/{peminjamanLaboratorium}', [PeminjamanLaboratoriumController::class, 'update'])->name('update');
     });
 
+    // Layanan Komisi Proposal
+    Route::prefix('komisi-proposal')->name('user.komisi-proposal.')->group(function () {
+        Route::get('/', [KomisiProposalController::class, 'index'])->name('index');
+        Route::get('/create', [KomisiProposalController::class, 'create'])->name('create');
+        Route::post('/', [KomisiProposalController::class, 'store'])->name('store');
+        Route::get('/{komisiProposal}', [KomisiProposalController::class, 'show'])->name('show');
+        Route::get('/{komisiProposal}/download', [KomisiProposalController::class, 'downloadPdf'])->name('download');
+    });
+
     // Layanan Pendaftaran Seminar Proposal
     Route::prefix('pendaftaran-seminar-proposal')->name('user.pendaftaran-seminar-proposal.')->group(function () {
         Route::get('/', [PendaftaranSeminarProposalController::class, 'index'])->name('index');
@@ -208,15 +223,7 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa', 'check.ukt'])->group(fu
             ->name('delete-sk');
     });
 
-    // Layanan Pendaftaran Ujian Hasil
-    Route::prefix('pendaftaran-ujian-hasil')->name('user.pendaftaran-ujian-hasil.')->group(function () {
-        Route::get('/', [PendaftaranUjianHasilController::class, 'index'])->name('index');
-        Route::get('/create', [PendaftaranUjianHasilController::class, 'create'])->name('create');
-        Route::post('/', [PendaftaranUjianHasilController::class, 'store'])->name('store');
-        Route::get('/{pendaftaran_ujian_hasil}', [PendaftaranUjianHasilController::class, 'show'])->name('show');
-    });
-
-    // Layanan Berita Acara Seminar Proposal (TAMBAHKAN INI)
+    // Layanan Berita Acara Seminar Proposal
     Route::prefix('berita-acara-sempro')->name('user.berita-acara-sempro.')->group(function () {
         // List berita acara
         Route::get('/', [BeritaAcaraSeminarProposalController::class, 'index'])
@@ -235,13 +242,16 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa', 'check.ukt'])->group(fu
             ->name('view-pdf');
     });
 
-    // Layanan Komisi Proposal
-    Route::prefix('komisi-proposal')->name('user.komisi-proposal.')->group(function () {
-        Route::get('/', [KomisiProposalController::class, 'index'])->name('index');
-        Route::get('/create', [KomisiProposalController::class, 'create'])->name('create');
-        Route::post('/', [KomisiProposalController::class, 'store'])->name('store');
-        Route::get('/{komisiProposal}', [KomisiProposalController::class, 'show'])->name('show');
-        Route::get('/{komisiProposal}/download', [KomisiProposalController::class, 'downloadPdf'])->name('download'); // <-- TAMBAHKAN INI
+    // Layanan SK Pembimbing Skripsi
+    Route::prefix('sk-pembimbing')->name('user.sk-pembimbing.')->group(function () {
+        Route::get('/', [SkPembimbingController::class, 'index'])->name('index');
+        Route::get('/create', [SkPembimbingController::class, 'create'])->name('create');
+        Route::post('/', [SkPembimbingController::class, 'store'])->name('store');
+        Route::get('/{pengajuan}', [SkPembimbingController::class, 'show'])->name('show');
+        Route::get('/{pengajuan}/edit', [SkPembimbingController::class, 'edit'])->name('edit');
+        Route::put('/{pengajuan}', [SkPembimbingController::class, 'update'])->name('update');
+        Route::get('/{pengajuan}/download-sk', [SkPembimbingController::class, 'downloadSk'])->name('download-sk');
+        Route::get('/{pengajuan}/view/{type}', [SkPembimbingController::class, 'viewDocument'])->name('view-document');
     });
 
     // Layanan Komisi Hasil
@@ -253,7 +263,13 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa', 'check.ukt'])->group(fu
         Route::get('/{komisiHasil}/download', [KomisiHasilController::class, 'downloadPdf'])->name('download');
     });
 
-
+    // Layanan Pendaftaran Ujian Hasil
+    Route::prefix('pendaftaran-ujian-hasil')->name('user.pendaftaran-ujian-hasil.')->group(function () {
+        Route::get('/', [PendaftaranUjianHasilController::class, 'index'])->name('index');
+        Route::get('/create', [PendaftaranUjianHasilController::class, 'create'])->name('create');
+        Route::post('/', [PendaftaranUjianHasilController::class, 'store'])->name('store');
+        Route::get('/{pendaftaran_ujian_hasil}', [PendaftaranUjianHasilController::class, 'show'])->name('show');
+    });
 });
 
 // Routes submission dengan middleware no-multi-surat (Surat Aktif Kuliah, Ijin Survey, Cuti Akademik dan Pindah)
@@ -287,7 +303,7 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa'])->get('/payment-alert',
 })->name('user.payment.alert');
 
 
-// Untuk Staff
+// ========== ADMIN ROUTES (Staff & Dosen) ==========
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
 
@@ -565,6 +581,28 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::get('/', [AdminPeminjamanLaboratoriumController::class, 'index'])->name('index');
     });
 
+    // Komisi Proposal - Available for ALL dosen
+    Route::prefix('komisi-proposal')->name('komisi-proposal.')->group(function () {
+        Route::get('/', [AdminKomisiProposalController::class, 'index'])->name('index');
+
+        // TAMBAHKAN ROUTE INI - untuk load modal content via AJAX
+        Route::get('/{komisiProposal}', [AdminKomisiProposalController::class, 'show'])->name('show');
+
+        // Approval routes
+        Route::post('/{komisiProposal}/approve-pa', [AdminKomisiProposalController::class, 'approveByPA'])
+            ->name('approve-pa');
+        Route::post('/{komisiProposal}/approve-korprodi', [AdminKomisiProposalController::class, 'approveByKorprodi'])
+            ->name('approve-korprodi');
+
+        // Download
+        Route::get('/{komisiProposal}/download', [AdminKomisiProposalController::class, 'downloadPdf'])
+            ->name('download');
+
+        // Delete
+        Route::delete('/{komisiProposal}', [AdminKomisiProposalController::class, 'destroy'])
+            ->name('destroy');
+    });
+
     // Pendaftaran Seminar Proposal
     Route::prefix('pendaftaran-seminar-proposal')->name('pendaftaran-seminar-proposal.')->group(function () {
 
@@ -839,33 +877,41 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         });
     });
 
+    // SK Pembimbing Skripsi
+    Route::prefix('sk-pembimbing')->name('sk-pembimbing.')->group(function () {
+        // Index & Show (Staff & Dosen)
+        Route::middleware(['role:staff|dosen'])->group(function () {
+            Route::get('/', [AdminSkPembimbingController::class, 'index'])->name('index');
+            Route::get('/{pengajuan}', [AdminSkPembimbingController::class, 'show'])->name('show');
+            Route::get('/{pengajuan}/view/{type}', [AdminSkPembimbingController::class, 'viewDocument'])->name('view-document');
+            Route::get('/{pengajuan}/download-sk', [AdminSkPembimbingController::class, 'downloadSk'])->name('download-sk');
+        });
 
-    // Pendaftaran Ujian Hasil
-    Route::prefix('pendaftaran-ujian-hasil')->name('pendaftaran-ujian-hasil.')->group(function () {
-        Route::get('/', [AdminPendaftaranUjianHasilController::class, 'index'])->name('index');
-        Route::get('/{pendaftaranUjianHasil}', [AdminPendaftaranUjianHasilController::class, 'show'])->name('show');
-    });
+        // Staff Only Routes
+        Route::middleware(['role:staff'])->group(function () {
+            // Verify Dokumen
+            Route::post('/{pengajuan}/verify', [AdminSkPembimbingController::class, 'verifyDokumen'])->name('verify');
 
-    // Komisi Proposal - Available for ALL dosen
-    Route::prefix('komisi-proposal')->name('komisi-proposal.')->group(function () {
-        Route::get('/', [AdminKomisiProposalController::class, 'index'])->name('index');
+            // Assign Pembimbing
+            Route::get('/{pengajuan}/assign-pembimbing', [AdminSkPembimbingController::class, 'showAssignPembimbing'])->name('assign-pembimbing');
+            Route::post('/{pengajuan}/assign-pembimbing', [AdminSkPembimbingController::class, 'assignPembimbing'])->name('store-pembimbing');
 
-        // TAMBAHKAN ROUTE INI - untuk load modal content via AJAX
-        Route::get('/{komisiProposal}', [AdminKomisiProposalController::class, 'show'])->name('show');
+            // Reject
+            Route::post('/{pengajuan}/reject', [AdminSkPembimbingController::class, 'reject'])->name('reject');
 
-        // Approval routes
-        Route::post('/{komisiProposal}/approve-pa', [AdminKomisiProposalController::class, 'approveByPA'])
-            ->name('approve-pa');
-        Route::post('/{komisiProposal}/approve-korprodi', [AdminKomisiProposalController::class, 'approveByKorprodi'])
-            ->name('approve-korprodi');
+            // Delete
+            Route::delete('/{pengajuan}', [AdminSkPembimbingController::class, 'destroy'])->name('destroy');
 
-        // Download
-        Route::get('/{komisiProposal}/download', [AdminKomisiProposalController::class, 'downloadPdf'])
-            ->name('download');
+            // Statistik Pembimbing
+            Route::get('/statistik/pembimbing', [AdminSkPembimbingController::class, 'statistikPembimbing'])->name('statistik-pembimbing');
+            Route::post('/statistik/recalculate', [AdminSkPembimbingController::class, 'recalculateStatistik'])->name('recalculate-statistik');
+        });
 
-        // Delete
-        Route::delete('/{komisiProposal}', [AdminKomisiProposalController::class, 'destroy'])
-            ->name('destroy');
+        // TTD Routes (Dosen dengan jabatan)
+        Route::middleware(['role:dosen'])->group(function () {
+            Route::post('/{pengajuan}/sign-kajur', [AdminSkPembimbingController::class, 'signByKajur'])->name('sign-kajur');
+            Route::post('/{pengajuan}/sign-korprodi', [AdminSkPembimbingController::class, 'signByKorprodi'])->name('sign-korprodi');
+        });
     });
 
     // Komisi Hasil - Available for ALL dosen (3-tier approval)
@@ -893,6 +939,12 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         // Delete
         Route::delete('/{komisiHasil}', [AdminKomisiHasilController::class, 'destroy'])
             ->name('destroy');
+    });
+
+    // Pendaftaran Ujian Hasil
+    Route::prefix('pendaftaran-ujian-hasil')->name('pendaftaran-ujian-hasil.')->group(function () {
+        Route::get('/', [AdminPendaftaranUjianHasilController::class, 'index'])->name('index');
+        Route::get('/{pendaftaranUjianHasil}', [AdminPendaftaranUjianHasilController::class, 'show'])->name('show');
     });
 
 });

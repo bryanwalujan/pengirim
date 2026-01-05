@@ -42,34 +42,50 @@ class BeritaAcaraSeminarProposal extends Model
     // RELATIONSHIPS
     // ========================================
 
+    // Relasi ke Jadwal Seminar Proposal
     public function jadwalSeminarProposal()
     {
         return $this->belongsTo(JadwalSeminarProposal::class);
     }
 
+    // Relasi ke User (Dosen Pembimbing yang mengisi)
     public function dosenPembimbingPengisi()
     {
         return $this->belongsTo(User::class, 'diisi_oleh_pembimbing_id');
     }
 
+    // Relasi ke User (Dosen Pembimbing yang menandatangani)
     public function dosenPembimbingPenandatangan()
     {
         return $this->belongsTo(User::class, 'ttd_pembimbing_by');
     }
 
+    // Relasi ke User (Ketua Penguji/Pembahas yang menandatangani)
     public function ketuaPenguji()
     {
         return $this->belongsTo(User::class, 'ttd_ketua_penguji_by');
     }
 
+    // Relasi ke User (Pembuat Berita Acara)
     public function pembuatBeritaAcara()
     {
         return $this->belongsTo(User::class, 'dibuat_oleh_id');
     }
 
+    /**
+     * Relasi ke Lembar Catatan Seminar Proposal
+     */
     public function lembarCatatan()
     {
         return $this->hasMany(LembarCatatanSeminarProposal::class);
+    }
+
+    /**
+     * Relasi ke Pengajuan SK Pembimbing
+     */
+    public function pengajuanSkPembimbing()
+    {
+        return $this->hasOne(PengajuanSkPembimbing::class, 'berita_acara_id');
     }
 
     // ========================================
@@ -213,7 +229,8 @@ class BeritaAcaraSeminarProposal extends Model
     public function hasAllCatatan(): bool
     {
         $jadwal = $this->jadwalSeminarProposal;
-        if (!$jadwal) return false;
+        if (!$jadwal)
+            return false;
 
         $totalDosen = $jadwal->dosenPenguji()->count();
         $totalCatatan = $this->lembarCatatan()->count();
@@ -442,11 +459,11 @@ class BeritaAcaraSeminarProposal extends Model
             // Cek apakah status berubah menjadi 'selesai' dan PDF sudah tergenerate
             if ($model->status === 'selesai' && !is_null($model->file_path)) {
                 $jadwal = $model->jadwalSeminarProposal;
-                
+
                 // Update status jadwal menjadi selesai jika belum
                 if ($jadwal && $jadwal->status !== 'selesai') {
                     $jadwal->update(['status' => 'selesai']);
-                    
+
                     Log::info('✅ Auto-update jadwal sempro status to selesai', [
                         'jadwal_id' => $jadwal->id,
                         'berita_acara_id' => $model->id,
@@ -465,12 +482,12 @@ class BeritaAcaraSeminarProposal extends Model
             // ✅ PERBAIKAN: Reset jadwal status when berita acara is deleted
             // This allows students to upload new SK Proposal after berita acara is deleted by staff
             $jadwal = $model->jadwalSeminarProposal;
-            
+
             if ($jadwal) {
                 // Reset status back to 'dijadwalkan' so student can re-upload SK if needed
                 if ($jadwal->status === 'selesai') {
                     $jadwal->update(['status' => 'dijadwalkan']);
-                    
+
                     Log::info('✅ Auto-reset jadwal sempro status after berita acara deleted', [
                         'jadwal_id' => $jadwal->id,
                         'berita_acara_id' => $model->id,
