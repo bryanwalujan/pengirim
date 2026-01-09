@@ -40,6 +40,12 @@ return new class extends Migration {
             // Catatan Tambahan (Optional)
             $table->text('catatan_tambahan')->nullable();
 
+            // Alasan ditolak (untuk catatan tambahan saat ditolak)
+            $table->text('alasan_ditolak')->nullable();
+
+            // Timestamp kapan proposal ditolak
+            $table->timestamp('ditolak_at')->nullable();
+
             // ========================================
             // VALIDASI & FILE
             // ========================================
@@ -58,7 +64,8 @@ return new class extends Migration {
                 'draft',                    // Staff buat draft
                 'menunggu_ttd_pembahas',   // Menunggu TTD dari semua pembahas
                 'menunggu_ttd_pembimbing', // Semua pembahas sudah TTD, tunggu pembimbing isi + TTD
-                'selesai'                  // Pembimbing sudah TTD, BA selesai & PDF generated
+                'selesai',                 // Pembimbing sudah TTD, BA selesai & PDF generated
+                'ditolak'                  // Berita Acara ditolak
             ])->default('draft');
 
             // ========================================
