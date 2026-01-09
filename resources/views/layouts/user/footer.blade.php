@@ -35,7 +35,7 @@
                         <i class="bi bi-envelope-fill"></i>
                         <div>
                             <strong>Email:</strong>
-                            <span>informatika@unima.ac.id</span>
+                            <span>teknikinformatika@unima.ac.id</span>
                         </div>
                     </div>
                 </div>

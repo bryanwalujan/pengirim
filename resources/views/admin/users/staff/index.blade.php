@@ -31,13 +31,16 @@
                 <div class="row align-items-center justify-content-end g-2">
                     <!-- Search Column -->
                     <div class="col-4 col-md-4 col-lg-3">
-                        <div class="input-group input-group-merge">
-                            <span class="input-group-text" id="basic-addon-search31">
-                                <i class="bx bx-search"></i>
-                            </span>
-                            <input type="text" class="form-control" placeholder="Search..." aria-label="Search..."
-                                aria-describedby="basic-addon-search31" />
-                        </div>
+                        <form action="{{ route('admin.users.staff') }}" method="GET">
+                            <div class="input-group input-group-merge">
+                                <span class="input-group-text" id="basic-addon-search31">
+                                    <i class="bx bx-search"></i>
+                                </span>
+                                <input type="text" name="search" class="form-control" placeholder="Search..."
+                                    value="{{ request('search') }}" aria-label="Search..."
+                                    aria-describedby="basic-addon-search31">
+                            </div>
+                        </form>
                     </div>
                     <!-- Button Column -->
                     <div class="col-auto text-end">
@@ -96,7 +99,13 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="text-center">Tidak ada data staff</td>
+                                <td colspan="5" class="text-center py-5">
+                                    <div class="d-flex flex-column align-items-center">
+                                        <i class="bx bx-user-x text-muted" style="font-size: 4rem;"></i>
+                                        <h5 class="mt-3 text-muted">Tidak ada data staff ditemukan</h5>
+                                        <p class="text-muted mb-0">Silakan tambahkan data staff baru.</p>
+                                    </div>
+                                </td>
                             </tr>
                         @endforelse
                     </tbody>

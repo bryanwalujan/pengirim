@@ -1,3 +1,5 @@
+{{-- filepath: resources/views/layouts/admin/navbar.blade.php --}}
+
 {{-- Navbar --}}
 <nav class="layout-navbar container-xxl navbar-detached navbar navbar-expand-xl align-items-center bg-navbar-theme"
     id="layout-navbar">
@@ -9,139 +11,231 @@
     <div class="navbar-nav-right d-flex align-items-center justify-content-end" id="navbar-collapse">
 
         <ul class="navbar-nav flex-row align-items-center ms-md-auto">
-            <!-- Notification Dropdown -->
+            {{-- Notification Dropdown - OPTIMIZED & FIXED --}}
             <li class="nav-item dropdown me-4">
                 <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
                     <i class="icon-base bx bx-bell icon-md"></i>
                     @php
-                        $unreadCount = auth()
-                            ->user()
-                            ->unreadNotifications()
-                            ->whereIn('type', [
-                                'App\Notifications\SuratTakenNotification',
-                                'App\Notifications\SuratNeedApprovalNotification',
-                            ])
-                            ->when(auth()->user()->hasRole('staff'), function ($query) {
-                                return $query->where('type', 'App\Notifications\SuratTakenNotification');
-                            })
-                            ->when(auth()->user()->hasRole('dosen'), function ($query) {
-                                return $query
-                                    ->where('type', 'App\Notifications\SuratNeedApprovalNotification')
-                                    ->where(function ($q) {
-                                        $q->where('data->surat_class', 'App\Models\SuratAktifKuliah')
-                                            ->orWhere('data->surat_class', 'App\Models\SuratIjinSurvey')
-                                            ->orWhere('data->surat_class', 'App\Models\SuratCutiAkademik')
-                                            ->orWhere('data->surat_class', 'App\Models\SuratPindah');
-                                    });
-                            })
-                            ->count();
+                        $user = auth()->user();
+                        $userRole = $user->roles()->first()->name ?? 'user';
+
+                        // Base query untuk unread notifications
+                        $notificationQuery = $user->unreadNotifications();
+
+                        // Filter berdasarkan role - PERBAIKAN UNTUK KOMISI HASIL
+                        if ($userRole === 'staff') {
+                            // Staff hanya melihat SuratTakenNotification
+                            $notificationQuery->where('type', 'App\Notifications\SuratTakenNotification');
+                        } elseif ($userRole === 'dosen') {
+                            // Dosen melihat: Surat, Komisi Proposal, dan Komisi Hasil
+                            $notificationQuery->where(function ($q) {
+                                $q->where('type', 'App\Notifications\SuratNeedApprovalNotification')
+                                    ->orWhere('type', 'App\Notifications\KomisiProposalNeedApprovalNotification')
+                                    ->orWhere('type', 'App\Notifications\KomisiHasilNeedApprovalNotification');
+                            });
+                        }
+
+                        $unreadCount = $notificationQuery->count();
                     @endphp
                     @if ($unreadCount > 0)
-                        <span class="badge badge-center bg-primary ms-1">{{ $unreadCount }}</span>
+                        <span class="badge badge-center bg-primary ms-1">
+                            {{ $unreadCount > 99 ? '99+' : $unreadCount }}
+                        </span>
                     @endif
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end"
-                    style="min-width: 300px; max-height: 400px; overflow-y: auto;">
+                    style="min-width: 350px; max-height: 500px; overflow-y: auto;">
+                    {{-- Header --}}
+                    <li class="dropdown-header border-bottom pb-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">Notifikasi</h6>
+                            @if ($unreadCount > 0)
+                                <form action="{{ route('admin.notifications.mark-all-read') }}" method="POST"
+                                    class="d-inline">
+                                    @csrf
+                                    <button type="submit"
+                                        class="btn btn-sm btn-text-primary p-0 border-0 bg-transparent"
+                                        onclick="return confirm('Tandai semua notifikasi sebagai sudah dibaca?')">
+                                        <i class="bx bx-check-double"></i>
+                                    </button>
+                                </form>
+                            @endif
+                        </div>
+                    </li>
+
                     @php
-                        $notifications = auth()
-                            ->user()
-                            ->unreadNotifications()
-                            ->whereIn('type', [
-                                'App\Notifications\SuratTakenNotification',
-                                'App\Notifications\SuratNeedApprovalNotification',
-                            ])
-                            ->when(auth()->user()->hasRole('staff'), function ($query) {
-                                return $query->where('type', 'App\Notifications\SuratTakenNotification');
-                            })
-                            ->when(auth()->user()->hasRole('dosen'), function ($query) {
-                                return $query
-                                    ->where('type', 'App\Notifications\SuratNeedApprovalNotification')
-                                    ->where(function ($q) {
-                                        $q->where('data->surat_class', 'App\Models\SuratAktifKuliah')
-                                            ->orWhere('data->surat_class', 'App\Models\SuratIjinSurvey')
-                                            ->orWhere('data->surat_class', 'App\Models\SuratCutiAkademik')
-                                            ->orWhere('data->surat_class', 'App\Models\SuratPindah');
-                                    });
-                            })
-                            ->orderBy('created_at', 'desc')
-                            ->get();
+                        // Fetch notifications dengan filter yang sama - PERBAIKAN
+                        $notificationsQuery = $user->unreadNotifications();
+
+                        if ($userRole === 'staff') {
+                            $notificationsQuery->where('type', 'App\Notifications\SuratTakenNotification');
+                        } elseif ($userRole === 'dosen') {
+                            $notificationsQuery->where(function ($q) {
+                                $q->where('type', 'App\Notifications\SuratNeedApprovalNotification')
+                                    ->orWhere('type', 'App\Notifications\KomisiProposalNeedApprovalNotification')
+                                    ->orWhere('type', 'App\Notifications\KomisiHasilNeedApprovalNotification');
+                            });
+                        }
+
+                        $notifications = $notificationsQuery->orderBy('created_at', 'desc')->get();
                     @endphp
 
                     @if ($notifications->isEmpty())
-                        <li class="dropdown-item text-center">
-                            <span>Tidak ada notifikasi baru</span>
+                        <li class="dropdown-item text-center py-4">
+                            <i class="bx bx-bell-off bx-lg text-muted mb-2 d-block"></i>
+                            <span class="text-muted">Tidak ada notifikasi baru</span>
                         </li>
                     @else
-                        <!-- Tampilkan maksimal 5 notifikasi -->
+                        {{-- Display max 5 notifications --}}
                         @foreach ($notifications->take(5) as $notification)
-                            <li class="dropdown-item">
+                            @php
+                                $data = $notification->data;
+                                $type = $notification->type;
+
+                                // Tentukan tipe notifikasi - PERBAIKAN UNTUK KOMISI HASIL
+                                $isKomisiProposal =
+                                    $type === 'App\Notifications\KomisiProposalNeedApprovalNotification';
+                                $isKomisiHasil = $type === 'App\Notifications\KomisiHasilNeedApprovalNotification';
+                                $isSuratApproval = $type === 'App\Notifications\SuratNeedApprovalNotification';
+                                $isSuratTaken = $type === 'App\Notifications\SuratTakenNotification';
+
+                                // Set default values
+                                $iconClass = 'bx-file';
+                                $badgeClass = 'bg-secondary';
+                                $title = 'Notifikasi';
+                                $message = '';
+                                $detailInfo = '';
+                                $actionUrl = '#';
+
+                                // Konfigurasi berdasarkan tipe notifikasi
+                                if ($isKomisiProposal) {
+                                    $approvalType = $data['type'] ?? 'unknown';
+                                    $iconClass = $approvalType === 'pa' ? 'bx-user-check' : 'bxs-user-check';
+                                    $badgeClass = $approvalType === 'pa' ? 'bg-warning' : 'bg-info';
+                                    $title = 'Komisi Proposal';
+                                    $message =
+                                        $approvalType === 'pa'
+                                            ? 'Perlu persetujuan sebagai PA'
+                                            : 'Perlu persetujuan sebagai Korprodi';
+                                    $detailInfo =
+                                        ($data['mahasiswa_name'] ?? 'Mahasiswa') .
+                                        ' (' .
+                                        ($data['mahasiswa_nim'] ?? '-') .
+                                        ')';
+                                    $actionUrl = $data['url'] ?? route('admin.komisi-proposal.index');
+                                } elseif ($isKomisiHasil) {
+                                    // HANDLER UNTUK KOMISI HASIL - DIPERBAIKI
+                                    $approvalType = $data['type'] ?? 'unknown';
+
+                                    // Tentukan icon dan badge berdasarkan approval type
+                                    if ($approvalType === 'pembimbing1') {
+                                        $iconClass = 'bx-user-check';
+                                        $badgeClass = 'bg-warning';
+                                        $message = 'Perlu persetujuan sebagai Pembimbing 1';
+                                    } elseif ($approvalType === 'pembimbing2') {
+                                        $iconClass = 'bx-user-circle';
+                                        $badgeClass = 'bg-info';
+                                        $message = 'Perlu persetujuan sebagai Pembimbing 2';
+                                    } elseif ($approvalType === 'korprodi') {
+                                        $iconClass = 'bxs-user-check';
+                                        $badgeClass = 'bg-primary';
+                                        $message = 'Perlu persetujuan sebagai Korprodi';
+                                    } else {
+                                        $iconClass = 'bx-book-content';
+                                        $badgeClass = 'bg-success';
+                                        $message = 'Komisi Hasil membutuhkan persetujuan';
+                                    }
+
+                                    $title = 'Komisi Hasil';
+                                    $detailInfo =
+                                        ($data['mahasiswa_name'] ?? 'Mahasiswa') .
+                                        ' (' .
+                                        ($data['mahasiswa_nim'] ?? '-') .
+                                        ')';
+                                    $actionUrl = $data['url'] ?? route('admin.komisi-hasil.index');
+                                } elseif ($isSuratApproval) {
+                                    $iconClass = $data['icon'] ?? 'bx-file';
+                                    $badgeClass = 'bg-primary';
+                                    $title = $data['surat_type'] ?? 'Surat';
+                                    $message = 'Membutuhkan persetujuan Anda';
+                                    $detailInfo =
+                                        ($data['mahasiswa_name'] ?? 'Mahasiswa') .
+                                        ' (' .
+                                        ($data['mahasiswa_nim'] ?? '-') .
+                                        ')';
+                                    $actionUrl = $data['url'] ?? '#';
+                                } elseif ($isSuratTaken) {
+                                    $iconClass = $data['icon'] ?? 'bx-file';
+                                    $badgeClass = 'bg-success';
+                                    $title = $data['surat_type'] ?? 'Surat';
+                                    $message = 'Telah diambil oleh mahasiswa';
+                                    $detailInfo =
+                                        ($data['mahasiswa_name'] ?? 'Mahasiswa') .
+                                        ' (' .
+                                        ($data['mahasiswa_nim'] ?? '-') .
+                                        ')';
+                                    $actionUrl = $data['url'] ?? '#';
+                                }
+                            @endphp
+                            <li class="dropdown-item p-3 border-bottom" data-notification-id="{{ $notification->id }}">
                                 <div class="d-flex">
+                                    <div class="flex-shrink-0 me-3">
+                                        <div class="avatar">
+                                            <span class="avatar-initial rounded-circle {{ $badgeClass }}">
+                                                <i class="bx {{ $iconClass }}"></i>
+                                            </span>
+                                        </div>
+                                    </div>
                                     <div class="flex-grow-1">
-                                        @if (auth()->user()->hasRole('staff'))
-                                            <!-- Notifikasi untuk staff -->
-                                            <div class="d-flex align-items-center mb-2">
-                                                <i class="bx {{ $notification->data['icon'] ?? 'bx-file' }} me-2"></i>
-                                                <strong>Surat Sudah Diambil</strong>
-                                            </div>
-                                            <p class="mb-1">
-                                                Mahasiswa:
-                                                {{ $notification->data['mahasiswa_name'] ?? 'Data mahasiswa tidak tersedia' }}<br>
-                                                NIM:
-                                                {{ $notification->data['mahasiswa_nim'] ?? 'NIM tidak tersedia' }}<br>
-                                                Jenis Surat: {{ $notification->data['surat_type'] ?? 'Surat' }}<br>
-                                                Waktu Konfirmasi: {{ $notification->data['confirmed_at'] ?? '' }}
-                                            </p>
-                                        @elseif(auth()->user()->hasRole('dosen'))
-                                            <!-- Notifikasi untuk dosen -->
-                                            <div class="d-flex align-items-center mb-2">
-                                                <i class="bx {{ $notification->data['icon'] ?? 'bx-file' }} me-2"></i>
-                                                <strong>{{ $notification->data['surat_type'] ?? 'Surat' }} Perlu
-                                                    Persetujuan</strong>
-                                            </div>
-                                            <p class="mb-1">
-                                                Mahasiswa:
-                                                {{ $notification->data['mahasiswa_name'] ?? 'Data mahasiswa tidak tersedia' }}<br>
-                                                NIM:
-                                                {{ $notification->data['mahasiswa_nim'] ?? 'NIM tidak tersedia' }}<br>
-                                                Status:
-                                                {{ ucfirst(str_replace('_', ' ', $notification->data['status'] ?? '')) }}
-                                            </p>
+                                        <h6 class="mb-1 small fw-bold">{{ $title }}</h6>
+                                        <p class="mb-1 small">{{ $message }}</p>
+                                        @if ($detailInfo)
+                                            <p class="mb-1 small text-muted">{{ $detailInfo }}</p>
                                         @endif
-                                        <small
-                                            class="text-muted">{{ $notification->created_at->diffForHumans() }}</small>
-                                        <div class="mt-2 d-flex justify-content-start">
+                                        <small class="text-muted d-block mb-2">
+                                            {{ $notification->created_at->diffForHumans() }}
+                                        </small>
+                                        <div class="d-flex gap-2">
                                             <form
                                                 action="{{ route('admin.notifications.read-and-redirect', $notification->id) }}"
                                                 method="POST" class="d-inline">
                                                 @csrf
-                                                <button type="submit" class="btn btn-sm btn-primary me-2">Lihat
-                                                    Detail</button>
+                                                <button type="submit" class="btn btn-sm btn-primary">
+                                                    <i class='bx bx-show me-1'></i>Lihat
+                                                </button>
                                             </form>
                                             <button type="button" class="btn btn-sm btn-outline-secondary"
                                                 onclick="markAsRead('{{ $notification->id }}', this)">
-                                                Tandai Sudah Dibaca
+                                                <i class='bx bx-check me-1'></i>Baca
                                             </button>
                                         </div>
                                     </div>
                                 </div>
                             </li>
-                            @if (!$loop->last)
-                                <li>
-                                    <hr class="dropdown-divider">
-                                </li>
-                            @endif
                         @endforeach
 
-                        <!-- Tampilkan indikator jika ada lebih dari 5 notifikasi -->
+                        {{-- Show indicator if more notifications exist --}}
                         @if ($notifications->count() > 5)
                             <li class="dropdown-item text-center bg-light py-2">
-                                <small class="text-muted">+{{ $notifications->count() - 5 }} notifikasi lainnya</small>
+                                <small class="text-muted">
+                                    +{{ $notifications->count() - 5 }} notifikasi lainnya
+                                </small>
                             </li>
                         @endif
+
+                        {{-- View All Link --}}
+                        <li class="dropdown-footer border-top pt-2">
+                            <a href="{{ route('admin.notifications.index') }}"
+                                class="dropdown-item text-center text-primary">
+                                <i class="bx bx-bell me-1"></i>
+                                Lihat Semua Notifikasi
+                            </a>
+                        </li>
                     @endif
                 </ul>
             </li>
-            <!-- User -->
+
+            {{-- User Dropdown --}}
             <li class="nav-item navbar-dropdown dropdown-user dropdown">
                 <a class="nav-link dropdown-toggle hide-arrow p-0" href="javascript:void(0);" data-bs-toggle="dropdown"
                     aria-expanded="false">
@@ -157,7 +251,6 @@
                                 $initials = strtoupper(substr($userName, 0, 2));
                             }
 
-                            // Enhanced color palette
                             $colors = [
                                 '#FF6B6B',
                                 '#4ECDC4',
@@ -178,7 +271,6 @@
                             $colorIndex = array_sum(str_split(ord($initials[0]))) % count($colors);
                             $bgColor = $colors[$colorIndex];
 
-                            // Get user info
                             $userRole = Auth::user()->roles()->first()->name ?? 'User';
                             $userEmail = Auth::user()->email;
                             $userJabatan = Auth::user()->jabatan ?? null;
@@ -194,7 +286,6 @@
 
                 <ul class="dropdown-menu dropdown-menu-end shadow-lg"
                     style="min-width: 320px; border-radius: 12px; border: none; padding: 0;">
-                    <!-- User Profile Header -->
                     <li class="dropdown-header bg-gradient-primary text-white"
                         style="border-radius: 12px 12px 0 0; padding: 20px;">
                         <div class="d-flex align-items-center">
@@ -211,7 +302,8 @@
                             </div>
                             <div class="flex-grow-1 text-white">
                                 <h6 class="mb-1 fw-bold text-white" style="font-size: 15px;">
-                                    {{ Str::limit(Auth::user()->name, 25) }}</h6>
+                                    {{ Str::limit(Auth::user()->name, 25) }}
+                                </h6>
                                 <small class="d-block text-white-50 mb-1" style="font-size: 11px;">
                                     <i class="bx bx-envelope me-1"></i>{{ Str::limit($userEmail, 30) }}
                                 </small>
@@ -224,7 +316,6 @@
                         </div>
                     </li>
 
-                    <!-- Role Badge Section -->
                     <li class="px-3 py-2 bg-light">
                         <div class="d-flex align-items-center justify-content-between">
                             <small class="text-muted" style="font-size: 10px;">STATUS AKUN</small>
@@ -255,22 +346,20 @@
                         <hr class="dropdown-divider my-0">
                     </li>
 
-                    <!-- User Info Details -->
                     <li class="px-3 py-2">
                         <div class="user-info-details">
-                            <!-- Full Name -->
                             <div class="info-item mb-2">
                                 <div class="d-flex align-items-start">
                                     <i class="bx bx-user text-primary me-2 mt-1" style="font-size: 16px;"></i>
                                     <div class="flex-grow-1">
-                                        <small class="text-muted d-block" style="font-size: 10px;">Nama Lengkap</small>
+                                        <small class="text-muted d-block" style="font-size: 10px;">Nama
+                                            Lengkap</small>
                                         <span class="fw-semibold"
                                             style="font-size: 12px;">{{ Auth::user()->name }}</span>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Email -->
                             <div class="info-item mb-2">
                                 <div class="d-flex align-items-start">
                                     <i class="bx bx-envelope text-info me-2 mt-1" style="font-size: 16px;"></i>
@@ -284,11 +373,11 @@
                                 </div>
                             </div>
 
-                            <!-- Jabatan (if exists) -->
                             @if ($userJabatan)
                                 <div class="info-item mb-2">
                                     <div class="d-flex align-items-start">
-                                        <i class="bx bx-briefcase text-warning me-2 mt-1" style="font-size: 16px;"></i>
+                                        <i class="bx bx-briefcase text-warning me-2 mt-1"
+                                            style="font-size: 16px;"></i>
                                         <div class="flex-grow-1">
                                             <small class="text-muted d-block" style="font-size: 10px;">Jabatan</small>
                                             <span class="fw-medium"
@@ -297,7 +386,6 @@
                                     </div>
                                 </div>
                             @endif
-
                         </div>
                     </li>
 
@@ -305,25 +393,17 @@
                         <hr class="dropdown-divider my-0">
                     </li>
 
-                    <!-- Action Buttons -->
                     <li class="px-3 py-3">
                         <div class="d-grid gap-2">
-
-                            <!-- Logout Button -->
                             <a href="{{ route('logout') }}" class="btn btn-sm btn-danger"
                                 style="border-radius: 8px;"
                                 onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                                 <i class="bx bx-power-off me-2"></i>
                                 <span>Logout</span>
                             </a>
-                            <!-- Hidden logout form -->
-                            <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-                                @csrf
-                            </form>
                         </div>
                     </li>
 
-                    <!-- Footer Info -->
                     <li class="dropdown-footer text-center bg-light py-2" style="border-radius: 0 0 12px 12px;">
                         <small class="text-muted" style="font-size: 9px;">
                             <i class="bx bx-shield-quarter me-1"></i>
@@ -332,45 +412,41 @@
                     </li>
                 </ul>
 
-                <!-- Hidden logout form -->
                 <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
                     @csrf
                 </form>
             </li>
-            <!--/ User -->
         </ul>
     </div>
 </nav>
-{{-- /Navbar --}}
 
-{{-- Core JS files --}}
 <script>
-    // Pastikan dropdown notifikasi diinisialisasi dengan benar
     document.addEventListener('DOMContentLoaded', function() {
         const notificationDropdown = document.querySelector('.nav-item.dropdown .dropdown-menu');
-
         if (notificationDropdown) {
             const notificationItems = notificationDropdown.querySelectorAll('.dropdown-item:not(.text-center)');
             if (notificationItems.length > 3) {
-                notificationDropdown.style.maxHeight = '400px';
+                notificationDropdown.style.maxHeight = '500px';
                 notificationDropdown.style.overflowY = 'auto';
             }
         }
     });
 
+    /**
+     * Mark single notification as read - OPTIMIZED
+     */
     function markAsRead(notificationId, buttonElement) {
-        fetch(
-                '{{ route('admin.notifications.mark-as-read', ':notification') }}'.replace(
-                    ":notification",
-                    notificationId
-                ), {
-                    method: "POST",
-                    headers: {
-                        "X-CSRF-TOKEN": "{{ csrf_token() }}",
-                        "Content-Type": "application/json",
-                    },
-                }
-            )
+        // Disable button to prevent double-click
+        buttonElement.disabled = true;
+
+        fetch(`/admin/notifications/${notificationId}/mark-as-read`, {
+                method: "POST",
+                headers: {
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                },
+            })
             .then((response) => {
                 if (!response.ok) {
                     throw new Error("Network response was not ok: " + response.status);
@@ -379,58 +455,104 @@
             })
             .then((data) => {
                 if (data.success) {
-                    const notificationItem = buttonElement.closest(".dropdown-item");
-                    const divider = notificationItem.nextElementSibling?.classList.contains("dropdown-divider") ?
-                        notificationItem.nextElementSibling :
-                        notificationItem.previousElementSibling?.classList.contains("dropdown-divider") ?
-                        notificationItem.previousElementSibling :
-                        null;
+                    // Find the notification item
+                    const notificationItem = buttonElement.closest('[data-notification-id]');
 
-                    notificationItem.remove();
-                    if (divider) divider.remove();
+                    if (notificationItem) {
+                        // Smooth fade out animation
+                        notificationItem.style.transition = 'opacity 0.3s ease-out';
+                        notificationItem.style.opacity = '0';
 
-                    updateNotificationBadge();
-                    checkEmptyNotifications();
+                        setTimeout(() => {
+                            notificationItem.remove();
+                            updateNotificationBadge();
+                            checkEmptyNotifications();
+                        }, 300);
+                    }
                 }
             })
             .catch((error) => {
                 console.error("Error marking notification as read:", error);
+                alert('Gagal menandai notifikasi sebagai dibaca');
+                buttonElement.disabled = false;
             });
     }
 
+    /**
+     * Update notification badge count
+     */
     function updateNotificationBadge() {
-        const badge = document.querySelector(".nav-link .badge");
+        const badge = document.querySelector(".nav-item.dropdown .nav-link .badge");
         if (badge) {
-            const currentCount = parseInt(badge.textContent);
+            const currentCount = parseInt(badge.textContent.replace('+', ''));
             if (currentCount > 1) {
-                badge.textContent = currentCount - 1;
+                const newCount = currentCount - 1;
+                badge.textContent = newCount > 99 ? '99+' : newCount;
             } else {
                 badge.remove();
             }
         }
     }
 
+    /**
+     * Check if notifications list is empty
+     */
     function checkEmptyNotifications() {
-        const dropdownMenu = document.querySelector(".dropdown-menu");
+        const dropdownMenu = document.querySelector(".nav-item.dropdown .dropdown-menu");
         if (dropdownMenu) {
-            const remainingItems = dropdownMenu.querySelectorAll(".dropdown-item:not(.text-center)").length;
+            const remainingItems = dropdownMenu.querySelectorAll('[data-notification-id]').length;
 
             if (remainingItems === 0) {
                 dropdownMenu.innerHTML = `
-                    <li class="dropdown-item text-center">
-                        <span>Tidak ada notifikasi baru</span>
+                    <li class="dropdown-header border-bottom pb-2">
+                        <h6 class="mb-0">Notifikasi</h6>
+                    </li>
+                    <li class="dropdown-item text-center py-4">
+                        <i class="bx bx-bell-off bx-lg text-muted mb-2 d-block"></i>
+                        <span class="text-muted">Tidak ada notifikasi baru</span>
                     </li>
                 `;
             }
         }
     }
 
+    /**
+     * Auto-refresh notification count every 60 seconds
+     */
+    setInterval(function() {
+        fetch('/admin/notifications/count', {
+                headers: {
+                    "Accept": "application/json",
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                const badge = document.querySelector(".nav-item.dropdown .nav-link .badge");
+                const totalCount = data.total || 0;
 
-    // Add online status indicator animation
+                if (totalCount > 0) {
+                    if (badge) {
+                        badge.textContent = totalCount > 99 ? '99+' : totalCount;
+                    } else {
+                        const navLink = document.querySelector(".nav-item.dropdown .nav-link");
+                        const newBadge = document.createElement('span');
+                        newBadge.className = 'badge badge-center bg-primary ms-1';
+                        newBadge.textContent = totalCount > 99 ? '99+' : totalCount;
+                        navLink.appendChild(newBadge);
+                    }
+                } else {
+                    if (badge) {
+                        badge.remove();
+                    }
+                }
+            })
+            .catch(error => console.error('Error fetching notification count:', error));
+    }, 60000);
+
+    // Avatar online indicator and styles
     document.addEventListener('DOMContentLoaded', function() {
         const avatarOnline = document.querySelector('.avatar-online-indicator');
         if (avatarOnline) {
-            // Add pulsing effect to online indicator
             const style = document.createElement('style');
             style.textContent = `
             .avatar-online-indicator::before {
@@ -462,7 +584,6 @@
             .bg-gradient-primary {
                 background: linear-gradient(135deg, #696cff 0%, #5f63f2 100%) !important;
             }
-            
             
             @keyframes dropdownSlideIn {
                 from {

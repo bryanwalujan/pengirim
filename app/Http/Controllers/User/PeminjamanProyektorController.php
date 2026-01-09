@@ -14,16 +14,23 @@ class PeminjamanProyektorController extends Controller
      */
     public function index()
     {
-        $peminjaman = PeminjamanProyektor::where('user_id', Auth::id())
+        $peminjaman = PeminjamanProyektor::byUser(Auth::id())
             ->latest()
             ->paginate(10);
 
         // Cek apakah ada proyektor yang sedang dipinjam oleh user
-        $isCurrentlyBorrowing = PeminjamanProyektor::where('user_id', Auth::id())
-            ->where('status', 'dipinjam')
+        $isCurrentlyBorrowing = PeminjamanProyektor::byUser(Auth::id())
+            ->status('dipinjam')
             ->exists();
 
-        return view('user.peminjaman-proyektor.index', compact('peminjaman', 'isCurrentlyBorrowing'));
+        // Get available proyektor list
+        $availableProyektor = PeminjamanProyektor::getAvailableProyektorList();
+
+        return view('user.peminjaman-proyektor.index', compact(
+            'peminjaman',
+            'isCurrentlyBorrowing',
+            'availableProyektor'
+        ));
     }
 
     /**
@@ -31,23 +38,42 @@ class PeminjamanProyektorController extends Controller
      */
     public function store(Request $request)
     {
-        // Mencegah user meminjam lebih dari satu kali jika belum dikembalikan
-        $isCurrentlyBorrowing = PeminjamanProyektor::where('user_id', Auth::id())
-            ->where('status', 'dipinjam')
-            ->exists();
+        // Validasi input
+        $validated = $request->validate([
+            'proyektor_code' => [
+                'required',
+                'string',
+                'in:' . implode(',', config('proyektor.list', [])),
+            ],
+            'keperluan' => 'required|string|max:255',
+        ], [
+            'proyektor_code.required' => 'Proyektor harus dipilih',
+            'proyektor_code.in' => 'Proyektor yang dipilih tidak valid',
+            'keperluan.required' => 'Keperluan peminjaman harus diisi',
+        ]);
 
-        if ($isCurrentlyBorrowing) {
+        // Mencegah user meminjam lebih dari satu kali jika belum dikembalikan
+        if (PeminjamanProyektor::byUser(Auth::id())->status('dipinjam')->exists()) {
             return redirect()->route('user.peminjaman-proyektor.index')
                 ->with('error', 'Anda sudah meminjam proyektor dan belum mengembalikannya.');
         }
 
+        // Check if proyektor is available
+        if (!PeminjamanProyektor::isProyektorAvailable($validated['proyektor_code'])) {
+            return redirect()->route('user.peminjaman-proyektor.index')
+                ->with('error', 'Proyektor yang dipilih sedang dipinjam oleh mahasiswa lain.');
+        }
+
         PeminjamanProyektor::create([
             'user_id' => Auth::id(),
+            'proyektor_code' => strtoupper($validated['proyektor_code']),
+            'keperluan' => $validated['keperluan'],
             'tanggal_pinjam' => now(),
+            'status' => 'dipinjam',
         ]);
 
         return redirect()->route('user.peminjaman-proyektor.index')
-            ->with('success', 'Peminjaman proyektor berhasil. Silahkan ambil proyektor di ruang administrasi.');
+            ->with('success', 'Peminjaman proyektor berhasil. Silakan ambil proyektor di ruang administrasi.');
     }
 
     /**
@@ -58,6 +84,11 @@ class PeminjamanProyektorController extends Controller
         // Keamanan: Pastikan user hanya bisa mengembalikan peminjamannya sendiri
         if ($peminjamanProyektor->user_id !== Auth::id()) {
             abort(403, 'AKSI TIDAK DIIZINKAN');
+        }
+
+        if ($peminjamanProyektor->status !== 'dipinjam') {
+            return redirect()->route('user.peminjaman-proyektor.index')
+                ->with('error', 'Proyektor sudah dikembalikan.');
         }
 
         $peminjamanProyektor->update([

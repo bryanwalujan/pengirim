@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\Log;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -101,6 +103,30 @@ class User extends Authenticatable
         return $this->hasMany(PembayaranUkt::class, 'mahasiswa_id');
     }
 
+    /**
+     * Statistik pembimbing skripsi per tahun ajaran
+     */
+    public function statistikPembimbing()
+    {
+        return $this->hasMany(StatistikPembimbingSkripsi::class, 'dosen_id');
+    }
+
+    /**
+     * Pengajuan SK dimana user adalah PS1
+     */
+    public function pengajuanSkSebagaiPs1()
+    {
+        return $this->hasMany(PengajuanSkPembimbing::class, 'dosen_pembimbing_1_id');
+    }
+
+    /**
+     * Pengajuan SK dimana user adalah PS2
+     */
+    public function pengajuanSkSebagaiPs2()
+    {
+        return $this->hasMany(PengajuanSkPembimbing::class, 'dosen_pembimbing_2_id');
+    }
+
     public function isMahasiswa()
     {
         return $this->hasRole('mahasiswa');
@@ -110,4 +136,106 @@ class User extends Authenticatable
     {
         $this->notify(new CustomResetPasswordNotification($token));
     }
+
+    public function isDosen()
+    {
+        return $this->hasRole('dosen');
+    }
+
+
+    /**
+     * Check if user is regular dosen (without approval authority)
+     */
+    public function isRegularDosen()
+    {
+        return $this->isDosen() && !$this->isDosenWithApprovalAuthority();
+    }
+
+    /**
+     * Check if user is Koordinator Prodi / Kaprodi
+     */
+    public function isKoordinatorProdi(): bool
+    {
+        if (!$this->hasRole('dosen')) {
+            return false;
+        }
+
+        $jabatanLower = strtolower($this->jabatan ?? '');
+
+        return Str::contains($jabatanLower, [
+            'koordinator program studi',
+            'koordinator prodi',
+            'kaprodi',
+            'korprodi',
+        ]);
+    }
+
+    /**
+     * Check if user is Ketua Jurusan / Kajur
+     */
+    public function isKetuaJurusan(): bool
+    {
+        if (!$this->hasRole('dosen')) {
+            return false;
+        }
+
+        if (!$this->jabatan) {
+            return false;
+        }
+
+        $jabatanLower = strtolower($this->jabatan);
+
+        // ✅ PERBAIKAN: Tambahkan semua variasi jabatan Kajur
+        $keywords = [
+            'ketua jurusan',
+            'kajur',
+            'kepala jurusan',
+            'pimpinan jurusan',
+            'pimpinan jurusan ptik', // Spesifik untuk kasus Anda
+            'ketua jur',
+        ];
+
+        foreach ($keywords as $keyword) {
+            if (str_contains($jabatanLower, $keyword)) {
+                Log::info('Kajur detected', [
+                    'user_id' => $this->id,
+                    'jabatan' => $this->jabatan,
+                    'matched_keyword' => $keyword,
+                ]);
+                return true;
+            }
+        }
+
+        Log::warning('Not Kajur', [
+            'user_id' => $this->id,
+            'jabatan' => $this->jabatan,
+        ]);
+
+        return false;
+    }
+    /**
+     * Check if user is Dosen with Approval Authority (Kaprodi or Kajur)
+     */
+    public function isDosenWithApprovalAuthority(): bool
+    {
+        return $this->hasRole('dosen') &&
+            ($this->isKoordinatorProdi() || $this->isKetuaJurusan());
+    }
+
+    /**
+     * Get user's jabatan display name
+     */
+    public function getJabatanDisplayAttribute(): string
+    {
+        if ($this->isKoordinatorProdi()) {
+            return 'Koordinator Program Studi';
+        }
+
+        if ($this->isKetuaJurusan()) {
+            return 'Ketua Jurusan';
+        }
+
+        return $this->jabatan ?? 'Dosen';
+    }
+
 }

@@ -26,25 +26,33 @@
         {{-- ============================================================ --}}
         {{-- KATEGORI 1: MANAJEMEN LAYANAN --}}
         {{-- ============================================================ --}}
-        @if (auth()->user()->can('manage surat aktif kuliah') ||
-                auth()->user()->can('manage surat ijin survey') ||
-                auth()->user()->can('manage surat cuti akademik') ||
-                auth()->user()->can('manage surat pindah') ||
-                auth()->user()->can('manage services') ||
+        @php
+            // Check if user should see "`" header
+            $canSeeSuratMenus = auth()->user()->hasRole('staff') || auth()->user()->isDosenWithApprovalAuthority();
+
+            $showManajemenLayanan =
+                $canSeeSuratMenus ||
                 auth()->user()->can('manage academic calendar') ||
                 auth()->user()->can('manage peminjaman proyektor') ||
                 auth()->user()->can('manage peminjaman laboratorium') ||
                 auth()->user()->can('manage pendaftaran sempro') ||
                 auth()->user()->can('manage pendaftaran hasil') ||
                 auth()->user()->can('manage komisi proposal') ||
-                auth()->user()->can('manage komisi hasil'))
+                auth()->user()->can('manage komisi hasil');
+        @endphp
+
+        @if ($showManajemenLayanan)
             <li class="menu-header small text-uppercase">
                 <span class="menu-header-text">Manajemen Layanan</span>
             </li>
         @endif
 
+        {{-- ============================================================ --}}
+        {{-- SURAT MENUS - Only for Staff & Dosen with Approval Authority --}}
+        {{-- ============================================================ --}}
+
         {{-- Surat Aktif Kuliah --}}
-        @can('manage surat aktif kuliah')
+        @if ($canSeeSuratMenus && auth()->user()->can('manage surat aktif kuliah'))
             @php
                 // Initialize default values for Surat Aktif Kuliah
                 $totalPendingSuratAktifKuliah = 0;
@@ -61,7 +69,7 @@
                             $userSpecificSuratAktifKuliah = $suratCountsSuratAktifKuliah['user_specific'] ?? [];
                         }
                     } else {
-                        // For dosen, use existing notification system
+                        // For dosen with approval authority, use existing notification system
                         $totalPendingSuratAktifKuliah = auth()
                             ->user()
                             ->unreadNotifications()
@@ -85,7 +93,8 @@
                     @endif
                 </a>
                 <ul class="menu-sub">
-                    @if (auth()->user()->hasRole('dosen'))
+                    @if (auth()->user()->isDosenWithApprovalAuthority())
+                        {{-- Dosen with approval authority - simplified menu --}}
                         @php
                             $unreadCount = auth()
                                 ->user()
@@ -95,9 +104,7 @@
                                 ->count();
                         @endphp
                         <li
-                            class="menu-item {{ request()->routeIs('admin.surat-aktif-kuliah.index') && request()->input('status') === 'diproses'
-                                ? 'active'
-                                : '' }}">
+                            class="menu-item {{ request()->routeIs('admin.surat-aktif-kuliah.index') && request()->input('status') === 'diproses' ? 'active' : '' }}">
                             <a href="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'diproses']) }}"
                                 class="menu-link">
                                 <i class="menu-icon tf-icons bx bx-time"></i>
@@ -108,26 +115,9 @@
                             </a>
                         </li>
                     @else
-                        {{-- Staff sections dengan active state universal --}}
+                        {{-- Staff - full menu --}}
                         <li
-                            class="menu-item {{ (request()->routeIs('admin.surat-aktif-kuliah.index') &&
-                                request()->input('status', 'diajukan') === 'diajukan') ||
-                            (request()->routeIs('admin.surat-aktif-kuliah.show') &&
-                                isset($surat) &&
-                                $surat instanceof App\Models\SuratAktifKuliah &&
-                                \App\Helpers\SuratNotificationHelper::getDisplayStatus(
-                                    'surat_aktif_kuliah',
-                                    $surat->statusSurat->status ?? $surat->status,
-                                ) === 'diajukan') ||
-                            (request()->routeIs('admin.surat-aktif-kuliah.edit') &&
-                                isset($surat) &&
-                                $surat instanceof App\Models\SuratAktifKuliah &&
-                                \App\Helpers\SuratNotificationHelper::getDisplayStatus(
-                                    'surat_aktif_kuliah',
-                                    $surat->statusSurat->status ?? $surat->status,
-                                ) === 'diajukan')
-                                ? 'active'
-                                : '' }}">
+                            class="menu-item {{ (request()->routeIs('admin.surat-aktif-kuliah.index') && request()->input('status', 'diajukan') === 'diajukan') || (request()->routeIs('admin.surat-aktif-kuliah.show') && isset($surat) && $surat instanceof App\Models\SuratAktifKuliah && \App\Helpers\SuratNotificationHelper::getDisplayStatus('surat_aktif_kuliah', $surat->statusSurat->status ?? $surat->status) === 'diajukan') || (request()->routeIs('admin.surat-aktif-kuliah.edit') && isset($surat) && $surat instanceof App\Models\SuratAktifKuliah && \App\Helpers\SuratNotificationHelper::getDisplayStatus('surat_aktif_kuliah', $surat->statusSurat->status ?? $surat->status) === 'diajukan') ? 'active' : '' }}">
                             <a href="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'diajukan']) }}"
                                 class="menu-link">
                                 <i
@@ -143,23 +133,7 @@
                         </li>
 
                         <li
-                            class="menu-item {{ (request()->routeIs('admin.surat-aktif-kuliah.index') && request()->input('status') === 'diproses') ||
-                            (request()->routeIs('admin.surat-aktif-kuliah.show') &&
-                                isset($surat) &&
-                                $surat instanceof App\Models\SuratAktifKuliah &&
-                                \App\Helpers\SuratNotificationHelper::getDisplayStatus(
-                                    'surat_aktif_kuliah',
-                                    $surat->statusSurat->status ?? $surat->status,
-                                ) === 'diproses') ||
-                            (request()->routeIs('admin.surat-aktif-kuliah.edit') &&
-                                isset($surat) &&
-                                $surat instanceof App\Models\SuratAktifKuliah &&
-                                \App\Helpers\SuratNotificationHelper::getDisplayStatus(
-                                    'surat_aktif_kuliah',
-                                    $surat->statusSurat->status ?? $surat->status,
-                                ) === 'diproses')
-                                ? 'active'
-                                : '' }}">
+                            class="menu-item {{ (request()->routeIs('admin.surat-aktif-kuliah.index') && request()->input('status') === 'diproses') || (request()->routeIs('admin.surat-aktif-kuliah.show') && isset($surat) && $surat instanceof App\Models\SuratAktifKuliah && \App\Helpers\SuratNotificationHelper::getDisplayStatus('surat_aktif_kuliah', $surat->statusSurat->status ?? $surat->status) === 'diproses') || (request()->routeIs('admin.surat-aktif-kuliah.edit') && isset($surat) && $surat instanceof App\Models\SuratAktifKuliah && \App\Helpers\SuratNotificationHelper::getDisplayStatus('surat_aktif_kuliah', $surat->statusSurat->status ?? $surat->status) === 'diproses') ? 'active' : '' }}">
                             <a href="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'diproses']) }}"
                                 class="menu-link">
                                 <i
@@ -175,23 +149,7 @@
                         </li>
 
                         <li
-                            class="menu-item {{ (request()->routeIs('admin.surat-aktif-kuliah.index') && request()->input('status') === 'disetujui') ||
-                            (request()->routeIs('admin.surat-aktif-kuliah.show') &&
-                                isset($surat) &&
-                                $surat instanceof App\Models\SuratAktifKuliah &&
-                                \App\Helpers\SuratNotificationHelper::getDisplayStatus(
-                                    'surat_aktif_kuliah',
-                                    $surat->statusSurat->status ?? $surat->status,
-                                ) === 'disetujui') ||
-                            (request()->routeIs('admin.surat-aktif-kuliah.edit') &&
-                                isset($surat) &&
-                                $surat instanceof App\Models\SuratAktifKuliah &&
-                                \App\Helpers\SuratNotificationHelper::getDisplayStatus(
-                                    'surat_aktif_kuliah',
-                                    $surat->statusSurat->status ?? $surat->status,
-                                ) === 'disetujui')
-                                ? 'active'
-                                : '' }}">
+                            class="menu-item {{ (request()->routeIs('admin.surat-aktif-kuliah.index') && request()->input('status') === 'disetujui') || (request()->routeIs('admin.surat-aktif-kuliah.show') && isset($surat) && $surat instanceof App\Models\SuratAktifKuliah && \App\Helpers\SuratNotificationHelper::getDisplayStatus('surat_aktif_kuliah', $surat->statusSurat->status ?? $surat->status) === 'disetujui') || (request()->routeIs('admin.surat-aktif-kuliah.edit') && isset($surat) && $surat instanceof App\Models\SuratAktifKuliah && \App\Helpers\SuratNotificationHelper::getDisplayStatus('surat_aktif_kuliah', $surat->statusSurat->status ?? $surat->status) === 'disetujui') ? 'active' : '' }}">
                             <a href="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'disetujui']) }}"
                                 class="menu-link">
                                 <i
@@ -207,23 +165,7 @@
                         </li>
 
                         <li
-                            class="menu-item {{ (request()->routeIs('admin.surat-aktif-kuliah.index') && request()->input('status') === 'ditolak') ||
-                            (request()->routeIs('admin.surat-aktif-kuliah.show') &&
-                                isset($surat) &&
-                                $surat instanceof App\Models\SuratAktifKuliah &&
-                                \App\Helpers\SuratNotificationHelper::getDisplayStatus(
-                                    'surat_aktif_kuliah',
-                                    $surat->statusSurat->status ?? $surat->status,
-                                ) === 'ditolak') ||
-                            (request()->routeIs('admin.surat-aktif-kuliah.edit') &&
-                                isset($surat) &&
-                                $surat instanceof App\Models\SuratAktifKuliah &&
-                                \App\Helpers\SuratNotificationHelper::getDisplayStatus(
-                                    'surat_aktif_kuliah',
-                                    $surat->statusSurat->status ?? $surat->status,
-                                ) === 'ditolak')
-                                ? 'active'
-                                : '' }}">
+                            class="menu-item {{ (request()->routeIs('admin.surat-aktif-kuliah.index') && request()->input('status') === 'ditolak') || (request()->routeIs('admin.surat-aktif-kuliah.show') && isset($surat) && $surat instanceof App\Models\SuratAktifKuliah && \App\Helpers\SuratNotificationHelper::getDisplayStatus('surat_aktif_kuliah', $surat->statusSurat->status ?? $surat->status) === 'ditolak') || (request()->routeIs('admin.surat-aktif-kuliah.edit') && isset($surat) && $surat instanceof App\Models\SuratAktifKuliah && \App\Helpers\SuratNotificationHelper::getDisplayStatus('surat_aktif_kuliah', $surat->statusSurat->status ?? $surat->status) === 'ditolak') ? 'active' : '' }}">
                             <a href="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'ditolak']) }}"
                                 class="menu-link">
                                 <i
@@ -233,23 +175,7 @@
                         </li>
 
                         <li
-                            class="menu-item {{ (request()->routeIs('admin.surat-aktif-kuliah.index') && request()->input('status') === 'siap_diambil') ||
-                            (request()->routeIs('admin.surat-aktif-kuliah.show') &&
-                                isset($surat) &&
-                                $surat instanceof App\Models\SuratAktifKuliah &&
-                                \App\Helpers\SuratNotificationHelper::getDisplayStatus(
-                                    'surat_aktif_kuliah',
-                                    $surat->statusSurat->status ?? $surat->status,
-                                ) === 'siap_diambil') ||
-                            (request()->routeIs('admin.surat-aktif-kuliah.edit') &&
-                                isset($surat) &&
-                                $surat instanceof App\Models\SuratAktifKuliah &&
-                                \App\Helpers\SuratNotificationHelper::getDisplayStatus(
-                                    'surat_aktif_kuliah',
-                                    $surat->statusSurat->status ?? $surat->status,
-                                ) === 'siap_diambil')
-                                ? 'active'
-                                : '' }}">
+                            class="menu-item {{ (request()->routeIs('admin.surat-aktif-kuliah.index') && request()->input('status') === 'siap_diambil') || (request()->routeIs('admin.surat-aktif-kuliah.show') && isset($surat) && $surat instanceof App\Models\SuratAktifKuliah && \App\Helpers\SuratNotificationHelper::getDisplayStatus('surat_aktif_kuliah', $surat->statusSurat->status ?? $surat->status) === 'siap_diambil') || (request()->routeIs('admin.surat-aktif-kuliah.edit') && isset($surat) && $surat instanceof App\Models\SuratAktifKuliah && \App\Helpers\SuratNotificationHelper::getDisplayStatus('surat_aktif_kuliah', $surat->statusSurat->status ?? $surat->status) === 'siap_diambil') ? 'active' : '' }}">
                             <a href="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'siap_diambil']) }}"
                                 class="menu-link">
                                 <i
@@ -265,23 +191,7 @@
                         </li>
 
                         <li
-                            class="menu-item {{ (request()->routeIs('admin.surat-aktif-kuliah.index') && request()->input('status') === 'sudah_diambil') ||
-                            (request()->routeIs('admin.surat-aktif-kuliah.show') &&
-                                isset($surat) &&
-                                $surat instanceof App\Models\SuratAktifKuliah &&
-                                \App\Helpers\SuratNotificationHelper::getDisplayStatus(
-                                    'surat_aktif_kuliah',
-                                    $surat->statusSurat->status ?? $surat->status,
-                                ) === 'sudah_diambil') ||
-                            (request()->routeIs('admin.surat-aktif-kuliah.edit') &&
-                                isset($surat) &&
-                                $surat instanceof App\Models\SuratAktifKuliah &&
-                                \App\Helpers\SuratNotificationHelper::getDisplayStatus(
-                                    'surat_aktif_kuliah',
-                                    $surat->statusSurat->status ?? $surat->status,
-                                ) === 'sudah_diambil')
-                                ? 'active'
-                                : '' }}">
+                            class="menu-item {{ (request()->routeIs('admin.surat-aktif-kuliah.index') && request()->input('status') === 'sudah_diambil') || (request()->routeIs('admin.surat-aktif-kuliah.show') && isset($surat) && $surat instanceof App\Models\SuratAktifKuliah && \App\Helpers\SuratNotificationHelper::getDisplayStatus('surat_aktif_kuliah', $surat->statusSurat->status ?? $surat->status) === 'sudah_diambil') || (request()->routeIs('admin.surat-aktif-kuliah.edit') && isset($surat) && $surat instanceof App\Models\SuratAktifKuliah && \App\Helpers\SuratNotificationHelper::getDisplayStatus('surat_aktif_kuliah', $surat->statusSurat->status ?? $surat->status) === 'sudah_diambil') ? 'active' : '' }}">
                             <a href="{{ route('admin.surat-aktif-kuliah.index', ['status' => 'sudah_diambil']) }}"
                                 class="menu-link">
                                 <i
@@ -301,58 +211,25 @@
                     @endif
                 </ul>
             </li>
-        @endcan
+        @endif
 
-        {{-- Surat Ijin Survey --}}
-        @can('manage surat ijin survey')
+        {{-- Surat Ijin Survey - Repeat similar pattern --}}
+        @if ($canSeeSuratMenus && auth()->user()->can('manage surat ijin survey'))
             @php
-                // Initialize default values for Surat Ijin Survey
+                // Similar initialization as Surat Aktif Kuliah
                 $totalPendingIjinSurvey = 0;
                 $userSpecificIjinSurvey = [];
 
                 try {
                     if (auth()->user()->hasRole('staff')) {
-                        // Use helper for staff
                         if (class_exists('\App\Helpers\SuratNotificationHelper')) {
                             $suratCountsIjinSurvey = \App\Helpers\SuratNotificationHelper::getUserSpecificCounts(
                                 'surat_ijin_survey',
                             );
                             $totalPendingIjinSurvey = $suratCountsIjinSurvey['total_pending'] ?? 0;
                             $userSpecificIjinSurvey = $suratCountsIjinSurvey['user_specific'] ?? [];
-                        } else {
-                            // Fallback query jika helper tidak ada
-                            $directCountsIjinSurvey = \App\Models\SuratIjinSurvey::join('status_surats', function (
-                                $join,
-                            ) {
-                                $join
-                                    ->on('status_surats.surat_id', '=', 'surat_ijin_surveys.id')
-                                    ->where('status_surats.surat_type', '=', 'App\\Models\\SuratIjinSurvey');
-                            })
-                                ->whereIn('status_surats.status', [
-                                    'diajukan',
-                                    'diproses',
-                                    'disetujui_kaprodi',
-                                    'disetujui',
-                                    'siap_diambil',
-                                ])
-                                ->selectRaw('status_surats.status, COUNT(*) as count')
-                                ->groupBy('status_surats.status')
-                                ->pluck('count', 'status');
-
-                            // Manual merge untuk fallback
-                            $diprosesCount =
-                                $directCountsIjinSurvey->get('diproses', 0) +
-                                $directCountsIjinSurvey->get('disetujui_kaprodi', 0);
-                            $userSpecificIjinSurvey = [
-                                'diajukan' => $directCountsIjinSurvey->get('diajukan', 0),
-                                'diproses' => $diprosesCount,
-                                'disetujui' => $directCountsIjinSurvey->get('disetujui', 0),
-                                'siap_diambil' => $directCountsIjinSurvey->get('siap_diambil', 0),
-                            ];
-                            $totalPendingIjinSurvey = collect($userSpecificIjinSurvey)->sum();
                         }
                     } else {
-                        // For dosen, use existing notification system
                         $totalPendingIjinSurvey = auth()
                             ->user()
                             ->unreadNotifications()
@@ -362,7 +239,6 @@
                     }
                 } catch (\Exception $e) {
                     \Log::error('Sidebar notification error for Surat Ijin Survey: ' . $e->getMessage());
-                    // Set safe defaults
                     $totalPendingIjinSurvey = 0;
                     $userSpecificIjinSurvey = [];
                 }
@@ -377,7 +253,7 @@
                     @endif
                 </a>
                 <ul class="menu-sub">
-                    @if (auth()->user()->hasRole('dosen'))
+                    @if (auth()->user()->isDosenWithApprovalAuthority())
                         @php
                             $unreadCount = auth()
                                 ->user()
@@ -387,9 +263,7 @@
                                 ->count();
                         @endphp
                         <li
-                            class="menu-item {{ request()->routeIs('admin.surat-ijin-survey.index') && request()->input('status') === 'diproses'
-                                ? 'active'
-                                : '' }}">
+                            class="menu-item {{ request()->routeIs('admin.surat-ijin-survey.index') && request()->input('status') === 'diproses' ? 'active' : '' }}">
                             <a href="{{ route('admin.surat-ijin-survey.index', ['status' => 'diproses']) }}"
                                 class="menu-link">
                                 <i class="menu-icon tf-icons bx bx-time"></i>
@@ -589,7 +463,7 @@
         @endcan
 
         {{-- Surat Cuti Akademik --}}
-        @can('manage surat cuti akademik')
+        @if ($canSeeSuratMenus && auth()->user()->can('manage surat cuti akademik'))
             @php
                 // Initialize default values for Surat Cuti Akademik
                 $totalPendingCutiAkademik = 0;
@@ -604,40 +478,9 @@
                             );
                             $totalPendingCutiAkademik = $suratCountsCutiAkademik['total_pending'] ?? 0;
                             $userSpecificCutiAkademik = $suratCountsCutiAkademik['user_specific'] ?? [];
-                        } else {
-                            // Fallback query jika helper tidak ada
-                            $directCountsCutiAkademik = \App\Models\SuratCutiAkademik::join('status_surats', function (
-                                $join,
-                            ) {
-                                $join
-                                    ->on('status_surats.surat_id', '=', 'surat_cuti_akademiks.id')
-                                    ->where('status_surats.surat_type', '=', 'App\\Models\\SuratCutiAkademik');
-                            })
-                                ->whereIn('status_surats.status', [
-                                    'diajukan',
-                                    'diproses',
-                                    'disetujui_kaprodi',
-                                    'disetujui',
-                                    'siap_diambil',
-                                ])
-                                ->selectRaw('status_surats.status, COUNT(*) as count')
-                                ->groupBy('status_surats.status')
-                                ->pluck('count', 'status');
-
-                            // Manual merge untuk fallback
-                            $diprosesCount =
-                                $directCountsCutiAkademik->get('diproses', 0) +
-                                $directCountsCutiAkademik->get('disetujui_kaprodi', 0);
-                            $userSpecificCutiAkademik = [
-                                'diajukan' => $directCountsCutiAkademik->get('diajukan', 0),
-                                'diproses' => $diprosesCount,
-                                'disetujui' => $directCountsCutiAkademik->get('disetujui', 0),
-                                'siap_diambil' => $directCountsCutiAkademik->get('siap_diambil', 0),
-                            ];
-                            $totalPendingCutiAkademik = collect($userSpecificCutiAkademik)->sum();
                         }
                     } else {
-                        // For dosen, use existing notification system
+                        // For dosen with approval authority, use existing notification system
                         $totalPendingCutiAkademik = auth()
                             ->user()
                             ->unreadNotifications()
@@ -647,7 +490,6 @@
                     }
                 } catch (\Exception $e) {
                     \Log::error('Sidebar notification error for Surat Cuti Akademik: ' . $e->getMessage());
-                    // Set safe defaults
                     $totalPendingCutiAkademik = 0;
                     $userSpecificCutiAkademik = [];
                 }
@@ -662,7 +504,8 @@
                     @endif
                 </a>
                 <ul class="menu-sub">
-                    @if (auth()->user()->hasRole('dosen'))
+                    @if (auth()->user()->isDosenWithApprovalAuthority())
+                        {{-- Dosen with approval authority - simplified menu --}}
                         @php
                             $unreadCount = auth()
                                 ->user()
@@ -672,9 +515,7 @@
                                 ->count();
                         @endphp
                         <li
-                            class="menu-item {{ request()->routeIs('admin.surat-cuti-akademik.index') && request()->input('status') === 'diproses'
-                                ? 'active'
-                                : '' }}">
+                            class="menu-item {{ request()->routeIs('admin.surat-cuti-akademik.index') && request()->input('status') === 'diproses' ? 'active' : '' }}">
                             <a href="{{ route('admin.surat-cuti-akademik.index', ['status' => 'diproses']) }}"
                                 class="menu-link">
                                 <i class="menu-icon tf-icons bx bx-time"></i>
@@ -685,26 +526,9 @@
                             </a>
                         </li>
                     @else
-                        {{-- Staff sections dengan active state universal --}}
+                        {{-- Staff - full menu --}}
                         <li
-                            class="menu-item {{ (request()->routeIs('admin.surat-cuti-akademik.index') &&
-                                request()->input('status', 'diajukan') === 'diajukan') ||
-                            (request()->routeIs('admin.surat-cuti-akademik.show') &&
-                                isset($surat) &&
-                                $surat instanceof App\Models\SuratCutiAkademik &&
-                                \App\Helpers\SuratNotificationHelper::getDisplayStatus(
-                                    'surat_cuti_akademik',
-                                    $surat->statusSurat->status ?? $surat->status,
-                                ) === 'diajukan') ||
-                            (request()->routeIs('admin.surat-cuti-akademik.edit') &&
-                                isset($surat) &&
-                                $surat instanceof App\Models\SuratCutiAkademik &&
-                                \App\Helpers\SuratNotificationHelper::getDisplayStatus(
-                                    'surat_cuti_akademik',
-                                    $surat->statusSurat->status ?? $surat->status,
-                                ) === 'diajukan')
-                                ? 'active'
-                                : '' }}">
+                            class="menu-item {{ (request()->routeIs('admin.surat-cuti-akademik.index') && request()->input('status', 'diajukan') === 'diajukan') || (request()->routeIs('admin.surat-cuti-akademik.show') && isset($surat) && $surat instanceof App\Models\SuratCutiAkademik && \App\Helpers\SuratNotificationHelper::getDisplayStatus('surat_cuti_akademik', $surat->statusSurat->status ?? $surat->status) === 'diajukan') || (request()->routeIs('admin.surat-cuti-akademik.edit') && isset($surat) && $surat instanceof App\Models\SuratCutiAkademik && \App\Helpers\SuratNotificationHelper::getDisplayStatus('surat_cuti_akademik', $surat->statusSurat->status ?? $surat->status) === 'diajukan') ? 'active' : '' }}">
                             <a href="{{ route('admin.surat-cuti-akademik.index', ['status' => 'diajukan']) }}"
                                 class="menu-link">
                                 <i
@@ -720,23 +544,7 @@
                         </li>
 
                         <li
-                            class="menu-item {{ (request()->routeIs('admin.surat-cuti-akademik.index') && request()->input('status') === 'diproses') ||
-                            (request()->routeIs('admin.surat-cuti-akademik.show') &&
-                                isset($surat) &&
-                                $surat instanceof App\Models\SuratCutiAkademik &&
-                                \App\Helpers\SuratNotificationHelper::getDisplayStatus(
-                                    'surat_cuti_akademik',
-                                    $surat->statusSurat->status ?? $surat->status,
-                                ) === 'diproses') ||
-                            (request()->routeIs('admin.surat-cuti-akademik.edit') &&
-                                isset($surat) &&
-                                $surat instanceof App\Models\SuratCutiAkademik &&
-                                \App\Helpers\SuratNotificationHelper::getDisplayStatus(
-                                    'surat_cuti_akademik',
-                                    $surat->statusSurat->status ?? $surat->status,
-                                ) === 'diproses')
-                                ? 'active'
-                                : '' }}">
+                            class="menu-item {{ (request()->routeIs('admin.surat-cuti-akademik.index') && request()->input('status') === 'diproses') || (request()->routeIs('admin.surat-cuti-akademik.show') && isset($surat) && $surat instanceof App\Models\SuratCutiAkademik && \App\Helpers\SuratNotificationHelper::getDisplayStatus('surat_cuti_akademik', $surat->statusSurat->status ?? $surat->status) === 'diproses') || (request()->routeIs('admin.surat-cuti-akademik.edit') && isset($surat) && $surat instanceof App\Models\SuratCutiAkademik && \App\Helpers\SuratNotificationHelper::getDisplayStatus('surat_cuti_akademik', $surat->statusSurat->status ?? $surat->status) === 'diproses') ? 'active' : '' }}">
                             <a href="{{ route('admin.surat-cuti-akademik.index', ['status' => 'diproses']) }}"
                                 class="menu-link">
                                 <i
@@ -752,23 +560,7 @@
                         </li>
 
                         <li
-                            class="menu-item {{ (request()->routeIs('admin.surat-cuti-akademik.index') && request()->input('status') === 'disetujui') ||
-                            (request()->routeIs('admin.surat-cuti-akademik.show') &&
-                                isset($surat) &&
-                                $surat instanceof App\Models\SuratCutiAkademik &&
-                                \App\Helpers\SuratNotificationHelper::getDisplayStatus(
-                                    'surat_cuti_akademik',
-                                    $surat->statusSurat->status ?? $surat->status,
-                                ) === 'disetujui') ||
-                            (request()->routeIs('admin.surat-cuti-akademik.edit') &&
-                                isset($surat) &&
-                                $surat instanceof App\Models\SuratCutiAkademik &&
-                                \App\Helpers\SuratNotificationHelper::getDisplayStatus(
-                                    'surat_cuti_akademik',
-                                    $surat->statusSurat->status ?? $surat->status,
-                                ) === 'disetujui')
-                                ? 'active'
-                                : '' }}">
+                            class="menu-item {{ (request()->routeIs('admin.surat-cuti-akademik.index') && request()->input('status') === 'disetujui') || (request()->routeIs('admin.surat-cuti-akademik.show') && isset($surat) && $surat instanceof App\Models\SuratCutiAkademik && \App\Helpers\SuratNotificationHelper::getDisplayStatus('surat_cuti_akademik', $surat->statusSurat->status ?? $surat->status) === 'disetujui') || (request()->routeIs('admin.surat-cuti-akademik.edit') && isset($surat) && $surat instanceof App\Models\SuratCutiAkademik && \App\Helpers\SuratNotificationHelper::getDisplayStatus('surat_cuti_akademik', $surat->statusSurat->status ?? $surat->status) === 'disetujui') ? 'active' : '' }}">
                             <a href="{{ route('admin.surat-cuti-akademik.index', ['status' => 'disetujui']) }}"
                                 class="menu-link">
                                 <i
@@ -784,50 +576,17 @@
                         </li>
 
                         <li
-                            class="menu-item {{ (request()->routeIs('admin.surat-cuti-akademik.index') && request()->input('status') === 'ditolak') ||
-                            (request()->routeIs('admin.surat-cuti-akademik.show') &&
-                                isset($surat) &&
-                                $surat instanceof App\Models\SuratCutiAkademik &&
-                                \App\Helpers\SuratNotificationHelper::getDisplayStatus(
-                                    'surat_cuti_akademik',
-                                    $surat->statusSurat->status ?? $surat->status,
-                                ) === 'ditolak') ||
-                            (request()->routeIs('admin.surat-cuti-akademik.edit') &&
-                                isset($surat) &&
-                                $surat instanceof App\Models\SuratCutiAkademik &&
-                                \App\Helpers\SuratNotificationHelper::getDisplayStatus(
-                                    'surat_cuti_akademik',
-                                    $surat->statusSurat->status ?? $surat->status,
-                                ) === 'ditolak')
-                                ? 'active'
-                                : '' }}">
+                            class="menu-item {{ (request()->routeIs('admin.surat-cuti-akademik.index') && request()->input('status') === 'ditolak') || (request()->routeIs('admin.surat-cuti-akademik.show') && isset($surat) && $surat instanceof App\Models\SuratCutiAkademik && \App\Helpers\SuratNotificationHelper::getDisplayStatus('surat_cuti_akademik', $surat->statusSurat->status ?? $surat->status) === 'ditolak') || (request()->routeIs('admin.surat-cuti-akademik.edit') && isset($surat) && $surat instanceof App\Models\SuratCutiAkademik && \App\Helpers\SuratNotificationHelper::getDisplayStatus('surat_cuti_akademik', $surat->statusSurat->status ?? $surat->status) === 'ditolak') ? 'active' : '' }}">
                             <a href="{{ route('admin.surat-cuti-akademik.index', ['status' => 'ditolak']) }}"
                                 class="menu-link">
                                 <i
                                     class="menu-icon tf-icons {{ \App\Helpers\SuratNotificationHelper::getStatusIcon('ditolak') }}"></i>
                                 <div>Ditolak</div>
-                                {{-- No badge for ditolak as it doesn't require action --}}
                             </a>
                         </li>
 
                         <li
-                            class="menu-item {{ (request()->routeIs('admin.surat-cuti-akademik.index') && request()->input('status') === 'siap_diambil') ||
-                            (request()->routeIs('admin.surat-cuti-akademik.show') &&
-                                isset($surat) &&
-                                $surat instanceof App\Models\SuratCutiAkademik &&
-                                \App\Helpers\SuratNotificationHelper::getDisplayStatus(
-                                    'surat_cuti_akademik',
-                                    $surat->statusSurat->status ?? $surat->status,
-                                ) === 'siap_diambil') ||
-                            (request()->routeIs('admin.surat-cuti-akademik.edit') &&
-                                isset($surat) &&
-                                $surat instanceof App\Models\SuratCutiAkademik &&
-                                \App\Helpers\SuratNotificationHelper::getDisplayStatus(
-                                    'surat_cuti_akademik',
-                                    $surat->statusSurat->status ?? $surat->status,
-                                ) === 'siap_diambil')
-                                ? 'active'
-                                : '' }}">
+                            class="menu-item {{ (request()->routeIs('admin.surat-cuti-akademik.index') && request()->input('status') === 'siap_diambil') || (request()->routeIs('admin.surat-cuti-akademik.show') && isset($surat) && $surat instanceof App\Models\SuratCutiAkademik && \App\Helpers\SuratNotificationHelper::getDisplayStatus('surat_cuti_akademik', $surat->statusSurat->status ?? $surat->status) === 'siap_diambil') || (request()->routeIs('admin.surat-cuti-akademik.edit') && isset($surat) && $surat instanceof App\Models\SuratCutiAkademik && \App\Helpers\SuratNotificationHelper::getDisplayStatus('surat_cuti_akademik', $surat->statusSurat->status ?? $surat->status) === 'siap_diambil') ? 'active' : '' }}">
                             <a href="{{ route('admin.surat-cuti-akademik.index', ['status' => 'siap_diambil']) }}"
                                 class="menu-link">
                                 <i
@@ -843,38 +602,21 @@
                         </li>
 
                         <li
-                            class="menu-item {{ (request()->routeIs('admin.surat-cuti-akademik.index') && request()->input('status') === 'sudah_diambil') ||
-                            (request()->routeIs('admin.surat-cuti-akademik.show') &&
-                                isset($surat) &&
-                                $surat instanceof App\Models\SuratCutiAkademik &&
-                                \App\Helpers\SuratNotificationHelper::getDisplayStatus(
-                                    'surat_cuti_akademik',
-                                    $surat->statusSurat->status ?? $surat->status,
-                                ) === 'sudah_diambil') ||
-                            (request()->routeIs('admin.surat-cuti-akademik.edit') &&
-                                isset($surat) &&
-                                $surat instanceof App\Models\SuratCutiAkademik &&
-                                \App\Helpers\SuratNotificationHelper::getDisplayStatus(
-                                    'surat_cuti_akademik',
-                                    $surat->statusSurat->status ?? $surat->status,
-                                ) === 'sudah_diambil')
-                                ? 'active'
-                                : '' }}">
+                            class="menu-item {{ (request()->routeIs('admin.surat-cuti-akademik.index') && request()->input('status') === 'sudah_diambil') || (request()->routeIs('admin.surat-cuti-akademik.show') && isset($surat) && $surat instanceof App\Models\SuratCutiAkademik && \App\Helpers\SuratNotificationHelper::getDisplayStatus('surat_cuti_akademik', $surat->statusSurat->status ?? $surat->status) === 'sudah_diambil') || (request()->routeIs('admin.surat-cuti-akademik.edit') && isset($surat) && $surat instanceof App\Models\SuratCutiAkademik && \App\Helpers\SuratNotificationHelper::getDisplayStatus('surat_cuti_akademik', $surat->statusSurat->status ?? $surat->status) === 'sudah_diambil') ? 'active' : '' }}">
                             <a href="{{ route('admin.surat-cuti-akademik.index', ['status' => 'sudah_diambil']) }}"
                                 class="menu-link">
                                 <i
                                     class="menu-icon tf-icons {{ \App\Helpers\SuratNotificationHelper::getStatusIcon('sudah_diambil') }}"></i>
                                 <div>Sudah Diambil</div>
-                                {{-- No badge for sudah_diambil as it doesn't require action --}}
                             </a>
                         </li>
                     @endif
                 </ul>
             </li>
-        @endcan
+        @endif
 
         {{-- Surat Pindah --}}
-        @can('manage surat pindah')
+        @if ($canSeeSuratMenus && auth()->user()->can('manage surat pindah'))
             @php
                 // Initialize default values for Surat Pindah
                 $totalPendingSuratPindah = 0;
@@ -889,38 +631,9 @@
                             );
                             $totalPendingSuratPindah = $suratCountsSuratPindah['total_pending'] ?? 0;
                             $userSpecificSuratPindah = $suratCountsSuratPindah['user_specific'] ?? [];
-                        } else {
-                            // Fallback query jika helper tidak ada
-                            $directCountsSuratPindah = \App\Models\SuratPindah::join('status_surats', function ($join) {
-                                $join
-                                    ->on('status_surats.surat_id', '=', 'surat_pindahs.id')
-                                    ->where('status_surats.surat_type', '=', 'App\\Models\\SuratPindah');
-                            })
-                                ->whereIn('status_surats.status', [
-                                    'diajukan',
-                                    'diproses',
-                                    'disetujui_kaprodi',
-                                    'disetujui',
-                                    'siap_diambil',
-                                ])
-                                ->selectRaw('status_surats.status, COUNT(*) as count')
-                                ->groupBy('status_surats.status')
-                                ->pluck('count', 'status');
-
-                            // Manual merge untuk fallback
-                            $diprosesCount =
-                                $directCountsSuratPindah->get('diproses', 0) +
-                                $directCountsSuratPindah->get('disetujui_kaprodi', 0);
-                            $userSpecificSuratPindah = [
-                                'diajukan' => $directCountsSuratPindah->get('diajukan', 0),
-                                'diproses' => $diprosesCount,
-                                'disetujui' => $directCountsSuratPindah->get('disetujui', 0),
-                                'siap_diambil' => $directCountsSuratPindah->get('siap_diambil', 0),
-                            ];
-                            $totalPendingSuratPindah = collect($userSpecificSuratPindah)->sum();
                         }
                     } else {
-                        // For dosen, use existing notification system
+                        // For dosen with approval authority, use existing notification system
                         $totalPendingSuratPindah = auth()
                             ->user()
                             ->unreadNotifications()
@@ -930,7 +643,6 @@
                     }
                 } catch (\Exception $e) {
                     \Log::error('Sidebar notification error for Surat Pindah: ' . $e->getMessage());
-                    // Set safe defaults
                     $totalPendingSuratPindah = 0;
                     $userSpecificSuratPindah = [];
                 }
@@ -945,7 +657,8 @@
                     @endif
                 </a>
                 <ul class="menu-sub">
-                    @if (auth()->user()->hasRole('dosen'))
+                    @if (auth()->user()->isDosenWithApprovalAuthority())
+                        {{-- Dosen with approval authority - simplified menu --}}
                         @php
                             $unreadCount = auth()
                                 ->user()
@@ -966,25 +679,9 @@
                             </a>
                         </li>
                     @else
-                        {{-- Staff sections dengan active state universal --}}
+                        {{-- Staff - full menu --}}
                         <li
-                            class="menu-item {{ (request()->routeIs('admin.surat-pindah.index') && request()->input('status', 'diajukan') === 'diajukan') ||
-                            (request()->routeIs('admin.surat-pindah.show') &&
-                                isset($surat) &&
-                                $surat instanceof App\Models\SuratPindah &&
-                                \App\Helpers\SuratNotificationHelper::getDisplayStatus(
-                                    'surat_pindah',
-                                    $surat->statusSurat->status ?? $surat->status,
-                                ) === 'diajukan') ||
-                            (request()->routeIs('admin.surat-pindah.edit') &&
-                                isset($surat) &&
-                                $surat instanceof App\Models\SuratPindah &&
-                                \App\Helpers\SuratNotificationHelper::getDisplayStatus(
-                                    'surat_pindah',
-                                    $surat->statusSurat->status ?? $surat->status,
-                                ) === 'diajukan')
-                                ? 'active'
-                                : '' }}">
+                            class="menu-item {{ (request()->routeIs('admin.surat-pindah.index') && request()->input('status', 'diajukan') === 'diajukan') || (request()->routeIs('admin.surat-pindah.show') && isset($surat) && $surat instanceof App\Models\SuratPindah && \App\Helpers\SuratNotificationHelper::getDisplayStatus('surat_pindah', $surat->statusSurat->status ?? $surat->status) === 'diajukan') || (request()->routeIs('admin.surat-pindah.edit') && isset($surat) && $surat instanceof App\Models\SuratPindah && \App\Helpers\SuratNotificationHelper::getDisplayStatus('surat_pindah', $surat->statusSurat->status ?? $surat->status) === 'diajukan') ? 'active' : '' }}">
                             <a href="{{ route('admin.surat-pindah.index', ['status' => 'diajukan']) }}"
                                 class="menu-link">
                                 <i
@@ -1000,23 +697,7 @@
                         </li>
 
                         <li
-                            class="menu-item {{ (request()->routeIs('admin.surat-pindah.index') && request()->input('status') === 'diproses') ||
-                            (request()->routeIs('admin.surat-pindah.show') &&
-                                isset($surat) &&
-                                $surat instanceof App\Models\SuratPindah &&
-                                \App\Helpers\SuratNotificationHelper::getDisplayStatus(
-                                    'surat_pindah',
-                                    $surat->statusSurat->status ?? $surat->status,
-                                ) === 'diproses') ||
-                            (request()->routeIs('admin.surat-pindah.edit') &&
-                                isset($surat) &&
-                                $surat instanceof App\Models\SuratPindah &&
-                                \App\Helpers\SuratNotificationHelper::getDisplayStatus(
-                                    'surat_pindah',
-                                    $surat->statusSurat->status ?? $surat->status,
-                                ) === 'diproses')
-                                ? 'active'
-                                : '' }}">
+                            class="menu-item {{ (request()->routeIs('admin.surat-pindah.index') && request()->input('status') === 'diproses') || (request()->routeIs('admin.surat-pindah.show') && isset($surat) && $surat instanceof App\Models\SuratPindah && \App\Helpers\SuratNotificationHelper::getDisplayStatus('surat_pindah', $surat->statusSurat->status ?? $surat->status) === 'diproses') || (request()->routeIs('admin.surat-pindah.edit') && isset($surat) && $surat instanceof App\Models\SuratPindah && \App\Helpers\SuratNotificationHelper::getDisplayStatus('surat_pindah', $surat->statusSurat->status ?? $surat->status) === 'diproses') ? 'active' : '' }}">
                             <a href="{{ route('admin.surat-pindah.index', ['status' => 'diproses']) }}"
                                 class="menu-link">
                                 <i
@@ -1032,23 +713,7 @@
                         </li>
 
                         <li
-                            class="menu-item {{ (request()->routeIs('admin.surat-pindah.index') && request()->input('status') === 'disetujui') ||
-                            (request()->routeIs('admin.surat-pindah.show') &&
-                                isset($surat) &&
-                                $surat instanceof App\Models\SuratPindah &&
-                                \App\Helpers\SuratNotificationHelper::getDisplayStatus(
-                                    'surat_pindah',
-                                    $surat->statusSurat->status ?? $surat->status,
-                                ) === 'disetujui') ||
-                            (request()->routeIs('admin.surat-pindah.edit') &&
-                                isset($surat) &&
-                                $surat instanceof App\Models\SuratPindah &&
-                                \App\Helpers\SuratNotificationHelper::getDisplayStatus(
-                                    'surat_pindah',
-                                    $surat->statusSurat->status ?? $surat->status,
-                                ) === 'disetujui')
-                                ? 'active'
-                                : '' }}">
+                            class="menu-item {{ (request()->routeIs('admin.surat-pindah.index') && request()->input('status') === 'disetujui') || (request()->routeIs('admin.surat-pindah.show') && isset($surat) && $surat instanceof App\Models\SuratPindah && \App\Helpers\SuratNotificationHelper::getDisplayStatus('surat_pindah', $surat->statusSurat->status ?? $surat->status) === 'disetujui') || (request()->routeIs('admin.surat-pindah.edit') && isset($surat) && $surat instanceof App\Models\SuratPindah && \App\Helpers\SuratNotificationHelper::getDisplayStatus('surat_pindah', $surat->statusSurat->status ?? $surat->status) === 'disetujui') ? 'active' : '' }}">
                             <a href="{{ route('admin.surat-pindah.index', ['status' => 'disetujui']) }}"
                                 class="menu-link">
                                 <i
@@ -1064,50 +729,17 @@
                         </li>
 
                         <li
-                            class="menu-item {{ (request()->routeIs('admin.surat-pindah.index') && request()->input('status') === 'ditolak') ||
-                            (request()->routeIs('admin.surat-pindah.show') &&
-                                isset($surat) &&
-                                $surat instanceof App\Models\SuratPindah &&
-                                \App\Helpers\SuratNotificationHelper::getDisplayStatus(
-                                    'surat_pindah',
-                                    $surat->statusSurat->status ?? $surat->status,
-                                ) === 'ditolak') ||
-                            (request()->routeIs('admin.surat-pindah.edit') &&
-                                isset($surat) &&
-                                $surat instanceof App\Models\SuratPindah &&
-                                \App\Helpers\SuratNotificationHelper::getDisplayStatus(
-                                    'surat_pindah',
-                                    $surat->statusSurat->status ?? $surat->status,
-                                ) === 'ditolak')
-                                ? 'active'
-                                : '' }}">
+                            class="menu-item {{ (request()->routeIs('admin.surat-pindah.index') && request()->input('status') === 'ditolak') || (request()->routeIs('admin.surat-pindah.show') && isset($surat) && $surat instanceof App\Models\SuratPindah && \App\Helpers\SuratNotificationHelper::getDisplayStatus('surat_pindah', $surat->statusSurat->status ?? $surat->status) === 'ditolak') || (request()->routeIs('admin.surat-pindah.edit') && isset($surat) && $surat instanceof App\Models\SuratPindah && \App\Helpers\SuratNotificationHelper::getDisplayStatus('surat_pindah', $surat->statusSurat->status ?? $surat->status) === 'ditolak') ? 'active' : '' }}">
                             <a href="{{ route('admin.surat-pindah.index', ['status' => 'ditolak']) }}"
                                 class="menu-link">
                                 <i
                                     class="menu-icon tf-icons {{ \App\Helpers\SuratNotificationHelper::getStatusIcon('ditolak') }}"></i>
                                 <div>Ditolak</div>
-                                {{-- No badge for ditolak as it doesn't require action --}}
                             </a>
                         </li>
 
                         <li
-                            class="menu-item {{ (request()->routeIs('admin.surat-pindah.index') && request()->input('status') === 'siap_diambil') ||
-                            (request()->routeIs('admin.surat-pindah.show') &&
-                                isset($surat) &&
-                                $surat instanceof App\Models\SuratPindah &&
-                                \App\Helpers\SuratNotificationHelper::getDisplayStatus(
-                                    'surat_pindah',
-                                    $surat->statusSurat->status ?? $surat->status,
-                                ) === 'siap_diambil') ||
-                            (request()->routeIs('admin.surat-pindah.edit') &&
-                                isset($surat) &&
-                                $surat instanceof App\Models\SuratPindah &&
-                                \App\Helpers\SuratNotificationHelper::getDisplayStatus(
-                                    'surat_pindah',
-                                    $surat->statusSurat->status ?? $surat->status,
-                                ) === 'siap_diambil')
-                                ? 'active'
-                                : '' }}">
+                            class="menu-item {{ (request()->routeIs('admin.surat-pindah.index') && request()->input('status') === 'siap_diambil') || (request()->routeIs('admin.surat-pindah.show') && isset($surat) && $surat instanceof App\Models\SuratPindah && \App\Helpers\SuratNotificationHelper::getDisplayStatus('surat_pindah', $surat->statusSurat->status ?? $surat->status) === 'siap_diambil') || (request()->routeIs('admin.surat-pindah.edit') && isset($surat) && $surat instanceof App\Models\SuratPindah && \App\Helpers\SuratNotificationHelper::getDisplayStatus('surat_pindah', $surat->statusSurat->status ?? $surat->status) === 'siap_diambil') ? 'active' : '' }}">
                             <a href="{{ route('admin.surat-pindah.index', ['status' => 'siap_diambil']) }}"
                                 class="menu-link">
                                 <i
@@ -1123,37 +755,385 @@
                         </li>
 
                         <li
-                            class="menu-item {{ (request()->routeIs('admin.surat-pindah.index') && request()->input('status') === 'sudah_diambil') ||
-                            (request()->routeIs('admin.surat-pindah.show') &&
-                                isset($surat) &&
-                                $surat instanceof App\Models\SuratPindah &&
-                                \App\Helpers\SuratNotificationHelper::getDisplayStatus(
-                                    'surat_pindah',
-                                    $surat->statusSurat->status ?? $surat->status,
-                                ) === 'sudah_diambil') ||
-                            (request()->routeIs('admin.surat-pindah.edit') &&
-                                isset($surat) &&
-                                $surat instanceof App\Models\SuratPindah &&
-                                \App\Helpers\SuratNotificationHelper::getDisplayStatus(
-                                    'surat_pindah',
-                                    $surat->statusSurat->status ?? $surat->status,
-                                ) === 'sudah_diambil')
-                                ? 'active'
-                                : '' }}">
+                            class="menu-item {{ (request()->routeIs('admin.surat-pindah.index') && request()->input('status') === 'sudah_diambil') || (request()->routeIs('admin.surat-pindah.show') && isset($surat) && $surat instanceof App\Models\SuratPindah && \App\Helpers\SuratNotificationHelper::getDisplayStatus('surat_pindah', $surat->statusSurat->status ?? $surat->status) === 'sudah_diambil') || (request()->routeIs('admin.surat-pindah.edit') && isset($surat) && $surat instanceof App\Models\SuratPindah && \App\Helpers\SuratNotificationHelper::getDisplayStatus('surat_pindah', $surat->statusSurat->status ?? $surat->status) === 'sudah_diambil') ? 'active' : '' }}">
                             <a href="{{ route('admin.surat-pindah.index', ['status' => 'sudah_diambil']) }}"
                                 class="menu-link">
                                 <i
                                     class="menu-icon tf-icons {{ \App\Helpers\SuratNotificationHelper::getStatusIcon('sudah_diambil') }}"></i>
                                 <div>Sudah Diambil</div>
-                                {{-- No badge for sudah_diambil as it doesn't require action --}}
                             </a>
                         </li>
                     @endif
                 </ul>
             </li>
+        @endif
+
+        {{-- ============================================================ --}}
+        {{-- KATEGORI 2: MANAJEMEN SKRIPSI --}}
+        {{-- ============================================================ --}}
+        @php
+            $showManajemenSkripsi =
+                auth()->user()->can('manage komisi proposal') ||
+                auth()->user()->can('manage pendaftaran sempro') ||
+                auth()->user()->can('manage komisi hasil') ||
+                auth()->user()->can('manage pendaftaran hasil') ||
+                auth()->user()->isDosenWithApprovalAuthority();
+        @endphp
+
+        @if ($showManajemenSkripsi)
+            <li class="menu-header small text-uppercase">
+                <span class="menu-header-text">Manajemen Skripsi</span>
+            </li>
+        @endif
+
+        {{-- 1. Komisi Proposal --}}
+        @can('manage komisi proposal')
+            <li class="menu-item {{ request()->routeIs('admin.komisi-proposal.*') ? 'active' : '' }}">
+                <a href="{{ route('admin.komisi-proposal.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-detail"></i>
+                    <div>Komisi Proposal</div>
+                </a>
+            </li>
         @endcan
 
-        {{-- Sub Menu: Layanan Akademik --}}
+        {{-- 2. Pendaftaran Sempro --}}
+        @if (auth()->user()->can('manage pendaftaran sempro') || auth()->user()->isDosenWithApprovalAuthority())
+            @php
+                $pendaftaranSempropActiveStates = [
+                    'admin.pendaftaran-seminar-proposal.index',
+                    'admin.pendaftaran-seminar-proposal.show',
+                    'admin.pendaftaran-seminar-proposal.assign-pembahas',
+                ];
+                $isPendaftaranSempropActive = request()->routeIs($pendaftaranSempropActiveStates);
+            @endphp
+
+            @if (auth()->user()->isDosenWithApprovalAuthority())
+                {{-- DOSEN VIEW: Simplified menu for approval only --}}
+                <li class="menu-item {{ $isPendaftaranSempropActive ? 'active open' : '' }}">
+                    <a href="javascript:void(0);" class="menu-link menu-toggle">
+                        <i class="menu-icon tf-icons bx bx-clipboard"></i>
+                        <div>Pendaftaran Sempro</div>
+                    </a>
+                    <ul class="menu-sub">
+                        @if (auth()->user()->isKoordinatorProdi())
+                            <li
+                                class="menu-item {{ request()->routeIs('admin.pendaftaran-seminar-proposal.index') &&
+                                request()->input('status') === 'menunggu_ttd_kaprodi'
+                                    ? 'active'
+                                    : '' }}">
+                                <a href="{{ route('admin.pendaftaran-seminar-proposal.index', ['status' => 'menunggu_ttd_kaprodi']) }}"
+                                    class="menu-link">
+                                    <i class="menu-icon tf-icons bx bx-time"></i>
+                                    <div>Menunggu TTD Korprodi</div>
+                                </a>
+                            </li>
+                        @endif
+
+                        @if (auth()->user()->isKetuaJurusan())
+                            <li
+                                class="menu-item {{ request()->routeIs('admin.pendaftaran-seminar-proposal.index') &&
+                                request()->input('status') === 'menunggu_ttd_kajur'
+                                    ? 'active'
+                                    : '' }}">
+                                <a href="{{ route('admin.pendaftaran-seminar-proposal.index', ['status' => 'menunggu_ttd_kajur']) }}"
+                                    class="menu-link">
+                                    <i class="menu-icon tf-icons bx bx-time"></i>
+                                    <div>Menunggu TTD Kajur</div>
+                                </a>
+                            </li>
+                        @endif
+
+                        <li
+                            class="menu-item {{ request()->routeIs('admin.pendaftaran-seminar-proposal.index') && request()->input('status') === 'selesai'
+                                ? 'active'
+                                : '' }}">
+                            <a href="{{ route('admin.pendaftaran-seminar-proposal.index', ['status' => 'selesai']) }}"
+                                class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-check-circle"></i>
+                                <div>Selesai</div>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            @else
+                {{-- STAFF VIEW: Full menu access --}}
+                <li class="menu-item {{ $isPendaftaranSempropActive ? 'active' : '' }}">
+                    <a href="{{ route('admin.pendaftaran-seminar-proposal.index') }}" class="menu-link">
+                        <i class="menu-icon tf-icons bx bx-clipboard"></i>
+                        <div data-i18n="Pendaftaran Sempro">Pendaftaran Sempro</div>
+                    </a>
+                </li>
+            @endif
+        @endif
+
+        {{-- ✅ TAMBAHAN BARU: 2.1 Jadwal Seminar Proposal --}}
+        @can('manage jadwal sempro')
+            @php
+                $jadwalSemproActiveStates = [
+                    'admin.jadwal-seminar-proposal.index',
+                    'admin.jadwal-seminar-proposal.show',
+                    'admin.jadwal-seminar-proposal.create',
+                    'admin.jadwal-seminar-proposal.edit',
+                ];
+                $isJadwalSemproActive = request()->routeIs($jadwalSemproActiveStates);
+            @endphp
+
+            <li class="menu-item {{ $isJadwalSemproActive ? 'active open' : '' }}">
+                <a href="javascript:void(0);" class="menu-link menu-toggle">
+                    <i class="menu-icon tf-icons bx bx-calendar-event"></i>
+                    <div>Jadwal Sempro</div>
+                </a>
+                <ul class="menu-sub">
+                    {{-- Menunggu Upload SK --}}
+                    <li
+                        class="menu-item {{ request()->routeIs('admin.jadwal-seminar-proposal.index') && request()->input('status') === 'menunggu_sk' ? 'active' : '' }}">
+                        <a href="{{ route('admin.jadwal-seminar-proposal.index', ['status' => 'menunggu_sk']) }}"
+                            class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-upload"></i>
+                            <div>Menunggu Upload SK</div>
+                        </a>
+                    </li>
+
+                    {{-- Menunggu Penjadwalan --}}
+                    <li
+                        class="menu-item {{ request()->routeIs('admin.jadwal-seminar-proposal.index') && request()->input('status') === 'menunggu_jadwal' ? 'active' : '' }}">
+                        <a href="{{ route('admin.jadwal-seminar-proposal.index', ['status' => 'menunggu_jadwal']) }}"
+                            class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-calendar-check"></i>
+                            <div>Menunggu Penjadwalan</div>
+                        </a>
+                    </li>
+
+                    {{-- Sudah Dijadwalkan --}}
+                    <li
+                        class="menu-item {{ request()->routeIs('admin.jadwal-seminar-proposal.index') && request()->input('status') === 'dijadwalkan' ? 'active' : '' }}">
+                        <a href="{{ route('admin.jadwal-seminar-proposal.index', ['status' => 'dijadwalkan']) }}"
+                            class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-calendar"></i>
+                            <div>Sudah Dijadwalkan</div>
+                        </a>
+                    </li>
+
+                    {{-- Selesai --}}
+                    <li
+                        class="menu-item {{ request()->routeIs('admin.jadwal-seminar-proposal.index') && request()->input('status') === 'selesai' ? 'active' : '' }}">
+                        <a href="{{ route('admin.jadwal-seminar-proposal.index', ['status' => 'selesai']) }}"
+                            class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-check-circle"></i>
+                            <div>Selesai</div>
+                        </a>
+                    </li>
+
+                    {{-- Kalender Jadwal --}}
+                    <li
+                        class="menu-item {{ request()->routeIs('admin.jadwal-seminar-proposal.calendar') ? 'active' : '' }}">
+                        <a href="{{ route('admin.jadwal-seminar-proposal.calendar') }}" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-calendar-alt"></i>
+                            <div>Kalender Jadwal</div>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+        @endcan
+
+        @if (auth()->user()->can('manage berita acara sempro') ||
+                auth()->user()->can('view berita acara sempro') ||
+                auth()->user()->can('sign berita acara sempro') ||
+                auth()->user()->can('submit lembar catatan sempro'))
+
+            @php
+                $beritaAcaraActiveStates = [
+                    'admin.berita-acara-sempro.index',
+                    'admin.berita-acara-sempro.show',
+                    'admin.berita-acara-sempro.create',
+                    'admin.berita-acara-sempro.edit',
+                    'admin.berita-acara-sempro.fill-by-pembimbing',
+                    'admin.berita-acara-sempro.manage-pembahas',
+                    'admin.berita-acara-sempro.approve-pembahas',
+                    'admin.lembar-catatan-sempro.create',
+                    'admin.lembar-catatan-sempro.show',
+                    'admin.lembar-catatan-sempro.edit',
+                
+                ];
+                $isBeritaAcaraActive = request()->routeIs($beritaAcaraActiveStates);
+
+                // Hitung notifikasi berdasarkan role
+                $notifCount = 0;
+
+                if (auth()->user()->hasRole('staff')) {
+                    $notifCount = \App\Models\BeritaAcaraSeminarProposal::whereIn('status', [
+                        'draft',
+                        'menunggu_ttd_pembahas',
+                    ])->count();
+                } elseif (auth()->user()->hasRole('dosen')) {
+                    $userId = auth()->id();
+
+                    $asPembahas = \App\Models\BeritaAcaraSeminarProposal::where('status', 'menunggu_ttd_pembahas')
+                        ->whereHas('jadwalSeminarProposal.dosenPenguji', function ($q) use ($userId) {
+                            $q->where('users.id', $userId)->where('posisi', '!=', 'Ketua Pembahas');
+                        })
+                        ->where(function ($q) use ($userId) {
+                            $q->whereNull('ttd_dosen_pembahas')->orWhereRaw(
+                                "NOT JSON_CONTAINS(ttd_dosen_pembahas, JSON_OBJECT('dosen_id', ?), '$')",
+                                [$userId],
+                            );
+                        })
+                        ->count();
+
+                    $asPembimbing = \App\Models\BeritaAcaraSeminarProposal::where('status', 'menunggu_ttd_pembimbing')
+                        ->whereHas('jadwalSeminarProposal', function ($q) use ($userId) {
+                            $q->whereHas('pendaftaranSeminarProposal', function ($q2) use ($userId) {
+                                $q2->where('dosen_pembimbing_id', $userId);
+                            })->orWhereHas('dosenPenguji', function ($q2) use ($userId) {
+                                $q2->where('users.id', $userId)->where('posisi', 'Ketua Pembahas');
+                            });
+                        })
+                        ->count();
+
+                    $notifCount = $asPembahas + $asPembimbing;
+                }
+            @endphp
+
+            <li class="menu-item {{ $isBeritaAcaraActive ? 'active' . (auth()->user()->hasRole('dosen') ? ' open' : '') : '' }}">
+                @if (auth()->user()->hasRole('staff'))
+                    <a href="{{ route('admin.berita-acara-sempro.index') }}" class="menu-link">
+                        <i class="menu-icon tf-icons bx bxs-file"></i>
+                        <div>Berita Acara Sempro</div>
+                    </a>
+                @else
+                    <a href="javascript:void(0);" class="menu-link menu-toggle">
+                        <i class="menu-icon tf-icons bx bx-file-blank"></i>
+                        <div>Berita Acara Sempro</div>
+                        @if ($notifCount > 0)
+                            <span class="badge bg-danger rounded-pill ms-auto">{{ $notifCount }}</span>
+                        @endif
+                    </a>
+                    <ul class="menu-sub">
+                        @can('sign berita acara sempro')
+                            @php
+                                $userId = auth()->id();
+                                $pembahasCount = \App\Models\BeritaAcaraSeminarProposal::where('status', 'menunggu_ttd_pembahas')
+                                    ->whereHas('jadwalSeminarProposal.dosenPenguji', function ($q) use ($userId) {
+                                        $q->where('users.id', $userId)->where('posisi', '!=', 'Ketua Pembahas');
+                                    })
+                                    ->where(function ($q) use ($userId) {
+                                        $q->whereNull('ttd_dosen_pembahas')->orWhereRaw(
+                                            "NOT JSON_CONTAINS(ttd_dosen_pembahas, JSON_OBJECT('dosen_id', ?), '$')",
+                                            [$userId],
+                                        );
+                                    })
+                                    ->count();
+
+                                $isPembahas = \DB::table('dosen_penguji_jadwal_sempro')
+                                    ->where('dosen_id', $userId)
+                                    ->where('posisi', '!=', 'Ketua Pembahas')
+                                    ->exists();
+                            @endphp
+
+                            @if ($isPembahas)
+                                <li class="menu-item {{ request()->routeIs('admin.berita-acara-sempro.index') && request()->input('filter') === 'pembahas' ? 'active' : '' }}">
+                                    <a href="{{ route('admin.berita-acara-sempro.index', ['filter' => 'pembahas']) }}" class="menu-link">
+                                        <i class="menu-icon tf-icons bx bx-pen"></i>
+                                        <div>Menunggu TTD Saya</div>
+                                        @if ($pembahasCount > 0)
+                                            <span class="badge bg-danger rounded-pill ms-auto">{{ $pembahasCount }}</span>
+                                        @endif
+                                    </a>
+                                </li>
+                            @endif
+                        @endcan
+
+                        @can('manage berita acara sempro')
+                            @php
+                                $userId = auth()->id();
+                                $pembimbingCount = \App\Models\BeritaAcaraSeminarProposal::where('status', 'menunggu_ttd_pembimbing')
+                                    ->whereHas('jadwalSeminarProposal', function ($q) use ($userId) {
+                                        $q->whereHas('pendaftaranSeminarProposal', function ($q2) use ($userId) {
+                                            $q2->where('dosen_pembimbing_id', $userId);
+                                        })->orWhereHas('dosenPenguji', function ($q2) use ($userId) {
+                                            $q2->where('users.id', $userId)->where('posisi', 'Ketua Pembahas');
+                                        });
+                                    })
+                                    ->count();
+
+                                $isPembimbingOrKetua = \App\Models\PendaftaranSeminarProposal::where('dosen_pembimbing_id', $userId)->exists() ||
+                                    \DB::table('dosen_penguji_jadwal_sempro')->where('dosen_id', $userId)->where('posisi', 'Ketua Pembahas')->exists();
+                            @endphp
+
+                            @if ($isPembimbingOrKetua)
+                                <li class="menu-item {{ request()->routeIs('admin.berita-acara-sempro.index') && request()->input('filter') === 'pembimbing' ? 'active' : '' }}">
+                                    <a href="{{ route('admin.berita-acara-sempro.index', ['filter' => 'pembimbing']) }}" class="menu-link">
+                                        <i class="menu-icon tf-icons bx bx-edit"></i>
+                                        <div>Perlu Saya Isi</div>
+                                        @if ($pembimbingCount > 0)
+                                            <span class="badge bg-danger rounded-pill ms-auto">{{ $pembimbingCount }}</span>
+                                        @endif
+                                    </a>
+                                </li>
+                            @endif
+                        @endcan
+
+                        @php
+                            $userId = auth()->id();
+                            $riwayatCount = \App\Models\BeritaAcaraSeminarProposal::where('status', 'selesai')
+                                ->where(function ($q) use ($userId) {
+                                    $q->whereRaw("JSON_CONTAINS(ttd_dosen_pembahas, JSON_OBJECT('dosen_id', ?), '$')", [$userId])
+                                        ->orWhere('ttd_pembimbing_by', $userId)
+                                        ->orWhere('ttd_ketua_penguji_by', $userId);
+                                })
+                                ->count();
+                        @endphp
+
+                        <li class="menu-item {{ request()->routeIs('admin.berita-acara-sempro.index') && !request()->has('filter') ? 'active' : '' }}">
+                            <a href="{{ route('admin.berita-acara-sempro.index') }}" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-history"></i>
+                                <div>Riwayat Berita Acara</div>
+                                @if ($riwayatCount > 0)
+                                    <span class="badge bg-label-secondary rounded-pill ms-auto">{{ $riwayatCount }}</span>
+                                @endif
+                            </a>
+                        </li>
+                    </ul>
+                @endif
+            </li>
+        @endif
+
+        {{-- 3. Komisi Hasil --}}
+        @can('manage komisi hasil')
+            <li class="menu-item {{ request()->routeIs('admin.komisi-hasil.*') ? 'active' : '' }}">
+                <a href="{{ route('admin.komisi-hasil.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-book-content"></i>
+                    <div>Komisi Hasil</div>
+                </a>
+            </li>
+        @endcan
+
+        {{-- 4. Pendaftaran Hasil --}}
+        @can('manage pendaftaran hasil')
+            <li class="menu-item {{ request()->routeIs('admin.pendaftaran-ujian-hasil.*') ? 'active' : '' }}">
+                <a href="{{ route('admin.pendaftaran-ujian-hasil.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-book-bookmark"></i>
+                    <div>Ujian Hasil</div>
+                </a>
+            </li>
+        @endcan
+
+        {{-- ============================================================ --}}
+        {{-- KATEGORI 3: LAYANAN AKADEMIK --}}
+        {{-- ============================================================ --}}
+        @php
+            $showLayananAkademik =
+                auth()->user()->can('manage academic calendar') ||
+                auth()->user()->can('manage peminjaman proyektor') ||
+                auth()->user()->can('manage peminjaman laboratorium');
+        @endphp
+
+        @if ($showLayananAkademik)
+            <li class="menu-header small text-uppercase">
+                <span class="menu-header-text">Layanan Akademik</span>
+            </li>
+        @endif
+
         @can('manage academic calendar')
             <li class="menu-item {{ request()->routeIs('admin.academic-calendar.*') ? 'active' : '' }}">
                 <a href="{{ route('admin.academic-calendar.index') }}" class="menu-link">
@@ -1181,44 +1161,9 @@
             </li>
         @endcan
 
-        @can('manage pendaftaran sempro')
-            <li class="menu-item {{ request()->routeIs('admin.pendaftaran-seminar-proposal.*') ? 'active' : '' }}">
-                <a href="{{ route('admin.pendaftaran-seminar-proposal.index') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-book-open"></i>
-                    <div>Seminar Proposal</div>
-                </a>
-            </li>
-        @endcan
-
-        @can('manage pendaftaran hasil')
-            <li class="menu-item {{ request()->routeIs('admin.pendaftaran-ujian-hasil.*') ? 'active' : '' }}">
-                <a href="{{ route('admin.pendaftaran-ujian-hasil.index') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-book-bookmark"></i>
-                    <div>Ujian Hasil</div>
-                </a>
-            </li>
-        @endcan
-
-        @can('manage komisi proposal')
-            <li class="menu-item {{ request()->routeIs('admin.komisi-proposal.*') ? 'active' : '' }}">
-                <a href="{{ route('admin.komisi-proposal.index') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-detail"></i>
-                    <div>Komisi Proposal</div>
-                </a>
-            </li>
-        @endcan
-
-        @can('manage komisi hasil')
-            <li class="menu-item {{ request()->routeIs('admin.komisi-hasil.*') ? 'active' : '' }}">
-                <a href="{{ route('admin.komisi-hasil.index') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-book-content"></i>
-                    <div>Komisi Hasil</div>
-                </a>
-            </li>
-        @endcan
 
         {{-- ============================================================ --}}
-        {{-- KATEGORI 2: MANAJEMEN SISTEM --}}
+        {{-- KATEGORI 4: MANAJEMEN SISTEM --}}
         {{-- ============================================================ --}}
         @if (auth()->user()->can('manage services') ||
                 auth()->user()->can('manage kopsurat') ||
@@ -1333,13 +1278,15 @@
                                 <div>Daftar Pembayaran</div>
                             </a>
                         </li>
-                        <li class="menu-item {{ request()->routeIs('admin.pembayaran-ukt.import') ? 'active' : '' }}">
+                        <li
+                            class="menu-item {{ request()->routeIs('admin.pembayaran-ukt.import') ? 'active' : '' }}">
                             <a href="{{ route('admin.pembayaran-ukt.import') }}" class="menu-link">
                                 <i class="menu-icon tf-icons bx bx-import"></i>
                                 <div>Import Data</div>
                             </a>
                         </li>
-                        <li class="menu-item {{ request()->routeIs('admin.pembayaran-ukt.report') ? 'active' : '' }}">
+                        <li
+                            class="menu-item {{ request()->routeIs('admin.pembayaran-ukt.report') ? 'active' : '' }}">
                             <a href="{{ route('admin.pembayaran-ukt.report') }}" class="menu-link">
                                 <i class="menu-icon tf-icons bx bx-file"></i>
                                 <div>Laporan</div>
@@ -1350,5 +1297,5 @@
             </li>
         @endif
 
-    </ul>
+</ul>
 </aside>

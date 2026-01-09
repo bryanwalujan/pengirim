@@ -2,10 +2,12 @@
 
 namespace App\Providers;
 
+use App\Models\BeritaAcaraSeminarProposal;
 use App\Models\SuratPindah;
 use App\Models\SuratIjinSurvey;
 use App\Models\SuratAktifKuliah;
 use App\Models\SuratCutiAkademik;
+use App\Policies\BeritaAcaraSeminarProposalPolicy;
 use App\Policies\SuratPindahPolicy;
 use App\Policies\SuratIjinSurveyPolicy;
 use Illuminate\Support\ServiceProvider;
@@ -19,6 +21,7 @@ class AuthServiceProvider extends ServiceProvider
         SuratIjinSurvey::class => SuratIjinSurveyPolicy::class,
         SuratCutiAkademik::class => SuratCutiAkademikPolicy::class,
         SuratPindah::class => SuratPindahPolicy::class,
+        BeritaAcaraSeminarProposal::class => BeritaAcaraSeminarProposalPolicy::class,
         // Tambahkan model dan policy lainnya di sini
     ];
     /**

@@ -16,19 +16,24 @@
         @csrf
 
         <!-- Email Address -->
-        <div>
+        <div class="mb-3">
             <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email"
-                class="block mt-1 w-full form-control rounded border-gray-400 focus:border-pink-600 text-sm"
-                placeholder="Email UNIMA anda" type="email" name="email" :value="old('email')" required autofocus />
+            <x-text-input id="email" class="form-control" placeholder="Email UNIMA anda" type="email" name="email"
+                :value="old('email')" required autofocus />
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
 
-        <div class="text-center">
-            <button type="submit"
-                class="btn btn-sm btn-primary w-full mt-4 bg-pink-600 hover:bg-pink-700 text-white font-semibold py-2 px-4 rounded-md transition duration-200">
-                Kirim Link Reset Password
+        <div class="mb-3">
+            <button type="submit" class="btn btn-orange w-100 py-2">
+                <i class="fas fa-paper-plane me-2"></i>Kirim Link Reset Password
             </button>
         </div>
+
+        <div class="text-center">
+            <a href="{{ route('login') }}" class="btn btn-outline-secondary w-100 py-2">
+                <i class="fas fa-arrow-left me-2"></i>Kembali ke Login
+            </a>
+        </div>
     </form>
+
 </x-guest-layout>

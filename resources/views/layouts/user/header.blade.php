@@ -9,11 +9,50 @@
 
         <nav id="navmenu" class="navmenu">
             <ul>
-                <li><a href="{{ url('/') }}" class="{{ request()->is('/') ? 'active' : '' }}">Beranda</a></li>
-                <li><a href="{{ url('/#about') }}">Tentang</a></li>
-                <li><a href="{{ url('/#services') }}">Layanan</a></li>
-                <li><a href="{{ route('user.tracking-surat.index') }}"
-                        class="{{ request()->is('tracking-surat*') ? 'active' : '' }}">Tracking Surat</a></li>
+                <li>
+                    <a href="{{ url('/') }}" class="{{ request()->is('/') ? 'active' : '' }}"
+                        onclick="scrollToSection('hero')">Beranda</a>
+                </li>
+                <li>
+                    <a href="{{ url('/#about') }}">Tentang</a>
+                </li>
+
+                {{-- Logic untuk Menu Layanan --}}
+                @php
+                    // Daftar semua URL prefix yang dianggap sebagai bagian dari "Layanan"
+                    // Berdasarkan web.php Anda
+                    $layananRoutes = [
+                        'layanan*', // Halaman index layanan
+                        'surat-aktif-kuliah*', // Layanan Surat Aktif Kuliah
+                        'surat-ijin-survey*', // Layanan Ijin Survey
+                        'surat-cuti-akademik*', // Layanan Cuti
+                        'surat-pindah*', // Layanan Pindah
+                        'peminjaman-proyektor*', // Layanan Proyektor
+                        'peminjaman-laboratorium*', // Layanan Lab
+                        'pendaftaran-seminar-proposal*', // Seminar Proposal
+                        'pendaftaran-ujian-hasil*', // Ujian Hasil
+                        'komisi-proposal*', // Komisi Proposal
+                        'komisi-hasil*', // Komisi Hasil
+                        'jadwal-seminar-proposal*', // Jadwal Sempro
+                        'berita-acara-sempro*', // Berita Acara Sempro
+                    ];
+                @endphp
+
+                <li>
+                    <a href="{{ route('user.services.index') }}"
+                        class="{{ request()->is($layananRoutes) ? 'active' : '' }}">
+                        Layanan
+                    </a>
+                </li>
+
+                {{-- Logic untuk Menu Tracking Surat --}}
+                <li>
+                    <a href="{{ route('user.tracking-surat.index') }}"
+                        class="{{ request()->is('tracking-surat*') ? 'active' : '' }}">
+                        Tracking Surat
+                    </a>
+                </li>
+
                 <li><a href="{{ url('/#academic-calendar') }}">Kalender Akademik</a></li>
                 <li><a href="{{ url('/#faq') }}">FAQ</a></li>
             </ul>

@@ -210,7 +210,7 @@
     </script>
 
     {{-- Intersection Observer for Active Nav Link --}}
-    <script>
+    {{-- <script>
         document.addEventListener('DOMContentLoaded', function() {
             const sections = document.querySelectorAll('section');
             const navLinks = document.querySelectorAll('#navmenu a');
@@ -238,7 +238,7 @@
                 observer.observe(section);
             });
         });
-    </script>
+    </script> --}}
 
 
 

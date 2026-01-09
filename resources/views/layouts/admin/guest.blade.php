@@ -1,3 +1,4 @@
+{{-- filepath: /c:/laragon/www/eservice-app/resources/views/layouts/admin/guest.blade.php --}}
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
@@ -15,9 +16,14 @@
 
     <!-- JavaScript Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
         integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    {{-- ✅ TAMBAHKAN INI - Bootstrap Icons --}}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <!-- CSS Files -->
     <link href="{{ asset('assets/css/argon-dashboard.css') }}" rel="stylesheet" />
@@ -42,6 +48,62 @@
             color: white;
             transform: translateY(-2px);
             box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
+        }
+
+        /* ✅ TAMBAHKAN CSS untuk toggle password */
+        .password-wrapper {
+            position: relative;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            z-index: 10;
+            color: #6c757d;
+            transition: color 0.2s ease;
+        }
+
+        .password-toggle:hover {
+            color: #ff6b35;
+        }
+
+        .password-toggle.active {
+            color: #ff6b35;
+        }
+
+        .password-toggle i {
+            font-size: 1.25rem;
+            pointer-events: none;
+        }
+
+        #password {
+            padding-right: 3rem;
+        }
+
+        /* Mobile enhancement */
+        @media (max-width: 768px) {
+            .password-toggle {
+                padding: 12px;
+                right: 8px;
+            }
+
+            .password-toggle i {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Touch feedback */
+        @media (hover: none) and (pointer: coarse) {
+            .password-toggle:active {
+                background-color: rgba(255, 107, 53, 0.1);
+                border-radius: 50%;
+            }
         }
     </style>
 
@@ -72,7 +134,6 @@
                                 class="col-6 d-lg-flex d-none h-100 my-auto pe-0 position-absolute top-0 end-0 text-center justify-content-center flex-column">
                                 <div class="position-relative bg-gradient-custom h-100 m-3 px-8 py-10 border-radius-lg rounded-xl d-flex flex-column justify-content-center overflow-hidden"
                                     style="background-image: linear-gradient(rgba(255, 107, 53, 0.85), rgba(247, 147, 30, 0.85)), url('{{ asset('/img/logo-unima.png') }}'); background-size: cover; background-position: center; background-repeat: no-repeat;">
-                                    {{-- <span class="mask bg-black opacity-30"></span> --}}
                                     <div class="relative z-10 text-center px-4">
                                         <h4 class="text-3xl font-bold text-white mb-4 drop-shadow-lg">"E-Service Teknik
                                             Informatika UNIMA"</h4>
@@ -88,7 +149,6 @@
             </div>
         </section>
     </main>
-
 
     @stack('scripts')
 
