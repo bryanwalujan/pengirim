@@ -36,8 +36,7 @@
             <div class="small">
                 <ul class="mb-0 ps-3">
                     <li>Hanya <strong>Catatan Tambahan</strong> yang dapat diubah di halaman ini</li>
-                    <li><strong>Catatan Kejadian</strong> dan <strong>Kesimpulan</strong> akan diisi oleh Dosen Pembimbing
-                    </li>
+                    <li><strong>Kesimpulan</strong> akan diisi oleh Dosen Pembimbing</li>
                     <li>Setelah berita acara ditandatangani, tidak dapat diubah lagi</li>
                 </ul>
             </div>
@@ -89,20 +88,10 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    {{-- Catatan Kejadian --}}
-                    <div class="mb-4">
-                        <label class="form-label fw-bold text-muted small mb-2">
-                            1. Catatan Kejadian Selama Seminar
-                        </label>
-                        <div class="p-3 bg-light rounded">
-                            {!! $beritaAcara->catatan_kejadian_badge !!}
-                        </div>
-                    </div>
-
                     {{-- Kesimpulan --}}
                     <div class="mb-0">
                         <label class="form-label fw-bold text-muted small mb-2">
-                            2. Kesimpulan Kelayakan Seminar Proposal Skripsi
+                            1. Kesimpulan Kelayakan Seminar Proposal Skripsi
                         </label>
                         <div class="p-3 bg-light rounded">
                             {!! $beritaAcara->keputusan_badge !!}
@@ -116,7 +105,7 @@
         @else
             <div class="alert alert-warning mb-4">
                 <i class="bx bx-info-circle me-2"></i>
-                <strong>Catatan Kejadian</strong> dan <strong>Kesimpulan</strong> belum diisi oleh Dosen Pembimbing.
+                <strong>Kesimpulan</strong> belum diisi oleh Dosen Pembimbing.
             </div>
         @endif
 

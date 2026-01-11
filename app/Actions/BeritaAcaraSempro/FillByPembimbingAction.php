@@ -37,7 +37,6 @@ class FillByPembimbingAction
 
             // Update BA data
             $updateData = [
-                'catatan_kejadian' => $validated['catatan_kejadian'],
                 'keputusan' => $validated['keputusan'],
                 'catatan_tambahan' => $validated['catatan_tambahan'] ?? null,
                 'diisi_oleh_pembimbing_id' => $pembimbing->id,

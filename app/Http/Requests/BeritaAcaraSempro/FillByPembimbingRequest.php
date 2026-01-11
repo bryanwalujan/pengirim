@@ -18,13 +18,6 @@ class FillByPembimbingRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'catatan_kejadian' => [
-                'required',
-                Rule::in([
-                    'Lancar',
-                    'Ada beberapa perbaikan yang harus diubah'
-                ])
-            ],
             'keputusan' => [
                 'required',
                 'string',
@@ -41,8 +34,6 @@ class FillByPembimbingRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'catatan_kejadian.required' => 'Catatan kejadian wajib dipilih.',
-            'catatan_kejadian.in' => 'Catatan kejadian tidak valid.',
             'keputusan.required' => 'Kesimpulan kelayakan wajib dipilih.',
             'keputusan.in' => 'Kesimpulan kelayakan tidak valid. Pilihan yang valid: Ya, Ya dengan perbaikan, atau Tidak.',
             'catatan_tambahan.max' => 'Catatan tambahan maksimal 1000 karakter.',
@@ -55,7 +46,6 @@ class FillByPembimbingRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'catatan_kejadian' => 'catatan kejadian',
             'keputusan' => 'kesimpulan kelayakan',
             'catatan_tambahan' => 'catatan tambahan',
         ];

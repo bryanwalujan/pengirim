@@ -75,12 +75,9 @@ class TahunAjaranController extends Controller
         DB::transaction(function () use ($tahunAjaran) {
             TahunAjaran::where('status_aktif', true)->update(['status_aktif' => false]);
             $tahunAjaran->update(['status_aktif' => true]);
-
-            PembayaranUkt::where('tahun_ajaran_id', $tahunAjaran->id)
-                ->update(['status' => 'belum_bayar']);
         });
 
-        return back()->with('success', 'Tahun ajaran berhasil diaktifkan dan status pembayaran direset');
+        return back()->with('success', 'Tahun ajaran berhasil diaktifkan');
     }
 
     /**

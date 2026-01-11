@@ -235,7 +235,13 @@
                         <td>{{ $dosen->name }}</td>
                         
                         {{-- Column 3: Jabatan/Posisi --}}
-                        <td class="text-center">{{ $dosen->pivot->posisi }}</td>
+                        <td class="text-center">
+                            @if ($dosen->pivot->posisi === 'Ketua Pembahas')
+                                Dosen P.A /Ketua
+                            @else
+                                Anggota
+                            @endif
+                        </td>
                         
                         {{-- Column 4: Tanda Tangan (with checkmark logic) --}}
                         <td class="text-center">
@@ -270,33 +276,7 @@
             </tbody>
         </table>
 
-        {{-- ✅ PERBAIKAN: Catatan Kejadian dengan TABEL --}}
-        <table class="checkbox-table">
-            <tr>
-                <td class="label-col">Catatan Kejadian Selama Seminar <span style="margin-left: 7rem">:</span></td>
-                <td class="checkbox-cell">
-                    <span class="checkbox-box">
-                        @if ($beritaAcara->catatan_kejadian === 'Lancar')
-                            ✓
-                        @endif
-                    </span>
-                </td>
-                <td class="text-col">Lancar</td>
-            </tr>
-            <tr>
-                <td></td>
-                <td class="checkbox-cell">
-                    <span class="checkbox-box">
-                        @if ($beritaAcara->catatan_kejadian === 'Ada beberapa perbaikan yang harus diubah')
-                            ✓
-                        @endif
-                    </span>
-                </td>
-                <td class="text-col">Ada beberapa perbaikan yang harus diubah</td>
-            </tr>
-        </table>
-
-        {{-- ✅ PERBAIKAN: Kesimpulan Kelayakan dengan TABEL --}}
+        {{-- Kesimpulan Kelayakan dengan TABEL --}}
         <table class="checkbox-table">
             <tr>
                 <td class="label-col">Kesimpulan Kelayakan Seminar Proposal Skripsi<span

@@ -35,7 +35,6 @@
             <div class="small">
                 Sebagai <strong>Dosen Pembimbing/Ketua Penguji</strong>, Anda diminta untuk:
                 <ol class="mb-0 ps-3 mt-2">
-                    <li>Menilai <strong>Catatan Kejadian</strong> selama seminar berlangsung</li>
                     <li>Memberikan <strong>Kesimpulan Kelayakan</strong> proposal mahasiswa</li>
                     <li>Menambahkan catatan tambahan jika diperlukan</li>
                 </ol>
@@ -84,50 +83,12 @@
             id="formFillBA">
             @csrf
 
-            {{-- Catatan Kejadian --}}
-            <div class="card mb-4">
-                <div class="card-header bg-label-primary">
-                    <h5 class="mb-0">
-                        <i class="bx bx-clipboard me-2"></i>1. Catatan Kejadian Selama Seminar
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <p class="text-muted mb-3">
-                        Pilih kondisi yang sesuai dengan jalannya seminar proposal:
-                    </p>
 
-                    <div class="form-check mb-3">
-                        <input class="form-check-input @error('catatan_kejadian') is-invalid @enderror" type="radio"
-                            name="catatan_kejadian" id="catatan_lancar" value="Lancar"
-                            {{ old('catatan_kejadian') === 'Lancar' ? 'checked' : '' }}>
-                        <label class="form-check-label" for="catatan_lancar">
-                            <strong>Lancar</strong>
-                            <div class="text-muted small">Seminar berjalan dengan baik tanpa kendala berarti</div>
-                        </label>
-                    </div>
 
-                    <div class="form-check">
-                        <input class="form-check-input @error('catatan_kejadian') is-invalid @enderror" type="radio"
-                            name="catatan_kejadian" id="catatan_ada_perbaikan"
-                            value="Ada beberapa perbaikan yang harus diubah"
-                            {{ old('catatan_kejadian') === 'Ada beberapa perbaikan yang harus diubah' ? 'checked' : '' }}>
-                        <label class="form-check-label" for="catatan_ada_perbaikan">
-                            <strong>Ada beberapa perbaikan yang harus diubah</strong>
-                            <div class="text-muted small">Terdapat beberapa poin yang perlu diperbaiki</div>
-                        </label>
-                    </div>
-
-                    @error('catatan_kejadian')
-                        <div class="invalid-feedback d-block">{{ $message }}</div>
-                    @enderror
-                </div>
-            </div>
-
-            {{-- Kesimpulan Kelayakan --}}
             <div class="card mb-4">
                 <div class="card-header bg-label-success">
                     <h5 class="mb-0">
-                        <i class="bx bx-check-shield me-2"></i>2. Kesimpulan Kelayakan Seminar Proposal Skripsi
+                        <i class="bx bx-check-shield me-2"></i>1. Kesimpulan Kelayakan Seminar Proposal Skripsi
                     </h5>
                 </div>
                 <div class="card-body">
@@ -190,11 +151,10 @@
                 </div>
             </div>
 
-            {{-- Catatan Tambahan --}}
             <div class="card mb-4">
                 <div class="card-header">
                     <h5 class="mb-0">
-                        <i class="bx bx-note me-2"></i>3. Catatan Tambahan (Opsional)
+                        <i class="bx bx-note me-2"></i>2. Catatan Tambahan (Opsional)
                     </h5>
                 </div>
                 <div class="card-body">
@@ -269,15 +229,14 @@
             form.addEventListener('submit', function(e) {
                 e.preventDefault();
 
-                const catatanKejadian = document.querySelector('input[name="catatan_kejadian"]:checked');
                 const keputusan = document.querySelector('input[name="keputusan"]:checked');
 
                 // Validation
-                if (!catatanKejadian || !keputusan) {
+                if (!keputusan) {
                     Swal.fire({
                         icon: 'error',
                         title: 'Form Belum Lengkap',
-                        text: 'Mohon lengkapi semua pilihan yang diperlukan (Catatan Kejadian dan Kesimpulan Kelayakan)',
+                        text: 'Mohon pilih Kesimpulan Kelayakan',
                         confirmButtonText: 'OK',
                         confirmButtonColor: '#3085d6'
                     });
@@ -286,7 +245,6 @@
 
                 // Log untuk debugging
                 console.log('Form data:', {
-                    catatan_kejadian: catatanKejadian.value,
                     keputusan: keputusan.value,
                     keputusan_length: keputusan.value.length
                 });
@@ -313,7 +271,6 @@
                         </div>
                         <p>Data yang akan disimpan:</p>
                         <ul>
-                            <li><strong>Catatan Kejadian:</strong> ${catatanKejadian.value}</li>
                             <li><strong>Kesimpulan:</strong> <span class="text-danger"><strong>${keputusan.value}</strong></span></li>
                         </ul>
                         <div class="alert alert-warning mb-0">
@@ -331,7 +288,6 @@
                     <div class="text-start">
                         <p>Anda akan mengirimkan berita acara dengan data:</p>
                         <ul>
-                            <li><strong>Catatan Kejadian:</strong> ${catatanKejadian.value}</li>
                             <li><strong>Kesimpulan:</strong> <span class="text-success"><strong>${keputusan.value}</strong></span></li>
                         </ul>
                         <p class="text-success mb-0">

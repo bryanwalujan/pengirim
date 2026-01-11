@@ -12,7 +12,6 @@ class BeritaAcaraSeminarProposal extends Model
 {
     protected $fillable = [
         'jadwal_seminar_proposal_id',
-        'catatan_kejadian',
         'keputusan',
         'catatan_tambahan',
         'verification_code',
@@ -135,7 +134,7 @@ class BeritaAcaraSeminarProposal extends Model
 
     public function isFilledByPembimbing(): bool
     {
-        return !is_null($this->catatan_kejadian) && !is_null($this->keputusan);
+        return !is_null($this->keputusan);
     }
 
     public function isSigned(): bool
@@ -383,22 +382,7 @@ class BeritaAcaraSeminarProposal extends Model
         };
     }
 
-    public function getCatatanKejadianBadgeAttribute(): string
-    {
-        if (!$this->catatan_kejadian) {
-            return '<span class="badge bg-label-secondary">Belum Diisi</span>';
-        }
 
-        return match ($this->catatan_kejadian) {
-            'Lancar' => '<span class="badge bg-label-success">
-                <i class="bx bx-check me-1"></i>Lancar
-            </span>',
-            'Ada beberapa perbaikan yang harus diubah' => '<span class="badge bg-label-warning">
-                <i class="bx bx-info-circle me-1"></i>Ada Perbaikan
-            </span>',
-            default => '<span class="badge bg-label-dark">-</span>',
-        };
-    }
 
     public function getKeputusanBadgeAttribute(): string
     {

@@ -19,7 +19,6 @@ class HomeController extends Controller
     {
         $services = Service::where('is_active', true)
             ->orderBy('order')
-            ->take(6)
             ->get();
 
         $activeCalendar = AcademicCalendar::where('is_active', true)->first();

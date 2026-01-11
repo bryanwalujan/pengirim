@@ -405,20 +405,10 @@
                             </h5>
                         </div>
                         <div class="card-body">
-                            {{-- Catatan Kejadian --}}
-                            <div class="mb-4">
-                                <label class="form-label fw-bold text-muted small mb-2">
-                                    1. Catatan Kejadian Selama Seminar
-                                </label>
-                                <div class="p-3 bg-light rounded">
-                                    {!! $beritaAcara->catatan_kejadian_badge !!}
-                                </div>
-                            </div>
-
                             {{-- Kesimpulan --}}
                             <div class="mb-4">
                                 <label class="form-label fw-bold text-muted small mb-2">
-                                    2. Kesimpulan Kelayakan Seminar Proposal Skripsi
+                                    1. Kesimpulan Kelayakan Seminar Proposal Skripsi
                                 </label>
                                 <div class="p-3 bg-light rounded">
                                     {!! $beritaAcara->keputusan_badge !!}
@@ -428,11 +418,10 @@
                                 </div>
                             </div>
 
-                            {{-- Catatan Tambahan --}}
                             @if ($beritaAcara->catatan_tambahan)
                                 <div>
                                     <label class="form-label fw-bold text-muted small mb-2">
-                                        3. Catatan Tambahan
+                                        2. Catatan Tambahan
                                     </label>
                                     <div class="p-3 bg-light rounded">
                                         {{ $beritaAcara->catatan_tambahan }}

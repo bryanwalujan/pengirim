@@ -58,10 +58,6 @@ Route::get('/preview-surat-usulan-sempro-pdf', [AdminPendaftaranSeminarProposalC
     ->name('preview.surat-usulan-sempro.pdf')
     ->middleware('auth');
 
-Route::get('/preview-berita-acara-sempro-pdf', [AdminBeritaAcaraSemproController::class, 'previewPdf'])
-    ->name('preview.berita-acara-sempro.pdf')
-    ->middleware('auth');
-
 // ========== DEVELOPMENT QUICK LOGIN (Local Only) ==========
 Route::middleware('local.only')->prefix('dev')->name('dev.')->group(function () {
     Route::get('/users/{role}', [App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'getUsersByRole'])
