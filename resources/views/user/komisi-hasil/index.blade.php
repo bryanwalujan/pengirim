@@ -210,6 +210,32 @@
                                                         <p>• P1: {{ $latestHasil->pembimbing1->name ?? '-' }}</p>
                                                         <p>• P2: {{ $latestHasil->pembimbing2->name ?? '-' }}</p>
                                                     </div>
+<<<<<<< HEAD
+                                                </td>
+                                                <td>
+                                                    <div class="judul-skripsi"
+                                                        title="{{ strip_tags($hasil->judul_skripsi) }}">
+                                                        {!! $hasil->judul_skripsi !!}
+                                                    </div>
+                                                    <div class="pembimbing-info mt-1">
+                                                        <i class="bi bi-person-badge"></i>
+                                                        Pembimbing 1: {{ $hasil->pembimbing1->name ?? 'N/A' }} <br>
+                                                        <i class="bi bi-person-badge"></i>
+                                                        Pembimbing 2: {{ $hasil->pembimbing2->name ?? 'N/A' }}
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="status-info">
+                                                        @if ($hasil->status == 'pending')
+                                                            <span class="badge bg-warning">Pending</span>
+                                                            <span class="status-date">Menunggu persetujuan</span>
+                                                        @elseif($hasil->status == 'approved')
+                                                            <span class="badge bg-success">Approved</span>
+                                                            <span class="status-date">
+                                                                Disetujui:
+                                                                {{ $hasil->updated_at->translatedFormat('d M Y') }}
+                                                            </span>
+=======
                                                 </div>
                                             </div>
                                         </div>
@@ -255,6 +281,7 @@
                                                             Menunggu Persetujuan Pembimbing 1
                                                         @elseif($latestHasil->status === 'approved_pembimbing1')
                                                             Menunggu Persetujuan Pembimbing 2
+>>>>>>> refs/remotes/origin/main
                                                         @else
                                                             Menunggu Persetujuan Koordinator Program Studi
                                                         @endif

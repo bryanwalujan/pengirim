@@ -73,6 +73,26 @@ class KomisiHasilController extends Controller
     }
 
     public function store(Request $request)
+<<<<<<< HEAD
+{
+    $request->validate([
+        'judul_skripsi' => 'required|string|max:255',
+        'dosen_pembimbing1_id' => 'required|exists:users,id',
+        'dosen_pembimbing2_id' => 'required|exists:users,id|different:dosen_pembimbing1_id',
+    ]);
+
+            KomisiHasil::create([
+                'user_id' => Auth::id(),
+                'judul_skripsi' => $request->judul_skripsi,
+                'dosen_pembimbing1_id' => $request->dosen_pembimbing1_id,
+                'dosen_pembimbing2_id' => $request->dosen_pembimbing2_id,
+                'status' => 'pending',
+            ]);
+
+        return redirect()->route('user.komisi-hasil.index')
+            ->with('success', 'Pengajuan Komisi Hasil berhasil dibuat.');
+}
+=======
     {
         $userId = Auth::id();
         $lockKey = "komisi_hasil_creation_{$userId}";
@@ -260,6 +280,7 @@ class KomisiHasilController extends Controller
             optional($lock)->release();
         }
     }
+>>>>>>> refs/remotes/origin/main
 
     public function show(KomisiHasil $komisiHasil)
     {
