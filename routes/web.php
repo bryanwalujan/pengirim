@@ -62,6 +62,17 @@ Route::get('/preview-berita-acara-sempro-pdf', [AdminBeritaAcaraSemproController
     ->name('preview.berita-acara-sempro.pdf')
     ->middleware('auth');
 
+// ========== DEVELOPMENT QUICK LOGIN (Local Only) ==========
+Route::middleware('local.only')->prefix('dev')->name('dev.')->group(function () {
+    Route::get('/users/{role}', [App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'getUsersByRole'])
+        ->name('get-users')
+        ->where('role', 'staff|dosen|mahasiswa');
+    
+    Route::post('/login/{role}', [App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'quickLogin'])
+        ->name('quick-login')
+        ->where('role', 'staff|dosen|mahasiswa');
+});
+
 // Untuk User (Mahasiswa)
 Route::get('/', [HomeController::class, 'index'])->name('user.home.index');
 

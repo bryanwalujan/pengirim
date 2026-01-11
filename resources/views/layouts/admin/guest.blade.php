@@ -151,6 +151,41 @@
     </main>
 
     @stack('scripts')
+    
+    {{-- Quick Login Global Helper (Local Only) --}}
+    @if(config('app.env') === 'local')
+    <script>
+        window.quickLoginAsUser = function(userId, role) {
+            if (!userId || !role) return;
+            
+            // Create form and submit
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/dev/login/${role}`;
+            
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            if (!csrfToken) {
+                console.error('CSRF token not found');
+                return;
+            }
+
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = '_token';
+            csrfInput.value = csrfToken;
+            
+            const userIdInput = document.createElement('input');
+            userIdInput.type = 'hidden';
+            userIdInput.name = 'user_id';
+            userIdInput.value = userId;
+            
+            form.appendChild(csrfInput);
+            form.appendChild(userIdInput);
+            document.body.appendChild(form);
+            form.submit();
+        };
+    </script>
+    @endif
 
 </body>
 
