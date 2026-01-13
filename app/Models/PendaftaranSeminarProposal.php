@@ -276,7 +276,7 @@ class PendaftaranSeminarProposal extends Model
             ];
         }
 
-        // Check for existing active registration (exclude rejected)
+        // 🔥 UPDATED: Check for existing registration (including rejected)
         $existingRegistration = self::where('user_id', $userId)
             ->where('komisi_proposal_id', $komisiProposal->id)
             ->whereIn('status', [
@@ -285,11 +285,22 @@ class PendaftaranSeminarProposal extends Model
                 'surat_diproses',
                 'menunggu_ttd_kaprodi',
                 'menunggu_ttd_kajur',
-                'selesai'
+                'selesai',
+                'ditolak' // ✅ TAMBAHAN: Include ditolak status
             ])
-            ->exists();
+            ->first();
 
         if ($existingRegistration) {
+            // ✅ NEW: Specific message for rejected status
+            if ($existingRegistration->status === 'ditolak') {
+                return [
+                    'eligible' => false,
+                    'message' => 'Pendaftaran seminar proposal Anda telah ditolak. Anda harus membuat Komisi Proposal baru dengan judul yang direvisi terlebih dahulu.',
+                    'komisi' => $komisiProposal,
+                    'rejected_registration' => $existingRegistration,
+                ];
+            }
+
             return [
                 'eligible' => false,
                 'message' => 'Anda sudah mendaftar seminar proposal dengan Komisi Proposal yang disetujui.',

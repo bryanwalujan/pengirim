@@ -6,10 +6,24 @@
 @section('content')
     <div class="container-xxl flex-grow-1 container-p-y">
         @php
+            // ✅ FIX: Handle null jadwalSeminarProposal (for rejected BA)
             $jadwal = $beritaAcara->jadwalSeminarProposal;
-            $pendaftaran = $jadwal->pendaftaranSeminarProposal;
-            $mahasiswa = $pendaftaran->user;
-            $pembimbing = $pendaftaran->dosenPembimbing;
+            
+            if ($jadwal) {
+                $pendaftaran = $jadwal->pendaftaranSeminarProposal;
+                $mahasiswa = $pendaftaran->user;
+                $pembimbing = $pendaftaran->dosenPembimbing;
+            } else {
+                // BA ditolak, jadwal sudah dihapus
+                // Gunakan data yang tersimpan di BA untuk audit trail
+                $pendaftaran = null;
+                $mahasiswa = (object)[
+                    'id' => $beritaAcara->mahasiswa_id,
+                    'name' => $beritaAcara->mahasiswa_name,
+                    'nim' => $beritaAcara->mahasiswa_nim,
+                ];
+                $pembimbing = null;
+            }
 
             // User context
             $user = Auth::user();
@@ -20,7 +34,7 @@
 
             // ✅ PERBAIKAN: Check apakah user adalah pembahas
             $isPembahas = false;
-            if ($isDosen) {
+            if ($isDosen && $jadwal) {
                 $isPembahas = $jadwal
                     ->dosenPenguji()
                     ->where('users.id', $user->id) // ← PERBAIKAN: gunakan users.id
@@ -31,7 +45,7 @@
             // ✅ PERBAIKAN: Check apakah user adalah ketua penguji
             $isKetua = false;
             $ketuaPenguji = null;
-            if ($isDosen) {
+            if ($isDosen && $jadwal) {
                 $ketuaPenguji = $jadwal
                     ->dosenPenguji()
                     ->wherePivot('posisi', 'Ketua Penguji') // ← Pastikan konsisten dengan DB
@@ -44,9 +58,8 @@
 
             // ✅ PERBAIKAN: Get pembahas yang hadir (exclude ketua)
             $pembahasHadir = $jadwal
-                ->dosenPenguji()
-                ->wherePivot('posisi', '!=', 'Ketua Penguji') // ← PERBAIKAN
-                ->get();
+                ? $jadwal->dosenPenguji()->wherePivot('posisi', '!=', 'Ketua Penguji')->get()
+                : collect(); // Empty collection if no jadwal
         @endphp
 
         {{-- Header --}}
@@ -66,6 +79,23 @@
                 </a>
             </div>
         </div>
+
+        {{-- ✅ NEW: Alert untuk BA yang ditolak (tidak punya jadwal) --}}
+        @if (!$jadwal && $beritaAcara->isDitolak())
+            <div class="alert alert-danger alert-dismissible mb-4" role="alert">
+                <h6 class="alert-heading mb-2">
+                    <i class="bx bx-x-circle me-2"></i>Berita Acara Ditolak
+                </h6>
+                <p class="mb-2">
+                    Berita acara ini telah ditolak. Jadwal seminar proposal telah dihapus dari sistem.
+                </p>
+                <p class="mb-0">
+                    <i class="bx bx-info-circle me-1"></i>
+                    <small>Mahasiswa harus membuat <strong>Komisi Proposal baru</strong> dengan judul yang direvisi untuk dapat mendaftar seminar proposal kembali.</small>
+                </p>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
 
         {{-- ✅ NEW: Progress Persetujuan Pembahas (jika status = menunggu_ttd_pembahas) --}}
         @if ($beritaAcara->isMenungguTtdPembahas())
@@ -243,28 +273,36 @@
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold text-muted small">Dosen Pembimbing</label>
-                                <div class="fw-semibold">{{ $pembimbing->name }}</div>
-                                <small class="text-muted">NIP: {{ $pembimbing->nip }}</small>
+                                @if ($pembimbing)
+                                    <div class="fw-semibold">{{ $pembimbing->name }}</div>
+                                    <small class="text-muted">NIP: {{ $pembimbing->nip }}</small>
+                                @else
+                                    <div class="text-muted fst-italic">Tidak tersedia</div>
+                                @endif
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold text-muted small">Tanggal & Waktu</label>
                                 <div class="fw-semibold">
-    {{ $jadwal->tanggal_ujian ? \Carbon\Carbon::parse($jadwal->tanggal_ujian)->isoFormat('dddd, D MMMM Y') : '-' }}
+    {{ $jadwal && $jadwal->tanggal_ujian ? \Carbon\Carbon::parse($jadwal->tanggal_ujian)->isoFormat('dddd, D MMMM Y') : '-' }}
 </div>
-                                <div class="mt-1">
-                                    <span class="badge bg-label-primary">
-                                        <i class="bx bx-time-five me-1"></i>
-                                        {{ \Carbon\Carbon::parse($jadwal->waktu_mulai)->format('H:i') }} - {{ \Carbon\Carbon::parse($jadwal->waktu_selesai)->format('H:i') }} WITA
-                                    </span>
-                                </div>
+                                @if ($jadwal && $jadwal->waktu_mulai)
+                                    <div class="mt-1">
+                                        <span class="badge bg-label-primary">
+                                            <i class="bx bx-time-five me-1"></i>
+                                            {{ \Carbon\Carbon::parse($jadwal->waktu_mulai)->format('H:i') }} - {{ \Carbon\Carbon::parse($jadwal->waktu_selesai)->format('H:i') }} WITA
+                                        </span>
+                                    </div>
+                                @endif
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold text-muted small">Ruangan</label>
-                                <div class="fw-semibold">{{ $jadwal->ruangan }}</div>
+                                <div class="fw-semibold">{{ $jadwal ? $jadwal->ruangan : '-' }}</div>
                             </div>
                             <div class="col-md-12">
                                 <label class="form-label fw-bold text-muted small">Judul Proposal</label>
-                                <div class="text-wrap">{!! $pendaftaran->judul_skripsi !!}</div>
+                                <div class="text-wrap">
+                                    {!! $pendaftaran ? $pendaftaran->judul_skripsi : ($beritaAcara->judul_skripsi ?? '<span class="text-muted fst-italic">Tidak tersedia</span>') !!}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -577,18 +615,29 @@
                                         </p>
                                     @else
                                         @php
-                                            $pembimbing =
-                                                $beritaAcara->jadwalSeminarProposal->pendaftaranSeminarProposal
-                                                    ->dosenPembimbing;
-                                            $ketuaPenguji = $beritaAcara->jadwalSeminarProposal->getKetuaPenguji();
+                                            // ✅ FIX: Handle null jadwalSeminarProposal
+                                            if ($beritaAcara->jadwalSeminarProposal) {
+                                                $pembimbing = $beritaAcara->jadwalSeminarProposal->pendaftaranSeminarProposal->dosenPembimbing;
+                                                $ketuaPenguji = $beritaAcara->jadwalSeminarProposal->getKetuaPenguji();
+                                            } else {
+                                                $pembimbing = null;
+                                                $ketuaPenguji = null;
+                                            }
                                         @endphp
-                                        <p class="mb-0 small text-muted">
-                                            <i class="bx bx-time me-1"></i>
-                                            Menunggu: {{ $pembimbing->name }}
-                                            @if ($ketuaPenguji && $ketuaPenguji->id !== $pembimbing->id)
-                                                / {{ $ketuaPenguji->name }}
-                                            @endif
-                                        </p>
+                                        @if ($pembimbing)
+                                            <p class="mb-0 small text-muted">
+                                                <i class="bx bx-time me-1"></i>
+                                                Menunggu: {{ $pembimbing->name }}
+                                                @if ($ketuaPenguji && $ketuaPenguji->id !== $pembimbing->id)
+                                                    / {{ $ketuaPenguji->name }}
+                                                @endif
+                                            </p>
+                                        @else
+                                            <p class="mb-0 small text-muted">
+                                                <i class="bx bx-info-circle me-1"></i>
+                                                Jadwal tidak tersedia (BA ditolak)
+                                            </p>
+                                        @endif
                                     @endif
                                 </div>
                             </li>

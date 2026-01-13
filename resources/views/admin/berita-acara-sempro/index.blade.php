@@ -316,34 +316,71 @@
                     <tbody class="table-border-bottom-0">
                         @forelse($beritaAcaras as $index => $ba)
                             @php
-                                $mahasiswa = $ba->jadwalSeminarProposal->pendaftaranSeminarProposal->user;
+                                // ✅ FIX: Handle null jadwalSeminarProposal (for rejected BA)
                                 $jadwal = $ba->jadwalSeminarProposal;
+                                
+                                if ($jadwal) {
+                                    // BA normal - punya jadwal, ambil dari relasi
+                                    $mahasiswa = $jadwal->pendaftaranSeminarProposal->user;
+                                    $tanggalUjian = $jadwal->tanggal_ujian;
+                                    $waktuMulai = $jadwal->waktu_mulai;
+                                } else {
+                                    // BA ditolak - jadwal sudah dihapus
+                                    // Gunakan data yang tersimpan di BA untuk audit trail
+                                    $mahasiswa = (object)[
+                                        'name' => $ba->mahasiswa_name,
+                                        'nim' => $ba->mahasiswa_nim,
+                                    ];
+                                    $tanggalUjian = null;
+                                    $waktuMulai = null;
+                                }
                             @endphp
-                            <tr class="clickable-row"
+                            <tr class="clickable-row {{ !$jadwal ? 'table-danger' : '' }}"
                                 data-href="{{ route('admin.berita-acara-sempro.show', $ba) }}">
                                 {{-- No --}}
                                 <td><span class="fw-medium">{{ $beritaAcaras->firstItem() + $index }}</span></td>
 
                                 {{-- Mahasiswa --}}
                                 <td>
-                                    <div class="d-flex flex-column">
-                                        <strong class="mb-1">{{ $mahasiswa->name }}</strong>
-                                        <small class="text-muted">{{ $mahasiswa->nim }}</small>
-                                    </div>
+                                    @if ($mahasiswa && $mahasiswa->name)
+                                        <div class="d-flex flex-column">
+                                            <strong class="mb-1">{{ $mahasiswa->name }}</strong>
+                                            <small class="text-muted">{{ $mahasiswa->nim }}</small>
+                                            @if (!$jadwal)
+                                                <small class="text-danger mt-1">
+                                                    <i class="bx bx-info-circle me-1"></i>BA Ditolak
+                                                </small>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <div class="d-flex flex-column">
+                                            <span class="text-muted fst-italic">Data tidak tersedia</span>
+                                            <small class="text-danger">
+                                                <i class="bx bx-info-circle me-1"></i>BA Ditolak
+                                            </small>
+                                        </div>
+                                    @endif
                                 </td>
 
                                 {{-- Tanggal Ujian --}}
                                 <td>
-                                    <div class="d-flex flex-column gap-1">
-                                        <span class="badge bg-label-primary">
-                                            <i class="bx bx-calendar bx-xs me-1"></i>
-                                        {{ $jadwal->tanggal_ujian ? \Carbon\Carbon::parse($jadwal->tanggal_ujian)->isoFormat('dddd, D MMMM Y') : '-' }}
+                                    @if ($tanggalUjian)
+                                        <div class="d-flex flex-column gap-1">
+                                            <span class="badge bg-label-primary">
+                                                <i class="bx bx-calendar bx-xs me-1"></i>
+                                            {{ \Carbon\Carbon::parse($tanggalUjian)->isoFormat('dddd, D MMMM Y') }}
+                                            </span>
+                                            <small class="text-muted">
+                                                <i class="bx bx-time bx-xs me-1"></i>
+                                                {{ $waktuMulai }}
+                                            </small>
+                                        </div>
+                                    @else
+                                        <span class="badge bg-label-danger">
+                                            <i class="bx bx-x bx-xs me-1"></i>
+                                            Jadwal Dihapus
                                         </span>
-                                        <small class="text-muted">
-                                            <i class="bx bx-time bx-xs me-1"></i>
-                                            {{ $jadwal->waktu_mulai }}
-                                        </small>
-                                    </div>
+                                    @endif
                                 </td>
 
                                 {{-- Status --}}

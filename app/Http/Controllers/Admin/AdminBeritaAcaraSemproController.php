@@ -136,10 +136,20 @@ class AdminBeritaAcaraSemproController extends Controller
         $jadwal = $beritaAcara->jadwalSeminarProposal;
         $isDosen = $user->hasRole('dosen');
         $isStaff = $user->hasRole(['staff', 'admin']);
-        $isPembahas = $isDosen && $jadwal->dosenPenguji()->where('dosen_id', $user->id)->exists();
-        $isPembimbing = $isDosen && $jadwal->pendaftaranSeminarProposal->dosen_pembimbing_id === $user->id;
-        $isKetua = $isDosen && $jadwal->dosenPenguji()->wherePivot('posisi', 'Ketua Pembahas')->where('dosen_id', $user->id)->exists();
-        $pembahasHadir = $jadwal->dosenPenguji()->get();
+        
+        // ✅ FIX: Handle null jadwal (for rejected BA)
+        if ($jadwal) {
+            $isPembahas = $isDosen && $jadwal->dosenPenguji()->where('dosen_id', $user->id)->exists();
+            $isPembimbing = $isDosen && $jadwal->pendaftaranSeminarProposal->dosen_pembimbing_id === $user->id;
+            $isKetua = $isDosen && $jadwal->dosenPenguji()->wherePivot('posisi', 'Ketua Pembahas')->where('dosen_id', $user->id)->exists();
+            $pembahasHadir = $jadwal->dosenPenguji()->get();
+        } else {
+            // BA ditolak, jadwal sudah dihapus
+            $isPembahas = false;
+            $isPembimbing = false;
+            $isKetua = false;
+            $pembahasHadir = collect(); // Empty collection
+        }
 
         return view('admin.berita-acara-sempro.show', compact(
             'beritaAcara',
@@ -187,6 +197,34 @@ class AdminBeritaAcaraSemproController extends Controller
         return redirect()
             ->route('admin.berita-acara-sempro.show', $result['beritaAcara'])
             ->with('success', $result['message']);
+    }
+
+    // ==================== APPROVE BY PEMBAHAS ====================
+    public function approvePembahas(BeritaAcaraSeminarProposal $beritaAcara)
+    {
+        $this->authorize('signAsPembahas', $beritaAcara);
+
+        $user = Auth::user();
+
+        if ($beritaAcara->hasSignedByPembahas($user->id)) {
+            return back()->with('info', 'Anda sudah menyetujui berita acara ini.');
+        }
+
+        $beritaAcara->load([
+            'jadwalSeminarProposal.pendaftaranSeminarProposal.user',
+            'jadwalSeminarProposal.dosenPenguji',
+            'lembarCatatan.dosen',
+        ]);
+
+        // ✅ FIX: Handle null jadwal
+        $jadwal = $beritaAcara->jadwalSeminarProposal;
+        if (!$jadwal) {
+            return back()->with('error', 'Berita acara ini tidak memiliki jadwal (mungkin sudah ditolak).');
+        }
+
+        $pembahasHadir = $jadwal->dosenPenguji()->get();
+
+        return view('admin.berita-acara-sempro.approve-pembahas', compact('beritaAcara', 'pembahasHadir'));
     }
 
     // ==================== SIGN BY PEMBAHAS ====================
@@ -270,6 +308,14 @@ class AdminBeritaAcaraSemproController extends Controller
 
         $messageType = $result['isRejected'] ? 'warning' : 'success';
 
+        // ✅ FIX: Redirect to index if rejected (to avoid null errors in show)
+        if ($result['isRejected']) {
+            return redirect()
+                ->route('admin.berita-acara-sempro.index')
+                ->with($messageType, $result['message']);
+        }
+
+        // Normal flow - redirect to show
         return redirect()
             ->route('admin.berita-acara-sempro.show', $beritaAcara)
             ->with($messageType, $result['message']);

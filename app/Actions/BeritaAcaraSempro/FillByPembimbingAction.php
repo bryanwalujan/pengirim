@@ -86,19 +86,41 @@ class FillByPembimbingAction
             }
 
             if ($isRejected) {
-                // Reset jadwal untuk ujian ulang
-                $jadwal->update([
-                    'status' => 'menunggu_jadwal',
-                    'tanggal_ujian' => null,
-                    'waktu_mulai' => null,
-                    'waktu_selesai' => null,
-                    'ruangan' => null,
+                // 🔥 UPDATE: Ubah status pendaftaran sempro menjadi 'ditolak'
+                // Mahasiswa harus membuat komisi proposal baru dengan judul yang direvisi
+                $pendaftaran = $jadwal->pendaftaranSeminarProposal;
+                $pendaftaran->update([
+                    'status' => 'ditolak',
+                    'alasan_penolakan' => $validated['catatan_tambahan'] 
+                        ?? 'Proposal tidak layak berdasarkan hasil ujian seminar proposal. Mahasiswa harus membuat komisi proposal baru dengan judul yang direvisi.',
                 ]);
 
-                Log::info('Jadwal reset due to rejection', [
+                Log::info('Pendaftaran sempro rejected', [
+                    'ba_id' => $beritaAcara->id,
+                    'pendaftaran_id' => $pendaftaran->id,
+                    'alasan' => $pendaftaran->alasan_penolakan
+                ]);
+
+                // 🔥 NEW: Nullify foreign key untuk preserve berita acara
+                // Supaya BA tidak ikut terhapus saat jadwal dihapus (untuk audit trail)
+                $beritaAcara->update([
+                    'jadwal_seminar_proposal_id' => null,
+                ]);
+
+                Log::info('BA foreign key nullified for preservation', [
                     'ba_id' => $beritaAcara->id,
                     'jadwal_id' => $jadwal->id,
-                    'new_jadwal_status' => $jadwal->status
+                ]);
+
+                // 🔥 NEW: Delete jadwal sempro
+                // Mahasiswa harus membuat komisi baru → daftar sempro baru → jadwal baru
+                $jadwalId = $jadwal->id;
+                $jadwal->delete();
+
+                Log::info('Jadwal sempro deleted due to rejection', [
+                    'ba_id' => $beritaAcara->id,
+                    'jadwal_id_deleted' => $jadwalId,
+                    'reason' => 'BA ditolak - mahasiswa harus mulai dari awal'
                 ]);
             }
 
@@ -113,7 +135,7 @@ class FillByPembimbingAction
                 return [
                     'success' => true,
                     'isRejected' => true,
-                    'message' => 'Berita acara telah diselesaikan dengan keputusan TIDAK LAYAK. Mahasiswa perlu dijadwalkan ulang untuk ujian seminar proposal.',
+                    'message' => 'Berita acara telah diselesaikan dengan keputusan TIDAK LAYAK. Pendaftaran seminar proposal mahasiswa telah ditolak. Mahasiswa harus membuat Komisi Proposal baru dengan judul yang direvisi.',
                 ];
             } else {
                 return [

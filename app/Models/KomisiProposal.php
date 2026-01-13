@@ -163,7 +163,25 @@ class KomisiProposal extends Model
             ];
         }
 
+        // 🔥 NEW: Check if student has rejected sempro registration
+        // If yes, they can create new komisi proposal even if previous one is approved
+        $hasRejectedSempro = \App\Models\PendaftaranSeminarProposal::where('user_id', $userId)
+            ->where('komisi_proposal_id', $latestProposal->id)
+            ->where('status', 'ditolak')
+            ->exists();
+
         if ($latestProposal->status === 'approved') {
+            // ✅ UPDATED: Allow create new komisi if sempro was rejected
+            if ($hasRejectedSempro) {
+                return [
+                    'can_create' => true,
+                    'reason' => null,
+                    'proposal' => $latestProposal,
+                    'previous_rejected' => true, // Flag for UI
+                ];
+            }
+
+            // ❌ Otherwise, cannot create new komisi
             return [
                 'can_create' => false,
                 'reason' => 'Anda sudah memiliki komisi proposal yang disetujui. Tidak dapat mengajukan lagi.',

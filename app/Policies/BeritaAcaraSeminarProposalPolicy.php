@@ -23,6 +23,13 @@ class BeritaAcaraSeminarProposalPolicy
         if ($user->hasRole('dosen')) {
             $jadwal = $beritaAcara->jadwalSeminarProposal;
 
+            // ✅ FIX: Handle null jadwal (for rejected BA)
+            if (!$jadwal) {
+                // BA ditolak, jadwal sudah dihapus
+                // Hanya staff/admin yang bisa lihat
+                return false;
+            }
+
             // Pembimbing
             if ($jadwal->pendaftaranSeminarProposal->dosen_pembimbing_id === $user->id) {
                 return true;

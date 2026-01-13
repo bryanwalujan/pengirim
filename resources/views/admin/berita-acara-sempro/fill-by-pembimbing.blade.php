@@ -135,9 +135,10 @@
                         <p class="mb-2">Jika Anda memilih <strong>"Tidak"</strong>, maka:</p>
                         <ul class="mb-2">
                             <li>Berita acara akan ditandai sebagai <strong>DITOLAK</strong></li>
-                            <li>Mahasiswa <strong>HARUS mengikuti ujian seminar proposal ulang</strong></li>
-                            <li>Staff akan melakukan <strong>penjadwalan ulang</strong> untuk ujian berikutnya</li>
-                            <li>Jadwal ujian sebelumnya akan direset</li>
+                            <li>Pendaftaran seminar proposal mahasiswa akan <strong>DITOLAK</strong></li>
+                            <li>Mahasiswa <strong>HARUS membuat Komisi Proposal BARU</strong> dengan judul yang direvisi</li>
+                            <li>Setelah komisi proposal baru disetujui (PA + Korprodi), mahasiswa baru bisa mendaftar seminar proposal lagi</li>
+                            <li>Jadwal ujian sebelumnya akan dibatalkan</li>
                         </ul>
                         <p class="mb-0">
                             <i class="bx bx-info-circle me-1"></i>
@@ -277,8 +278,9 @@
                             <p class="mb-2"><strong>Konsekuensi:</strong></p>
                             <ul class="mb-0">
                                 <li>Berita acara akan ditandai sebagai <strong>DITOLAK</strong></li>
-                                <li>Mahasiswa harus mengikuti <strong>ujian seminar proposal ulang</strong></li>
-                                <li>Staff akan melakukan <strong>penjadwalan ulang</strong></li>
+                                <li>Pendaftaran seminar proposal ditolak</li>
+                                <li>Mahasiswa harus <strong>membuat Komisi Proposal BARU</strong> dengan judul yang direvisi</li>
+                                <li>Setelah komisi baru disetujui, mahasiswa bisa daftar sempro lagi</li>
                             </ul>
                         </div>
                     </div>

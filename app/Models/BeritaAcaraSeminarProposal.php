@@ -12,6 +12,10 @@ class BeritaAcaraSeminarProposal extends Model
 {
     protected $fillable = [
         'jadwal_seminar_proposal_id',
+        'mahasiswa_id',
+        'mahasiswa_name',
+        'mahasiswa_nim',
+        'judul_skripsi',
         'keputusan',
         'catatan_tambahan',
         'verification_code',
@@ -153,6 +157,10 @@ class BeritaAcaraSeminarProposal extends Model
     {
         $jadwal = $this->jadwalSeminarProposal;
 
+        if (!$jadwal) {
+            return false;
+        }
+
         // Count semua pembahas (exclude Ketua Penguji)
         $totalPembahas = $jadwal->dosenPenguji()
             ->where('posisi', '!=', 'Ketua Pembahas')
@@ -185,6 +193,11 @@ class BeritaAcaraSeminarProposal extends Model
     public function getPembahasYangBelumTtd()
     {
         $jadwal = $this->jadwalSeminarProposal;
+        
+        if (!$jadwal) {
+            return collect();
+        }
+
         $signedIds = collect($this->ttd_dosen_pembahas ?? [])->pluck('dosen_id')->toArray();
 
         return $jadwal->dosenPenguji()
@@ -199,6 +212,14 @@ class BeritaAcaraSeminarProposal extends Model
     public function getTtdPembahasProgress(): array
     {
         $jadwal = $this->jadwalSeminarProposal;
+
+        if (!$jadwal) {
+            return [
+                'signed' => 0,
+                'total' => 0,
+                'percentage' => 0,
+            ];
+        }
 
         $total = $jadwal->dosenPenguji()
             ->where('posisi', '!=', 'Ketua Pembahas')
@@ -250,6 +271,10 @@ class BeritaAcaraSeminarProposal extends Model
             return false;
         }
 
+        if (!$this->jadwalSeminarProposal) {
+            return false;
+        }
+
         $isPembahas = $this->jadwalSeminarProposal
             ->dosenPenguji()
             ->where('users.id', $dosenId)
@@ -281,6 +306,11 @@ class BeritaAcaraSeminarProposal extends Model
         }
 
         $jadwal = $this->jadwalSeminarProposal;
+        
+        if (!$jadwal) {
+            return false;
+        }
+
         $pendaftaran = $jadwal->pendaftaranSeminarProposal;
 
         $isPembimbing = $pendaftaran->dosen_pembimbing_id === $dosenId;
@@ -324,8 +354,14 @@ class BeritaAcaraSeminarProposal extends Model
             return false;
         }
 
+        $jadwal = $this->jadwalSeminarProposal;
+
+        if (!$jadwal) {
+            return false;
+        }
+
         // 3. User harus ketua penguji
-        $ketuaId = $this->jadwalSeminarProposal
+        $ketuaId = $jadwal
             ->dosenPenguji()
             ->wherePivot('posisi', 'ketua')
             ->first()?->id;
@@ -355,7 +391,7 @@ class BeritaAcaraSeminarProposal extends Model
             $this->getTtdPembahasProgress()['total'] . ' sudah TTD)',
             'menunggu_ttd_pembimbing' => 'Menunggu dosen pembimbing/ketua mengisi & menandatangani',
             'selesai' => 'Berita acara telah selesai dan ditandatangani',
-            'ditolak' => 'Proposal tidak layak - mahasiswa perlu dijadwalkan ulang untuk seminar proposal',
+            'ditolak' => 'Proposal tidak layak - mahasiswa harus membuat komisi proposal baru dengan judul yang direvisi',
             default => 'Status tidak diketahui',
         };
     }

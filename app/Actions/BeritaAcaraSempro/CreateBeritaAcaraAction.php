@@ -19,8 +19,17 @@ class CreateBeritaAcaraAction
         try {
             DB::beginTransaction();
 
+            // ✅ NEW: Ambil data mahasiswa untuk audit trail
+            $pendaftaran = $jadwal->pendaftaranSeminarProposal;
+            $mahasiswa = $pendaftaran->user;
+
             $beritaAcara = BeritaAcaraSeminarProposal::create([
                 'jadwal_seminar_proposal_id' => $jadwal->id,
+                // ✅ NEW: Simpan data mahasiswa untuk audit trail
+                'mahasiswa_id' => $mahasiswa->id,
+                'mahasiswa_name' => $mahasiswa->name,
+                'mahasiswa_nim' => $mahasiswa->nim,
+                'judul_skripsi' => $pendaftaran->judul_skripsi,
                 'catatan_tambahan' => $data['catatan_tambahan'] ?? null,
                 'dibuat_oleh_id' => $creator->id,
                 'status' => 'menunggu_ttd_pembahas',
@@ -31,6 +40,7 @@ class CreateBeritaAcaraAction
             Log::info('Berita Acara created', [
                 'ba_id' => $beritaAcara->id,
                 'jadwal_id' => $jadwal->id,
+                'mahasiswa_id' => $mahasiswa->id,
                 'created_by' => $creator->id,
             ]);
 
