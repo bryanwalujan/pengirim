@@ -73,26 +73,6 @@ class KomisiHasilController extends Controller
     }
 
     public function store(Request $request)
-<<<<<<< HEAD
-{
-    $request->validate([
-        'judul_skripsi' => 'required|string|max:255',
-        'dosen_pembimbing1_id' => 'required|exists:users,id',
-        'dosen_pembimbing2_id' => 'required|exists:users,id|different:dosen_pembimbing1_id',
-    ]);
-
-            KomisiHasil::create([
-                'user_id' => Auth::id(),
-                'judul_skripsi' => $request->judul_skripsi,
-                'dosen_pembimbing1_id' => $request->dosen_pembimbing1_id,
-                'dosen_pembimbing2_id' => $request->dosen_pembimbing2_id,
-                'status' => 'pending',
-            ]);
-
-        return redirect()->route('user.komisi-hasil.index')
-            ->with('success', 'Pengajuan Komisi Hasil berhasil dibuat.');
-}
-=======
     {
         $userId = Auth::id();
         $lockKey = "komisi_hasil_creation_{$userId}";
@@ -280,7 +260,6 @@ class KomisiHasilController extends Controller
             optional($lock)->release();
         }
     }
->>>>>>> refs/remotes/origin/main
 
     public function show(KomisiHasil $komisiHasil)
     {
@@ -304,20 +283,20 @@ class KomisiHasilController extends Controller
         if ($komisiHasil->user_id !== Auth::id()) {
             abort(403, 'Anda tidak memiliki akses ke dokumen ini.');
         }
-    
+
         // Hanya bisa download jika sudah approved
         if ($komisiHasil->status !== 'approved') {
             return back()->with('error', 'Dokumen hanya dapat diunduh setelah disetujui lengkap.');
         }
-    
+
         // Gunakan nama kolom yang benar: file_komisi_hasil
         if (!$komisiHasil->file_komisi_hasil || !Storage::disk('local')->exists($komisiHasil->file_komisi_hasil)) {
             return back()->with('error', 'File dokumen tidak ditemukan.');
         }
-    
+
         $fullPath = Storage::disk('local')->path($komisiHasil->file_komisi_hasil);
         $filename = 'Komisi_Hasil_' . Auth::user()->nim . '_' . now()->format('Ymd') . '.pdf';
-    
+
         return response()->download($fullPath, $filename);
     }
 }
