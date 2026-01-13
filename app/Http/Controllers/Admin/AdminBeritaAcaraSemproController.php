@@ -64,22 +64,34 @@ class AdminBeritaAcaraSemproController extends Controller
             } elseif ($filter === 'pembimbing') {
                 $query->where('status', 'menunggu_ttd_pembimbing')
                     ->whereHas('jadwalSeminarProposal.pendaftaranSeminarProposal', fn($q) => $q->where('dosen_pembimbing_id', $user->id));
+            } elseif ($filter === 'ditolak') {
+                $query->where('status', 'ditolak')
+                    ->where('diisi_oleh_pembimbing_id', $user->id);
             } else {
-                $query->where('status', 'selesai')
-                    ->where(function ($q) use ($user) {
-                        $q->whereHas('jadwalSeminarProposal.dosenPenguji', fn($sub) => $sub->where('dosen_id', $user->id))
-                            ->orWhereHas('jadwalSeminarProposal.pendaftaranSeminarProposal', fn($sub) => $sub->where('dosen_pembimbing_id', $user->id));
-                    });
+                $query->where(function ($q) use ($user) {
+                    $q->where('status', 'selesai')
+                        ->where(function ($sub) use ($user) {
+                            $sub->whereHas('jadwalSeminarProposal.dosenPenguji', fn($s) => $s->where('dosen_id', $user->id))
+                                ->orWhereHas('jadwalSeminarProposal.pendaftaranSeminarProposal', fn($s) => $s->where('dosen_pembimbing_id', $user->id));
+                        })
+                        ->orWhere(function ($sub) use ($user) {
+                            // Sertakan BA ditolak jika dosen ini yang mengisi (pembimbing)
+                            $sub->where('status', 'ditolak')
+                                ->where('diisi_oleh_pembimbing_id', $user->id);
+                        });
+                });
             }
         }
 
-        // Filters untuk staff
-        if ($request->filled('status')) {
-            $status = $request->status;
-            if ($status === 'menunggu_ttd') {
-                $query->whereIn('status', ['menunggu_ttd_pembahas', 'menunggu_ttd_pembimbing']);
-            } else {
-                $query->where('status', $status);
+        // Filters untuk staff/global
+        if (!$user->hasRole('dosen') || $request->filled('status')) {
+            if ($request->filled('status')) {
+                $status = $request->status;
+                if ($status === 'menunggu_ttd') {
+                    $query->whereIn('status', ['menunggu_ttd_pembahas', 'menunggu_ttd_pembimbing']);
+                } else {
+                    $query->where('status', $status);
+                }
             }
         }
 
@@ -89,11 +101,11 @@ class AdminBeritaAcaraSemproController extends Controller
 
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->whereHas(
-                'jadwalSeminarProposal.pendaftaranSeminarProposal.user',
-                fn($q) =>
-                $q->where('name', 'like', "%{$search}%")->orWhere('nim', 'like', "%{$search}%")
-            );
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('jadwalSeminarProposal.pendaftaranSeminarProposal.user', fn($sub) => $sub->where('name', 'like', "%{$search}%")->orWhere('nim', 'like', "%{$search}%"))
+                    ->orWhere('mahasiswa_name', 'like', "%{$search}%")
+                    ->orWhere('mahasiswa_nim', 'like', "%{$search}%");
+            });
         }
 
         $beritaAcaras = $query->latest()->paginate(20)->withQueryString();
@@ -101,9 +113,17 @@ class AdminBeritaAcaraSemproController extends Controller
         // Statistics
         if ($user->hasRole('dosen')) {
             $stats = [
-                'total' => BeritaAcaraSeminarProposal::where('status', 'selesai')->count(),
-                'menunggu_ttd_pembahas' => BeritaAcaraSeminarProposal::where('status', 'menunggu_ttd_pembahas')->count(),
-                'menunggu_ttd_pembimbing' => BeritaAcaraSeminarProposal::where('status', 'menunggu_ttd_pembimbing')->count(),
+                'total' => BeritaAcaraSeminarProposal::where('status', 'selesai')
+                    ->where(function ($q) use ($user) {
+                        $q->whereHas('jadwalSeminarProposal.dosenPenguji', fn($s) => $s->where('dosen_id', $user->id))
+                            ->orWhereHas('jadwalSeminarProposal.pendaftaranSeminarProposal', fn($s) => $s->where('dosen_pembimbing_id', $user->id));
+                    })->count(),
+                'menunggu_ttd_pembahas' => BeritaAcaraSeminarProposal::where('status', 'menunggu_ttd_pembahas')
+                    ->whereHas('jadwalSeminarProposal.dosenPenguji', fn($q) => $q->where('dosen_id', $user->id))->count(),
+                'menunggu_ttd_pembimbing' => BeritaAcaraSeminarProposal::where('status', 'menunggu_ttd_pembimbing')
+                    ->whereHas('jadwalSeminarProposal.pendaftaranSeminarProposal', fn($q) => $q->where('dosen_pembimbing_id', $user->id))->count(),
+                'ditolak' => BeritaAcaraSeminarProposal::where('status', 'ditolak')
+                    ->where('diisi_oleh_pembimbing_id', $user->id)->count(),
             ];
         } else {
             $stats = [

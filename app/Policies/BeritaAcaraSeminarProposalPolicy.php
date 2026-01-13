@@ -25,8 +25,13 @@ class BeritaAcaraSeminarProposalPolicy
 
             // ✅ FIX: Handle null jadwal (for rejected BA)
             if (!$jadwal) {
-                // BA ditolak, jadwal sudah dihapus
-                // Hanya staff/admin yang bisa lihat
+                // Pembimbing yang mengisi BA (meskipun jadwal dihapus) tetap bisa melihat
+                if ($beritaAcara->diisi_oleh_pembimbing_id === $user->id) {
+                    return true;
+                }
+                
+                // Atau cek jika user adalah dosen pembimbing dari pendaftaran terkait (jika relasi masih ada)
+                // Karena jadwal null, kita mengandalkan diisi_oleh_pembimbing_id
                 return false;
             }
 

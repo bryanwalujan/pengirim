@@ -57,6 +57,12 @@ class BeritaAcaraSeminarProposal extends Model
         return $this->belongsTo(User::class, 'diisi_oleh_pembimbing_id');
     }
 
+    // Relasi ke User (Mahasiswa) - Ditambahkan setelah penambahan field mahasiswa_id
+    public function mahasiswa()
+    {
+        return $this->belongsTo(User::class, 'mahasiswa_id');
+    }
+
     // Relasi ke User (Dosen Pembimbing yang menandatangani)
     public function dosenPembimbingPenandatangan()
     {
