@@ -16,12 +16,15 @@ use App\Models\PengajuanSkPembimbing;
 use App\Models\StatistikPembimbingSkripsi;
 use App\Models\TahunAjaran;
 use App\Models\User;
+use App\Traits\GeneratesNomorSurat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class AdminSkPembimbingController extends Controller
 {
+    use GeneratesNomorSurat;
+
     public function __construct(
         private readonly VerifyDokumenAction $verifyAction,
         private readonly AssignPembimbingAction $assignAction,
@@ -132,7 +135,20 @@ class AdminSkPembimbingController extends Controller
             ->pendaftaranSeminarProposal
             ->dosen_pembimbing_id ?? null;
 
-        return view('admin.sk-pembimbing.assign-pembimbing', compact('pengajuan', 'dosenList', 'defaultPs1'));
+        // Prepare nomor surat info
+        $nextNomor = $this->getNextNomorSurat();
+        $lastNomor = $this->getLastUsedNomorSurat();
+        $prefix = 'UN41.2/TI';
+        $academicYearId = $this->getAcademicYearIdentifier($this->getActiveTahunAjaran());
+
+        $nomorSuratInfo = [
+            'next_nomor' => $nextNomor,
+            'last_nomor' => $lastNomor,
+            'prefix' => $prefix,
+            'year' => $academicYearId,
+        ];
+
+        return view('admin.sk-pembimbing.assign-pembimbing', compact('pengajuan', 'dosenList', 'defaultPs1', 'nomorSuratInfo'));
     }
 
     /**
@@ -312,5 +328,43 @@ class AdminSkPembimbingController extends Controller
     private function authorizeStaff(): void
     {
         abort_unless(User::find(Auth::id())->hasRole(['staff', 'admin']), 403);
+    }
+
+    /**
+     * Validate custom nomor surat (AJAX)
+     */
+    public function validateNomorSurat(Request $request)
+    {
+        $customNumber = $request->input('custom_number');
+
+        if (!$customNumber || !is_numeric($customNumber) || $customNumber < 1 || $customNumber > 9999) {
+            return response()->json([
+                'valid' => false,
+                'message' => 'Nomor tidak valid. Masukkan 1-4 digit angka.',
+            ]);
+        }
+
+        try {
+            $nomorSurat = $this->generateNomorSuratUniversal('UN41.2/TI', (int) $customNumber);
+            $isUnique = $this->validateNomorSuratUnique($nomorSurat);
+
+            if (!$isUnique) {
+                return response()->json([
+                    'valid' => false,
+                    'message' => 'Nomor surat sudah digunakan. Silakan pilih nomor lain.',
+                ]);
+            }
+
+            return response()->json([
+                'valid' => true,
+                'message' => 'Nomor surat tersedia.',
+                'nomor_surat' => $nomorSurat,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'valid' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
+            ]);
+        }
     }
 }

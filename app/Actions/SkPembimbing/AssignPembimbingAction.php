@@ -5,10 +5,13 @@ namespace App\Actions\SkPembimbing;
 
 use App\Models\PengajuanSkPembimbing;
 use App\Models\User;
+use App\Traits\GeneratesNomorSurat;
 use Illuminate\Support\Facades\DB;
 
 class AssignPembimbingAction
 {
+    use GeneratesNomorSurat;
+
     public function execute(PengajuanSkPembimbing $pengajuan, User $staff, array $data): array
     {
         if (
@@ -21,11 +24,21 @@ class AssignPembimbingAction
         }
 
         return DB::transaction(function () use ($pengajuan, $staff, $data) {
+            // Generate nomor surat
+            $customNumber = null;
+            if (isset($data['nomor_surat_type']) && $data['nomor_surat_type'] === 'custom' && isset($data['custom_nomor_surat'])) {
+                $customNumber = (int) $data['custom_nomor_surat'];
+            }
+            
+            $nomorSurat = $this->generateNomorSuratUniversal('UN41.2/TI', $customNumber);
+
             $pengajuan->update([
                 'dosen_pembimbing_1_id' => $data['dosen_pembimbing_1_id'],
                 'dosen_pembimbing_2_id' => $data['dosen_pembimbing_2_id'] ?? null,
                 'catatan_staff' => $data['catatan_staff'] ?? null,
-                'status' => PengajuanSkPembimbing::STATUS_MENUNGGU_TTD_KAJUR,
+                'nomor_surat' => $nomorSurat,
+                'tanggal_surat' => $data['tanggal_surat'],
+                'status' => PengajuanSkPembimbing::STATUS_PS_DITENTUKAN,
                 'ps_assigned_by' => $staff->id,
                 'ps_assigned_at' => now(),
                 'verified_by' => $pengajuan->verified_by ?? $staff->id,

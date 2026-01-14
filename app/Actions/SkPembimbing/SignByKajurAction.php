@@ -6,10 +6,13 @@ namespace App\Actions\SkPembimbing;
 use App\Models\PengajuanSkPembimbing;
 use App\Models\User;
 use App\Services\SkPembimbingPdfService;
+use App\Traits\GeneratesNomorSurat;
 use Illuminate\Support\Facades\DB;
 
 class SignByKajurAction
 {
+    use GeneratesNomorSurat;
+
     public function __construct(
         private readonly SkPembimbingPdfService $pdfService
     ) {}
@@ -21,8 +24,8 @@ class SignByKajurAction
         }
 
         return DB::transaction(function () use ($pengajuan, $kajur) {
-            // Generate nomor surat
-            $nomorSurat = $this->generateNomorSurat();
+            // Generate nomor surat using centralized trait
+            $nomorSurat = $this->generateNomorSuratUniversal('UN41.2/TI');
 
             // Kajur signs LAST - Complete & Generate PDF
             $pengajuan->update([
@@ -39,15 +42,5 @@ class SignByKajurAction
 
             return ['success' => true, 'message' => 'SK Pembimbing berhasil diterbitkan.'];
         });
-    }
-
-    private function generateNomorSurat(): string
-    {
-        $year = now()->year;
-        $count = PengajuanSkPembimbing::whereYear('tanggal_surat', $year)
-            ->whereNotNull('nomor_surat')
-            ->count() + 1;
-
-        return sprintf('%03d/SK-PMB/PTIK/%d', $count, $year);
     }
 }

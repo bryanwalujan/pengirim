@@ -95,7 +95,7 @@
                                                     </span>
                                                     <span class="flex items-center text-xs text-gray-500 space-x-4">
                                                         <span class="flex items-center">
-                                                            <i class="bx bx-calendar mr-1"></i> {{ $jadwal?->tanggal_seminar?->format('d M Y') ?? '-' }}
+                                                            <i class="bx bx-calendar mr-1"></i> {{ $jadwal?->tanggal_ujian?->format('d M Y') ?? '-' }}
                                                         </span>
                                                         <span class="flex items-center">
                                                             <i class="bx bx-check-circle mr-1"></i> {{ $ba->keputusan ?? '-' }}
@@ -125,10 +125,14 @@
                                 <div class="mb-4">
                                     <label class="block text-sm font-bold text-gray-700 mb-2">Judul Skripsi <span class="text-red-500">*</span></label>
                                     <textarea name="judul_skripsi" id="judul_skripsi" rows="3" 
-                                        class="w-full rounded-xl border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 transition-all resize-none"
+                                        class="w-full rounded-xl border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 transition-all resize-none @error('judul_skripsi') border-red-500 @enderror"
                                         placeholder="Judul skripsi dapat diperbaiki sesuai revisi..." required>{{ old('judul_skripsi', $beritaAcaras->first()?->jadwalSeminarProposal?->pendaftaranSeminarProposal?->judul_skripsi ?? '') }}</textarea>
-                                    <p class="text-xs text-gray-500 mt-2">
-                                        <i class="bx bx-info-circle mr-1"></i> Judul dapat disesuaikan jika terdapat perbaikan dari seminar proposal.
+                                    <p id="caps-warning" class="text-xs text-red-500 mt-2 font-semibold" style="display: none;">
+                                        <i class="bx bx-error-circle mr-1"></i> Peringatan: Judul tidak boleh ditulis dengan huruf kapital semua (ALL CAPS).
+                                    </p>
+                                    <p class="text-xs text-gray-500 mt-2 leading-relaxed">
+                                        <i class="bx bx-info-circle mr-1"></i> Judul dapat disesuaikan jika terdapat perbaikan dari seminar proposal. 
+                                        <span class="text-red-500 font-medium">Gunakan huruf kapital secara proporsional, bukan ALL CAPS.</span>
                                     </p>
                                     @error('judul_skripsi') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                                 </div>
@@ -223,7 +227,7 @@
                                 <div class="space-y-3 text-sm">
                                     <div class="flex justify-between py-2 border-b border-gray-50">
                                         <span class="text-gray-500">Program Studi</span>
-                                        <span class="font-semibold text-gray-700">{{ Auth::user()->jurusan->nama_jurusan ?? '-' }}</span>
+                                        <span class="font-semibold text-gray-700">Teknik Informatika</span>
                                     </div>
                                     <div class="flex justify-between py-2 border-b border-gray-50">
                                         <span class="text-gray-500">Email</span>
@@ -231,16 +235,6 @@
                                     </div>
                                 </div>
                             
-                                <div class="mt-6 bg-blue-50 border border-blue-100 rounded-xl p-4">
-                                    <h5 class="text-xs font-bold text-blue-800 uppercase mb-2 flex items-center">
-                                        <i class="bx bx-info-circle mr-1"></i> Catatan Penting
-                                    </h5>
-                                    <ul class="text-xs text-blue-700 space-y-1 list-disc list-inside">
-                                        <li>Pastikan nilai seminar proposal sudah keluar.</li>
-                                        <li>Surat permohonan wajib ditulis tangan.</li>
-                                        <li>Upload bukti pembayaran UKT semester terakhir yang valid.</li>
-                                    </ul>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -283,10 +277,43 @@
                 return [$ba->id => $ba->jadwalSeminarProposal?->pendaftaranSeminarProposal?->judul_skripsi ?? ''];
             }));
             
-            const judulInput = document.getElementById('judul_skripsi');
             if (beritaAcaraData[id] && (!judulInput.value.trim() || judulInput.value.trim() === '')) {
                 judulInput.value = beritaAcaraData[id];
+                // Trigger input event to check for caps on newly filled title
+                judulInput.dispatchEvent(new Event('input'));
             }
+        }
+
+        // Logic validasi ALL CAPS (Sama seperti komisi-proposal)
+        const judulInput = document.getElementById('judul_skripsi');
+        const capsWarning = document.getElementById('caps-warning');
+
+        if (judulInput) {
+            judulInput.addEventListener('input', function() {
+                const value = this.value.trim();
+                
+                // Cek apakah semua huruf adalah kapital (minimal 10 karakter untuk validasi)
+                if (value.length >= 10) {
+                    const uppercaseCount = (value.match(/[A-Z]/g) || []).length;
+                    const lowercaseCount = (value.match(/[a-z]/g) || []).length;
+                    const totalLetters = uppercaseCount + lowercaseCount;
+                    
+                    // Jika lebih dari 80% huruf adalah kapital, tampilkan warning
+                    if (totalLetters > 0 && (uppercaseCount / totalLetters) > 0.8) {
+                        capsWarning.style.display = 'block';
+                        this.classList.add('border-red-500', 'ring-red-500');
+                        this.classList.remove('focus:border-orange-500', 'focus:ring-orange-500');
+                    } else {
+                        capsWarning.style.display = 'none';
+                        this.classList.remove('border-red-500', 'ring-red-500');
+                        this.classList.add('focus:border-orange-500', 'focus:ring-orange-500');
+                    }
+                } else {
+                    capsWarning.style.display = 'none';
+                    this.classList.remove('border-red-500', 'ring-red-500');
+                    this.classList.add('focus:border-orange-500', 'focus:ring-orange-500');
+                }
+            });
         }
 
         document.addEventListener('DOMContentLoaded', function() {
@@ -371,11 +398,40 @@
                 document.getElementById(previewId).innerHTML = '';
             };
             
-            // Prevent double submit
-            document.getElementById('formPengajuan').addEventListener('submit', function() {
+            // Prevent double submit and validate ALL CAPS
+            document.getElementById('formPengajuan').addEventListener('submit', function(e) {
+                // Final validation for ALL CAPS before submit
+                const judulValue = judulInput.value.trim();
+                if (judulValue.length >= 10) {
+                    const uppercaseCount = (judulValue.match(/[A-Z]/g) || []).length;
+                    const lowercaseCount = (judulValue.match(/[a-z]/g) || []).length;
+                    const totalLetters = uppercaseCount + lowercaseCount;
+                    
+                    if (totalLetters > 0 && (uppercaseCount / totalLetters) > 0.8) {
+                        e.preventDefault();
+                        
+                        // Using standard SweetAlert2 if available, otherwise fallback to alert
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                title: 'Judul Tidak Valid',
+                                text: 'Judul skripsi tidak boleh ditulis dengan huruf kapital semua (ALL CAPS). Gunakan huruf kapital hanya sesuai aturan penulisan.',
+                                icon: 'error',
+                                confirmButtonColor: '#f97316'
+                            });
+                        } else {
+                            alert('Judul skripsi tidak boleh menggunakan huruf kapital semua (ALL CAPS).');
+                        }
+                        
+                        judulInput.focus();
+                        return false;
+                    }
+                }
+
                 const btn = document.getElementById('btnSubmit');
                 btn.disabled = true;
-                btn.innerHTML = '<span class="spinner-border spinner-border-sm mr-2"></span> Mengirim...';
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm mr-2 animate-spin"></span> Mengirim...';
+                
+                return true;
             });
         });
     </script>

@@ -81,6 +81,7 @@ return new class extends Migration {
             $table->timestamp('ttd_korprodi_at')->nullable();
 
             $table->timestamps();
+            $table->softDeletes();
 
             // Composite Indexes untuk query optimization
             $table->index(['status', 'created_at']);

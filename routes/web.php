@@ -902,6 +902,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             // Assign Pembimbing
             Route::get('/{pengajuan}/assign-pembimbing', [AdminSkPembimbingController::class, 'showAssignPembimbing'])->name('assign-pembimbing');
             Route::post('/{pengajuan}/assign-pembimbing', [AdminSkPembimbingController::class, 'assignPembimbing'])->name('store-pembimbing');
+            Route::post('/validate-nomor-surat', [AdminSkPembimbingController::class, 'validateNomorSurat'])->name('validate-nomor-surat');
 
             // Reject
             Route::post('/{pengajuan}/reject', [AdminSkPembimbingController::class, 'reject'])->name('reject');

@@ -19,6 +19,9 @@ class AssignPembimbingRequest extends FormRequest
             'dosen_pembimbing_1_id' => ['required', 'exists:users,id'],
             'dosen_pembimbing_2_id' => ['nullable', 'exists:users,id', 'different:dosen_pembimbing_1_id'],
             'catatan_staff' => ['nullable', 'string', 'max:1000'],
+            'nomor_surat_type' => ['required', 'in:auto,custom'],
+            'custom_nomor_surat' => ['required_if:nomor_surat_type,custom', 'nullable', 'numeric', 'min:1', 'max:9999'],
+            'tanggal_surat' => ['required', 'date'],
         ];
     }
 

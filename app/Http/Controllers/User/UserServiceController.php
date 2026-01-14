@@ -27,7 +27,7 @@ class UserServiceController extends Controller
                 return $query->where('is_active', false);
             })
             ->orderBy('order')
-            ->paginate(12);
+            ->paginate(16);
 
         return view('user.services.index', [
             'services' => $services,
