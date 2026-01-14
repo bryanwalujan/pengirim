@@ -1,0 +1,156 @@
+{{-- filepath: resources/views/admin/sk-pembimbing/assign-pembimbing.blade.php --}}
+@extends('layouts.admin.app')
+
+@section('title', 'Tentukan Pembimbing Skripsi')
+
+@section('content')
+    <div class="container-xxl flex-grow-1 container-p-y">
+
+        {{-- Breadcrumb --}}
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb breadcrumb-style1">
+                <li class="breadcrumb-item"><a href="{{ route('admin.dashboard.index') }}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('admin.sk-pembimbing.index') }}">SK Pembimbing</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('admin.sk-pembimbing.show', $pengajuan) }}">Detail</a></li>
+                <li class="breadcrumb-item active">Tentukan PS</li>
+            </ol>
+        </nav>
+
+        {{-- Header --}}
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+            <div>
+                <h4 class="fw-bold mb-1">
+                    <i class="bx bx-user-plus me-2 text-primary"></i>Tentukan Pembimbing Skripsi
+                </h4>
+                <p class="text-muted mb-0">Pilih dosen pembimbing untuk mahasiswa ini</p>
+            </div>
+        </div>
+
+        <div class="row">
+            {{-- Form --}}
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bx bx-edit me-2"></i>Form Penentuan Pembimbing</h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="{{ route('admin.sk-pembimbing.store-pembimbing', $pengajuan) }}" method="POST">
+                            @csrf
+
+                            {{-- PS1 --}}
+                            <div class="mb-4">
+                                <label class="form-label">Pembimbing 1 (PS1) <span class="text-danger">*</span></label>
+                                <select name="dosen_pembimbing_1_id" class="form-select select2" required>
+                                    <option value="">-- Pilih Dosen --</option>
+                                    @foreach($dosenList as $dosen)
+                                        <option value="{{ $dosen['id'] }}" 
+                                            {{ ($pengajuan->dosen_pembimbing_1_id == $dosen['id'] || $defaultPs1 == $dosen['id']) ? 'selected' : '' }}>
+                                            {{ $dosen['name'] }} ({{ $dosen['nip'] }}) - 
+                                            PS1: {{ $dosen['jumlah_ps1'] }}, PS2: {{ $dosen['jumlah_ps2'] }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('dosen_pembimbing_1_id')
+                                    <div class="text-danger small mt-1">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            {{-- PS2 --}}
+                            <div class="mb-4">
+                                <label class="form-label">Pembimbing 2 (PS2) <span class="text-muted">(Opsional)</span></label>
+                                <select name="dosen_pembimbing_2_id" class="form-select select2">
+                                    <option value="">-- Tidak Ada PS2 --</option>
+                                    @foreach($dosenList as $dosen)
+                                        <option value="{{ $dosen['id'] }}" 
+                                            {{ $pengajuan->dosen_pembimbing_2_id == $dosen['id'] ? 'selected' : '' }}>
+                                            {{ $dosen['name'] }} ({{ $dosen['nip'] }}) - 
+                                            PS1: {{ $dosen['jumlah_ps1'] }}, PS2: {{ $dosen['jumlah_ps2'] }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('dosen_pembimbing_2_id')
+                                    <div class="text-danger small mt-1">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            {{-- Nomor Surat --}}
+                            <div class="mb-4">
+                                <label class="form-label">Nomor Surat <span class="text-danger">*</span></label>
+                                <input type="text" name="nomor_surat" class="form-control" 
+                                    value="{{ old('nomor_surat', $pengajuan->nomor_surat) }}" required
+                                    placeholder="Contoh: 001/SK-PMB/TI/I/2026">
+                                @error('nomor_surat')
+                                    <div class="text-danger small mt-1">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            {{-- Tanggal Surat --}}
+                            <div class="mb-4">
+                                <label class="form-label">Tanggal Surat <span class="text-danger">*</span></label>
+                                <input type="date" name="tanggal_surat" class="form-control" 
+                                    value="{{ old('tanggal_surat', $pengajuan->tanggal_surat?->format('Y-m-d') ?? date('Y-m-d')) }}" required>
+                                @error('tanggal_surat')
+                                    <div class="text-danger small mt-1">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="d-flex justify-content-end gap-2">
+                                <a href="{{ route('admin.sk-pembimbing.show', $pengajuan) }}" class="btn btn-outline-secondary">
+                                    <i class="bx bx-x me-1"></i>Batal
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bx bx-save me-1"></i>Simpan & Lanjutkan
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Info Sidebar --}}
+            <div class="col-lg-4">
+                {{-- Data Mahasiswa --}}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bx bx-user me-2"></i>Data Mahasiswa</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-2"><strong>Nama:</strong> {{ $pengajuan->mahasiswa->name ?? '-' }}</p>
+                        <p class="mb-2"><strong>NIM:</strong> {{ $pengajuan->mahasiswa->nim ?? '-' }}</p>
+                        <p class="mb-0"><strong>Judul:</strong> {{ Str::limit($pengajuan->judul_skripsi, 100) }}</p>
+                    </div>
+                </div>
+
+                {{-- Statistik Dosen --}}
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bx bx-bar-chart me-2"></i>Statistik Bimbingan</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info mb-0">
+                            <i class="bx bx-info-circle me-2"></i>
+                            <small>Angka di dropdown menunjukkan jumlah mahasiswa yang dibimbing oleh dosen tersebut pada tahun ajaran aktif.</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+@endsection
+
+@push('styles')
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+@endpush
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('.select2').select2({
+            theme: 'bootstrap-5',
+            width: '100%'
+        });
+    });
+</script>
+@endpush

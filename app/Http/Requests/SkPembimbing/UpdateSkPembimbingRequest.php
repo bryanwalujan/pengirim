@@ -10,9 +10,8 @@ class UpdateSkPembimbingRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $pengajuan = $this->route('pengajuan');
-        return $pengajuan->canBeEditedByMahasiswa() &&
-            $pengajuan->mahasiswa_id === $this->user()->id;
+        // Authorization handled by Policy
+        return true;
     }
 
     public function rules(): array
@@ -31,6 +30,27 @@ class UpdateSkPembimbingRequest extends FormRequest
                 'nullable',
                 File::types(['pdf'])->max(10 * 1024),
             ],
+        ];
+    }
+
+    public function attributes(): array
+    {
+        return [
+            'judul_skripsi' => 'Judul Skripsi',
+            'file_surat_permohonan' => 'Surat Permohonan',
+            'file_slip_ukt' => 'Slip UKT',
+            'file_proposal_revisi' => 'Proposal Revisi',
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'judul_skripsi.required' => 'Judul skripsi wajib diisi.',
+            'judul_skripsi.max' => 'Judul skripsi maksimal 500 karakter.',
+            'file_surat_permohonan.max' => 'Ukuran surat permohonan maksimal 2MB.',
+            'file_slip_ukt.max' => 'Ukuran slip UKT maksimal 2MB.',
+            'file_proposal_revisi.max' => 'Ukuran proposal revisi maksimal 10MB.',
         ];
     }
 }

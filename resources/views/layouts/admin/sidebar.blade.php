@@ -1098,6 +1098,55 @@
             </li>
         @endif
 
+        {{-- SK Pembimbing Skripsi --}}
+        @if(auth()->user()->can('manage sk pembimbing') || auth()->user()->can('sign sk pembimbing'))
+            @php
+                $skPembimbingActiveStates = [
+                    'admin.sk-pembimbing.index',
+                    'admin.sk-pembimbing.show',
+                    'admin.sk-pembimbing.assign-pembimbing',
+                    'admin.sk-pembimbing.statistik-pembimbing',
+                ];
+                $isSkPembimbingActive = request()->routeIs($skPembimbingActiveStates);
+
+                // Count pending for notification
+                $skPembimbingPendingCount = 0;
+                if (auth()->user()->hasRole('staff')) {
+                    $skPembimbingPendingCount = \App\Models\PengajuanSkPembimbing::menungguVerifikasi()->count();
+                } elseif (auth()->user()->isKetuaJurusan()) {
+                    $skPembimbingPendingCount = \App\Models\PengajuanSkPembimbing::menungguTtdKajur()->count();
+                } elseif (auth()->user()->isKoordinatorProdi()) {
+                    $skPembimbingPendingCount = \App\Models\PengajuanSkPembimbing::menungguTtdKorprodi()->count();
+                }
+            @endphp
+
+            <li class="menu-item {{ $isSkPembimbingActive ? 'active open' : '' }}">
+                <a href="javascript:void(0);" class="menu-link menu-toggle">
+                    <i class="menu-icon tf-icons bx bx-file"></i>
+                    <div>SK Pembimbing Skripsi</div>
+                    @if($skPembimbingPendingCount > 0)
+                        <span class="badge bg-danger rounded-pill ms-auto">{{ $skPembimbingPendingCount }}</span>
+                    @endif
+                </a>
+                <ul class="menu-sub">
+                    <li class="menu-item {{ request()->routeIs('admin.sk-pembimbing.index') ? 'active' : '' }}">
+                        <a href="{{ route('admin.sk-pembimbing.index') }}" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-list-ul"></i>
+                            <div>Daftar Pengajuan</div>
+                        </a>
+                    </li>
+                    @if(auth()->user()->hasRole('staff'))
+                        <li class="menu-item {{ request()->routeIs('admin.sk-pembimbing.statistik-pembimbing') ? 'active' : '' }}">
+                            <a href="{{ route('admin.sk-pembimbing.statistik-pembimbing') }}" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-bar-chart-alt-2"></i>
+                                <div>Statistik Pembimbing</div>
+                            </a>
+                        </li>
+                    @endif
+                </ul>
+            </li>
+        @endif
+
         {{-- 3. Komisi Hasil --}}
         @can('manage komisi hasil')
             <li class="menu-item {{ request()->routeIs('admin.komisi-hasil.*') ? 'active' : '' }}">

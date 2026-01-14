@@ -2,419 +2,289 @@
 
 @section('title', 'Detail Pengajuan SK Pembimbing')
 
-@section('content')
-<div class="container-xxl flex-grow-1 container-p-y">
-    <!-- Breadcrumb -->
-    <nav aria-label="breadcrumb" class="mb-4">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item">
-                <a href="{{ route('user.sk-pembimbing.index') }}">SK Pembimbing</a>
-            </li>
-            <li class="breadcrumb-item active">Detail Pengajuan</li>
-        </ol>
-    </nav>
+@push('styles')
+    <style>
+        .timeline-line {
+            position: absolute;
+            left: 24px;
+            top: 24px;
+            bottom: 24px;
+            width: 2px;
+            background-color: #e5e7eb;
+            z-index: 0;
+        }
+        
+        .timeline-item {
+            position: relative;
+            z-index: 1;
+        }
+    </style>
+@endpush
 
-    <!-- Status Alert -->
-    @if($pengajuan->isDokumenTidakValid())
-        <div class="alert alert-danger mb-4">
-            <div class="d-flex align-items-start">
-                <i class="bx bx-error-circle me-2 fs-4"></i>
-                <div>
-                    <h6 class="alert-heading mb-1">Dokumen Tidak Valid</h6>
-                    <p class="mb-2">{{ $pengajuan->alasan_ditolak }}</p>
-                    <a href="{{ route('user.sk-pembimbing.edit', $pengajuan) }}" class="btn btn-danger btn-sm">
-                        <i class="bx bx-edit me-1"></i> Perbaiki Dokumen
-                    </a>
-                </div>
-            </div>
+@section('main')
+    <!-- Page Title -->
+    <div class="page-title light-background">
+        <div class="container">
+            <h1 data-aos="fade-up" class="text-2xl md:text-3xl">Detail Pengajuan</h1>
+            <nav class="breadcrumbs" data-aos="fade-up" data-aos-delay="100">
+                <ol>
+                    <li><a href="{{ route('user.home.index') }}">Beranda</a></li>
+                    <li><a href="{{ route('user.services.index') }}">Layanan</a></li>
+                    <li><a href="{{ route('user.sk-pembimbing.index') }}">SK Pembimbing</a></li>
+                    <li class="current">Detail</li>
+                </ol>
+            </nav>
         </div>
-    @elseif($pengajuan->isDitolak())
-        <div class="alert alert-danger mb-4">
-            <div class="d-flex align-items-start">
-                <i class="bx bx-x-circle me-2 fs-4"></i>
-                <div>
-                    <h6 class="alert-heading mb-1">Pengajuan Ditolak</h6>
-                    <p class="mb-0">{{ $pengajuan->alasan_ditolak ?? 'Pengajuan Anda telah ditolak.' }}</p>
-                </div>
-            </div>
-        </div>
-    @elseif($pengajuan->isSelesai())
-        <div class="alert alert-success mb-4">
-            <div class="d-flex align-items-start">
-                <i class="bx bx-check-circle me-2 fs-4"></i>
-                <div>
-                    <h6 class="alert-heading mb-1">SK Pembimbing Selesai!</h6>
-                    <p class="mb-2">SK Pembimbing Skripsi Anda telah selesai dan dapat didownload.</p>
-                    @if($pengajuan->file_surat_sk)
-                        <a href="{{ route('user.sk-pembimbing.download-sk', $pengajuan) }}" class="btn btn-success btn-sm">
-                            <i class="bx bx-download me-1"></i> Download SK Pembimbing
-                        </a>
-                    @endif
-                </div>
-            </div>
-        </div>
-    @endif
+    </div>
 
-    <div class="row">
-        <!-- Left Column -->
-        <div class="col-lg-8 mb-4">
-            <!-- Detail Pengajuan -->
-            <div class="card mb-4">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Detail Pengajuan</h5>
-                    {!! $pengajuan->status_badge !!}
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label text-muted small">Judul Skripsi</label>
-                            <p class="mb-0 fw-medium">{{ $pengajuan->judul_skripsi }}</p>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label text-muted small">Tanggal Pengajuan</label>
-                            <p class="mb-0">{{ $pengajuan->created_at->format('d F Y, H:i') }}</p>
-                        </div>
-                        @if($pengajuan->nomor_surat)
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label text-muted small">Nomor Surat</label>
-                                <p class="mb-0 fw-medium">{{ $pengajuan->nomor_surat }}</p>
+    <section class="py-8 bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 min-h-screen">
+        <div class="container mx-auto px-4 max-w-6xl">
+
+            <!-- Alerts Status -->
+            @if($pengajuan->isDokumenTidakValid())
+                <div class="mb-6 animate-slide-down">
+                    <div class="bg-red-50 border-l-4 border-red-500 rounded-xl p-5 shadow-lg">
+                        <div class="flex items-start">
+                            <i class="bx bx-error-circle text-red-500 text-3xl mr-4"></i>
+                            <div class="flex-1">
+                                <h4 class="font-bold text-red-800 text-lg mb-1">Dokumen Tidak Valid</h4>
+                                <p class="text-red-700 mb-4">{{ $pengajuan->alasan_ditolak }}</p>
+                                <a href="{{ route('user.sk-pembimbing.edit', $pengajuan) }}" class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
+                                    <i class="bx bx-edit mr-2"></i> Perbaiki Dokumen
+                                </a>
                             </div>
-                        @endif
-                        @if($pengajuan->tanggal_surat)
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label text-muted small">Tanggal Surat</label>
-                                <p class="mb-0">{{ $pengajuan->tanggal_surat->format('d F Y') }}</p>
-                            </div>
-                        @endif
+                        </div>
                     </div>
                 </div>
-            </div>
-
-            <!-- Dosen Pembimbing -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="bx bx-user-check me-2"></i>Dosen Pembimbing
-                    </h5>
+            @elseif($pengajuan->isSelesai())
+                <div class="mb-6 animate-slide-down">
+                    <div class="bg-emerald-50 border-l-4 border-emerald-500 rounded-xl p-5 shadow-lg">
+                        <div class="flex items-start">
+                             <i class="bx bx-check-circle text-emerald-500 text-3xl mr-4"></i>
+                             <div class="flex-1">
+                                 <h4 class="font-bold text-emerald-800 text-lg mb-1">SK Pembimbing Selesai</h4>
+                                 <p class="text-emerald-700 mb-4">SK Anda telah terbit dan siap didownload.</p>
+                                 @if($pengajuan->file_surat_sk)
+                                     <a href="{{ route('user.sk-pembimbing.download-sk', $pengajuan) }}" class="inline-flex items-center px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition shadow-md">
+                                         <i class="bx bx-download mr-2"></i> Download SK Pembimbing
+                                     </a>
+                                 @endif
+                             </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
+            @endif
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                <!-- Left Column: Details -->
+                <div class="lg:col-span-2 space-y-6">
+                    
+                    <!-- Detail Informasi -->
+                    <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100" data-aos="fade-up">
+                        <div class="bg-gradient-to-r from-orange-500 to-amber-500 px-6 py-4 flex justify-between items-center">
+                            <h3 class="text-lg font-bold text-white flex items-center">
+                                <i class="bx bx-file-blank mr-2"></i> Informasi Pengajuan
+                            </h3>
+                            <!-- Status Badge -->
+                            <span class="bg-white/20 text-white backdrop-blur-sm px-3 py-1 rounded-full text-xs font-semibold">
+                                {{ strtoupper(str_replace('_', ' ', $pengajuan->status)) }}
+                            </span>
+                        </div>
+                        <div class="p-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <p class="text-xs text-gray-500 font-semibold uppercase tracking-wide">Judul Skripsi</p>
+                                    <p class="text-gray-900 font-medium mt-1 leading-relaxed">{{ $pengajuan->judul_skripsi }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-500 font-semibold uppercase tracking-wide">Tanggal Pengajuan</p>
+                                    <p class="text-gray-900 font-medium mt-1">{{ $pengajuan->created_at->format('d F Y, H:i') }}</p>
+                                </div>
+                                @if($pengajuan->nomor_surat)
+                                <div>
+                                    <p class="text-xs text-gray-500 font-semibold uppercase tracking-wide">Nomor Surat</p>
+                                    <p class="text-gray-900 font-medium mt-1">{{ $pengajuan->nomor_surat }}</p>
+                                </div>
+                                @endif
+                                @if($pengajuan->tanggal_surat)
+                                <div>
+                                    <p class="text-xs text-gray-500 font-semibold uppercase tracking-wide">Tanggal Surat</p>
+                                    <p class="text-gray-900 font-medium mt-1">{{ $pengajuan->tanggal_surat->format('d F Y') }}</p>
+                                </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dosen Pembimbing (If Assigned) -->
                     @if($pengajuan->hasPembimbingAssigned())
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <div class="d-flex align-items-center p-3 bg-light rounded">
-                                    <div class="avatar me-3">
-                                        <span class="avatar-initial rounded bg-primary">
-                                            <i class="bx bx-user"></i>
-                                        </span>
-                                    </div>
+                    <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100" data-aos="fade-up" data-aos-delay="100">
+                        <div class="bg-gradient-to-r from-blue-500 to-indigo-500 px-6 py-4">
+                            <h3 class="text-lg font-bold text-white flex items-center">
+                                <i class="bx bx-user-check mr-2"></i> Dosen Pembimbing
+                            </h3>
+                        </div>
+                        <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- PS 1 -->
+                            <div class="bg-blue-50 rounded-xl p-4 border border-blue-100">
+                                <div class="flex items-center mb-2">
+                                    <div class="w-10 h-10 bg-blue-200 text-blue-700 rounded-full flex items-center justify-center mr-3 font-bold text-sm">PS1</div>
                                     <div>
-                                        <small class="text-muted">Pembimbing 1 (PS1)</small>
-                                        <h6 class="mb-0">{{ $pengajuan->dosenPembimbing1->name }}</h6>
-                                        <small class="text-muted">{{ $pengajuan->dosenPembimbing1->nip ?? '-' }}</small>
+                                        <p class="text-sm font-bold text-gray-900">{{ $pengajuan->dosenPembimbing1->name }}</p>
+                                        <p class="text-xs text-gray-500">{{ $pengajuan->dosenPembimbing1->nip ?? '-' }}</p>
                                     </div>
                                 </div>
                             </div>
+                            <!-- PS 2 -->
                             @if($pengajuan->dosenPembimbing2)
-                                <div class="col-md-6 mb-3">
-                                    <div class="d-flex align-items-center p-3 bg-light rounded">
-                                        <div class="avatar me-3">
-                                            <span class="avatar-initial rounded bg-info">
-                                                <i class="bx bx-user"></i>
-                                            </span>
-                                        </div>
-                                        <div>
-                                            <small class="text-muted">Pembimbing 2 (PS2)</small>
-                                            <h6 class="mb-0">{{ $pengajuan->dosenPembimbing2->name }}</h6>
-                                            <small class="text-muted">{{ $pengajuan->dosenPembimbing2->nip ?? '-' }}</small>
-                                        </div>
+                            <div class="bg-indigo-50 rounded-xl p-4 border border-indigo-100">
+                                <div class="flex items-center mb-2">
+                                    <div class="w-10 h-10 bg-indigo-200 text-indigo-700 rounded-full flex items-center justify-center mr-3 font-bold text-sm">PS2</div>
+                                    <div>
+                                        <p class="text-sm font-bold text-gray-900">{{ $pengajuan->dosenPembimbing2->name }}</p>
+                                        <p class="text-xs text-gray-500">{{ $pengajuan->dosenPembimbing2->nip ?? '-' }}</p>
                                     </div>
                                 </div>
+                            </div>
                             @endif
                         </div>
-                    @else
-                        <div class="text-center py-4">
-                            <i class="bx bx-user-x text-muted" style="font-size: 3rem;"></i>
-                            <p class="text-muted mt-2 mb-0">Dosen pembimbing belum ditentukan</p>
-                        </div>
+                    </div>
                     @endif
-                </div>
-            </div>
 
-            <!-- Dokumen yang Diupload -->
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="bx bx-file me-2"></i>Dokumen yang Diupload
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="list-group list-group-flush">
-                        <!-- Surat Permohonan -->
-                        <div class="list-group-item d-flex justify-content-between align-items-center px-0">
-                            <div class="d-flex align-items-center">
-                                <i class="bx bxs-file-pdf text-danger me-3 fs-3"></i>
-                                <div>
-                                    <h6 class="mb-0">Surat Permohonan</h6>
-                                    <small class="text-muted">Surat permohonan tulis tangan</small>
-                                </div>
-                            </div>
-                            <a href="{{ route('user.sk-pembimbing.view-document', [$pengajuan, 'permohonan']) }}" 
-                               target="_blank"
-                               class="btn btn-outline-primary btn-sm">
-                                <i class="bx bx-show me-1"></i> Lihat
-                            </a>
+                    <!-- Documents -->
+                    <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100" data-aos="fade-up" data-aos-delay="200">
+                         <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+                            <h3 class="text-lg font-bold text-gray-800 flex items-center">
+                                <i class="bx bx-folder mr-2 text-orange-500"></i> Dokumen Lampiran
+                            </h3>
                         </div>
-
-                        <!-- Slip UKT -->
-                        <div class="list-group-item d-flex justify-content-between align-items-center px-0">
-                            <div class="d-flex align-items-center">
-                                <i class="bx bxs-file-pdf text-danger me-3 fs-3"></i>
-                                <div>
-                                    <h6 class="mb-0">Slip UKT Terakhir</h6>
-                                    <small class="text-muted">Bukti pembayaran UKT</small>
+                        <div class="divide-y divide-gray-100">
+                            <!-- Permohonan -->
+                            <div class="p-4 hover:bg-gray-50 transition flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 bg-red-100 text-red-500 rounded-lg flex items-center justify-center mr-3">
+                                        <i class="bx bxs-file-pdf text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-900">Surat Permohonan</p>
+                                        <p class="text-xs text-gray-500">Lampiran pengajuan</p>
+                                    </div>
                                 </div>
+                                <a href="{{ route('user.sk-pembimbing.view-document', [$pengajuan, 'permohonan']) }}" target="_blank" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Lihat</a>
                             </div>
-                            <a href="{{ route('user.sk-pembimbing.view-document', [$pengajuan, 'ukt']) }}" 
-                               target="_blank"
-                               class="btn btn-outline-primary btn-sm">
-                                <i class="bx bx-show me-1"></i> Lihat
-                            </a>
-                        </div>
-
-                        <!-- Proposal Revisi -->
-                        <div class="list-group-item d-flex justify-content-between align-items-center px-0">
-                            <div class="d-flex align-items-center">
-                                <i class="bx bxs-file-pdf text-danger me-3 fs-3"></i>
-                                <div>
-                                    <h6 class="mb-0">Proposal Revisi</h6>
-                                    <small class="text-muted">Proposal yang sudah direvisi</small>
+                            
+                             <!-- Slip UKT -->
+                            <div class="p-4 hover:bg-gray-50 transition flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 bg-blue-100 text-blue-500 rounded-lg flex items-center justify-center mr-3">
+                                        <i class="bx bxs-file-image text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-900">Slip UKT</p>
+                                        <p class="text-xs text-gray-500">Bukti pembayaran</p>
+                                    </div>
                                 </div>
+                                <a href="{{ route('user.sk-pembimbing.view-document', [$pengajuan, 'ukt']) }}" target="_blank" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Lihat</a>
                             </div>
-                            <a href="{{ route('user.sk-pembimbing.view-document', [$pengajuan, 'proposal']) }}" 
-                               target="_blank"
-                               class="btn btn-outline-primary btn-sm">
-                                <i class="bx bx-show me-1"></i> Lihat
-                            </a>
+
+                             <!-- Proposal -->
+                            <div class="p-4 hover:bg-gray-50 transition flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 bg-emerald-100 text-emerald-500 rounded-lg flex items-center justify-center mr-3">
+                                        <i class="bx bxs-book-content text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-900">Proposal Revisi</p>
+                                        <p class="text-xs text-gray-500">Versi pasca seminar</p>
+                                    </div>
+                                </div>
+                                <a href="{{ route('user.sk-pembimbing.view-document', [$pengajuan, 'proposal']) }}" target="_blank" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Lihat</a>
+                            </div>
                         </div>
                     </div>
                 </div>
+
+                <!-- Right Column: Timeline -->
+                <div>
+                     <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 sticky top-24" data-aos="fade-up" data-aos-delay="300">
+                        <div class="bg-gradient-to-r from-gray-800 to-gray-900 px-6 py-4">
+                            <h3 class="text-lg font-bold text-white flex items-center">
+                                <i class="bx bx-time-five mr-2"></i> Timeline Progress
+                            </h3>
+                        </div>
+                        <div class="p-6 relative">
+                            <!-- Vertical Line -->
+                             <div class="timeline-line"></div>
+                             
+                             @php
+                                 $steps = [
+                                     ['status' => 'selesai', 'label' => 'Selesai', 'desc' => 'SK telah terbit'],
+                                     ['status' => 'menunggu_ttd_korprodi', 'label' => 'TTD Korprodi', 'desc' => 'Validasi Koordinator Prodi'],
+                                     ['status' => 'menunggu_ttd_kajur', 'label' => 'TTD Kajur', 'desc' => 'Validasi Ketua Jurusan'],
+                                     ['status' => 'ps_ditentukan', 'label' => 'Pembimbing Ditentukan', 'desc' => 'Penentuan Dosen Pembimbing'],
+                                     ['status' => 'menunggu_verifikasi', 'label' => 'Verifikasi Dokumen', 'desc' => 'Pemeriksaan oleh Staff'],
+                                     ['status' => 'draft', 'label' => 'Pengajuan Dibuat', 'desc' => 'Menunggu diproses'],
+                                 ];
+                                 
+                                 // Simple logic to determine active step index (0 is top/latest)
+                                 $currentStatus = $pengajuan->status;
+                                 $activeIndex = -1;
+                                 
+                                 foreach($steps as $key => $step) {
+                                     if($step['status'] == $currentStatus) {
+                                         $activeIndex = $key;
+                                         break;
+                                     }
+                                 }
+                             @endphp
+
+                             <div class="space-y-8">
+                                 @foreach($steps as $key => $step)
+                                     @php
+                                         $isActive = ($step['status'] == $currentStatus);
+                                         $isPassed = false; // Logic simplified for visual display
+                                         
+                                         // Check history timestamps if available to confirm passed steps accurately
+                                         // For now, we assume linear progression:
+                                         // If current is 'selesai', all below are passed.
+                                          $statusList = ['draft', 'menunggu_verifikasi', 'ps_ditentukan', 'menunggu_ttd_kajur', 'menunggu_ttd_korprodi', 'selesai'];
+                                          $currentPos = array_search($currentStatus, $statusList);
+                                          $stepPos = array_search($step['status'], $statusList);
+                                          
+                                          if($currentPos >= $stepPos) {
+                                              $isPassed = true;
+                                          }
+                                     @endphp
+                                     
+                                     <div class="timeline-item flex relative">
+                                         <div class="w-12 flex-shrink-0 flex justify-center">
+                                             <div class="w-4 h-4 rounded-full border-2 {{ $isPassed ? 'bg-orange-500 border-orange-500' : 'bg-white border-gray-300' }} mt-1"></div>
+                                         </div>
+                                         <div class="flex-1">
+                                             <h5 class="text-sm font-bold {{ $isPassed ? 'text-gray-900' : 'text-gray-400' }}">{{ $step['label'] }}</h5>
+                                             <p class="text-xs {{ $isPassed ? 'text-gray-600' : 'text-gray-400' }}">{{ $step['desc'] }}</p>
+                                             
+                                              @if($step['status'] == 'selesai' && $pengajuan->isSelesai())
+                                                 <span class="text-xs text-emerald-600 font-bold mt-1 block">Tercapai</span>
+                                             @elseif($isActive)
+                                                 <span class="text-xs text-orange-600 font-bold mt-1 block animate-pulse">Sedang Proses...</span>
+                                             @endif
+                                         </div>
+                                     </div>
+                                 @endforeach
+                             </div>
+                        </div>
+                     </div>
+                     
+                     <div class="mt-6 text-center">
+                         <a href="{{ route('user.sk-pembimbing.index') }}" class="text-gray-500 hover:text-orange-600 text-sm font-medium transition">
+                             <i class="bx bx-arrow-back mr-1"></i> Kembali ke Daftar
+                         </a>
+                     </div>
+                </div>
+
             </div>
         </div>
-
-        <!-- Right Column - Timeline -->
-        <div class="col-lg-4 mb-4">
-            <!-- Progress Card -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="bx bx-loader-circle me-2"></i>Progress
-                    </h5>
-                </div>
-                <div class="card-body">
-                    @php
-                        $steps = [
-                            ['status' => 'draft', 'label' => 'Draft', 'icon' => 'bx-edit'],
-                            ['status' => 'menunggu_verifikasi', 'label' => 'Verifikasi Dokumen', 'icon' => 'bx-search'],
-                            ['status' => 'ps_ditentukan', 'label' => 'Penentuan Pembimbing', 'icon' => 'bx-user-check'],
-                            ['status' => 'menunggu_ttd_kajur', 'label' => 'TTD Ketua Jurusan', 'icon' => 'bx-pen'],
-                            ['status' => 'menunggu_ttd_korprodi', 'label' => 'TTD Koordinator Prodi', 'icon' => 'bx-pen'],
-                            ['status' => 'selesai', 'label' => 'Selesai', 'icon' => 'bx-check-circle'],
-                        ];
-                        
-                        $currentIndex = array_search($pengajuan->status, array_column($steps, 'status'));
-                        if ($currentIndex === false) $currentIndex = -1;
-                    @endphp
-
-                    <div class="timeline-vertical">
-                        @foreach($steps as $index => $step)
-                            @php
-                                $isCompleted = $index < $currentIndex || $pengajuan->status === 'selesai';
-                                $isCurrent = $index === $currentIndex;
-                                $isPending = $index > $currentIndex;
-                            @endphp
-                            <div class="timeline-item {{ $isCompleted ? 'completed' : ($isCurrent ? 'current' : 'pending') }}">
-                                <div class="timeline-marker">
-                                    @if($isCompleted)
-                                        <i class="bx bx-check"></i>
-                                    @elseif($isCurrent)
-                                        <i class="bx {{ $step['icon'] }}"></i>
-                                    @else
-                                        <span>{{ $index + 1 }}</span>
-                                    @endif
-                                </div>
-                                <div class="timeline-content">
-                                    <h6 class="mb-0 {{ $isPending ? 'text-muted' : '' }}">{{ $step['label'] }}</h6>
-                                    @if($isCurrent && !$pengajuan->isSelesai())
-                                        <small class="text-primary">Sedang diproses</small>
-                                    @endif
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-            </div>
-
-            <!-- Tracking History -->
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="bx bx-history me-2"></i>Riwayat
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <ul class="timeline-simple">
-                        @if($pengajuan->ttd_korprodi_at)
-                            <li class="timeline-item">
-                                <span class="timeline-point bg-success"></span>
-                                <div class="timeline-event">
-                                    <div class="fw-medium">Ditandatangani Korprodi</div>
-                                    <small class="text-muted">{{ $pengajuan->ttd_korprodi_at->format('d M Y H:i') }}</small>
-                                </div>
-                            </li>
-                        @endif
-                        @if($pengajuan->ttd_kajur_at)
-                            <li class="timeline-item">
-                                <span class="timeline-point bg-success"></span>
-                                <div class="timeline-event">
-                                    <div class="fw-medium">Ditandatangani Kajur</div>
-                                    <small class="text-muted">{{ $pengajuan->ttd_kajur_at->format('d M Y H:i') }}</small>
-                                </div>
-                            </li>
-                        @endif
-                        @if($pengajuan->ps_assigned_at)
-                            <li class="timeline-item">
-                                <span class="timeline-point bg-primary"></span>
-                                <div class="timeline-event">
-                                    <div class="fw-medium">Pembimbing Ditentukan</div>
-                                    <small class="text-muted">{{ $pengajuan->ps_assigned_at->format('d M Y H:i') }}</small>
-                                </div>
-                            </li>
-                        @endif
-                        @if($pengajuan->verified_at)
-                            <li class="timeline-item">
-                                <span class="timeline-point bg-info"></span>
-                                <div class="timeline-event">
-                                    <div class="fw-medium">Dokumen Diverifikasi</div>
-                                    <small class="text-muted">{{ $pengajuan->verified_at->format('d M Y H:i') }}</small>
-                                </div>
-                            </li>
-                        @endif
-                        <li class="timeline-item">
-                            <span class="timeline-point bg-secondary"></span>
-                            <div class="timeline-event">
-                                <div class="fw-medium">Pengajuan Dibuat</div>
-                                <small class="text-muted">{{ $pengajuan->created_at->format('d M Y H:i') }}</small>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Action Buttons -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body d-flex justify-content-between">
-                    <a href="{{ route('user.sk-pembimbing.index') }}" class="btn btn-outline-secondary">
-                        <i class="bx bx-arrow-back me-1"></i> Kembali
-                    </a>
-                    <div>
-                        @if($pengajuan->canBeEditedByMahasiswa())
-                            <a href="{{ route('user.sk-pembimbing.edit', $pengajuan) }}" class="btn btn-warning">
-                                <i class="bx bx-edit me-1"></i> Edit Dokumen
-                            </a>
-                        @endif
-                        @if($pengajuan->isSelesai() && $pengajuan->file_surat_sk)
-                            <a href="{{ route('user.sk-pembimbing.download-sk', $pengajuan) }}" class="btn btn-success">
-                                <i class="bx bx-download me-1"></i> Download SK
-                            </a>
-                        @endif
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-@push('styles')
-<style>
-    .timeline-vertical {
-        position: relative;
-        padding-left: 30px;
-    }
-    .timeline-vertical::before {
-        content: '';
-        position: absolute;
-        left: 10px;
-        top: 0;
-        bottom: 0;
-        width: 2px;
-        background: #e0e0e0;
-    }
-    .timeline-item {
-        position: relative;
-        padding-bottom: 1.5rem;
-    }
-    .timeline-item:last-child {
-        padding-bottom: 0;
-    }
-    .timeline-marker {
-        position: absolute;
-        left: -30px;
-        width: 22px;
-        height: 22px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 12px;
-        background: #e0e0e0;
-        color: #666;
-    }
-    .timeline-item.completed .timeline-marker {
-        background: #71dd37;
-        color: white;
-    }
-    .timeline-item.current .timeline-marker {
-        background: #696cff;
-        color: white;
-        animation: pulse 2s infinite;
-    }
-    @keyframes pulse {
-        0%, 100% { box-shadow: 0 0 0 0 rgba(105, 108, 255, 0.4); }
-        50% { box-shadow: 0 0 0 8px rgba(105, 108, 255, 0); }
-    }
-    
-    .timeline-simple {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        position: relative;
-    }
-    .timeline-simple::before {
-        content: '';
-        position: absolute;
-        left: 5px;
-        top: 0;
-        bottom: 0;
-        width: 2px;
-        background: #e0e0e0;
-    }
-    .timeline-simple .timeline-item {
-        position: relative;
-        padding-left: 25px;
-        padding-bottom: 1rem;
-    }
-    .timeline-simple .timeline-point {
-        position: absolute;
-        left: 0;
-        top: 5px;
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-    }
-</style>
-@endpush
+    </section>
 @endsection

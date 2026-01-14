@@ -266,6 +266,22 @@ class PengajuanSkPembimbing extends Model
         ]);
     }
 
+    public function scopeMenungguVerifikasi(Builder $query): Builder
+    {
+        return $query->where('status', self::STATUS_MENUNGGU_VERIFIKASI);
+    }
+
+    public function scopeMenungguTtdKajur(Builder $query): Builder
+    {
+        return $query->where('status', self::STATUS_MENUNGGU_TTD_KAJUR);
+    }
+
+    public function scopeMenungguTtdKorprodi(Builder $query): Builder
+    {
+        return $query->where('status', self::STATUS_MENUNGGU_TTD_KORPRODI);
+    }
+
+
     // ========================================
     // ACCESSORS
     // ========================================

@@ -42,6 +42,7 @@ class Service extends Model
             'pendaftaran-seminar-proposal' => 'user.pendaftaran-seminar-proposal.index',
             'jadwal-seminar-proposal' => 'user.jadwal-seminar-proposal.index',
             'berita-acara-sempro' => 'user.berita-acara-sempro.index',
+            'sk-pembimbing' => 'user.sk-pembimbing.index',
             'pendaftaran-ujian-hasil' => 'user.pendaftaran-ujian-hasil.index',
             'komisi-proposal' => 'user.komisi-proposal.index',
             'komisi-hasil' => 'user.komisi-hasil.index',

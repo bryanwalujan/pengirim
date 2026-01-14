@@ -61,6 +61,10 @@ class PermissionSeeder extends Seeder
             ['name' => 'manage jadwal hasil', 'group' => 'Tugas Akhir'],
             ['name' => 'manage berita acara hasil', 'group' => 'Tugas Akhir'],
 
+            // SK Pembimbing Skripsi
+            ['name' => 'manage sk pembimbing', 'group' => 'Tugas Akhir'],
+            ['name' => 'sign sk pembimbing', 'group' => 'Tugas Akhir'],
+
             // User Management
             ['name' => 'manage students', 'group' => 'Pengguna'],
             ['name' => 'manage lecturers', 'group' => 'Pengguna'],
@@ -125,6 +129,10 @@ class PermissionSeeder extends Seeder
             'view berita acara sempro',
             'sign berita acara sempro',
             'submit lembar catatan sempro',
+
+            // SK Pembimbing - Dosen can view and sign
+            'manage sk pembimbing',
+            'sign sk pembimbing',
         ];
 
         // Gunakan givePermissionTo (aman dijalankan berulang, tidak akan duplikat)
