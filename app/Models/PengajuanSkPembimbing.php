@@ -218,12 +218,14 @@ class PengajuanSkPembimbing extends Model
 
     public function canBeSignedByKajur(User $user): bool
     {
-        return $this->isMenungguTtdKajur() && $user->isKetuaJurusan();
+        return $this->isMenungguTtdKajur() 
+            && $user->isKetuaJurusan()
+            && $this->ttd_korprodi_at !== null;
     }
 
     public function canBeSignedByKorprodi(User $user): bool
     {
-        return $this->isMenungguTtdKorprodi() && $user->isKoordinatorProdi();
+        return $this->isPsDitentukan() && $user->isKoordinatorProdi();
     }
 
     // ========================================

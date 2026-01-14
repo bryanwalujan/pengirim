@@ -54,7 +54,7 @@
                         <select name="tahun_ajaran_id" class="form-select" onchange="this.form.submit()">
                             @foreach($tahunAjarans as $ta)
                                 <option value="{{ $ta->id }}" {{ $tahunAjaranId == $ta->id ? 'selected' : '' }}>
-                                    {{ $ta->tahun_mulai }}/{{ $ta->tahun_selesai }} - {{ $ta->semester }}
+                                    {{ $ta->tahun }} - {{ ucfirst($ta->semester) }}
                                     {{ $ta->status_aktif ? '(Aktif)' : '' }}
                                 </option>
                             @endforeach

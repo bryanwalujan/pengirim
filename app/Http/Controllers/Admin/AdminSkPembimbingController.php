@@ -194,7 +194,7 @@ class AdminSkPembimbingController extends Controller
             ->paginate(20);
 
         $summary = StatistikPembimbingSkripsi::getDashboardStats($tahunAjaranId);
-        $tahunAjarans = TahunAjaran::orderByDesc('tahun_mulai')->get();
+        $tahunAjarans = TahunAjaran::orderByDesc('id')->get();
 
         return view('admin.sk-pembimbing.statistik-pembimbing', compact('statistik', 'summary', 'tahunAjarans', 'tahunAjaranId'));
     }

@@ -35,7 +35,7 @@ class SkPembimbingController extends Controller
             ->with([
                 'dosenPembimbing1:id,name',
                 'dosenPembimbing2:id,name',
-                'beritaAcara:id,nomor_ba'
+                'beritaAcara:id,status,keputusan'
             ])
             ->select('id', 'berita_acara_id', 'dosen_pembimbing_1_id', 'dosen_pembimbing_2_id', 'judul_skripsi', 'status', 'created_at')
             ->latest()

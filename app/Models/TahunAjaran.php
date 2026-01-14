@@ -32,6 +32,11 @@ class TahunAjaran extends Model
         return $query->where('status_aktif', true);
     }
 
+    public function scopeOrdered($query)
+    {
+        return $query->orderByDesc('id');
+    }
+
     protected static function booted()
     {
         // Event ketika tahun ajaran diupdate

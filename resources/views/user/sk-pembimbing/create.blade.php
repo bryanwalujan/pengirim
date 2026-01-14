@@ -98,7 +98,7 @@
                                                             <i class="bx bx-calendar mr-1"></i> {{ $jadwal?->tanggal_seminar?->format('d M Y') ?? '-' }}
                                                         </span>
                                                         <span class="flex items-center">
-                                                            <i class="bx bx-hash mr-1"></i> No. BA: {{ $ba->nomor_ba ?? '-' }}
+                                                            <i class="bx bx-check-circle mr-1"></i> {{ $ba->keputusan ?? '-' }}
                                                         </span>
                                                     </span>
                                                 </span>
