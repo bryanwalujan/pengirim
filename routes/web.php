@@ -58,12 +58,17 @@ Route::get('/preview-surat-usulan-sempro-pdf', [AdminPendaftaranSeminarProposalC
     ->name('preview.surat-usulan-sempro.pdf')
     ->middleware('auth');
 
+Route::get('/preview-sk-pembimbing-pdf', [AdminSkPembimbingController::class, 'previewPdf'])
+    ->name('preview.sk-pembimbing.pdf')
+    ->middleware('auth');
+
+
 // ========== DEVELOPMENT QUICK LOGIN (Local Only) ==========
 Route::middleware('local.only')->prefix('dev')->name('dev.')->group(function () {
     Route::get('/users/{role}', [App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'getUsersByRole'])
         ->name('get-users')
         ->where('role', 'staff|dosen|mahasiswa');
-    
+
     Route::post('/login/{role}', [App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'quickLogin'])
         ->name('quick-login')
         ->where('role', 'staff|dosen|mahasiswa');
@@ -886,40 +891,38 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 
     // SK Pembimbing Skripsi
     Route::prefix('sk-pembimbing')->name('sk-pembimbing.')->group(function () {
-        // Index & Show (Staff & Dosen)
-        Route::middleware(['role:staff|dosen'])->group(function () {
-            Route::get('/', [AdminSkPembimbingController::class, 'index'])->name('index');
-            Route::get('/{pengajuan}', [AdminSkPembimbingController::class, 'show'])->name('show');
-            Route::get('/{pengajuan}/view/{type}', [AdminSkPembimbingController::class, 'viewDocument'])->name('view-document');
-            Route::get('/{pengajuan}/download-sk', [AdminSkPembimbingController::class, 'downloadSk'])->name('download-sk');
-        });
+        Route::get('/', [AdminSkPembimbingController::class, 'index'])->name('index');
+        Route::get('/{pengajuan}', [AdminSkPembimbingController::class, 'show'])->name('show');
 
-        // Staff Only Routes
-        Route::middleware(['role:staff'])->group(function () {
-            // Verify Dokumen
-            Route::post('/{pengajuan}/verify', [AdminSkPembimbingController::class, 'verifyDokumen'])->name('verify');
+        // Staff actions
+        Route::get('/{pengajuan}/assign-pembimbing', [AdminSkPembimbingController::class, 'showAssignPembimbing'])
+            ->name('assign-pembimbing');
+        Route::post('/{pengajuan}/store-pembimbing', [AdminSkPembimbingController::class, 'assignPembimbing'])
+            ->name('store-pembimbing');
+        Route::post('/{pengajuan}/reject', [AdminSkPembimbingController::class, 'reject'])
+            ->name('reject');
+        Route::delete('/{pengajuan}', [AdminSkPembimbingController::class, 'destroy'])
+            ->name('destroy');
+        Route::post('/validate-nomor-surat', [AdminSkPembimbingController::class, 'validateNomorSurat'])
+            ->name('validate-nomor-surat');
 
-            // Assign Pembimbing
-            Route::get('/{pengajuan}/assign-pembimbing', [AdminSkPembimbingController::class, 'showAssignPembimbing'])->name('assign-pembimbing');
-            Route::post('/{pengajuan}/assign-pembimbing', [AdminSkPembimbingController::class, 'assignPembimbing'])->name('store-pembimbing');
-            Route::post('/validate-nomor-surat', [AdminSkPembimbingController::class, 'validateNomorSurat'])->name('validate-nomor-surat');
+        // Signature routes
+        Route::post('/{pengajuan}/sign-korprodi', [AdminSkPembimbingController::class, 'signByKorprodi'])
+            ->name('sign-korprodi');
+        Route::post('/{pengajuan}/sign-kajur', [AdminSkPembimbingController::class, 'signByKajur'])
+            ->name('sign-kajur');
 
-            // Reject
-            Route::post('/{pengajuan}/reject', [AdminSkPembimbingController::class, 'reject'])->name('reject');
+        // Download & View
+        Route::get('/{pengajuan}/download-sk', [AdminSkPembimbingController::class, 'downloadSk'])
+            ->name('download-sk');
+        Route::get('/{pengajuan}/view/{type}', [AdminSkPembimbingController::class, 'viewDocument'])
+            ->name('view-document');
 
-            // Delete
-            Route::delete('/{pengajuan}', [AdminSkPembimbingController::class, 'destroy'])->name('destroy');
-
-            // Statistik Pembimbing
-            Route::get('/statistik/pembimbing', [AdminSkPembimbingController::class, 'statistikPembimbing'])->name('statistik-pembimbing');
-            Route::post('/statistik/recalculate', [AdminSkPembimbingController::class, 'recalculateStatistik'])->name('recalculate-statistik');
-        });
-
-        // TTD Routes (Dosen dengan jabatan)
-        Route::middleware(['role:dosen'])->group(function () {
-            Route::post('/{pengajuan}/sign-kajur', [AdminSkPembimbingController::class, 'signByKajur'])->name('sign-kajur');
-            Route::post('/{pengajuan}/sign-korprodi', [AdminSkPembimbingController::class, 'signByKorprodi'])->name('sign-korprodi');
-        });
+        // Statistik
+        Route::post('/recalculate-statistik', [AdminSkPembimbingController::class, 'recalculateStatistik'])
+            ->name('recalculate-statistik');
+        Route::get('/statistik/pembimbing', [AdminSkPembimbingController::class, 'statistikPembimbing'])
+            ->name('statistik-pembimbing');
     });
 
     // Komisi Hasil - Available for ALL dosen (3-tier approval)

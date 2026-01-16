@@ -12,8 +12,8 @@ class SignSkRequest extends FormRequest
         $pengajuan = $this->route('pengajuan');
         $user = $this->user();
 
-        return $pengajuan->canBeSignedByKajur($user) || 
-               $pengajuan->canBeSignedByKorprodi($user);
+        return $pengajuan->canBeSignedByKajur() || 
+               $pengajuan->canBeSignedByKorprodi();
     }
 
     public function rules(): array

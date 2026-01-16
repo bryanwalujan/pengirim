@@ -1,6 +1,6 @@
 @extends('layouts.user.app')
 
-@section('title', 'Ajukan SK Pembimbing Skripsi')
+@section('title', 'Ajukan Surat Usulan Penerbitan SK Pembimbing Skripsi')
 
 @push('styles')
     <style>
@@ -31,7 +31,7 @@
                 <ol>
                     <li><a href="{{ route('user.home.index') }}">Beranda</a></li>
                     <li><a href="{{ route('user.services.index') }}">Layanan</a></li>
-                    <li><a href="{{ route('user.sk-pembimbing.index') }}">SK Pembimbing</a></li>
+                    <li><a href="{{ route('user.sk-pembimbing.index') }}">Usulan SK Pembimbing</a></li>
                     <li class="current">Buat Pengajuan</li>
                 </ol>
             </nav>

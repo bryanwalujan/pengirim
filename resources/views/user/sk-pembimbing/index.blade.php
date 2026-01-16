@@ -1,17 +1,17 @@
 @extends('layouts.user.app')
 
-@section('title', 'SK Pembimbing Skripsi')
+@section('title', 'Surat Usulan Penerbitan SK Pembimbing Skripsi')
 
 @section('main')
     <!-- Page Title -->
     <div class="page-title light-background">
         <div class="container">
-            <h1 class="text-2xl md:text-3xl font-bold text-gray-800">SK Pembimbing Skripsi</h1>
+            <h1 class="text-2xl md:text-3xl font-bold text-gray-800">Surat Usulan Penerbitan SK Pembimbing Skripsi</h1>
             <nav class="breadcrumbs">
                 <ol>
                     <li><a href="{{ route('user.home.index') }}">Beranda</a></li>
                     <li><a href="{{ route('user.services.index') }}">Layanan</a></li>
-                    <li class="current">SK Pembimbing Skripsi</li>
+                    <li class="current">Surat Usulan Penerbitan SK Pembimbing Skripsi</li>
                 </ol>
             </nav>
         </div>
@@ -29,7 +29,7 @@
                 <div class="z-10 text-center md:text-left">
                     <h2 class="text-2xl font-bold text-gray-800 mb-2">Daftar Pengajuan</h2>
                     <p class="text-gray-500">
-                        Kelola dan pantau status pengajuan SK Pembimbing Skripsi Anda.
+                        Kelola dan pantau status pengajuan Surat Usulan Penerbitan SK Pembimbing Skripsi Anda.
                     </p>
                 </div>
 
@@ -63,12 +63,12 @@
                                     @php
                                         $statusColor = match (true) {
                                             $pengajuan->isSelesai() => 'bg-emerald-100 text-emerald-700 border-emerald-200',
-                                            $pengajuan->isDitolak() || $pengajuan->isDokumenTidakValid() => 'bg-red-100 text-red-700 border-red-200',
+                                            $pengajuan->isDitolak() => 'bg-red-100 text-red-700 border-red-200',
                                             default => 'bg-blue-50 text-blue-700 border-blue-200',
                                         };
                                         $icon = match (true) {
                                             $pengajuan->isSelesai() => 'bx-check-circle',
-                                            $pengajuan->isDitolak() || $pengajuan->isDokumenTidakValid() => 'bx-x-circle',
+                                            $pengajuan->isDitolak() => 'bx-x-circle',
                                             default => 'bx-time-five',
                                         };
                                     @endphp
@@ -76,8 +76,6 @@
                                         <i class="bx {{ $icon }} mr-2 text-lg"></i>
                                         <span class="font-semibold text-sm">
                                             @if($pengajuan->status == 'draft') Draft
-                                            @elseif($pengajuan->status == 'menunggu_verifikasi') Verifikasi Dokumen
-                                            @elseif($pengajuan->status == 'dokumen_tidak_valid') Dokumen Tidak Valid
                                             @elseif($pengajuan->status == 'ps_ditentukan') Penentuan Pembimbing
                                             @elseif($pengajuan->status == 'menunggu_ttd_kajur') TTD Ketua Jurusan
                                             @elseif($pengajuan->status == 'menunggu_ttd_korprodi') TTD Korprodi
@@ -144,19 +142,17 @@
                                 <div class="mt-6">
                                     @php
                                         $progress = match ($pengajuan->status) {
-                                            'draft' => 10,
-                                            'menunggu_verifikasi' => 25,
-                                            'dokumen_tidak_valid' => 25,
-                                            'ps_ditentukan' => 50,
-                                            'menunggu_ttd_kajur' => 65,
-                                            'menunggu_ttd_korprodi' => 80,
+                                            'draft' => 20,
+                                            'ps_ditentukan' => 40,
+                                            'menunggu_ttd_korprodi' => 60,
+                                            'menunggu_ttd_kajur' => 80,
                                             'selesai' => 100,
                                             'ditolak' => 0,
                                             default => 0,
                                         };
                                         $progressColor = match (true) {
                                             $pengajuan->isSelesai() => 'bg-emerald-500',
-                                            $pengajuan->isDitolak() || $pengajuan->isDokumenTidakValid() => 'bg-red-500',
+                                            $pengajuan->isDitolak() => 'bg-red-500',
                                             default => 'bg-orange-500',
                                         };
                                     @endphp
@@ -190,7 +186,7 @@
                                 @if ($pengajuan->isSelesai() && $pengajuan->file_surat_sk)
                                     <a href="{{ route('user.sk-pembimbing.download-sk', $pengajuan) }}"
                                         class="w-full inline-flex items-center justify-center px-4 py-2.5 bg-emerald-50 text-emerald-700 border border-emerald-200 font-medium rounded-lg hover:bg-emerald-100 transition-all text-sm">
-                                        <i class="bx bx-download text-lg mr-2"></i> Unduh SK
+                                        <i class="bx bx-download text-lg mr-2"></i> Unduh Surat Usulan
                                     </a>
                                 @endif
                             </div>
@@ -204,7 +200,7 @@
                             <i class="bx bx-file-blank text-4xl text-orange-500"></i>
                         </div>
                         <h3 class="text-xl font-bold text-gray-800 mb-2">Belum Ada Pengajuan</h3>
-                        <p class="text-gray-500 mb-8">Anda belum memiliki riwayat pengajuan SK Pembimbing Skripsi. Klik tombol di atas untuk mengajukan SK baru.</p>
+                        <p class="text-gray-500 mb-8">Anda belum memiliki riwayat pengajuan Surat Usulan Penerbitan SK Pembimbing Skripsi. Klik tombol di atas untuk mengajukan Usulan SK baru.</p>
                         
                         @if ($canCreateNew)
                              <a href="{{ route('user.sk-pembimbing.create') }}" class="inline-flex items-center px-6 py-3 bg-white border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 hover:text-orange-600 transition-all">

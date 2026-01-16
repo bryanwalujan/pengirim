@@ -87,22 +87,7 @@
                 </div>
             </div>
 
-            <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-4">
-                <div class="card card-border-shadow-warning h-100">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center mb-2 pb-1">
-                            <div class="avatar me-2">
-                                <span class="avatar-initial rounded bg-label-warning">
-                                    <i class="bx bx-time bx-sm"></i>
-                                </span>
-                            </div>
-                            <h4 class="ms-1 mb-0">{{ $stats['menunggu_verifikasi'] ?? 0 }}</h4>
-                        </div>
-                        <p class="mb-1 fw-semibold">Menunggu Verifikasi</p>
-                        <small class="text-muted">Perlu diverifikasi staff</small>
-                    </div>
-                </div>
-            </div>
+
 
             <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-4">
                 <div class="card card-border-shadow-info h-100">
@@ -156,12 +141,7 @@
                             <i class="bx bx-list-check bx-xs me-1"></i>Semua
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a href="{{ route('admin.sk-pembimbing.index', ['status' => 'menunggu_verifikasi']) }}"
-                            class="nav-link {{ request('status') === 'menunggu_verifikasi' ? 'active' : '' }}">
-                            <i class="bx bx-time bx-xs me-1"></i>Menunggu Verifikasi
-                        </a>
-                    </li>
+
                     <li class="nav-item">
                         <a href="{{ route('admin.sk-pembimbing.index', ['status' => 'menunggu_ttd']) }}"
                             class="nav-link {{ request('status') === 'menunggu_ttd' ? 'active' : '' }}">
@@ -264,7 +244,7 @@
                                                 </a>
                                             @endif
                                             @if(auth()->user()->hasRole('staff'))
-                                                @if($p->isMenungguVerifikasi() || $p->isPsDitentukan())
+                                                @if(!$p->hasPembimbingAssigned())
                                                     <div class="dropdown-divider"></div>
                                                     <a class="dropdown-item" href="{{ route('admin.sk-pembimbing.assign-pembimbing', $p) }}">
                                                         <i class="bx bx-user-plus me-2"></i>Tentukan PS

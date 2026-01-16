@@ -128,7 +128,12 @@ trait GeneratesNomorSurat
         $pattern = "%/{$prefix}/{$academicYearId}";
 
         foreach ($this->getSuratModels() as $model) {
-            $latest = $model::withTrashed()
+            // Check if model uses soft deletes
+            $query = in_array('Illuminate\Database\Eloquent\SoftDeletes', class_uses_recursive($model))
+                ? $model::withTrashed()
+                : $model::query();
+            
+            $latest = $query
                 ->whereNotNull('nomor_surat')
                 ->where('nomor_surat', 'like', $pattern)
                 ->orderByRaw('CAST(SUBSTRING_INDEX(nomor_surat, "/", 1) AS UNSIGNED) DESC')
@@ -183,7 +188,12 @@ trait GeneratesNomorSurat
         $latestNumber = 0;
 
         foreach ($this->getSuratModels() as $model) {
-            $surat = $model::withTrashed()
+            // Check if model uses soft deletes
+            $query = in_array('Illuminate\Database\Eloquent\SoftDeletes', class_uses_recursive($model))
+                ? $model::withTrashed()
+                : $model::query();
+            
+            $surat = $query
                 ->whereNotNull('nomor_surat')
                 ->where('nomor_surat', 'like', "%/{$academicYearId}")
                 ->orderByRaw('CAST(SUBSTRING_INDEX(nomor_surat, "/", 1) AS UNSIGNED) DESC')
@@ -276,7 +286,12 @@ trait GeneratesNomorSurat
                 ->where('nomor_surat', 'like', "%/{$academicYearId}")
                 ->count();
                 
-            $latest = $model::withTrashed()
+            // Check if model uses soft deletes
+            $query = in_array('Illuminate\Database\Eloquent\SoftDeletes', class_uses_recursive($model))
+                ? $model::withTrashed()
+                : $model::query();
+            
+            $latest = $query
                 ->whereNotNull('nomor_surat')
                 ->where('nomor_surat', 'like', "%/{$academicYearId}")
                 ->orderByRaw('CAST(SUBSTRING_INDEX(nomor_surat, "/", 1) AS UNSIGNED) DESC')

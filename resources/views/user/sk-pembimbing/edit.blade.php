@@ -1,6 +1,6 @@
 @extends('layouts.user.app')
 
-@section('title', 'Edit Pengajuan SK Pembimbing')
+@section('title', 'Edit Surat Usulan Penerbitan SK Pembimbing Skripsi')
 
 @push('styles')
     <style>
@@ -31,7 +31,7 @@
                 <ol>
                     <li><a href="{{ route('user.home.index') }}">Beranda</a></li>
                     <li><a href="{{ route('user.services.index') }}">Layanan</a></li>
-                    <li><a href="{{ route('user.sk-pembimbing.index') }}">SK Pembimbing</a></li>
+                    <li><a href="{{ route('user.sk-pembimbing.index') }}">Usulan SK Pembimbing</a></li>
                     <li class="current">Edit</li>
                 </ol>
             </nav>
@@ -42,7 +42,7 @@
         <div class="container mx-auto px-4 max-w-6xl">
 
             <!-- Rejection Alert -->
-            @if($pengajuan->isDitolak() || $pengajuan->isDokumenTidakValid())
+            @if($pengajuan->isDitolak())
                 <div class="mb-6 animate-slide-down" data-aos="fade-up">
                     <div class="bg-red-50 border-l-4 border-red-500 rounded-xl p-5 shadow-lg">
                         <div class="flex items-start">
@@ -197,13 +197,13 @@
                             </div>
                             <div class="p-6">
                                 <p class="text-sm text-gray-600 mb-4">
-                                    Anda sedang menyunting pengajuan SK Pembimbing.
+                                    Anda sedang menyunting Surat Usulan Penerbitan SK Pembimbing Skripsi.
                                 </p>
                                 <div class="bg-blue-50 border border-blue-100 rounded-xl p-4">
                                     <h5 class="text-xs font-bold text-blue-800 uppercase mb-2">Catatan</h5>
                                     <ul class="text-xs text-blue-700 space-y-2 list-disc list-inside">
                                         <li>File lama akan tetap digunakan jika Anda tidak mengupload file baru.</li>
-                                        <li>Setelah disimpan, status pengajuan akan kembali menjadi <strong>Menunggu Verifikasi</strong> (kecuali masih Draft).</li>
+                                        <li>Pastikan data yang diinputkan sudah benar sebelum menyimpan.</li>
                                     </ul>
                                 </div>
                             </div>

@@ -70,7 +70,6 @@ class SkPembimbingController extends Controller
             ->whereDoesntHave('pengajuanSkPembimbing', function ($q) {
                 $q->whereNotIn('status', [
                     PengajuanSkPembimbing::STATUS_DITOLAK,
-                    PengajuanSkPembimbing::STATUS_DOKUMEN_TIDAK_VALID,
                 ]);
             })
             ->with([

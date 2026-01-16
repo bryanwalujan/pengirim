@@ -1,24 +1,21 @@
 <?php
-// filepath: /c:/laragon/www/eservice-app/app/Http/Controllers/Admin/AdminSkPembimbingController.php
+// filepath: app/Http/Controllers/Admin/AdminSkPembimbingController.php
 
 namespace App\Http\Controllers\Admin;
 
 use App\Actions\SkPembimbing\AssignPembimbingAction;
 use App\Actions\SkPembimbing\RejectPengajuanAction;
-use App\Actions\SkPembimbing\SignByKajurAction;
-use App\Actions\SkPembimbing\SignByKorprodiAction;
-use App\Actions\SkPembimbing\VerifyDokumenAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SkPembimbing\AssignPembimbingRequest;
-use App\Http\Requests\SkPembimbing\SignSkRequest;
-use App\Http\Requests\SkPembimbing\VerifyDokumenRequest;
 use App\Models\PengajuanSkPembimbing;
 use App\Models\StatistikPembimbingSkripsi;
 use App\Models\TahunAjaran;
 use App\Models\User;
+use App\Services\SkPembimbing\SignatureService;
 use App\Traits\GeneratesNomorSurat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class AdminSkPembimbingController extends Controller
@@ -26,11 +23,9 @@ class AdminSkPembimbingController extends Controller
     use GeneratesNomorSurat;
 
     public function __construct(
-        private readonly VerifyDokumenAction $verifyAction,
         private readonly AssignPembimbingAction $assignAction,
-        private readonly SignByKajurAction $signKajurAction,
-        private readonly SignByKorprodiAction $signKorprodiAction,
-        private readonly RejectPengajuanAction $rejectAction
+        private readonly RejectPengajuanAction $rejectAction,
+        private readonly SignatureService $signatureService
     ) {
     }
 
@@ -47,7 +42,7 @@ class AdminSkPembimbingController extends Controller
         ]);
 
         // Role-based filtering
-        if ($user->hasRole('dosen')) {
+        if ($user->hasRole('dosen') && !$user->hasRole('staff')) {
             $query->where(function ($q) use ($user) {
                 // Dosen sees pengajuan where they are PS1/PS2
                 $q->forDosen($user->id);
@@ -85,8 +80,8 @@ class AdminSkPembimbingController extends Controller
             'dosenPembimbing2:id,name,nip',
             'verifiedByUser:id,name',
             'psAssignedByUser:id,name',
-            'ttdKajurUser:id,name',
-            'ttdKorprodiUser:id,name',
+            'ttdKorprodiUser:id,name,nip',
+            'ttdKajurUser:id,name,nip',
         ]);
 
         $user = Auth::user();
@@ -94,15 +89,7 @@ class AdminSkPembimbingController extends Controller
         return view('admin.sk-pembimbing.show', compact('pengajuan', 'user'));
     }
 
-    /**
-     * Verify dokumen (Staff)
-     */
-    public function verifyDokumen(VerifyDokumenRequest $request, PengajuanSkPembimbing $pengajuan)
-    {
-        $result = $this->verifyAction->execute($pengajuan, Auth::user(), $request->validated());
 
-        return back()->with($result['success'] ? 'success' : 'error', $result['message']);
-    }
 
     /**
      * Show assign pembimbing form (Staff)
@@ -111,7 +98,6 @@ class AdminSkPembimbingController extends Controller
     {
         $this->authorizeStaff();
 
-        // Get all dosen with their statistics
         $tahunAjaranId = TahunAjaran::where('status_aktif', true)->value('id');
 
         $dosenList = User::role('dosen')
@@ -129,13 +115,11 @@ class AdminSkPembimbingController extends Controller
                     ($dosen->statistikPembimbing->first()?->jumlah_ps2 ?? 0),
             ]);
 
-        // Get default PS1 from seminar proposal
         $defaultPs1 = $pengajuan->beritaAcara
-            ->jadwalSeminarProposal
-            ->pendaftaranSeminarProposal
-            ->dosen_pembimbing_id ?? null;
+            ?->jadwalSeminarProposal
+            ?->pendaftaranSeminarProposal
+                ?->dosen_pembimbing_id ?? null;
 
-        // Prepare nomor surat info
         $nextNomor = $this->getNextNomorSurat();
         $lastNomor = $this->getLastUsedNomorSurat();
         $prefix = 'UN41.2/TI';
@@ -164,21 +148,108 @@ class AdminSkPembimbingController extends Controller
     }
 
     /**
-     * Sign by Kajur
+     * TTD Korprodi - DENGAN STAFF OVERRIDE
      */
-    public function signByKajur(SignSkRequest $request, PengajuanSkPembimbing $pengajuan)
+    public function signByKorprodi(Request $request, PengajuanSkPembimbing $pengajuan)
     {
-        $result = $this->signKajurAction->execute($pengajuan, Auth::user());
+        $user = User::find(Auth::id());
+
+        Log::info('=== TTD KORPRODI SK PEMBIMBING - START ===', [
+            'pengajuan_id' => $pengajuan->id,
+            'user_id' => $user->id,
+            'user_role' => $user->getRoleNames(),
+            'current_status' => $pengajuan->status,
+        ]);
+
+        // VALIDASI 1: Check status
+        if (!$pengajuan->isMenungguTtdKorprodi()) {
+            return back()->with('error', 'Pengajuan tidak dalam status menunggu TTD Korprodi.');
+        }
+
+        // VALIDASI 2: Check surat dapat ditandatangani
+        if (!$pengajuan->canBeSignedByKorprodi()) {
+            return back()->with('error', 'Pengajuan tidak dapat ditandatangani oleh Korprodi saat ini.');
+        }
+
+        // VALIDASI 3: Check permission - Korprodi ATAU Staff
+        $isKorprodi = $user->isKoordinatorProdi();
+        $isStaff = $user->hasRole('staff');
+
+        if (!$isKorprodi && !$isStaff) {
+            return back()->with('error', 'Anda tidak memiliki akses untuk menandatangani.');
+        }
+
+        // Tentukan siapa yang TTD
+        $signer = $user;
+        $executor = null;
+
+        if ($isStaff && !$isKorprodi) {
+            // Staff override - cari default Korprodi
+            $korprodiId = $this->getDefaultKorprodiId();
+            if (!$korprodiId) {
+                return back()->with('error', 'Default Korprodi tidak ditemukan. Silakan tambahkan dosen dengan jabatan Koordinator Program Studi.');
+            }
+            $signer = User::find($korprodiId);
+            $executor = $user;
+        }
+
+        $result = $this->signatureService->signByKorprodi($pengajuan, $signer, $executor);
 
         return back()->with($result['success'] ? 'success' : 'error', $result['message']);
     }
 
     /**
-     * Sign by Korprodi
+     * TTD Kajur - DENGAN STAFF OVERRIDE
      */
-    public function signByKorprodi(SignSkRequest $request, PengajuanSkPembimbing $pengajuan)
+    public function signByKajur(Request $request, PengajuanSkPembimbing $pengajuan)
     {
-        $result = $this->signKorprodiAction->execute($pengajuan, Auth::user());
+        $user = User::find(Auth::id());
+
+        Log::info('=== TTD KAJUR SK PEMBIMBING - START ===', [
+            'pengajuan_id' => $pengajuan->id,
+            'user_id' => $user->id,
+            'user_role' => $user->getRoleNames(),
+            'current_status' => $pengajuan->status,
+        ]);
+
+        // VALIDASI 1: Check status
+        if (!$pengajuan->isMenungguTtdKajur()) {
+            return back()->with('error', 'Pengajuan tidak dalam status menunggu TTD Kajur.');
+        }
+
+        // VALIDASI 2: Check Korprodi sudah TTD
+        if (!$pengajuan->isKorprodiSigned()) {
+            return back()->with('error', 'Koordinator Prodi belum menandatangani.');
+        }
+
+        // VALIDASI 3: Check surat dapat ditandatangani
+        if (!$pengajuan->canBeSignedByKajur()) {
+            return back()->with('error', 'Pengajuan tidak dapat ditandatangani oleh Kajur saat ini.');
+        }
+
+        // VALIDASI 4: Check permission - Kajur ATAU Staff
+        $isKajur = $user->isKetuaJurusan();
+        $isStaff = $user->hasRole('staff');
+
+        if (!$isKajur && !$isStaff) {
+            return back()->with('error', 'Anda tidak memiliki akses untuk menandatangani.');
+        }
+
+        // Tentukan siapa yang TTD
+        $signer = $user;
+        $executor = null;
+
+        if ($isStaff && !$isKajur) {
+            // Staff override - cari default Kajur
+            $kajurId = $this->getDefaultKajurId();
+            if (!$kajurId) {
+                return back()->with('error', 'Default Kajur tidak ditemukan. Silakan tambahkan dosen dengan jabatan Ketua Jurusan.');
+            }
+            $signer = User::find($kajurId);
+            $executor = $user;
+        }
+
+        $result = $this->signatureService->signByKajur($pengajuan, $signer, $executor);
 
         return back()->with($result['success'] ? 'success' : 'error', $result['message']);
     }
@@ -216,17 +287,30 @@ class AdminSkPembimbingController extends Controller
     }
 
     /**
-     * Recalculate statistik (Staff)
+     * Recalculate Statistik for Tahun Ajaran (Staff)
      */
     public function recalculateStatistik(Request $request)
     {
         $this->authorizeStaff();
 
-        $tahunAjaranId = $request->tahun_ajaran_id ?? TahunAjaran::where('status_aktif', true)->value('id');
+        $request->validate([
+            'tahun_ajaran_id' => 'required|exists:tahun_ajarans,id'
+        ]);
 
-        StatistikPembimbingSkripsi::recalculateForTahunAjaran($tahunAjaranId);
+        try {
+            StatistikPembimbingSkripsi::recalculateForTahunAjaran($request->tahun_ajaran_id);
 
-        return back()->with('success', 'Statistik berhasil direcalculate.');
+            return redirect()
+                ->route('admin.sk-pembimbing.statistik-pembimbing', ['tahun_ajaran_id' => $request->tahun_ajaran_id])
+                ->with('success', 'Statistik pembimbing berhasil diperbarui.');
+        } catch (\Exception $e) {
+            Log::error('Error recalculating statistik: ' . $e->getMessage(), [
+                'tahun_ajaran_id' => $request->tahun_ajaran_id,
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return back()->with('error', 'Terjadi kesalahan saat memperbarui statistik.');
+        }
     }
 
     /**
@@ -290,6 +374,135 @@ class AdminSkPembimbingController extends Controller
         return view('admin.sk-pembimbing.verify', compact('pengajuan'));
     }
 
+    /**
+     * Preview PDF template (for development/testing)
+     */
+    public function previewPdf()
+    {
+        // Create a mock object with the details property and methods
+        $surat = new class {
+            public $nomor_surat;
+            public $tanggal_surat;
+            public $details;
+            public $ttdKajurBy;
+            public $ttdKaprodiBy;
+            public $qr_code_kajur;
+            public $qr_code_kaprodi;
+            public $ttd_korprodi_at;
+            public $ttd_kajur_at;
+            
+            public function isFullySigned(): bool
+            {
+                return !is_null($this->ttd_korprodi_at) && !is_null($this->ttd_kajur_at);
+            }
+        };
+
+        // Create dummy detail item
+        $detail = new \stdClass();
+        
+        // Dummy mahasiswa
+        $mahasiswa = new \stdClass();
+        $mahasiswa->name = 'Patrik Willem Louis Rompas';
+        $mahasiswa->nim = '20210001';
+        $detail->mahasiswa = $mahasiswa;
+        
+        // Dummy dosen pembimbing 1
+        $dosen1 = new \stdClass();
+        $dosen1->name = 'Dr. Irene R. H. T. Tangkawarow, ST, MISD';
+        $dosen1->nip = '198501012010121001';
+        $detail->pembimbing1 = $dosen1;
+        
+        // Dummy dosen pembimbing 2
+        $dosen2 = new \stdClass();
+        $dosen2->name = 'Medi Hermanto Tinambunan, S.Kom, M.Kom';
+        $dosen2->nip = '197801012005011001';
+        $detail->pembimbing2 = $dosen2;
+        
+        $detail->judul_skripsi = 'Pengembangan Sistem Informasi E-Service Berbasis Web untuk Meningkatkan Efisiensi Layanan Akademik di Jurusan Teknologi Informasi dan Komunikasi';
+
+        // Add to details array
+        $surat->details = [$detail];
+        
+        // Dummy Korprodi (Kaprodi)
+        $korprodi = new \stdClass();
+        $korprodi->name = 'Vivie P. Rantung, ST., MISD';
+        $korprodi->nip = '197xxxx';
+        $surat->ttdKaprodiBy = $korprodi;
+        
+        // Dummy Kajur
+        $kajur = new \stdClass();
+        $kajur->name = 'Alfrina Mewengkang, S.Kom, M.Eng';
+        $kajur->nip = '198xxxx';
+        $surat->ttdKajurBy = $kajur;
+        
+        // Surat details
+        $surat->nomor_surat = '001/UN41.2/TI/2026';
+        $surat->tanggal_surat = now();
+        $surat->verification_code = 'SK-PMB-PREVIEW123';
+        
+        // QR codes (dummy base64)
+        $surat->qr_code_korprodi = null; 
+        $surat->qr_code_kajur = null; 
+        
+        // Signature timestamps
+        $surat->ttd_korprodi_at = now();
+        $surat->ttd_kajur_at = now();
+        
+        // Variables based on new template
+        $show_kaprodi_signature = true;
+        $show_kajur_signature = true;
+        
+        // Generate PDF
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.sk-pembimbing.pdf', [
+            'surat' => $surat,
+            'show_kaprodi_signature' => $show_kaprodi_signature,
+            'show_kajur_signature' => $show_kajur_signature,
+        ]);
+        
+        $pdf->setPaper('A4', 'portrait');
+        
+        return $pdf->stream('preview-sk-pembimbing.pdf');
+    }
+
+    /**
+     * Validate custom nomor surat (AJAX)
+     */
+    public function validateNomorSurat(Request $request)
+    {
+        $customNumber = $request->input('custom_number');
+
+        if (!$customNumber || !is_numeric($customNumber) || $customNumber < 1 || $customNumber > 9999) {
+            return response()->json([
+                'valid' => false,
+                'message' => 'Nomor tidak valid. Masukkan 1-4 digit angka.',
+            ]);
+        }
+
+        try {
+            $nomorSurat = $this->generateNomorSuratUniversal('UN41.2/TI', (int) $customNumber);
+            $isUnique = $this->validateNomorSuratUnique($nomorSurat);
+
+            if (!$isUnique) {
+                return response()->json([
+                    'valid' => false,
+                    'message' => 'Nomor surat sudah digunakan.',
+                    'nomor_surat' => $nomorSurat,
+                ]);
+            }
+
+            return response()->json([
+                'valid' => true,
+                'message' => 'Nomor surat tersedia.',
+                'nomor_surat' => $nomorSurat,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'valid' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
+            ]);
+        }
+    }
+
     // ========================================
     // PRIVATE METHODS
     // ========================================
@@ -319,52 +532,40 @@ class AdminSkPembimbingController extends Controller
 
         return [
             'total' => (clone $baseQuery)->count(),
-            'menunggu_verifikasi' => (clone $baseQuery)->withStatus(PengajuanSkPembimbing::STATUS_MENUNGGU_VERIFIKASI)->count(),
             'menunggu_ttd' => (clone $baseQuery)->menungguTtd()->count(),
             'selesai' => (clone $baseQuery)->withStatus(PengajuanSkPembimbing::STATUS_SELESAI)->count(),
         ];
     }
 
+    private function getDefaultKajurId(): ?int
+    {
+        $kajur = User::whereHas('roles', fn($q) => $q->where('name', 'dosen'))
+            ->where(function ($query) {
+                $query->where('jabatan', 'like', '%ketua jurusan%')
+                    ->orWhere('jabatan', 'like', '%kepala jurusan%')
+                    ->orWhere('jabatan', 'like', '%pimpinan jurusan ptik%')
+                    ->orWhere('jabatan', 'like', '%kajur%');
+            })
+            ->first();
+
+        return $kajur?->id;
+    }
+
+    private function getDefaultKorprodiId(): ?int
+    {
+        $korprodi = User::whereHas('roles', fn($q) => $q->where('name', 'dosen'))
+            ->where(function ($q) {
+                $q->where('jabatan', 'like', '%koordinator%')
+                    ->orWhere('jabatan', 'like', '%kaprodi%')
+                    ->orWhere('jabatan', 'like', '%korprodi%');
+            })
+            ->first();
+
+        return $korprodi?->id;
+    }
+
     private function authorizeStaff(): void
     {
         abort_unless(User::find(Auth::id())->hasRole(['staff', 'admin']), 403);
-    }
-
-    /**
-     * Validate custom nomor surat (AJAX)
-     */
-    public function validateNomorSurat(Request $request)
-    {
-        $customNumber = $request->input('custom_number');
-
-        if (!$customNumber || !is_numeric($customNumber) || $customNumber < 1 || $customNumber > 9999) {
-            return response()->json([
-                'valid' => false,
-                'message' => 'Nomor tidak valid. Masukkan 1-4 digit angka.',
-            ]);
-        }
-
-        try {
-            $nomorSurat = $this->generateNomorSuratUniversal('UN41.2/TI', (int) $customNumber);
-            $isUnique = $this->validateNomorSuratUnique($nomorSurat);
-
-            if (!$isUnique) {
-                return response()->json([
-                    'valid' => false,
-                    'message' => 'Nomor surat sudah digunakan. Silakan pilih nomor lain.',
-                ]);
-            }
-
-            return response()->json([
-                'valid' => true,
-                'message' => 'Nomor surat tersedia.',
-                'nomor_surat' => $nomorSurat,
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'valid' => false,
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
-            ]);
-        }
     }
 }

@@ -1,6 +1,6 @@
 @extends('layouts.user.app')
 
-@section('title', 'Detail Pengajuan SK Pembimbing')
+@section('title', 'Detail Surat Usulan Penerbitan SK Pembimbing Skripsi')
 
 @push('styles')
     <style>
@@ -30,7 +30,7 @@
                 <ol>
                     <li><a href="{{ route('user.home.index') }}">Beranda</a></li>
                     <li><a href="{{ route('user.services.index') }}">Layanan</a></li>
-                    <li><a href="{{ route('user.sk-pembimbing.index') }}">SK Pembimbing</a></li>
+                    <li><a href="{{ route('user.sk-pembimbing.index') }}">Usulan SK Pembimbing</a></li>
                     <li class="current">Detail</li>
                 </ol>
             </nav>
@@ -41,32 +41,17 @@
         <div class="container mx-auto px-4 max-w-6xl">
 
             <!-- Alerts Status -->
-            @if($pengajuan->isDokumenTidakValid())
-                <div class="mb-6 animate-slide-down">
-                    <div class="bg-red-50 border-l-4 border-red-500 rounded-xl p-5 shadow-lg">
-                        <div class="flex items-start">
-                            <i class="bx bx-error-circle text-red-500 text-3xl mr-4"></i>
-                            <div class="flex-1">
-                                <h4 class="font-bold text-red-800 text-lg mb-1">Dokumen Tidak Valid</h4>
-                                <p class="text-red-700 mb-4">{{ $pengajuan->alasan_ditolak }}</p>
-                                <a href="{{ route('user.sk-pembimbing.edit', $pengajuan) }}" class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
-                                    <i class="bx bx-edit mr-2"></i> Perbaiki Dokumen
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            @elseif($pengajuan->isSelesai())
+            @if($pengajuan->isSelesai())
                 <div class="mb-6 animate-slide-down">
                     <div class="bg-emerald-50 border-l-4 border-emerald-500 rounded-xl p-5 shadow-lg">
                         <div class="flex items-start">
                              <i class="bx bx-check-circle text-emerald-500 text-3xl mr-4"></i>
                              <div class="flex-1">
-                                 <h4 class="font-bold text-emerald-800 text-lg mb-1">SK Pembimbing Selesai</h4>
-                                 <p class="text-emerald-700 mb-4">SK Anda telah terbit dan siap didownload.</p>
+                                 <h4 class="font-bold text-emerald-800 text-lg mb-1">Usulan SK Pembimbing Selesai</h4>
+                                 <p class="text-emerald-700 mb-4">Surat Usulan SK Pembimbing Anda telah terbit dan siap didownload.</p>
                                  @if($pengajuan->file_surat_sk)
                                      <a href="{{ route('user.sk-pembimbing.download-sk', $pengajuan) }}" class="inline-flex items-center px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition shadow-md">
-                                         <i class="bx bx-download mr-2"></i> Download SK Pembimbing
+                                         <i class="bx bx-download mr-2"></i> Download Surat Usulan SK Pembimbing
                                      </a>
                                  @endif
                              </div>
@@ -219,11 +204,10 @@
                              
                              @php
                                  $steps = [
-                                     ['status' => 'selesai', 'label' => 'Selesai', 'desc' => 'SK telah terbit'],
+                                     ['status' => 'selesai', 'label' => 'Selesai', 'desc' => 'Surat Usulan SK Pembimbing Skripsi'],
                                      ['status' => 'menunggu_ttd_korprodi', 'label' => 'TTD Korprodi', 'desc' => 'Validasi Koordinator Prodi'],
                                      ['status' => 'menunggu_ttd_kajur', 'label' => 'TTD Kajur', 'desc' => 'Validasi Ketua Jurusan'],
                                      ['status' => 'ps_ditentukan', 'label' => 'Pembimbing Ditentukan', 'desc' => 'Penentuan Dosen Pembimbing'],
-                                     ['status' => 'menunggu_verifikasi', 'label' => 'Verifikasi Dokumen', 'desc' => 'Pemeriksaan oleh Staff'],
                                      ['status' => 'draft', 'label' => 'Pengajuan Dibuat', 'desc' => 'Menunggu diproses'],
                                  ];
                                  
@@ -248,7 +232,7 @@
                                          // Check history timestamps if available to confirm passed steps accurately
                                          // For now, we assume linear progression:
                                          // If current is 'selesai', all below are passed.
-                                          $statusList = ['draft', 'menunggu_verifikasi', 'ps_ditentukan', 'menunggu_ttd_kajur', 'menunggu_ttd_korprodi', 'selesai'];
+                                          $statusList = ['draft', 'ps_ditentukan', 'menunggu_ttd_korprodi', 'menunggu_ttd_kajur', 'selesai'];
                                           $currentPos = array_search($currentStatus, $statusList);
                                           $stepPos = array_search($step['status'], $statusList);
                                           

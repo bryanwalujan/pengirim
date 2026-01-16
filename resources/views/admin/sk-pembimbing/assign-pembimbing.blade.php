@@ -57,9 +57,9 @@
 
                             {{-- PS2 --}}
                             <div class="mb-4">
-                                <label class="form-label">Pembimbing 2 (PS2) <span class="text-muted">(Opsional)</span></label>
-                                <select name="dosen_pembimbing_2_id" class="form-select select2">
-                                    <option value="">-- Tidak Ada PS2 --</option>
+                                <label class="form-label">Pembimbing 2 (PS2) <span class="text-danger">*</span></label>
+                                <select name="dosen_pembimbing_2_id" class="form-select select2" required>
+                                    <option value="">-- Pilih Dosen --</option>
                                     @foreach($dosenList as $dosen)
                                         <option value="{{ $dosen['id'] }}" 
                                             {{ $pengajuan->dosen_pembimbing_2_id == $dosen['id'] ? 'selected' : '' }}>

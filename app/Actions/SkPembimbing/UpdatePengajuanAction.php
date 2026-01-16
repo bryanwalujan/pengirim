@@ -43,12 +43,6 @@ class UpdatePengajuanAction
                     }
                 }
 
-                // Reset status if was dokumen_tidak_valid
-                if ($pengajuan->isDokumenTidakValid()) {
-                    $updateData['status'] = PengajuanSkPembimbing::STATUS_MENUNGGU_VERIFIKASI;
-                    $updateData['alasan_ditolak'] = null;
-                }
-
                 $pengajuan->update($updateData);
 
                 // Delete old files after successful update

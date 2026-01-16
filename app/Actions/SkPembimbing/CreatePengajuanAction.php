@@ -38,7 +38,7 @@ class CreatePengajuanAction
                         'proposal-revisi',
                         $mahasiswa->nim
                     ),
-                    'status' => PengajuanSkPembimbing::STATUS_MENUNGGU_VERIFIKASI,
+                    'status' => PengajuanSkPembimbing::STATUS_DRAFT,
                 ]);
 
                 Log::info('SK Pembimbing pengajuan created', [

@@ -12,7 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('pengajuan_sk_pembimbing', function (Blueprint $table) {
-            $table->softDeletes();
+            $table->text('qr_code_korprodi')->nullable()->after('ttd_korprodi_at');
+            $table->text('qr_code_kajur')->nullable()->after('ttd_kajur_at');
         });
     }
 
@@ -22,7 +23,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('pengajuan_sk_pembimbing', function (Blueprint $table) {
-            $table->dropSoftDeletes();
+            $table->dropColumn(['qr_code_korprodi', 'qr_code_kajur']);
         });
     }
 };

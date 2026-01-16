@@ -8,8 +8,7 @@
     <style>
         @page {
             size: A4 portrait;
-            /* Margin disesuaikan agar pas dengan Kop Surat template */
-            margin: 0.5cm 2cm 2cm 2cm; 
+            margin: 0.39in 1in 1in 1in;
         }
 
         body {
@@ -38,206 +37,190 @@
 
         .underline {
             text-decoration: underline;
-            margin-bottom: -10px;
         }
 
-        .bold {
-            font-weight: bold;
-        }
-
-        /* Styling Metadata Surat (No, Lampiran, Perihal) */
-        table.content-info {
-            width: 100%;
-            margin-top: 10px; /* Jarak dari Kop Surat */
-            margin-bottom: 15px;
-        }
-
-        table.content-info td {
-            vertical-align: top;
-        }
-
-        /* Styling Tabel Data Mahasiswa */
-        table.data-table {
+        table.header-info {
             width: 100%;
             border-collapse: collapse;
             margin-top: 10px;
-            margin-bottom: 20px;
-            font-size: 11pt;
+            margin-bottom: 5px;
         }
 
-        table.data-table th,
-        table.data-table td {
-            border: 1px solid black;
-            padding: 6px;
+        table.header-info td {
             vertical-align: top;
+            padding: 0;
         }
 
-        table.data-table th {
+        table.main-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            line-height: 1.25;
+            font-size: 12pt;
+        }
+
+        table.main-table th,
+        table.main-table td {
+            border: 1px solid black;
+            padding: 4px 6px;
+            vertical-align: top;
+            text-align: left;
+        }
+
+        table.main-table th {
             text-align: center;
             font-weight: bold;
-            background-color: #f0f0f0;
         }
 
-        /* Styling Tanda Tangan */
-        .signature-section {
-            width: 100%;
-            margin-top: 40px;
-            page-break-inside: avoid;
+        /* SIGNATURE SECTION */
+        .signature-image {
+            width: 120px;
+            height: auto;
+            background: white;
         }
-        
+
         .signature-space {
-            height: 70px;
+            height: 100px;
+            padding-bottom: .4rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 5px 0;
         }
 
-        .signature-image {
-            height: 65px;
-            width: auto;
-            object-fit: contain;
+        .draft-watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 100pt;
+            color: rgba(200, 200, 200, 0.3);
+            font-weight: bold;
+            z-index: -1;
+            pointer-events: none;
         }
     </style>
 </head>
 
 <body>
-    {{-- 
-        HEADER KOP SURAT 
-        Menggunakan template partial yang sudah ada di aplikasi.
-        Pastikan variabel $kopSurat dikirim dari Controller.
-    --}}
-    <div style="margin-top: -20px; margin-bottom: 10px;">
-        @include('admin.kop-surat.template', ['kopSurat' => $kopSurat])
-    </div>
+    {{-- Watermark jika belum ditandatangani --}}
+    @if (!isset($show_kajur_signature) || !$show_kajur_signature)
+        <div class="draft-watermark">DRAFT</div>
+    @endif
 
-    {{-- METADATA SURAT --}}
-    <table class="content-info">
+    {{-- 1. KOP SURAT --}}
+    @include('admin.kop-surat.template')
+
+    {{-- 2. HEADER: NOMOR, LAMPIRAN, PERIHAL & TANGGAL --}}
+    <table class="header-info">
         <tr>
-            <td width="12%">No</td>
-            <td width="2%">:</td>
-            {{-- Sesuaikan format nomor surat dengan kebutuhan --}}
-            <td width="86%">{{ $surat->nomor_surat ?? '..../UN41.2/TI/' . date('Y') }}</td>
+            <td style="width: 15%;">No</td>
+            <td style="width: 2%;">:</td>
+            <td style="width: 48%;">{{ $surat->nomor_surat ?? '......./UN41.2/TI/.......' }}</td>
+            <td style="width: 40%;" class="text-right">
+                Tondano, {{ ($surat->tanggal_surat ?? now())->locale('id')->isoFormat('D MMMM Y') }}
+            </td>
         </tr>
         <tr>
             <td>Lampiran</td>
             <td>:</td>
-            <td>1 Berkas</td>
+            <td colspan="2">1 Berkas</td>
         </tr>
         <tr>
             <td>Perihal</td>
             <td>:</td>
-            <td class="bold">Permohonan Penerbitan SK Pembimbing Skripsi</td>
+            <td colspan="2">Permohonan Penerbitan SK Pembimbing Skripsi</td>
         </tr>
     </table>
 
-    {{-- TUJUAN SURAT --}}
-    <div style="margin-top: 15px; margin-bottom: 20px;">
-        Kepada Yth;<br>
-        <span class="bold">Dekan Fakultas Teknik Universitas Negeri Manado</span><br>
-        di - <br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Tondano
+    {{-- 3. TUJUAN SURAT --}}
+    <div style="margin-top: 15px;">
+        <p style="margin: 0;">Kepada Yth;</p>
+        <p style="margin: 0;">Dekan Fakultas Teknik Universitas Negeri Manado</p>
     </div>
 
-    {{-- ISI SURAT --}}
-    <div class="text-justify">
-        <p>Dengan Hormat,</p>
-        
-        <p>
-            Tondano, {{ \Carbon\Carbon::parse($surat->tanggal_surat ?? now())->translatedFormat('d F Y') }}
+    {{-- 4. ISI SURAT --}}
+    <div class="content text-justify">
+        <p style="text-indent: 0; line-height: 1.5;">
+            Dengan Hormat, <br>
+            Pimpinan Program Studi S1 Teknik Informatika Fakultas Teknik Universitas Negeri Manado mengusulkan kepada
+            Bapak Dekan untuk menerbitkan SK Pembimbing Skripsi mahasiswa atas nama :
         </p>
 
-        <p style="text-indent: 40px; line-height: 1.5;">
-            Pimpinan Program Studi S1 Teknik Informatika Fakultas Teknik Universitas Negeri Manado 
-            mengusulkan kepada Bapak Dekan untuk menerbitkan SK Pembimbing Skripsi mahasiswa atas nama:
+        {{-- TABEL DATA MAHASISWA & PEMBIMBING --}}
+        <table class="main-table">
+            <thead>
+                <tr>
+                    <th style="width: 5%;">NO</th>
+                    <th style="width: 20%;">NAMA / NIM</th>
+                    <th style="width: 25%;">JUDUL SKRIPSI</th>
+                    <th style="width: 50%;">PEMBIMBING</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="text-align: center;">1</td>
+                    <td style="text-align: center;">
+                        <span class="uppercase">{{ $surat->mahasiswa->name ?? '-' }}</span><br>
+                        {{ $surat->mahasiswa->nim ?? '-' }}
+                    </td>
+                    <td>
+                        {{ $surat->judul_skripsi ?? '-' }}
+                    </td>
+                    <td>
+                        {{-- Format Pembimbing --}}
+                        <div style="margin-bottom: 4px;">
+                            1. {{ $surat->dosenPembimbing1->name ?? 'Belum ditentukan' }} {{ isset($surat->dosenPembimbing1) ? '(PS1)' : '' }}
+                        </div>
+                        <div>
+                            2. {{ $surat->dosenPembimbing2->name ?? 'Belum ditentukan' }} {{ isset($surat->dosenPembimbing2) ? '(PS2)' : '' }}
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p style="margin-top: 10px;">
+         Demikian permohonan ini, atasnya diucapkan terima kasih.
         </p>
     </div>
 
-    {{-- TABEL DATA MAHASISWA & PEMBIMBING --}}
-    <table class="data-table">
-        <thead>
-            <tr>
-                <th width="5%">NO</th>
-                <th width="30%">NAMA / NIM</th>
-                <th width="35%">JUDUL SKRIPSI</th>
-                <th width="30%">PEMBIMBING</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse ($surat->details as $index => $item)
-                <tr>
-                    <td class="text-center">{{ $index + 1 }}.</td>
-                    <td>
-                        <span class="bold">{{ $item->mahasiswa->name ?? 'Nama Mahasiswa' }}</span><br>
-                        {{ $item->mahasiswa->nim ?? 'NIM' }}
-                    </td>
-                    <td class="text-justify">
-                        {{ $item->judul_skripsi ?? '-' }}
-                    </td>
-                    <td>
-                        {{-- Format Pembimbing P1 & P2 --}}
-                        1. {{ $item->pembimbing1->name ?? '-' }} {{ isset($item->pembimbing1) ? '(P1)' : '' }}<br>
-                        <div style="margin-top: 4px;"></div>
-                        2. {{ $item->pembimbing2->name ?? '-' }}
-                    </td>
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="4" class="text-center">Data mahasiswa tidak tersedia.</td>
-                </tr>
-            @endforelse
-        </tbody>
-    </table>
-
-    {{-- PENUTUP --}}
-    <div class="text-justify" style="margin-bottom: 20px;">
-        <p>Demikian surat usulan ini disampaikan, atas perhatian dan kerjasamanya disampaikan terima kasih.</p>
-    </div>
-
-    {{-- TANDA TANGAN --}}
-    <table class="signature-section">
+    {{-- 5. TANDA TANGAN - SESUAI FORMAT SURAT USULAN --}}
+    <table style="vertical-align: top; width: 100%; line-height: 0.3;">
         <tr>
-            {{-- KIRI: Ketua Jurusan (Mengetahui) --}}
-            <td width="50%" class="text-center" style="vertical-align: top;">
+            {{-- KIRI: Kajur/Pimpinan Jurusan --}}
+            <td>
                 <p>Mengetahui,</p>
-                <p>Ketua Jurusan PTIK,</p>
-                
+                <p>Pimpinan Jurusan PTIK,</p>
                 <div class="signature-space">
                     @if (isset($show_kajur_signature) && $show_kajur_signature && isset($surat->qr_code_kajur))
-                        <img src="data:image/png;base64,{{ $surat->qr_code_kajur }}" 
-                             alt="QR Code Kajur" class="signature-image">
-                    @else
-                        <br><br><br>
+                        <img src="data:image/png;base64,{{ $surat->qr_code_kajur }}" alt="QR Code Kajur"
+                            class="signature-image">
                     @endif
                 </div>
-
-                <p class="underline bold">
-                    {{ $surat->ttdKajurBy->name ?? 'Alfrina Mewengkang, S.Kom, M.Eng' }}
+                <p class="underline">
+                    {{ $surat->ttdKajurUser->name ?? '[Nama Penandatangan]' }}
                 </p>
-                <p>NIP. {{ $surat->ttdKajurBy->nip ?? '198xxxx' }}</p>
+                <p>NIP. {{ $surat->ttdKajurUser->nip ?? '[NIP]' }}</p>
             </td>
 
-            {{-- KANAN: Koordinator Prodi (Pengusul) --}}
-            <td width="50%" class="text-center" style="vertical-align: top;">
-                <p>&nbsp;</p> {{-- Spacer --}}
-                <p>Koordinator Program Studi<br>Teknik Informatika,</p>
-                
+            {{-- KANAN: Korprodi --}}
+            <td style="padding-left: 8rem;">
+                <p>Koordinator Program Studi</p>
+                <p>Teknik Informatika,</p>
                 <div class="signature-space">
-                    @if (isset($show_kaprodi_signature) && $show_kaprodi_signature && isset($surat->qr_code_kaprodi))
-                        <img src="data:image/png;base64,{{ $surat->qr_code_kaprodi }}" 
-                             class="signature-image" alt="QR Kaprodi">
-                    @else
-                        <br><br><br>
+                    @if (isset($show_korprodi_signature) && $show_korprodi_signature && isset($surat->qr_code_korprodi))
+                        <img src="data:image/png;base64,{{ $surat->qr_code_korprodi }}" class="signature-image"
+                            alt="QR Korprodi">
                     @endif
                 </div>
-
-                <p class="underline bold">
-                    {{ $surat->ttdKaprodiBy->name ?? 'Vivie P. Rantung, ST., MISD' }}
+                <p class="underline">
+                    {{ $surat->ttdKorprodiUser->name ?? '[Nama Penandatangan]' }}
                 </p>
-                <p>NIP. {{ $surat->ttdKaprodiBy->nip ?? '197xxxx' }}</p>
+                <p>NIP. {{ $surat->ttdKorprodiUser->nip ?? '[NIP]' }}</p>
             </td>
         </tr>
     </table>
 
 </body>
+
 </html>

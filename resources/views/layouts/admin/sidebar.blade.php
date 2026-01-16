@@ -1112,11 +1112,11 @@
                 // Count pending for notification
                 $skPembimbingPendingCount = 0;
                 if (auth()->user()->hasRole('staff')) {
-                    $skPembimbingPendingCount = \App\Models\PengajuanSkPembimbing::menungguVerifikasi()->count();
+                    $skPembimbingPendingCount = \App\Models\PengajuanSkPembimbing::menungguProses()->count();
                 } elseif (auth()->user()->isKetuaJurusan()) {
-                    $skPembimbingPendingCount = \App\Models\PengajuanSkPembimbing::menungguTtdKajur()->count();
+                    $skPembimbingPendingCount = \App\Models\PengajuanSkPembimbing::withStatus(\App\Models\PengajuanSkPembimbing::STATUS_MENUNGGU_TTD_KAJUR)->count();
                 } elseif (auth()->user()->isKoordinatorProdi()) {
-                    $skPembimbingPendingCount = \App\Models\PengajuanSkPembimbing::menungguTtdKorprodi()->count();
+                    $skPembimbingPendingCount = \App\Models\PengajuanSkPembimbing::withStatus(\App\Models\PengajuanSkPembimbing::STATUS_MENUNGGU_TTD_KORPRODI)->count();
                 }
             @endphp
 
@@ -1133,6 +1133,9 @@
                         <a href="{{ route('admin.sk-pembimbing.index') }}" class="menu-link">
                             <i class="menu-icon tf-icons bx bx-list-ul"></i>
                             <div>Daftar Pengajuan</div>
+                            @if($skPembimbingPendingCount > 0)
+                                <span class="badge bg-danger rounded-pill ms-auto">{{ $skPembimbingPendingCount }}</span>
+                            @endif
                         </a>
                     </li>
                     @if(auth()->user()->hasRole('staff'))
