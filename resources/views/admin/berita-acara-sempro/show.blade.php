@@ -249,6 +249,14 @@
                                 <i class="bx bx-group me-1"></i> Kelola Pembahas
                             </a>
                         @endif
+
+                        {{-- ✅ NEW: TOMBOL OVERRIDE PEMBIMBING (untuk Staff) --}}
+                        @if ($isStaff && $beritaAcara->isMenungguTtdPembimbing())
+                            <a href="{{ route('admin.berita-acara-sempro.fill-on-behalf', $beritaAcara) }}"
+                                class="btn btn-warning btn-sm">
+                                <i class="bx bx-user-check me-1"></i> Override Pembimbing
+                            </a>
+                        @endif
                     </div>
                 </div>
             </div>

@@ -110,4 +110,12 @@ class BeritaAcaraSeminarProposalPolicy
     {
         return $user->hasRole(['staff', 'admin']);
     }
+
+    /**
+     * Check if user can fill on behalf of pembimbing (staff override)
+     */
+    public function fillOnBehalf(User $user): bool
+    {
+        return $user->hasRole(['staff', 'admin']);
+    }
 }

@@ -31,6 +31,10 @@ class BeritaAcaraSeminarProposal extends Model
         'dibuat_oleh_id',
         'alasan_ditolak',
         'ditolak_at',
+        // Override pembimbing fields
+        'override_pembimbing_by',
+        'override_pembimbing_at',
+        'override_pembimbing_reason',
     ];
 
     protected $casts = [
@@ -39,6 +43,7 @@ class BeritaAcaraSeminarProposal extends Model
         'ttd_ketua_penguji_at' => 'datetime',
         'ttd_dosen_pembahas' => 'array',
         'ditolak_at' => 'datetime',
+        'override_pembimbing_at' => 'datetime',
     ];
 
     // ========================================

@@ -800,6 +800,15 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
                 ->name('store-fill-by-pembimbing')
                 ->middleware('role:dosen');
 
+            // ✅ NEW: Staff fill on behalf of pembimbing (OVERRIDE)
+            Route::get('/{beritaAcara}/fill-on-behalf', [AdminBeritaAcaraSemproController::class, 'showFillOnBehalfForm'])
+                ->name('fill-on-behalf')
+                ->middleware('role:staff|admin');
+
+            Route::post('/{beritaAcara}/fill-on-behalf', [AdminBeritaAcaraSemproController::class, 'fillOnBehalfOfPembimbing'])
+                ->name('store-fill-on-behalf')
+                ->middleware('role:staff|admin');
+
             // ✅ SIGN BY KETUA (jika terpisah dari pembimbing)
             Route::get('/{beritaAcara}/preview-signing', [AdminBeritaAcaraSemproController::class, 'previewBeforeSigning'])
                 ->name('preview-signing')

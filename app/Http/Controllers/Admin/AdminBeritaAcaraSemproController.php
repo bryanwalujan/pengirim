@@ -8,6 +8,7 @@ use App\Actions\BeritaAcaraSempro\{
     SignByPembahasAction,
     ApproveOnBehalfAction,
     FillByPembimbingAction,
+    FillOnBehalfAction,
     UpdatePembahasAction,
     DeleteBeritaAcaraAction
 };
@@ -18,6 +19,7 @@ use App\Http\Requests\BeritaAcaraSempro\{
     SignPembahasRequest,
     ApproveOnBehalfRequest,
     FillByPembimbingRequest,
+    FillOnBehalfRequest,
     UpdatePembahasRequest
 };
 use App\Models\{BeritaAcaraSeminarProposal, JadwalSeminarProposal, User};
@@ -37,6 +39,7 @@ class AdminBeritaAcaraSemproController extends Controller
         private readonly SignByPembahasAction $signAction,
         private readonly ApproveOnBehalfAction $approveAction,
         private readonly FillByPembimbingAction $fillAction,
+        private readonly FillOnBehalfAction $fillOnBehalfAction,
         private readonly UpdatePembahasAction $updatePembahasAction,
         private readonly DeleteBeritaAcaraAction $deleteAction
     ) {
@@ -336,6 +339,46 @@ class AdminBeritaAcaraSemproController extends Controller
         }
 
         // Normal flow - redirect to show
+        return redirect()
+            ->route('admin.berita-acara-sempro.show', $beritaAcara)
+            ->with($messageType, $result['message']);
+    }
+
+    // ==================== FILL ON BEHALF OF PEMBIMBING (STAFF OVERRIDE) ====================
+    public function showFillOnBehalfForm(BeritaAcaraSeminarProposal $beritaAcara)
+    {
+        $this->authorize('fillOnBehalf', BeritaAcaraSeminarProposal::class);
+
+        if (!$beritaAcara->isMenungguTtdPembimbing()) {
+            return back()->with('error', 'Berita acara tidak dalam status menunggu persetujuan pembimbing.');
+        }
+
+        $beritaAcara->load([
+            'jadwalSeminarProposal.pendaftaranSeminarProposal.user',
+            'jadwalSeminarProposal.pendaftaranSeminarProposal.dosenPembimbing',
+            'jadwalSeminarProposal.dosenPenguji',
+        ]);
+
+        return view('admin.berita-acara-sempro.fill-on-behalf', compact('beritaAcara'));
+    }
+
+    public function fillOnBehalfOfPembimbing(FillOnBehalfRequest $request, BeritaAcaraSeminarProposal $beritaAcara)
+    {
+        $result = $this->fillOnBehalfAction->execute(Auth::user(), $beritaAcara, $request->validated());
+
+        if (!$result['success']) {
+            return back()->withInput()->with('error', $result['message']);
+        }
+
+        $messageType = $result['isRejected'] ? 'warning' : 'success';
+
+        // Redirect to index if rejected
+        if ($result['isRejected']) {
+            return redirect()
+                ->route('admin.berita-acara-sempro.index')
+                ->with($messageType, $result['message']);
+        }
+
         return redirect()
             ->route('admin.berita-acara-sempro.show', $beritaAcara)
             ->with($messageType, $result['message']);
