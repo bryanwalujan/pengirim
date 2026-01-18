@@ -50,8 +50,8 @@
         /* Reset button styling */
         .btn-reset {
             position: absolute;
-            right: 60px;
-            /* Position before search button */
+            right: 12px;
+            /* Position at the right edge */
             top: 50%;
             transform: translateY(-50%);
             border-radius: 50%;
@@ -93,34 +93,10 @@
             color: rgba(45, 70, 94, 0.6);
         }
 
-        .search-input-group .btn {
-            position: absolute;
-            right: 8px;
-            top: 50%;
-            transform: translateY(-50%);
-            border-radius: 50%;
-            width: 42px;
-            height: 42px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, var(--orange-primary) 0%, var(--orange-secondary) 100%);
-            border: none;
-            color: white;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(255, 140, 0, 0.2);
-            z-index: 4;
-        }
-
-        .search-input-group .btn:hover {
-            transform: translateY(-50%) scale(1.05);
-            box-shadow: 0 6px 18px rgba(255, 140, 0, 0.3);
-        }
-
         /* Adjust input padding when reset button is present */
-        .search-input-group:has(.btn-reset) input {
-            padding-right: 110px;
-            /* Extra space for both buttons */
+        .search-input-group input {
+            padding-right: 60px;
+            /* Space for reset button */
         }
 
         /* Enhanced Pagination */
@@ -252,25 +228,14 @@
             }
 
             .search-input-group input {
-                padding: 0.875rem 3rem 0.875rem 1.25rem;
+                padding: 0.875rem 3.5rem 0.875rem 1.25rem;
                 font-size: 0.95rem;
-            }
-
-            .search-input-group:has(.btn-reset) input {
-                padding-right: 100px;
-                /* Adjusted for mobile */
-            }
-
-            .search-input-group .btn {
-                width: 38px;
-                height: 38px;
-                right: 6px;
             }
 
             .btn-reset {
                 width: 32px;
                 height: 32px;
-                right: 50px;
+                right: 10px;
                 font-size: 14px;
             }
 
@@ -315,123 +280,27 @@
                             title="Reset Pencarian">
                             <i class="bi bi-x-circle"></i>
                         </button>
-
-                        <button class="btn btn-primary" type="submit">
-                            <i class="bi bi-search"></i>
-                        </button>
                     </div>
                 </form>
             </div>
 
-            @if ($services->count() > 0)
-                {{-- Search Results Info --}}
-                @if (request('search'))
-                    <div class="search-results-info" data-aos="fade-up" data-aos-delay="300">
-                        <i class="bi bi-info-circle"></i>
-                        <span>Menampilkan {{ $services->count() }} layanan untuk pencarian "<span
-                                class="search-term">{{ request('search') }}</span>"</span>
-                    </div>
-                @endif
-
-                {{-- Services Grid --}}
-                <div class="services-grid" data-aos="fade-up" data-aos-delay="400">
-                    @foreach ($services as $service)
-                        <div class="service-card" data-aos="fade-up" data-aos-delay="{{ 400 + $loop->index * 50 }}">
-                            <div class="icon flex-shrink-0">
-                                <i class="{{ $service->icon }}"></i>
-                            </div>
-                            <div class="service-content">
-                                <h3>{{ $service->name }}</h3>
-                                <p>{!! Str::limit(strip_tags($service->description), 120) !!}</p>
-                                @auth
-                                    <a href="{{ $service->getServiceIndexRoute() }}" class="read-more">
-                                        <span>Lihat Layanan</span>
-                                        <i class="bi bi-arrow-right"></i>
-                                    </a>
-                                @else
-                                    <a href="{{ route('login') }}" class="read-more"
-                                        onclick="sessionStorage.setItem('intended_url', window.location.href + '#services')">
-                                        <span>Lihat Layanan</span>
-                                        <i class="bi bi-arrow-right"></i>
-                                    </a>
-                                @endauth
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-
-                {{-- Enhanced Pagination --}}
-                @if ($services->hasPages())
-                    <div class="services-pagination d-flex justify-content-center" data-aos="fade-up" data-aos-delay="600">
-                        <nav aria-label="Services pagination">
-                            <ul class="pagination pagination-lg">
-                                {{-- Previous Page Link --}}
-                                @if ($services->onFirstPage())
-                                    <li class="page-item disabled">
-                                        <span class="page-link">&laquo; Previous</span>
-                                    </li>
-                                @else
-                                    <li class="page-item">
-                                        <a class="page-link" href="{{ $services->previousPageUrl() }}"
-                                            rel="prev">&laquo; Previous</a>
-                                    </li>
-                                @endif
-
-                                {{-- Pagination Elements --}}
-                                @foreach ($services->getUrlRange(1, $services->lastPage()) as $page => $url)
-                                    @if ($page == $services->currentPage())
-                                        <li class="page-item active" aria-current="page">
-                                            <span class="page-link">{{ $page }}</span>
-                                        </li>
-                                    @else
-                                        <li class="page-item">
-                                            <a class="page-link" href="{{ $url }}">{{ $page }}</a>
-                                        </li>
-                                    @endif
-                                @endforeach
-
-                                {{-- Next Page Link --}}
-                                @if ($services->hasMorePages())
-                                    <li class="page-item">
-                                        <a class="page-link" href="{{ $services->nextPageUrl() }}" rel="next">Next
-                                            &raquo;</a>
-                                    </li>
-                                @else
-                                    <li class="page-item disabled">
-                                        <span class="page-link">Next &raquo;</span>
-                                    </li>
-                                @endif
-                            </ul>
-                        </nav>
-                    </div>
-                    <div class="text-center text-muted small mt-3" data-aos="fade-up" data-aos-delay="700">
-                        Showing {{ $services->firstItem() }} to {{ $services->lastItem() }} of {{ $services->total() }}
-                        results
-                    </div>
-                @endif
-            @else
-                {{-- Enhanced Empty State --}}
-                <div class="services-empty-state" data-aos="fade-up" data-aos-delay="300">
-                    @if (request('search'))
-                        <i class="bi bi-search"></i>
-                        <h4>Tidak Ada Hasil Ditemukan</h4>
-                        <p>Maaf, tidak ditemukan layanan yang sesuai dengan pencarian
-                            "<strong>{{ request('search') }}</strong>". Silakan coba kata kunci lain atau lihat semua
-                            layanan yang tersedia.</p>
-                        <a href="{{ route('user.services.index') }}" class="btn btn-primary">
-                            <i class="bi bi-arrow-left me-2"></i>Lihat Semua Layanan
-                        </a>
-                    @else
-                        <i class="bi bi-folder2-open"></i>
-                        <h4>Belum Ada Layanan Tersedia</h4>
-                        <p>Layanan E-Services sedang dalam tahap pengembangan dan akan segera tersedia untuk memudahkan
-                            kebutuhan administrasi akademik Anda.</p>
-                        <a href="{{ route('user.home.index') }}" class="btn btn-primary">
-                            <i class="bi bi-house me-2"></i>Kembali ke Beranda
-                        </a>
-                    @endif
+            @if (request('search'))
+                <div class="search-results-info" data-aos="fade-up" data-aos-delay="300" id="searchResultsInfo">
+                    <i class="bi bi-info-circle"></i>
+                    <span>Menampilkan {{ $services->total() }} layanan untuk pencarian "<span
+                            class="search-term">{{ request('search') }}</span>"</span>
                 </div>
             @endif
+
+            {{-- Services Container --}}
+            <div id="servicesContainer">
+                @include('user.services.partials.service-cards', ['services' => $services])
+            </div>
+
+            {{-- Pagination Container --}}
+            <div id="paginationContainer">
+                @include('user.services.partials.pagination', ['services' => $services])
+            </div>
         </div>
     </section><!-- End Services Section -->
 @endsection
@@ -448,61 +317,153 @@
             function toggleResetButton() {
                 if (searchInput && searchInput.value.trim().length > 0) {
                     resetBtn.style.display = 'flex';
-                    searchInput.style.paddingRight = '110px';
                 } else if (resetBtn) {
                     resetBtn.style.display = 'none';
-                    if (searchInput) {
-                        searchInput.style.paddingRight = '3.5rem';
-                    }
                 }
             }
+
+            // Debounce function for instant search
+            function debounce(func, wait) {
+                let timeout;
+                return function executedFunction(...args) {
+                    const later = () => {
+                        clearTimeout(timeout);
+                        func(...args);
+                    };
+                    clearTimeout(timeout);
+                    timeout = setTimeout(later, wait);
+                };
+            }
+
+            // Loading state management
+            function showLoadingState() {
+                const servicesContainer = document.getElementById('servicesContainer');
+                if (servicesContainer) {
+                    servicesContainer.style.opacity = '0.5';
+                    servicesContainer.style.pointerEvents = 'none';
+                }
+            }
+
+            function hideLoadingState() {
+                const servicesContainer = document.getElementById('servicesContainer');
+                if (servicesContainer) {
+                    servicesContainer.style.opacity = '1';
+                    servicesContainer.style.pointerEvents = 'auto';
+                }
+            }
+
+            // Instant search function
+            function performInstantSearch(searchQuery) {
+                const searchUrl = "{{ route('user.services.search') }}";
+                const csrfToken = "{{ csrf_token() }}";
+
+                showLoadingState();
+
+                fetch(searchUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            search: searchQuery,
+                            status: 'active'
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Update services container
+                            const servicesContainer = document.getElementById('servicesContainer');
+                            if (servicesContainer) {
+                                servicesContainer.innerHTML = data.html;
+                            }
+
+                            // Update pagination container
+                            const paginationContainer = document.getElementById('paginationContainer');
+                            if (paginationContainer) {
+                                paginationContainer.innerHTML = data.pagination;
+                            }
+
+                            // Update or create search results info
+                            const searchResultsInfo = document.getElementById('searchResultsInfo');
+                            if (searchQuery && data.hasResults) {
+                                if (searchResultsInfo) {
+                                    searchResultsInfo.querySelector('.search-term').textContent = searchQuery;
+                                    searchResultsInfo.querySelector('span').innerHTML =
+                                        `Menampilkan ${data.total} layanan untuk pencarian "<span class="search-term">${searchQuery}</span>"`;
+                                } else {
+                                    // Create new search results info
+                                    const newInfo = document.createElement('div');
+                                    newInfo.className = 'search-results-info';
+                                    newInfo.id = 'searchResultsInfo';
+                                    newInfo.innerHTML = `
+                                        <i class="bi bi-info-circle"></i>
+                                        <span>Menampilkan ${data.total} layanan untuk pencarian "<span class="search-term">${searchQuery}</span>"</span>
+                                    `;
+                                    const servicesContainer = document.getElementById('servicesContainer');
+                                    servicesContainer.parentNode.insertBefore(newInfo, servicesContainer);
+                                }
+                            } else if (searchResultsInfo) {
+                                searchResultsInfo.remove();
+                            }
+
+                            // Update URL without page reload
+                            const newUrl = searchQuery ?
+                                `{{ route('user.services.index') }}?search=${encodeURIComponent(searchQuery)}` :
+                                `{{ route('user.services.index') }}`;
+                            window.history.pushState({
+                                search: searchQuery
+                            }, '', newUrl);
+
+                            // Re-initialize AOS for new elements
+                            if (typeof AOS !== 'undefined' && AOS && typeof AOS.refresh === 'function') {
+                                setTimeout(() => {
+                                    AOS.refresh();
+                                }, 100);
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Search error:', error);
+                    })
+                    .finally(() => {
+                        hideLoadingState();
+                    });
+            }
+
+            // Debounced search function (300ms delay)
+            const debouncedSearch = debounce(performInstantSearch, 300);
 
             // Initialize reset button state
             if (searchInput && resetBtn) {
                 toggleResetButton();
 
-                // Listen for input changes
-                searchInput.addEventListener('input', toggleResetButton);
+                // Listen for input changes - trigger instant search
+                searchInput.addEventListener('input', function() {
+                    const searchValue = this.value.trim();
+                    toggleResetButton();
+
+                    // Perform instant search
+                    debouncedSearch(searchValue);
+                });
 
                 // Reset button click handler
                 resetBtn.addEventListener('click', function() {
                     searchInput.value = '';
                     toggleResetButton();
-                    // Redirect to clear search
-                    window.location.href = "{{ route('user.services.index') }}";
+                    // Perform instant search with empty query
+                    performInstantSearch('');
                 });
             }
 
-            // Auto-focus search input on page load (only if no search value)
-            if (searchInput && !searchInput.value.trim()) {
-                setTimeout(() => {
-                    searchInput.focus();
-                }, 800);
-            }
-
-            // Real-time search validation
-            if (searchInput && searchForm) {
-                searchInput.addEventListener('input', function() {
-                    const value = this.value.trim();
-                    const submitBtn = searchForm.querySelector('button[type="submit"]');
-
-                    if (submitBtn) {
-                        if (value.length === 0) {
-                            submitBtn.style.opacity = '0.6';
-                        } else {
-                            submitBtn.style.opacity = '1';
-                        }
-                    }
-                });
-
-                // Enhanced search form submission
+            // Prevent form submission (we're using instant search now)
+            if (searchForm) {
                 searchForm.addEventListener('submit', function(e) {
-                    const searchValue = searchInput.value.trim();
-                    if (searchValue.length === 0) {
-                        e.preventDefault();
-                        searchInput.focus();
-                        return false;
-                    }
+                    e.preventDefault();
+                    return false;
                 });
             }
 

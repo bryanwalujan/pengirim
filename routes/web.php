@@ -114,6 +114,7 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa', 'check.ukt'])->group(fu
     // Layanan-layanan E-Service 
     Route::prefix('layanan')->name('user.services.')->group(function () {
         Route::get('/', [UserServiceController::class, 'index'])->name('index');
+        Route::post('/search', [UserServiceController::class, 'search'])->name('search'); // AJAX instant search
         Route::get('/{service}/ajukan', [UserServiceController::class, 'create'])->name('create');
     });
 
