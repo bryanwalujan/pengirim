@@ -118,30 +118,7 @@ class StatistikPembimbingSkripsi extends Model
         )->increment('jumlah_ps2');
     }
 
-    /**
-     * Recalculate all statistics for a tahun ajaran
-     */
-    public static function recalculateForTahunAjaran(int $tahunAjaranId): void
-    {
-        // Reset all stats for this tahun ajaran
-        self::where('tahun_ajaran_id', $tahunAjaranId)->delete();
 
-        // Get completed pengajuan
-        $pengajuans = PengajuanSkPembimbing::withStatus(PengajuanSkPembimbing::STATUS_SELESAI)
-            ->whereHas('beritaAcara.jadwalSeminarProposal.pendaftaranSeminarProposal', function ($q) use ($tahunAjaranId) {
-                $q->where('tahun_ajaran_id', $tahunAjaranId);
-            })
-            ->get();
-
-        foreach ($pengajuans as $pengajuan) {
-            if ($pengajuan->dosen_pembimbing_1_id) {
-                self::incrementPs1($pengajuan->dosen_pembimbing_1_id, $tahunAjaranId);
-            }
-            if ($pengajuan->dosen_pembimbing_2_id) {
-                self::incrementPs2($pengajuan->dosen_pembimbing_2_id, $tahunAjaranId);
-            }
-        }
-    }
 
     /**
      * Get dashboard statistics

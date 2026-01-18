@@ -287,32 +287,8 @@ class AdminSkPembimbingController extends Controller
         return view('admin.sk-pembimbing.statistik-pembimbing', compact('statistik', 'summary', 'tahunAjarans', 'tahunAjaranId'));
     }
 
-    /**
-     * Recalculate Statistik for Tahun Ajaran (Staff)
-     */
-    public function recalculateStatistik(Request $request)
-    {
-        $this->authorizeStaff();
 
-        $request->validate([
-            'tahun_ajaran_id' => 'required|exists:tahun_ajarans,id'
-        ]);
 
-        try {
-            StatistikPembimbingSkripsi::recalculateForTahunAjaran($request->tahun_ajaran_id);
-
-            return redirect()
-                ->route('admin.sk-pembimbing.statistik-pembimbing', ['tahun_ajaran_id' => $request->tahun_ajaran_id])
-                ->with('success', 'Statistik pembimbing berhasil diperbarui.');
-        } catch (\Exception $e) {
-            Log::error('Error recalculating statistik: ' . $e->getMessage(), [
-                'tahun_ajaran_id' => $request->tahun_ajaran_id,
-                'trace' => $e->getTraceAsString()
-            ]);
-
-            return back()->with('error', 'Terjadi kesalahan saat memperbarui statistik.');
-        }
-    }
 
     /**
      * Download SK PDF

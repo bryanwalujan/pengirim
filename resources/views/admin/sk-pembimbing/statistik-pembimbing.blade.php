@@ -23,14 +23,7 @@
                 </h4>
                 <p class="text-muted mb-0">Monitoring beban bimbingan dosen per tahun ajaran</p>
             </div>
-            <div class="d-flex gap-2">
-                <form action="{{ route('admin.sk-pembimbing.recalculate-statistik') }}" method="POST" class="d-inline">
-                    @csrf
-                    <input type="hidden" name="tahun_ajaran_id" value="{{ $tahunAjaranId }}">
-                    <button type="submit" class="btn btn-outline-warning" onclick="return confirm('Recalculate statistik?')">
-                        <i class="bx bx-refresh me-1"></i>Recalculate
-                    </button>
-                </form>
+            <div>
                 <a href="{{ route('admin.sk-pembimbing.index') }}" class="btn btn-outline-secondary">
                     <i class="bx bx-arrow-back me-1"></i>Kembali
                 </a>

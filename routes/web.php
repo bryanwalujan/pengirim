@@ -929,8 +929,6 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             ->name('view-document');
 
         // Statistik
-        Route::post('/recalculate-statistik', [AdminSkPembimbingController::class, 'recalculateStatistik'])
-            ->name('recalculate-statistik');
         Route::get('/statistik/pembimbing', [AdminSkPembimbingController::class, 'statistikPembimbing'])
             ->name('statistik-pembimbing');
     });
