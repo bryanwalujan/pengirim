@@ -1,4 +1,3 @@
-{{-- filepath: resources/views/admin/sk-pembimbing/verify.blade.php --}}
 @extends('layouts.verification')
 
 @section('title', 'Verifikasi SK Pembimbing Skripsi')
@@ -7,12 +6,12 @@
     <div class="verification-container">
         <div class="verification-card">
             <!-- Header -->
-            <div class="verification-header {{ $pengajuan->isSelesai() ? 'success' : 'pending' }}">
+            <div class="verification-header {{ $pengajuan->isSelesai() ? '' : 'pending' }}">
                 <div class="icon-container">
                     @if ($pengajuan->isSelesai())
-                        <i class="bx bx-check-circle"></i>
+                        <i class='bx bxs-shield-alt-2'></i>
                     @else
-                        <i class="bx bx-time-five"></i>
+                        <i class='bx bxs-time-five'></i>
                     @endif
                 </div>
                 <h1>
@@ -23,10 +22,15 @@
                     @endif
                 </h1>
                 <p class="mb-0">
-                    SK Pembimbing Skripsi
+                    @if ($pengajuan->isSelesai())
+                        Dokumen ini telah divalidasi dan ditandatangani lengkap
+                    @else
+                        Dokumen sedang dalam proses persetujuan
+                    @endif
                 </p>
                 <span class="document-type">
-                    <i class="bx bx-file"></i> Surat Keputusan
+                    <i class='bx bx-file-blank'></i>
+                    SK Pembimbing Skripsi
                 </span>
             </div>
 
@@ -34,132 +38,259 @@
             <div class="verification-content">
                 <!-- Verification Status Banner -->
                 <div class="status-banner {{ $pengajuan->isSelesai() ? 'success' : 'warning' }}">
-                    @if ($pengajuan->isSelesai())
-                        <i class="bx bx-check-shield"></i>
-                        <span>Dokumen ini sah dan telah ditandatangani secara elektronik</span>
-                    @else
-                        <i class="bx bx-info-circle"></i>
-                        <span>Dokumen masih dalam proses persetujuan</span>
-                    @endif
+                    <div class="status-icon">
+                        @if ($pengajuan->isSelesai())
+                            <i class='bx bxs-check-shield'></i>
+                        @else
+                            <i class='bx bxs-hourglass'></i>
+                        @endif
+                    </div>
+                    <div class="status-text">
+                        <h3>
+                            @if ($pengajuan->isSelesai())
+                                Dokumen Valid
+                            @else
+                                Menunggu Tanda Tangan
+                            @endif
+                        </h3>
+                        <p>Diverifikasi pada {{ now()->translatedFormat('d F Y, H:i') }} WITA</p>
+                    </div>
                 </div>
 
                 <!-- Document Information -->
                 <div class="info-card">
-                    <h3><i class="bx bx-file-blank me-2"></i>Informasi Dokumen</h3>
-
-                    <div class="info-row">
-                        <span class="label">Nomor Surat</span>
-                        <span class="value">{{ $pengajuan->nomor_surat ?? '-' }}</span>
+                    <div class="info-card-header">
+                        <i class='bx bxs-file-doc'></i>
+                        <span>Informasi Dokumen</span>
                     </div>
-
-                    <div class="info-row">
-                        <span class="label">Tanggal Surat</span>
-                        <span class="value">{{ $pengajuan->tanggal_surat?->format('d F Y') ?? '-' }}</span>
-                    </div>
-
-                    <div class="info-row">
-                        <span class="label">Kode Verifikasi</span>
-                        <span class="value"><code>{{ $pengajuan->verification_code }}</code></span>
+                    <div class="info-card-body">
+                        <div class="info-row">
+                            <div class="info-label">Nomor Surat</div>
+                            <div class="info-value">
+                                <strong>{{ $pengajuan->nomor_surat ?? '-' }}</strong>
+                            </div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Tanggal Surat</div>
+                            <div class="info-value">{{ $pengajuan->tanggal_surat?->translatedFormat('d F Y') ?? '-' }}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Status Dokumen</div>
+                            <div class="info-value">
+                                @if ($pengajuan->isSelesai())
+                                    <span class="status-badge success">
+                                        <i class='bx bxs-check-circle'></i>
+                                        Selesai & Ditandatangani
+                                    </span>
+                                @else
+                                    <span class="status-badge warning">
+                                        <i class='bx bxs-time-five'></i>
+                                        Dalam Proses
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Mahasiswa Information -->
+                <!-- Student Information -->
                 <div class="info-card">
-                    <h3><i class="bx bx-user me-2"></i>Data Mahasiswa</h3>
-
-                    <div class="info-row">
-                        <span class="label">Nama</span>
-                        <span class="value">{{ $pengajuan->mahasiswa->name ?? '-' }}</span>
+                    <div class="info-card-header">
+                        <i class='bx bxs-user-circle'></i>
+                        <span>Data Mahasiswa</span>
                     </div>
-
-                    <div class="info-row">
-                        <span class="label">NIM</span>
-                        <span class="value">{{ $pengajuan->mahasiswa->nim ?? '-' }}</span>
+                    <div class="info-card-body">
+                        <div class="info-row">
+                            <div class="info-label">Nama</div>
+                            <div class="info-value">
+                                <strong>{{ $pengajuan->mahasiswa->name ?? '-' }}</strong>
+                            </div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">NIM</div>
+                            <div class="info-value">{{ $pengajuan->mahasiswa->nim ?? '-' }}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Program Studi</div>
+                            <div class="info-value">S1 Teknik Informatika</div>
+                        </div>
                     </div>
+                </div>
 
-                    <div class="info-row">
-                        <span class="label">Judul Skripsi</span>
-                        <span class="value">{{ $pengajuan->judul_skripsi ?? '-' }}</span>
+                <!-- Proposal Information -->
+                <div class="info-card">
+                    <div class="info-card-header">
+                        <i class='bx bxs-book-content'></i>
+                        <span>Informasi Skripsi</span>
+                    </div>
+                    <div class="info-card-body">
+                        <div class="info-row">
+                            <div class="info-label">Judul Skripsi</div>
+                            <div class="info-value judul-skripsi">
+                                {{ $pengajuan->judul_skripsi ?? '-' }}
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Pembimbing Information -->
                 <div class="info-card">
-                    <h3><i class="bx bx-user-check me-2"></i>Dosen Pembimbing</h3>
-
-                    <div class="info-row">
-                        <span class="label">Pembimbing I</span>
-                        <span class="value">{{ $pengajuan->dosenPembimbing1->name ?? '-' }}</span>
+                    <div class="info-card-header">
+                        <i class='bx bxs-group'></i>
+                        <span>Dosen Pembimbing</span>
                     </div>
-
-                    @if ($pengajuan->dosenPembimbing2)
+                    <div class="info-card-body">
                         <div class="info-row">
-                            <span class="label">Pembimbing II</span>
-                            <span class="value">{{ $pengajuan->dosenPembimbing2->name }}</span>
+                            <div class="info-label">Pembimbing I</div>
+                            <div class="info-value">
+                                <strong>{{ $pengajuan->dosenPembimbing1->name ?? '-' }}</strong>
+                                @if ($pengajuan->dosenPembimbing1?->nip)
+                                    <span class="text-muted-custom">NIP: {{ $pengajuan->dosenPembimbing1->nip }}</span>
+                                @endif
+                            </div>
                         </div>
-                    @endif
+                        @if ($pengajuan->dosenPembimbing2)
+                            <div class="info-row">
+                                <div class="info-label">Pembimbing II</div>
+                                <div class="info-value">
+                                    <strong>{{ $pengajuan->dosenPembimbing2->name }}</strong>
+                                    @if ($pengajuan->dosenPembimbing2->nip)
+                                        <span class="text-muted-custom">NIP: {{ $pengajuan->dosenPembimbing2->nip }}</span>
+                                    @endif
+                                </div>
+                            </div>
+                        @endif
+                    </div>
                 </div>
 
-                <!-- Signature Status -->
+                <!-- Approval Information -->
                 <div class="info-card">
-                    <h3><i class="bx bx-pen me-2"></i>Status Tanda Tangan</h3>
-
-                    <div class="signature-status">
-                        <div class="signature-item {{ $pengajuan->isKorprodiSigned() ? 'signed' : 'pending' }}">
-                            <div class="signature-icon">
+                    <div class="info-card-header">
+                        <i class='bx bxs-pen'></i>
+                        <span>Persetujuan & Tanda Tangan</span>
+                    </div>
+                    <div class="info-card-body">
+                        <div class="approval-grid">
+                            <!-- Korprodi Signature -->
+                            <div class="approval-card {{ $pengajuan->isKorprodiSigned() ? 'approved' : 'pending' }}">
+                                <div class="approval-header">
+                                    <div class="approval-icon {{ $pengajuan->isKorprodiSigned() ? 'approved' : 'waiting' }}">
+                                        @if ($pengajuan->isKorprodiSigned())
+                                            <i class='bx bx-check'></i>
+                                        @else
+                                            <i class='bx bx-time'></i>
+                                        @endif
+                                    </div>
+                                    <div class="approval-title">
+                                        <h5>Koordinator Program Studi</h5>
+                                        <p class="approval-status {{ $pengajuan->isKorprodiSigned() ? '' : 'pending' }}">
+                                            {{ $pengajuan->isKorprodiSigned() ? 'Ditandatangani' : 'Menunggu Tanda Tangan' }}
+                                        </p>
+                                    </div>
+                                </div>
                                 @if ($pengajuan->isKorprodiSigned())
-                                    <i class="bx bx-check-circle text-success"></i>
+                                    <div class="approval-body">
+                                        <div class="approval-info">
+                                            <strong>{{ $pengajuan->ttdKorprodiUser->name ?? '-' }}</strong>
+                                            @if ($pengajuan->ttdKorprodiUser?->nip)
+                                                <span class="text-muted-custom">NIP: {{ $pengajuan->ttdKorprodiUser->nip }}</span>
+                                            @endif
+                                        </div>
+                                        @if ($pengajuan->ttd_korprodi_at)
+                                            <div class="approval-date">
+                                                <i class='bx bx-calendar'></i>
+                                                <span>{{ $pengajuan->ttd_korprodi_at->translatedFormat('d F Y, H:i') }} WITA</span>
+                                            </div>
+                                        @endif
+                                    </div>
                                 @else
-                                    <i class="bx bx-time-five text-warning"></i>
+                                    <div class="approval-body">
+                                        <span class="text-muted-custom">Dokumen sedang menunggu tanda tangan Koordinator Program Studi</span>
+                                    </div>
                                 @endif
                             </div>
-                            <div class="signature-info">
-                                <strong>Koordinator Prodi</strong>
-                                @if ($pengajuan->isKorprodiSigned())
-                                    <span class="text-success">
-                                        {{ $pengajuan->ttdKorprodiUser->name ?? '-' }}
-                                        <br>
-                                        <small>{{ $pengajuan->ttd_korprodi_at?->format('d M Y, H:i') }}</small>
-                                    </span>
+
+                            <!-- Kajur Signature -->
+                            <div class="approval-card {{ $pengajuan->isKajurSigned() ? 'approved' : 'pending' }}">
+                                <div class="approval-header">
+                                    <div class="approval-icon {{ $pengajuan->isKajurSigned() ? 'approved' : 'waiting' }}">
+                                        @if ($pengajuan->isKajurSigned())
+                                            <i class='bx bx-check'></i>
+                                        @else
+                                            <i class='bx bx-time'></i>
+                                        @endif
+                                    </div>
+                                    <div class="approval-title">
+                                        <h5>Ketua Jurusan</h5>
+                                        <p class="approval-status {{ $pengajuan->isKajurSigned() ? '' : 'pending' }}">
+                                            {{ $pengajuan->isKajurSigned() ? 'Ditandatangani' : 'Menunggu Tanda Tangan' }}
+                                        </p>
+                                    </div>
+                                </div>
+                                @if ($pengajuan->isKajurSigned())
+                                    <div class="approval-body">
+                                        <div class="approval-info">
+                                            <strong>{{ $pengajuan->ttdKajurUser->name ?? '-' }}</strong>
+                                            @if ($pengajuan->ttdKajurUser?->nip)
+                                                <span class="text-muted-custom">NIP: {{ $pengajuan->ttdKajurUser->nip }}</span>
+                                            @endif
+                                        </div>
+                                        @if ($pengajuan->ttd_kajur_at)
+                                            <div class="approval-date">
+                                                <i class='bx bx-calendar'></i>
+                                                <span>{{ $pengajuan->ttd_kajur_at->translatedFormat('d F Y, H:i') }} WITA</span>
+                                            </div>
+                                        @endif
+                                    </div>
                                 @else
-                                    <span class="text-muted">Menunggu</span>
+                                    <div class="approval-body">
+                                        <span class="text-muted-custom">Dokumen sedang menunggu tanda tangan Ketua Jurusan</span>
+                                    </div>
                                 @endif
                             </div>
                         </div>
+                    </div>
+                </div>
 
-                        <div class="signature-item {{ $pengajuan->isKajurSigned() ? 'signed' : 'pending' }}">
-                            <div class="signature-icon">
-                                @if ($pengajuan->isKajurSigned())
-                                    <i class="bx bx-check-circle text-success"></i>
-                                @else
-                                    <i class="bx bx-time-five text-warning"></i>
-                                @endif
-                            </div>
-                            <div class="signature-info">
-                                <strong>Ketua Jurusan</strong>
-                                @if ($pengajuan->isKajurSigned())
-                                    <span class="text-success">
-                                        {{ $pengajuan->ttdKajurUser->name ?? '-' }}
-                                        <br>
-                                        <small>{{ $pengajuan->ttd_kajur_at?->format('d M Y, H:i') }}</small>
-                                    </span>
-                                @else
-                                    <span class="text-muted">Menunggu</span>
-                                @endif
-                            </div>
-                        </div>
+                <!-- Verification Code -->
+                <div class="verification-code-box">
+                    <div class="verification-code-header">
+                        <i class='bx bx-qr'></i>
+                        <span>Kode Verifikasi</span>
+                    </div>
+                    <div class="verification-code">
+                        {{ $pengajuan->verification_code }}
+                    </div>
+                    <div class="verification-note">
+                        Kode ini dapat digunakan untuk memverifikasi keaslian dokumen
+                    </div>
+                </div>
+
+                <!-- Important Notice -->
+                <div class="notice-box">
+                    <div class="notice-icon">
+                        <i class='bx bxs-info-circle'></i>
+                    </div>
+                    <div class="notice-content">
+                        <h5>Informasi Penting</h5>
+                        <p>
+                            Dokumen ini merupakan hasil verifikasi otomatis sistem E-Service Program Studi Teknik
+                            Informatika UNIMA.
+                            @if ($pengajuan->isSelesai())
+                                SK Pembimbing Skripsi ini telah ditandatangani oleh Koordinator Program Studi dan Ketua Jurusan serta sah digunakan.
+                            @else
+                                SK Pembimbing Skripsi ini sedang dalam proses persetujuan bertingkat.
+                            @endif
+                        </p>
                     </div>
                 </div>
             </div>
 
             <!-- Footer -->
             <div class="verification-footer">
-                <p>
-                    <i class="bx bx-info-circle me-1"></i>
-                    Verifikasi dilakukan pada {{ now()->format('d F Y, H:i:s') }} WIB
-                </p>
-                <a href="{{ url('/') }}" class="btn btn-outline-primary btn-sm">
-                    <i class="bx bx-home me-1"></i> Kembali ke Beranda
+                <a href="{{ route('user.home.index') }}" class="btn-custom">
+                    <i class='bx bx-arrow-back'></i>
+                    Kembali ke Beranda
                 </a>
             </div>
         </div>
