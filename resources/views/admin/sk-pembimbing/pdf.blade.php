@@ -81,7 +81,7 @@
 
         .signature-space {
             height: 100px;
-            padding-bottom: .4rem;
+            padding-bottom: .9rem;
             display: flex;
             align-items: center;
             justify-content: center;

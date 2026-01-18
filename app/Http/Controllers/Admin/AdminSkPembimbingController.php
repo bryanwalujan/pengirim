@@ -17,6 +17,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class AdminSkPembimbingController extends Controller
 {
@@ -384,10 +385,10 @@ class AdminSkPembimbingController extends Controller
             public $nomor_surat;
             public $tanggal_surat;
             public $details;
-            public $ttdKajurBy;
-            public $ttdKaprodiBy;
+            public $ttdKajurUser;
+            public $ttdKorprodiUser;
             public $qr_code_kajur;
-            public $qr_code_kaprodi;
+            public $qr_code_korprodi;
             public $ttd_korprodi_at;
             public $ttd_kajur_at;
             
@@ -404,58 +405,68 @@ class AdminSkPembimbingController extends Controller
         $mahasiswa = new \stdClass();
         $mahasiswa->name = 'Patrik Willem Louis Rompas';
         $mahasiswa->nim = '20210001';
-        $detail->mahasiswa = $mahasiswa;
+        $surat->mahasiswa = $mahasiswa; // Added to match PengajuanSkPembimbing model
         
         // Dummy dosen pembimbing 1
         $dosen1 = new \stdClass();
         $dosen1->name = 'Dr. Irene R. H. T. Tangkawarow, ST, MISD';
         $dosen1->nip = '198501012010121001';
-        $detail->pembimbing1 = $dosen1;
+        $surat->dosenPembimbing1 = $dosen1; // Added to match PengajuanSkPembimbing model
         
         // Dummy dosen pembimbing 2
         $dosen2 = new \stdClass();
         $dosen2->name = 'Medi Hermanto Tinambunan, S.Kom, M.Kom';
         $dosen2->nip = '197801012005011001';
-        $detail->pembimbing2 = $dosen2;
+        $surat->dosenPembimbing2 = $dosen2; // Added to match PengajuanSkPembimbing model
         
-        $detail->judul_skripsi = 'Pengembangan Sistem Informasi E-Service Berbasis Web untuk Meningkatkan Efisiensi Layanan Akademik di Jurusan Teknologi Informasi dan Komunikasi';
+        $surat->judul_skripsi = 'Rancang Bangun Sistem Pendaftaraan Online Siswa Baru Dengan Algoritma Simple Additive Weighting (SAW) Untuk Mendukung Keputusan Penerimaan di SMA Katolik Santo Fransiskus Xaverius Kema';
 
-        // Add to details array
-        $surat->details = [$detail];
-        
         // Dummy Korprodi (Kaprodi)
         $korprodi = new \stdClass();
         $korprodi->name = 'Vivie P. Rantung, ST., MISD';
         $korprodi->nip = '197xxxx';
-        $surat->ttdKaprodiBy = $korprodi;
+        $surat->ttdKorprodiUser = $korprodi;
         
         // Dummy Kajur
         $kajur = new \stdClass();
         $kajur->name = 'Alfrina Mewengkang, S.Kom, M.Eng';
         $kajur->nip = '198xxxx';
-        $surat->ttdKajurBy = $kajur;
+        $surat->ttdKajurUser = $kajur;
         
         // Surat details
         $surat->nomor_surat = '001/UN41.2/TI/2026';
         $surat->tanggal_surat = now();
         $surat->verification_code = 'SK-PMB-PREVIEW123';
         
-        // QR codes (dummy base64)
-        $surat->qr_code_korprodi = null; 
-        $surat->qr_code_kajur = null; 
+        // QR codes (generated using SimpleSoftwareIO QrCode)
+        $dummyUrl = 'https://eservice.unima.ac.id/verify/sk-pembimbing/PREVIEW123';
+        
+        $surat->qr_code_korprodi = base64_encode(
+            QrCode::format('png')
+                ->size(150)
+                ->errorCorrection('M')
+                ->generate($dummyUrl)
+        );
+        
+        $surat->qr_code_kajur = base64_encode(
+            QrCode::format('png')
+                ->size(150)
+                ->errorCorrection('M')
+                ->generate($dummyUrl)
+        );
         
         // Signature timestamps
         $surat->ttd_korprodi_at = now();
         $surat->ttd_kajur_at = now();
         
         // Variables based on new template
-        $show_kaprodi_signature = true;
+        $show_korprodi_signature = true;
         $show_kajur_signature = true;
         
         // Generate PDF
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.sk-pembimbing.pdf', [
             'surat' => $surat,
-            'show_kaprodi_signature' => $show_kaprodi_signature,
+            'show_korprodi_signature' => $show_korprodi_signature,
             'show_kajur_signature' => $show_kajur_signature,
         ]);
         
