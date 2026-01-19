@@ -223,7 +223,7 @@
                             @if ($pengajuan->isSelesai() && $pengajuan->file_surat_sk)
                                 <a href="{{ route('admin.sk-pembimbing.download-sk', $pengajuan) }}"
                                     class="btn btn-success">
-                                    <i class="bx bx-download me-1"></i>Download SK Pembimbing
+                                    <i class="bx bx-download me-1"></i>Download Surat Permohonan Penerbitan SK Pembimbing Skripsi
                                 </a>
                             @endif
 
@@ -618,7 +618,7 @@
                             <div class="mt-3 pt-3 border-top">
                                 <a href="{{ route('admin.sk-pembimbing.download-sk', $pengajuan) }}"
                                     class="btn btn-success w-100">
-                                    <i class="bx bx-download me-1"></i> Download SK Pembimbing (Final)
+                                    <i class="bx bx-download me-1"></i> Download Surat Permohonan Penerbitan SK Pembimbing Skripsi (Final)
                                 </a>
                             </div>
                         @endif

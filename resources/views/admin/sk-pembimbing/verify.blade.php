@@ -30,7 +30,7 @@
                 </p>
                 <span class="document-type">
                     <i class='bx bx-file-blank'></i>
-                    SK Pembimbing Skripsi
+           Permohonan Penerbitan SK Pembimbing Skripsi
                 </span>
             </div>
 

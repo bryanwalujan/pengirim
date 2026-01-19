@@ -240,7 +240,7 @@
                                             </a>
                                             @if($p->isSelesai() && $p->file_surat_sk)
                                                 <a class="dropdown-item" href="{{ route('admin.sk-pembimbing.download-sk', $p) }}">
-                                                    <i class="bx bx-download me-2"></i>Download SK
+                                                    <i class="bx bx-download me-2"></i>Download
                                                 </a>
                                             @endif
                                             @if(auth()->user()->hasRole('staff'))

@@ -22,13 +22,14 @@ class CheckUktPayment
 /*******  7e712d56-b2d9-4193-873f-be8d2d9d878d  *******/
     public function handle(Request $request, Closure $next): Response
     {
-        $user = User::find(Auth::id());
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
 
         // Jika user adalah mahasiswa
         if ($user && $user->hasRole('mahasiswa')) {
             $tahunAktif = TahunAjaran::aktif()->first();
 
-            if (!$tahunAktif) {
+            if (! $tahunAktif) {
                 return redirect()->route('user.payment.alert')
                     ->with('error', 'Tidak ada tahun ajaran aktif. Silakan hubungi administrasi.');
             }
@@ -38,7 +39,7 @@ class CheckUktPayment
                 ->where('status', 'bayar')
                 ->exists();
 
-            if (!$hasPaid) {
+            if (! $hasPaid) {
                 return redirect()->route('user.payment.alert')
                     ->with('error', 'Anda harus melunasi UKT terlebih dahulu untuk mengakses layanan');
             }
