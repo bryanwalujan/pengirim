@@ -319,7 +319,7 @@
     {{-- Signature Section --}}
     <div class="signature-wrapper clearfix">
         <p style="margin-bottom: 3px;">Tondano,
-            {{ ($beritaAcara->ttd_ketua_penguji_at ?? now())->translatedFormat('d F Y') }}</p>
+            {{ $jadwal->tanggal_ujian->translatedFormat('d F Y') }}</p>
         <p style="margin-bottom: 5px; margin-top: 0;">Ketua Pembahas,</p>
 
         <div class="signature-space">

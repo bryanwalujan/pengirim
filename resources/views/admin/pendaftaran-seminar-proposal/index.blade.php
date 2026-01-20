@@ -230,6 +230,16 @@
                             <i class="bx bx-reset me-1"></i> Reset
                         </a>
                     </div>
+
+                    {{-- Status Dosen Button (hanya untuk staff) --}}
+                    @if (!auth()->user()->isDosenWithApprovalAuthority())
+                        <div class="col-md-2">
+                            <button type="button" class="btn btn-info w-100" data-bs-toggle="modal"
+                                data-bs-target="#modalDosenStatus">
+                                <i class="bx bx-list-ul me-1"></i> Status Dosen
+                            </button>
+                        </div>
+                    @endif
                 </div>
             </div>
 
@@ -342,6 +352,11 @@
                 </div>
             @endif
         </div>
+
+        {{-- Include Dosen Status Modal (hanya untuk staff) --}}
+        @if (!auth()->user()->isDosenWithApprovalAuthority())
+            @include('admin.pendaftaran-seminar-proposal.modals.dosen-status-modal')
+        @endif
     </div>
 @endsection
 

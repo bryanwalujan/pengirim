@@ -136,10 +136,14 @@ class AdminPendaftaranSeminarProposalController extends Controller
             ];
         }
 
+        // Get pembahas statistics for modal
+        $pembahasStatistics = $this->pembahasService->getPembahasStatistics();
+
         return view('admin.pendaftaran-seminar-proposal.index', compact(
             'pendaftaran',
             'uniqueAngkatan',
-            'statistics'
+            'statistics',
+            'pembahasStatistics'
         ));
     }
 
@@ -158,16 +162,21 @@ class AdminPendaftaranSeminarProposalController extends Controller
         // Get nomor surat info for generate modal
         $nomorSuratInfo = $this->suratService->getNextNomorSuratPreview();
 
+        // Get pembahas statistics for modal
+        $pembahasStatistics = $this->pembahasService->getPembahasStatistics();
+
         if (request()->ajax()) {
             return view('admin.pendaftaran-seminar-proposal.detail-modal', [
                 'pendaftaran' => $pendaftaranSeminarProposal,
                 'nomorSuratInfo' => $nomorSuratInfo,
+                'pembahasStatistics' => $pembahasStatistics,
             ]);
         }
 
         return view('admin.pendaftaran-seminar-proposal.show', [
             'pendaftaran' => $pendaftaranSeminarProposal,
             'nomorSuratInfo' => $nomorSuratInfo,
+            'pembahasStatistics' => $pembahasStatistics,
         ]);
     }
 

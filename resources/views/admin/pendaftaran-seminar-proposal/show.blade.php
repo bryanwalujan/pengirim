@@ -287,6 +287,14 @@
                                     <i class="bx bx-download me-1"></i> Download Surat
                                 </a>
                             @endif
+
+                            {{-- Status Dosen Button (hanya untuk staff) --}}
+                            @if (auth()->user()->hasRole('staff'))
+                                <button type="button" class="btn btn-info w-100 mb-2" data-bs-toggle="modal"
+                                    data-bs-target="#modalDosenStatus">
+                                    <i class="bx bx-list-ul me-1"></i> Status Beban Dosen
+                                </button>
+                            @endif
                         </div>
                     </div>
                 @endcan
@@ -840,6 +848,10 @@
     @include('admin.pendaftaran-seminar-proposal.modals.delete')
     @if (in_array($pendaftaran->status, ['pending', 'pembahas_ditentukan']))
         @include('admin.pendaftaran-seminar-proposal.modals.reject')
+    @endif
+    {{-- Include Dosen Status Modal (hanya untuk staff) --}}
+    @if (auth()->user()->hasRole('staff'))
+        @include('admin.pendaftaran-seminar-proposal.modals.dosen-status-modal')
     @endif
 @endsection
 
