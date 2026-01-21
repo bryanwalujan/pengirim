@@ -210,84 +210,11 @@
                                                         <p>• P1: {{ $latestHasil->pembimbing1->name ?? '-' }}</p>
                                                         <p>• P2: {{ $latestHasil->pembimbing2->name ?? '-' }}</p>
                                                     </div>
-<<<<<<< HEAD
-                                                </td>
-                                                <td>
-                                                    <div class="judul-skripsi"
-                                                        title="{{ strip_tags($hasil->judul_skripsi) }}">
-                                                        {!! $hasil->judul_skripsi !!}
-                                                    </div>
-                                                    <div class="pembimbing-info mt-1">
-                                                        <i class="bi bi-person-badge"></i>
-                                                        Pembimbing 1: {{ $hasil->pembimbing1->name ?? 'N/A' }} <br>
-                                                        <i class="bi bi-person-badge"></i>
-                                                        Pembimbing 2: {{ $hasil->pembimbing2->name ?? 'N/A' }}
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    <div class="status-info">
-                                                        @if ($hasil->status == 'pending')
-                                                            <span class="badge bg-warning">Pending</span>
-                                                            <span class="status-date">Menunggu persetujuan</span>
-                                                        @elseif($hasil->status == 'approved')
-                                                            <span class="badge bg-success">Approved</span>
-                                                            <span class="status-date">
-                                                                Disetujui:
-                                                                {{ $hasil->updated_at->translatedFormat('d M Y') }}
-                                                            </span>
-=======
                                                 </div>
                                             </div>
                                         </div>
-                                    @elseif($latestHasil->status === 'rejected')
-                                        <div class="bg-red-50 border border-red-200 rounded-xl p-4">
-                                            <div class="flex items-start gap-3 text-sm">
-                                                <svg class="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" fill="currentColor"
-                                                    viewBox="0 0 20 20">
-                                                    <path fill-rule="evenodd"
-                                                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                                                        clip-rule="evenodd" />
-                                                </svg>
-                                                <div class="flex-1">
-                                                    <span class="font-bold text-red-900 block mb-1">Alasan
-                                                        Penolakan:</span>
-                                                    <p class="text-red-700 font-medium leading-relaxed">
-                                                        {{ $latestHasil->keterangan ?? 'Tidak ada keterangan' }}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <a href="{{ route('user.komisi-hasil.create') }}"
-                                            class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm font-bold rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105">
-                                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd"
-                                                    d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
-                                                    clip-rule="evenodd" />
-                                            </svg>
-                                            Ajukan Ulang
-                                        </a>
                                     @else
                                         <div class="bg-orange-50 border border-orange-200 rounded-xl p-4 space-y-3">
-                                            <div class="flex items-start gap-3 text-sm">
-                                                <svg class="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0"
-                                                    fill="currentColor" viewBox="0 0 20 20">
-                                                    <path fill-rule="evenodd"
-                                                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                                                        clip-rule="evenodd" />
-                                                </svg>
-                                                <div>
-                                                    <span class="font-bold text-orange-900">Status:</span>
-                                                    <span class="text-orange-700 ml-1 font-medium">
-                                                        @if ($latestHasil->status === 'pending')
-                                                            Menunggu Persetujuan Pembimbing 1
-                                                        @elseif($latestHasil->status === 'approved_pembimbing1')
-                                                            Menunggu Persetujuan Pembimbing 2
->>>>>>> refs/remotes/origin/main
-                                                        @else
-                                                            Menunggu Persetujuan Koordinator Program Studi
-                                                        @endif
-                                                    </span>
-                                                </div>
-                                            </div>
                                             <div class="flex items-start gap-3 text-sm">
                                                 <svg class="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0"
                                                     fill="currentColor" viewBox="0 0 20 20">
@@ -302,6 +229,32 @@
                                                     </span>
                                                 </div>
                                             </div>
+
+                                            @if($latestHasil->status === 'rejected')
+                                                <div class="flex items-start gap-3 text-sm">
+                                                    <svg class="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                                                    </svg>
+                                                    <div>
+                                                        <span class="font-bold text-red-900">Alasan Penolakan:</span>
+                                                        <p class="text-red-700 mt-1 font-medium italic">"{{ $latestHasil->keterangan ?? 'Tidak ada keterangan tambahan.' }}"</p>
+                                                    </div>
+                                                </div>
+                                            @endif
+
+                                            <div class="flex items-start gap-3 text-sm">
+                                                <svg class="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0"
+                                                    fill="currentColor" viewBox="0 0 20 20">
+                                                    <path
+                                                        d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
+                                                </svg>
+                                                <div>
+                                                    <span class="font-bold text-orange-900">Judul Skripsi:</span>
+                                                    <p class="text-orange-700 mt-1 font-medium leading-relaxed">
+                                                        {!! Str::limit(strip_tags($latestHasil->judul_skripsi), 150) !!}</p>
+                                                </div>
+                                            </div>
+
                                             <div class="flex items-start gap-3 text-sm">
                                                 <svg class="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0"
                                                     fill="currentColor" viewBox="0 0 20 20">
@@ -315,7 +268,7 @@
                                                             class="flex items-center justify-between bg-white rounded-lg p-2.5 shadow-sm">
                                                             <span class="text-orange-700 font-medium">• P1:
                                                                 {{ $latestHasil->pembimbing1->name ?? '-' }}</span>
-                                                            @if ($latestHasil->status === 'pending')
+                                                            @if (in_array($latestHasil->status, ['pending']))
                                                                 <span
                                                                     class="px-2 py-1 bg-amber-100 text-amber-800 text-[10px] font-bold rounded-full">Menunggu</span>
                                                             @else

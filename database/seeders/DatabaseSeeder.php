@@ -17,9 +17,9 @@ class DatabaseSeeder extends Seeder
             ServiceSeeder::class,
             PermissionSeeder::class,
             RolePermissionSeeder::class,
+            TahunAjaranSeeder::class,
             UserSeeder::class,
             KopSuratSeeder::class,
-            TahunAjaranSeeder::class,
             // Seeder lainnya...
         ]);
     }

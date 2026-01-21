@@ -1165,7 +1165,7 @@
             <li class="menu-item {{ request()->routeIs('admin.pendaftaran-ujian-hasil.*') ? 'active' : '' }}">
                 <a href="{{ route('admin.pendaftaran-ujian-hasil.index') }}" class="menu-link">
                     <i class="menu-icon tf-icons bx bx-book-bookmark"></i>
-                    <div>Ujian Hasil</div>
+                    <div>Pendaftaran Ujian Hasil</div>
                 </a>
             </li>
         @endcan

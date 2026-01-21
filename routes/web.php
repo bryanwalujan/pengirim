@@ -282,6 +282,16 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa', 'check.ukt'])->group(fu
         Route::get('/create', [PendaftaranUjianHasilController::class, 'create'])->name('create');
         Route::post('/', [PendaftaranUjianHasilController::class, 'store'])->name('store');
         Route::get('/{pendaftaran_ujian_hasil}', [PendaftaranUjianHasilController::class, 'show'])->name('show');
+
+        // Download Files
+        Route::get('/{pendaftaran_ujian_hasil}/download/transkrip', [PendaftaranUjianHasilController::class, 'downloadTranskrip'])
+            ->name('download.transkrip');
+        Route::get('/{pendaftaran_ujian_hasil}/download/skripsi', [PendaftaranUjianHasilController::class, 'downloadSkripsi'])
+            ->name('download.skripsi');
+        Route::get('/{pendaftaran_ujian_hasil}/download/permohonan', [PendaftaranUjianHasilController::class, 'downloadPermohonan'])
+            ->name('download.permohonan');
+        Route::get('/{pendaftaran_ujian_hasil}/download/slip-ukt', [PendaftaranUjianHasilController::class, 'downloadSlipUkt'])
+            ->name('download.slip-ukt');
     });
 });
 
@@ -962,8 +972,72 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 
     // Pendaftaran Ujian Hasil
     Route::prefix('pendaftaran-ujian-hasil')->name('pendaftaran-ujian-hasil.')->group(function () {
-        Route::get('/', [AdminPendaftaranUjianHasilController::class, 'index'])->name('index');
-        Route::get('/{pendaftaranUjianHasil}', [AdminPendaftaranUjianHasilController::class, 'show'])->name('show');
+        // Staff & Dosen access
+        Route::middleware(['role:staff|dosen'])->group(function () {
+            Route::get('/', [AdminPendaftaranUjianHasilController::class, 'index'])->name('index');
+            Route::get('/{pendaftaranUjianHasil}', [AdminPendaftaranUjianHasilController::class, 'show'])->name('show');
+
+            // View Files (Inline Preview)
+            Route::get('/{pendaftaranUjianHasil}/view/transkrip', [AdminPendaftaranUjianHasilController::class, 'viewTranskrip'])
+                ->name('view.transkrip');
+            Route::get('/{pendaftaranUjianHasil}/view/skripsi', [AdminPendaftaranUjianHasilController::class, 'viewSkripsi'])
+                ->name('view.skripsi');
+            Route::get('/{pendaftaranUjianHasil}/view/permohonan', [AdminPendaftaranUjianHasilController::class, 'viewPermohonan'])
+                ->name('view.permohonan');
+            Route::get('/{pendaftaranUjianHasil}/view/slip-ukt', [AdminPendaftaranUjianHasilController::class, 'viewSlipUkt'])
+                ->name('view.slip-ukt');
+
+            // Download Files
+            Route::get('/{pendaftaranUjianHasil}/download/transkrip', [AdminPendaftaranUjianHasilController::class, 'downloadTranskrip'])
+                ->name('download.transkrip');
+            Route::get('/{pendaftaranUjianHasil}/download/skripsi', [AdminPendaftaranUjianHasilController::class, 'downloadSkripsi'])
+                ->name('download.skripsi');
+            Route::get('/{pendaftaranUjianHasil}/download/permohonan', [AdminPendaftaranUjianHasilController::class, 'downloadPermohonan'])
+                ->name('download.permohonan');
+            Route::get('/{pendaftaranUjianHasil}/download/slip-ukt', [AdminPendaftaranUjianHasilController::class, 'downloadSlipUkt'])
+                ->name('download.slip-ukt');
+
+            // Download Surat Usulan
+            Route::get('/{pendaftaranUjianHasil}/download-surat', [AdminPendaftaranUjianHasilController::class, 'downloadSuratUsulan'])
+                ->name('download-surat');
+        });
+
+        // Staff only routes
+        Route::middleware(['role:staff'])->group(function () {
+            // Penguji Assignment
+            Route::get('/{pendaftaranUjianHasil}/assign-penguji', [AdminPendaftaranUjianHasilController::class, 'showAssignPengujiForm'])
+                ->name('assign-penguji');
+            Route::post('/{pendaftaranUjianHasil}/assign-penguji', [AdminPendaftaranUjianHasilController::class, 'assignPenguji'])
+                ->name('store-penguji');
+            Route::post('/{pendaftaranUjianHasil}/reset-penguji', [AdminPendaftaranUjianHasilController::class, 'resetPenguji'])
+                ->name('reset-penguji');
+
+            // Surat Generation
+            Route::post('/{pendaftaranUjianHasil}/generate-surat', [AdminPendaftaranUjianHasilController::class, 'generateSuratUsulan'])
+                ->name('generate-surat');
+
+            // Utility (AJAX)
+            Route::get('/get-next-nomor-surat', [AdminPendaftaranUjianHasilController::class, 'getNextNomorSurat'])
+                ->name('get-next-nomor-surat');
+            Route::post('/validate-nomor-surat', [AdminPendaftaranUjianHasilController::class, 'validateNomorSurat'])
+                ->name('validate-nomor-surat');
+
+            // Reject
+            Route::post('/{pendaftaranUjianHasil}/reject', [AdminPendaftaranUjianHasilController::class, 'reject'])
+                ->name('reject');
+
+            // Delete
+            Route::delete('/{pendaftaranUjianHasil}', [AdminPendaftaranUjianHasilController::class, 'destroy'])
+                ->name('destroy');
+        });
+
+        // Signature routes (Dosen & Staff)
+        Route::middleware(['role:dosen|staff'])->group(function () {
+            Route::post('/{pendaftaranUjianHasil}/ttd-kaprodi', [AdminPendaftaranUjianHasilController::class, 'ttdKaprodi'])
+                ->name('ttd-kaprodi');
+            Route::post('/{pendaftaranUjianHasil}/ttd-kajur', [AdminPendaftaranUjianHasilController::class, 'ttdKajur'])
+                ->name('ttd-kajur');
+        });
     });
 
 });
