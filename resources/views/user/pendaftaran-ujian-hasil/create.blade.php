@@ -12,7 +12,7 @@
         }
 
         input[type="file"]::-webkit-file-upload-button {
-            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            background: linear-gradient(135deg, #f97316, #ea580c);
             color: white;
             padding: 0.5rem 1rem;
             border: none;
@@ -23,7 +23,7 @@
         }
 
         input[type="file"]::-webkit-file-upload-button:hover {
-            background: linear-gradient(135deg, #2563eb, #4f46e5);
+            background: linear-gradient(135deg, #ea580c, #c2410c);
             transform: scale(1.02);
         }
 
@@ -123,12 +123,12 @@
 
                 {{-- Header --}}
                 <div
-                    class="bg-gradient-to-r from-violet-600 to-purple-700 p-8 text-center text-white relative overflow-hidden">
+                    class="bg-gradient-to-r from-orange-500 to-orange-600 p-8 text-center text-white relative overflow-hidden">
                     <div class="absolute top-0 left-0 w-full h-full bg-white/10 opacity-20"></div>
                     <h4 class="text-2xl md:text-3xl font-bold tracking-tight relative z-10">
                         Formulir Pendaftaran Ujian Hasil
                     </h4>
-                    <p class="mt-2 text-violet-100 text-sm md:text-base relative z-10 opacity-90">
+                    <p class="mt-2 text-orange-50 text-sm md:text-base relative z-10 opacity-90">
                         Lengkapi data dan upload dokumen persyaratan di bawah ini
                     </p>
                 </div>
@@ -140,9 +140,9 @@
                     {{-- ========== INFORMASI MAHASISWA SECTION ========== --}}
                     <div class="bg-slate-50 p-6 rounded-xl border border-slate-200" data-aos="fade-up"
                         data-aos-delay="200">
-                        <div class="flex items-center mb-5 pb-3 border-b border-slate-200">
+                        <div class="flex items-center mb-5 pb-3 border-b border-orange-200">
                             <div
-                                class="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center text-violet-600 mr-3">
+                                class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-3">
                                 <i class="bi bi-person-circle text-xl"></i>
                             </div>
                             <h5 class="text-lg font-bold text-slate-800">Informasi Mahasiswa</h5>
@@ -167,11 +167,11 @@
                     <div data-aos="fade-up" data-aos-delay="300">
                         <div class="flex items-center mb-5">
                             <div
-                                class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 mr-3">
+                                class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-3">
                                 <i class="bi bi-journal-text text-xl"></i>
                             </div>
                             <h5 class="text-lg font-bold text-slate-800">Informasi Skripsi</h5>
-                            <span class="ml-auto text-xs bg-violet-100 text-violet-700 px-3 py-1 rounded-full font-semibold">
+                            <span class="ml-auto text-xs bg-orange-100 text-orange-700 px-3 py-1 rounded-full font-semibold">
                                 <i class="bi bi-lock-fill mr-1"></i>Data dari Komisi Hasil
                             </span>
                         </div>
@@ -220,7 +220,7 @@
                                 IPK Terakhir <span class="text-red-500">*</span>
                             </label>
                             <input type="number"
-                                class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-violet-500 focus:ring-2 focus:ring-violet-200 transition-all @error('ipk') border-red-500 ring-1 ring-red-500 @enderror"
+                                class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all @error('ipk') border-red-500 ring-1 ring-red-500 @enderror"
                                 id="ipk" name="ipk" value="{{ old('ipk') }}" placeholder="Contoh: 3.51"
                                 step="0.01" min="0" max="4.00" required>
                             @error('ipk')
@@ -233,18 +233,18 @@
                     <div data-aos="fade-up" data-aos-delay="400">
                         <div class="flex items-center mb-5">
                             <div
-                                class="w-10 h-10 rounded-full bg-fuchsia-100 flex items-center justify-center text-fuchsia-600 mr-3">
+                                class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-3">
                                 <i class="bi bi-cloud-arrow-up text-xl"></i>
                             </div>
                             <h5 class="text-lg font-bold text-slate-800">Upload Dokumen</h5>
                         </div>
 
                         {{-- Info Box --}}
-                        <div class="bg-violet-50 border border-violet-100 rounded-xl p-4 mb-6">
-                            <h6 class="text-violet-800 font-bold text-sm mb-2 flex items-center">
+                        <div class="bg-orange-50 border border-orange-100 rounded-xl p-4 mb-6">
+                            <h6 class="text-orange-800 font-bold text-sm mb-2 flex items-center">
                                 <i class="bi bi-info-circle-fill mr-2"></i> Persyaratan Dokumen
                             </h6>
-                            <ol class="list-decimal list-inside text-sm text-violet-700 space-y-1 ml-1">
+                            <ol class="list-decimal list-inside text-sm text-orange-700 space-y-1 ml-1">
                                 <li>Transkrip Nilai (PDF, maks. 2MB)</li>
                                 <li>File Skripsi Lengkap (PDF, maks. 10MB)</li>
                                 <li>Surat Permohonan Ujian Hasil (PDF, maks. 2MB)</li>
@@ -259,7 +259,7 @@
                                     1. Transkrip Nilai <span class="text-red-500">*</span>
                                 </label>
                                 <input
-                                    class="w-full px-4 py-3 rounded-xl border border-slate-200 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gradient-to-r file:from-violet-50 file:to-purple-50 file:text-violet-700 hover:file:bg-gradient-to-r hover:file:from-violet-100 hover:file:to-purple-100 focus:border-violet-500 focus:ring-2 focus:ring-violet-200 transition-all @error('file_transkrip_nilai') border-red-500 ring-1 ring-red-500 @enderror"
+                                    class="w-full px-4 py-3 rounded-xl border border-slate-200 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gradient-to-r file:from-orange-50 file:to-amber-50 file:text-orange-700 hover:file:bg-gradient-to-r hover:file:from-orange-100 hover:file:to-amber-100 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all @error('file_transkrip_nilai') border-red-500 ring-1 ring-red-500 @enderror"
                                     type="file" id="file_transkrip_nilai" name="file_transkrip_nilai" accept=".pdf"
                                     required>
                                 <p class="mt-1 text-xs text-slate-500">Format: PDF | Ukuran maksimal: 2MB</p>
@@ -274,7 +274,7 @@
                                     2. File Skripsi (Lengkap) <span class="text-red-500">*</span>
                                 </label>
                                 <input
-                                    class="w-full px-4 py-3 rounded-xl border border-slate-200 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gradient-to-r file:from-violet-50 file:to-purple-50 file:text-violet-700 hover:file:bg-gradient-to-r hover:file:from-violet-100 hover:file:to-purple-100 focus:border-violet-500 focus:ring-2 focus:ring-violet-200 transition-all @error('file_skripsi') border-red-500 ring-1 ring-red-500 @enderror"
+                                    class="w-full px-4 py-3 rounded-xl border border-slate-200 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gradient-to-r file:from-orange-50 file:to-amber-50 file:text-orange-700 hover:file:bg-gradient-to-r hover:file:from-orange-100 hover:file:to-amber-100 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all @error('file_skripsi') border-red-500 ring-1 ring-red-500 @enderror"
                                     type="file" id="file_skripsi" name="file_skripsi" accept=".pdf" required>
                                 <p class="mt-1 text-xs text-slate-500">Format: PDF | Ukuran maksimal: 10MB</p>
                                 @error('file_skripsi')
@@ -288,7 +288,7 @@
                                     3. Surat Permohonan Ujian Hasil <span class="text-red-500">*</span>
                                 </label>
                                 <input
-                                    class="w-full px-4 py-3 rounded-xl border border-slate-200 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gradient-to-r file:from-violet-50 file:to-purple-50 file:text-violet-700 hover:file:bg-gradient-to-r hover:file:from-violet-100 hover:file:to-purple-100 focus:border-violet-500 focus:ring-2 focus:ring-violet-200 transition-all @error('file_surat_permohonan') border-red-500 ring-1 ring-red-500 @enderror"
+                                    class="w-full px-4 py-3 rounded-xl border border-slate-200 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gradient-to-r file:from-orange-50 file:to-amber-50 file:text-orange-700 hover:file:bg-gradient-to-r hover:file:from-orange-100 hover:file:to-amber-100 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all @error('file_surat_permohonan') border-red-500 ring-1 ring-red-500 @enderror"
                                     type="file" id="file_surat_permohonan" name="file_surat_permohonan" accept=".pdf"
                                     required>
                                 <p class="mt-1 text-xs text-slate-500">Format: PDF | Ukuran maksimal: 2MB</p>
@@ -303,7 +303,7 @@
                                     4. Slip Pembayaran UKT <span class="text-red-500">*</span>
                                 </label>
                                 <input
-                                    class="w-full px-4 py-3 rounded-xl border border-slate-200 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gradient-to-r file:from-violet-50 file:to-purple-50 file:text-violet-700 hover:file:bg-gradient-to-r hover:file:from-violet-100 hover:file:to-purple-100 focus:border-violet-500 focus:ring-2 focus:ring-violet-200 transition-all @error('file_slip_ukt') border-red-500 ring-1 ring-red-500 @enderror"
+                                    class="w-full px-4 py-3 rounded-xl border border-slate-200 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gradient-to-r file:from-orange-50 file:to-amber-50 file:text-orange-700 hover:file:bg-gradient-to-r hover:file:from-orange-100 hover:file:to-amber-100 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all @error('file_slip_ukt') border-red-500 ring-1 ring-red-500 @enderror"
                                     type="file" id="file_slip_ukt" name="file_slip_ukt" accept=".pdf,.jpg,.jpeg,.png"
                                     required>
                                 <p class="mt-1 text-xs text-slate-500">Format: PDF, JPG, JPEG, PNG | Ukuran maksimal: 2MB
@@ -332,7 +332,7 @@
                             </a>
 
                             <button type="submit" id="submit-btn"
-                                class="px-8 py-3 rounded-full bg-gradient-to-r from-violet-600 to-purple-600 text-white font-bold shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 hover:-translate-y-1 hover:from-violet-700 hover:to-purple-700 transition-all duration-300 flex items-center justify-center">
+                                class="px-8 py-3 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 hover:-translate-y-1 hover:from-orange-600 hover:to-orange-700 transition-all duration-300 flex items-center justify-center">
                                 <i class="bi bi-send-check mr-2"></i> Ajukan Pendaftaran
                             </button>
                         </div>
@@ -375,7 +375,7 @@
                             icon: 'error',
                             title: 'File Terlalu Besar',
                             text: `Ukuran file maksimal ${maxSizeMB}MB`,
-                            confirmButtonColor: '#7c3aed'
+                            confirmButtonColor: '#f97316'
                         });
                         this.value = '';
                         this.classList.add('border-red-500', 'ring-1', 'ring-red-500');
@@ -429,7 +429,7 @@
                             </ul>
                         </div>
                     `,
-                    confirmButtonColor: '#7c3aed',
+                    confirmButtonColor: '#f97316',
                     confirmButtonText: 'OK, Saya Mengerti'
                 });
                 window.scrollTo({
@@ -458,7 +458,7 @@
                 showCancelButton: true,
                 confirmButtonText: '<i class="bi bi-send me-1"></i>Ya, Kirim Sekarang',
                 cancelButtonText: '<i class="bi bi-x me-1"></i>Batal',
-                confirmButtonColor: '#7c3aed',
+                confirmButtonColor: '#f97316',
                 cancelButtonColor: '#94a3b8',
                 reverseButtons: true,
                 customClass: {

@@ -1152,10 +1152,46 @@
 
         {{-- 3. Komisi Hasil --}}
         @can('manage komisi hasil')
+            @php
+                // Count pending komisi hasil for notification badge
+                $komisiHasilPendingCount = 0;
+                
+                if (auth()->user()->hasRole('staff')) {
+                    // Staff can see all pending
+                    $komisiHasilPendingCount = \App\Models\KomisiHasil::whereIn('status', [
+                        'pending',
+                        'approved_pembimbing1',
+                        'approved_pembimbing2'
+                    ])->count();
+                } elseif (auth()->user()->hasRole('dosen')) {
+                    $userId = auth()->id();
+                    $isKorprodi = auth()->user()->isKoordinatorProdi();
+                    
+                    if ($isKorprodi) {
+                        // Korprodi sees all pending for final approval
+                        $komisiHasilPendingCount = \App\Models\KomisiHasil::where('status', 'approved_pembimbing2')->count();
+                    } else {
+                        // Pembimbing sees only their pending approvals
+                        $asPembimbing1 = \App\Models\KomisiHasil::where('status', 'pending')
+                            ->where('dosen_pembimbing1_id', $userId)
+                            ->count();
+                        
+                        $asPembimbing2 = \App\Models\KomisiHasil::where('status', 'approved_pembimbing1')
+                            ->where('dosen_pembimbing2_id', $userId)
+                            ->count();
+                        
+                        $komisiHasilPendingCount = $asPembimbing1 + $asPembimbing2;
+                    }
+                }
+            @endphp
+            
             <li class="menu-item {{ request()->routeIs('admin.komisi-hasil.*') ? 'active' : '' }}">
                 <a href="{{ route('admin.komisi-hasil.index') }}" class="menu-link">
                     <i class="menu-icon tf-icons bx bx-book-content"></i>
                     <div>Komisi Hasil</div>
+                    @if($komisiHasilPendingCount > 0)
+                        <span class="badge bg-danger rounded-pill ms-auto">{{ $komisiHasilPendingCount }}</span>
+                    @endif
                 </a>
             </li>
         @endcan
