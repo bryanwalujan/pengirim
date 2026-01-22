@@ -54,7 +54,10 @@ class KomisiHasilController extends Controller
                 ->with('error', $canCreateStatus['reason']);
         }
 
-        // Ambil dosen yang bisa jadi pembimbing
+        // Check eligibility dan prefilled data dari SK Pembimbing
+        $eligibility = KomisiHasil::checkEligibility($userId);
+
+        // Ambil dosen yang bisa jadi pembimbing (untuk mode legacy)
         $dosens = User::role('dosen')
             ->orderByRaw("
                 CASE 
@@ -69,7 +72,7 @@ class KomisiHasilController extends Controller
         // Ambil komisi hasil terakhir jika ada (untuk informasi)
         $latestHasil = $canCreateStatus['hasil'];
 
-        return view('user.komisi-hasil.create', compact('dosens', 'latestHasil'));
+        return view('user.komisi-hasil.create', compact('dosens', 'latestHasil', 'eligibility'));
     }
 
     public function store(Request $request)
@@ -110,47 +113,86 @@ class KomisiHasilController extends Controller
                     ->with('error', $canCreateStatus['reason']);
             }
 
-            // STEP 3: Validasi input
-            $validated = $request->validate([
-                'judul_skripsi' => 'required|string|max:500',
-                'dosen_pembimbing1_id' => 'required|exists:users,id',
-                'dosen_pembimbing2_id' => 'required|exists:users,id|different:dosen_pembimbing1_id',
-            ], [
-                'judul_skripsi.required' => 'Judul skripsi harus diisi.',
-                'judul_skripsi.max' => 'Judul skripsi maksimal 500 karakter.',
-                'dosen_pembimbing1_id.required' => 'Pembimbing 1 harus dipilih.',
-                'dosen_pembimbing1_id.exists' => 'Pembimbing 1 yang dipilih tidak valid.',
-                'dosen_pembimbing2_id.required' => 'Pembimbing 2 harus dipilih.',
-                'dosen_pembimbing2_id.exists' => 'Pembimbing 2 yang dipilih tidak valid.',
-                'dosen_pembimbing2_id.different' => 'Pembimbing 2 harus berbeda dengan Pembimbing 1.',
-            ]);
-
-            // STEP 4: Validasi dosen yang dipilih
-            $pembimbing1 = User::lockForUpdate()->find($request->dosen_pembimbing1_id);
-            $pembimbing2 = User::lockForUpdate()->find($request->dosen_pembimbing2_id);
-
-            if (!$pembimbing1 || !$pembimbing1->hasRole('dosen')) {
-                Log::error('Invalid pembimbing 1 selected', [
-                    'dosen_id' => $request->dosen_pembimbing1_id,
+            // STEP 3: Check eligibility untuk menentukan mode
+            $eligibility = KomisiHasil::checkEligibility($userId);
+            
+            // STEP 4: Siapkan data berdasarkan mode
+            if ($eligibility['has_system_data']) {
+                // MODE SISTEM: Data dari SK Pembimbing
+                $hasilData = [
                     'user_id' => $userId,
-                    'ip' => $request->ip(),
-                ]);
-
-                return back()
-                    ->with('error', 'Pembimbing 1 yang dipilih tidak valid.')
-                    ->withInput();
-            }
-
-            if (!$pembimbing2 || !$pembimbing2->hasRole('dosen')) {
-                Log::error('Invalid pembimbing 2 selected', [
-                    'dosen_id' => $request->dosen_pembimbing2_id,
+                    'judul_skripsi' => $eligibility['prefilled_data']['judul_skripsi'],
+                    'dosen_pembimbing1_id' => $eligibility['prefilled_data']['dosen_pembimbing1_id'],
+                    'dosen_pembimbing2_id' => $eligibility['prefilled_data']['dosen_pembimbing2_id'],
+                    'pengajuan_sk_id' => $eligibility['sk_pembimbing']->id,
+                    'is_manual_input' => false,
+                    'status' => 'pending',
+                ];
+                
+                $pembimbing1 = User::find($hasilData['dosen_pembimbing1_id']);
+                $pembimbing2 = User::find($hasilData['dosen_pembimbing2_id']);
+                
+                Log::info('Komisi Hasil: Menggunakan data dari SK Pembimbing', [
                     'user_id' => $userId,
-                    'ip' => $request->ip(),
+                    'sk_pembimbing_id' => $eligibility['sk_pembimbing']->id,
                 ]);
+            } else {
+                // MODE LEGACY: Input manual
+                $validated = $request->validate([
+                    'judul_skripsi' => 'required|string|max:500',
+                    'dosen_pembimbing1_id' => 'required|exists:users,id',
+                    'dosen_pembimbing2_id' => 'required|exists:users,id|different:dosen_pembimbing1_id',
+                ], [
+                    'judul_skripsi.required' => 'Judul skripsi harus diisi.',
+                    'judul_skripsi.max' => 'Judul skripsi maksimal 500 karakter.',
+                    'dosen_pembimbing1_id.required' => 'Pembimbing 1 harus dipilih.',
+                    'dosen_pembimbing1_id.exists' => 'Pembimbing 1 yang dipilih tidak valid.',
+                    'dosen_pembimbing2_id.required' => 'Pembimbing 2 harus dipilih.',
+                    'dosen_pembimbing2_id.exists' => 'Pembimbing 2 yang dipilih tidak valid.',
+                    'dosen_pembimbing2_id.different' => 'Pembimbing 2 harus berbeda dengan Pembimbing 1.',
+                ]);
+                
+                // Validasi dosen yang dipilih
+                $pembimbing1 = User::lockForUpdate()->find($request->dosen_pembimbing1_id);
+                $pembimbing2 = User::lockForUpdate()->find($request->dosen_pembimbing2_id);
 
-                return back()
-                    ->with('error', 'Pembimbing 2 yang dipilih tidak valid.')
-                    ->withInput();
+                if (!$pembimbing1 || !$pembimbing1->hasRole('dosen')) {
+                    Log::error('Invalid pembimbing 1 selected', [
+                        'dosen_id' => $request->dosen_pembimbing1_id,
+                        'user_id' => $userId,
+                        'ip' => $request->ip(),
+                    ]);
+
+                    return back()
+                        ->with('error', 'Pembimbing 1 yang dipilih tidak valid.')
+                        ->withInput();
+                }
+
+                if (!$pembimbing2 || !$pembimbing2->hasRole('dosen')) {
+                    Log::error('Invalid pembimbing 2 selected', [
+                        'dosen_id' => $request->dosen_pembimbing2_id,
+                        'user_id' => $userId,
+                        'ip' => $request->ip(),
+                    ]);
+
+                    return back()
+                        ->with('error', 'Pembimbing 2 yang dipilih tidak valid.')
+                        ->withInput();
+                }
+                
+                $hasilData = [
+                    'user_id' => $userId,
+                    'judul_skripsi' => $validated['judul_skripsi'],
+                    'dosen_pembimbing1_id' => $validated['dosen_pembimbing1_id'],
+                    'dosen_pembimbing2_id' => $validated['dosen_pembimbing2_id'],
+                    'pengajuan_sk_id' => null,
+                    'is_manual_input' => true,
+                    'status' => 'pending',
+                ];
+                
+                Log::info('Komisi Hasil: Mode legacy - input manual', [
+                    'user_id' => $userId,
+                ]);
             }
 
             // STEP 5: Start Database Transaction
@@ -178,13 +220,7 @@ class KomisiHasilController extends Controller
                 }
 
                 // STEP 6: Create komisi hasil
-                $hasil = KomisiHasil::create([
-                    'user_id' => $userId,
-                    'judul_skripsi' => $validated['judul_skripsi'],
-                    'dosen_pembimbing1_id' => $validated['dosen_pembimbing1_id'],
-                    'dosen_pembimbing2_id' => $validated['dosen_pembimbing2_id'],
-                    'status' => 'pending',
-                ]);
+                $hasil = KomisiHasil::create($hasilData);
 
                 // STEP 7: Commit transaction
                 DB::commit();

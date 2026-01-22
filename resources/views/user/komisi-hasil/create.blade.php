@@ -28,24 +28,12 @@
             box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1) !important;
         }
 
-        /* Trix Editor Customization */
-        trix-editor {
-            border-color: #e2e8f0 !important;
-            border-radius: 0.75rem !important;
-            padding: 1rem !important;
-            background-color: white;
-            min-height: 150px;
-        }
-
-        trix-editor:focus {
-            border-color: #3b82f6 !important;
-            /* blue-500 */
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3) !important;
+        /* Trix Editor Customization - Removed if not needed, but keeping for reference if other pages use it */
+        textarea:focus {
+            border-color: #f97316 !important;
+            /* orange-500 */
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.3) !important;
             outline: none;
-        }
-
-        trix-toolbar .trix-button--icon {
-            border-radius: 0.5rem;
         }
     </style>
 @endpush
@@ -75,6 +63,39 @@
             </div>
         @endif
 
+        {{-- Alert Mode Data --}}
+        @if (isset($eligibility) && $eligibility['has_system_data'])
+            {{-- Mode Sistem: Data dari SK Pembimbing --}}
+            <div class="mb-6 bg-green-50 border-l-4 border-green-500 p-4 rounded-r-lg shadow-sm" role="alert">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="bi bi-check-circle-fill text-2xl text-green-500"></i>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-bold text-green-800">Data Terdeteksi dari Sistem</h3>
+                        <div class="mt-2 text-sm text-green-700">
+                            <p>Data judul skripsi dan dosen pembimbing Anda telah terisi otomatis dari <strong>SK Pembimbing</strong> yang sudah diterbitkan. Data tidak dapat diubah.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @elseif (isset($eligibility) && !$eligibility['has_system_data'])
+            {{-- Mode Legacy: Input Manual --}}
+            <div class="mb-6 bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg shadow-sm" role="alert">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="bi bi-info-circle-fill text-2xl text-blue-500"></i>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-bold text-blue-800">Mode Input Manual</h3>
+                        <div class="mt-2 text-sm text-blue-700">
+                            <p>Anda belum memiliki data SK Pembimbing di sistem. Silakan isi data judul skripsi dan pilih dosen pembimbing secara manual.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
+
         {{-- Alert Error Session --}}
         @if (session('error'))
             <div class="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg flex items-center shadow-sm">
@@ -87,13 +108,18 @@
         <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-100">
 
             {{-- Header --}}
-            <div class="bg-gradient-to-r from-blue-600 to-indigo-700 p-8 text-center text-white relative overflow-hidden">
+            <div class="bg-gradient-to-r from-orange-500 to-orange-600 p-8 text-center text-white relative overflow-hidden">
                 <div class="absolute top-0 left-0 w-full h-full bg-white/10 opacity-20"
                     style="background-image: url('data:image/svg+xml,...');"></div> {{-- Optional Pattern --}}
                 <h4 class="text-2xl md:text-3xl font-bold tracking-tight relative z-10">Formulir Persetujuan Komisi Hasil
                 </h4>
-                <p class="mt-2 text-blue-100 text-sm md:text-base relative z-10 opacity-90">Lengkapi data skripsi dan pilih
-                    dosen pembimbing Anda</p>
+                <p class="mt-2 text-orange-50 text-sm md:text-base relative z-10 opacity-90">
+                    @if (isset($eligibility) && $eligibility['has_system_data'])
+                        Data skripsi dan pembimbing telah terisi otomatis dari SK Pembimbing
+                    @else
+                        Lengkapi data skripsi dan pilih dosen pembimbing Anda
+                    @endif
+                </p>
             </div>
 
             <form action="{{ route('user.komisi-hasil.store') }}" method="POST" id="hasil-form"
@@ -102,8 +128,8 @@
 
                 <!-- Informasi Mahasiswa Section -->
                 <div class="bg-slate-50 p-6 rounded-xl border border-slate-200" data-aos="fade-up" data-aos-delay="200">
-                    <div class="flex items-center mb-5 pb-3 border-b border-slate-200">
-                        <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3">
+                    <div class="flex items-center mb-5 pb-3 border-b border-orange-200">
+                        <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-3">
                             <i class="bi bi-person-circle text-xl"></i>
                         </div>
                         <h5 class="text-lg font-bold text-slate-800">Informasi Mahasiswa</h5>
@@ -127,7 +153,7 @@
                 <div data-aos="fade-up" data-aos-delay="300">
                     <div class="flex items-center mb-4">
                         <div
-                            class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 mr-3">
+                            class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-3">
                             <i class="bi bi-journal-text text-xl"></i>
                         </div>
                         <h5 class="text-lg font-bold text-slate-800">Judul Skripsi</h5>
@@ -138,14 +164,23 @@
                             Judul Lengkap <span class="text-red-500">*</span>
                         </label>
 
-                        <input id="judul_skripsi" type="hidden" name="judul_skripsi" value="{{ old('judul_skripsi') }}">
-                        <trix-editor input="judul_skripsi"
-                            class="trix-content prose max-w-none @error('judul_skripsi') border-red-500 ring-1 ring-red-500 @enderror"
-                            placeholder="Masukkan judul skripsi Anda di sini..."></trix-editor>
-
-                        <p class="mt-2 text-xs text-slate-500 flex items-center">
-                            <i class="bi bi-info-circle mr-1"></i> Pastikan judul sesuai dengan yang disetujui pembimbing.
-                        </p>
+                        @if (isset($eligibility) && $eligibility['has_system_data'])
+                            {{-- Mode Sistem: Readonly --}}
+                            <textarea id="judul_skripsi" name="judul_skripsi" rows="4" readonly
+                                class="w-full px-4 py-3 rounded-xl bg-green-50 border-green-300 text-slate-700 font-medium focus:ring-0 cursor-not-allowed">{{ $eligibility['prefilled_data']['judul_skripsi'] }}</textarea>
+                            <p class="mt-2 text-xs text-green-600 flex items-center">
+                                <i class="bi bi-check-circle-fill mr-1"></i> Data diambil dari SK Pembimbing yang sudah diterbitkan
+                            </p>
+                        @else
+                            {{-- Mode Legacy: Editable --}}
+                            <textarea id="judul_skripsi" name="judul_skripsi" rows="4"
+                                class="w-full px-4 py-3 rounded-xl border-slate-200 focus:border-orange-500 focus:ring focus:ring-orange-200 transition-all duration-200 @error('judul_skripsi') border-red-500 ring-1 ring-red-500 @enderror"
+                                placeholder="Masukkan judul skripsi Anda di sini...">{{ old('judul_skripsi') }}</textarea>
+                            <p class="mt-2 text-xs text-slate-500 flex items-center">
+                                <i class="bi bi-info-circle mr-1"></i> Pastikan judul sesuai dengan yang disetujui pembimbing.
+                            </p>
+                        @endif
+                        
                         @error('judul_skripsi')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
@@ -156,18 +191,47 @@
                 <div data-aos="fade-up" data-aos-delay="400">
                     <div class="flex items-center mb-4">
                         <div
-                            class="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center text-violet-600 mr-3">
+                            class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-3">
                             <i class="bi bi-people-fill text-xl"></i>
                         </div>
                         <h5 class="text-lg font-bold text-slate-800">Dosen Pembimbing</h5>
                     </div>
 
-                    @if (isset($dosens) && $dosens->count() > 0)
-                        <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-6">
-                            <h6 class="text-blue-800 font-bold text-sm mb-2 flex items-center">
+                    @if (isset($eligibility) && $eligibility['has_system_data'])
+                        {{-- Mode Sistem: Readonly dengan data dari SK Pembimbing --}}
+                        <div class="bg-green-50 border border-green-200 rounded-xl p-4 mb-6">
+                            <h6 class="text-green-800 font-bold text-sm mb-2 flex items-center">
+                                <i class="bi bi-check-circle-fill mr-2"></i> Data Pembimbing dari SK Pembimbing
+                            </h6>
+                            <p class="text-sm text-green-700">Data dosen pembimbing telah tersimpan dari SK Pembimbing yang sudah diterbitkan.</p>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Pembimbing 1 - Readonly -->
+                            <div class="group">
+                                <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                    Dosen Pembimbing 1
+                                </label>
+                                <input type="text" value="{{ $eligibility['prefilled_data']['dosen_pembimbing1_name'] ?? 'Tidak tersedia' }}" readonly
+                                    class="w-full px-4 py-3 rounded-xl bg-green-50 border-green-300 text-slate-700 font-medium focus:ring-0 cursor-not-allowed">
+                            </div>
+
+                            <!-- Pembimbing 2 - Readonly -->
+                            <div class="group">
+                                <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                    Dosen Pembimbing 2
+                                </label>
+                                <input type="text" value="{{ $eligibility['prefilled_data']['dosen_pembimbing2_name'] ?? 'Tidak tersedia' }}" readonly
+                                    class="w-full px-4 py-3 rounded-xl bg-green-50 border-green-300 text-slate-700 font-medium focus:ring-0 cursor-not-allowed">
+                            </div>
+                        </div>
+                    @elseif (isset($dosens) && $dosens->count() > 0)
+                        {{-- Mode Legacy: Dropdown untuk pilih manual --}}
+                        <div class="bg-orange-50 border border-orange-100 rounded-xl p-4 mb-6">
+                            <h6 class="text-orange-800 font-bold text-sm mb-2 flex items-center">
                                 <i class="bi bi-lightbulb-fill mr-2"></i> Panduan Pemilihan
                             </h6>
-                            <ul class="list-disc list-inside text-sm text-blue-700 space-y-1 ml-1">
+                            <ul class="list-disc list-inside text-sm text-orange-700 space-y-1 ml-1">
                                 <li>Pilih dosen sesuai bidang penelitian.</li>
                                 <li><strong>Pembimbing 1 & 2 harus berbeda.</strong></li>
                                 <li>Konsultasikan dengan Koordinator Prodi jika ragu.</li>
@@ -247,7 +311,7 @@
                         </a>
 
                         <button type="submit" id="submit-btn"
-                            class="px-8 py-3 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:-translate-y-1 hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 flex items-center justify-center">
+                            class="px-8 py-3 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 hover:-translate-y-1 hover:from-orange-600 hover:to-orange-700 transition-all duration-300 flex items-center justify-center">
                             <i class="bi bi-send-check mr-2"></i>
                             {{ isset($latestHasil) && $latestHasil && $latestHasil->status === 'rejected' ? 'Ajukan Ulang' : 'Kirim Pengajuan' }}
                         </button>
@@ -283,25 +347,37 @@
                 form.addEventListener('submit', function(e) {
                     e.preventDefault();
 
-                    const p1 = $('#dosen_pembimbing1_id').val();
-                    const p2 = $('#dosen_pembimbing2_id').val();
+                    // Check if we're in system mode (dropdowns don't exist)
+                    const p1Element = document.getElementById('dosen_pembimbing1_id');
+                    const p2Element = document.getElementById('dosen_pembimbing2_id');
+                    const isSystemMode = !p1Element || p1Element.readOnly || p1Element.tagName === 'INPUT';
 
-                    if (!p1 || !p2) {
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'Data Belum Lengkap',
-                            text: 'Mohon pilih kedua dosen pembimbing.',
-                            confirmButtonColor: '#4f46e5'
-                        });
-                        return;
+                    // Only validate dropdowns in legacy mode
+                    if (!isSystemMode) {
+                        const p1 = $('#dosen_pembimbing1_id').val();
+                        const p2 = $('#dosen_pembimbing2_id').val();
+
+                        if (!p1 || !p2) {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Data Belum Lengkap',
+                                text: 'Mohon pilih kedua dosen pembimbing.',
+                                confirmButtonColor: '#f97316'
+                            });
+                            return;
+                        }
                     }
+
+                    const confirmText = isSystemMode 
+                        ? "Data akan diambil dari SK Pembimbing yang sudah diterbitkan. Lanjutkan pengajuan?"
+                        : "Apakah data yang Anda masukkan sudah benar?";
 
                     Swal.fire({
                         title: 'Konfirmasi Pengajuan',
-                        text: "Apakah data yang Anda masukkan sudah benar?",
+                        text: confirmText,
                         icon: 'question',
                         showCancelButton: true,
-                        confirmButtonColor: '#4f46e5', // Indigo-600
+                        confirmButtonColor: '#f97316', // Orange-500
                         cancelButtonColor: '#94a3b8', // Slate-400
                         confirmButtonText: 'Ya, Kirim!',
                         cancelButtonText: 'Batal'

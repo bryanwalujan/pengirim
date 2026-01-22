@@ -14,6 +14,8 @@ class KomisiHasil extends Model
         'judul_skripsi',
         'dosen_pembimbing1_id',
         'dosen_pembimbing2_id',
+        'pengajuan_sk_id',
+        'is_manual_input',
         'status',
         'keterangan',
         'file_komisi_hasil',
@@ -30,6 +32,7 @@ class KomisiHasil extends Model
 
     protected $casts = [
         'status' => 'string',
+        'is_manual_input' => 'boolean',
         'tanggal_persetujuan_pembimbing1' => 'datetime',
         'tanggal_persetujuan_pembimbing2' => 'datetime',
         'tanggal_persetujuan_korprodi' => 'datetime',
@@ -50,6 +53,11 @@ class KomisiHasil extends Model
     public function pembimbing2()
     {
         return $this->belongsTo(User::class, 'dosen_pembimbing2_id');
+    }
+
+    public function pengajuanSkPembimbing()
+    {
+        return $this->belongsTo(PengajuanSkPembimbing::class, 'pengajuan_sk_id');
     }
 
     public function penandatanganPembimbing1()
@@ -191,6 +199,59 @@ class KomisiHasil extends Model
             'can_create' => false,
             'reason' => 'Status pengajuan tidak valid.',
             'hasil' => $latestHasil,
+        ];
+    }
+
+    /**
+     * Check eligibility dan prefill data dari SK Pembimbing
+     * 
+     * Skenario:
+     * 1. Jika ada SK Pembimbing selesai -> auto-fill dari sistem
+     * 2. Jika tidak ada -> mode legacy (input manual)
+     */
+    public static function checkEligibility(int $userId): array
+    {
+        // Cari SK Pembimbing dengan status selesai untuk mahasiswa ini
+        $skPembimbing = PengajuanSkPembimbing::where('mahasiswa_id', $userId)
+            ->where('status', PengajuanSkPembimbing::STATUS_SELESAI)
+            ->with(['dosenPembimbing1', 'dosenPembimbing2', 'beritaAcara'])
+            ->latest()
+            ->first();
+        
+        if ($skPembimbing) {
+            // Skenario ideal - data tersedia dari sistem
+            Log::info('Komisi Hasil: Data SK Pembimbing ditemukan', [
+                'user_id' => $userId,
+                'sk_pembimbing_id' => $skPembimbing->id,
+                'judul' => $skPembimbing->judul_skripsi,
+                'ps1' => $skPembimbing->dosenPembimbing1?->name,
+                'ps2' => $skPembimbing->dosenPembimbing2?->name,
+            ]);
+            
+            return [
+                'eligible' => true,
+                'has_system_data' => true,
+                'sk_pembimbing' => $skPembimbing,
+                'prefilled_data' => [
+                    'judul_skripsi' => $skPembimbing->judul_skripsi,
+                    'dosen_pembimbing1_id' => $skPembimbing->dosen_pembimbing_1_id,
+                    'dosen_pembimbing2_id' => $skPembimbing->dosen_pembimbing_2_id,
+                    'dosen_pembimbing1_name' => $skPembimbing->dosenPembimbing1?->name,
+                    'dosen_pembimbing2_name' => $skPembimbing->dosenPembimbing2?->name,
+                ],
+            ];
+        }
+        
+        // Skenario legacy - tidak ada data di sistem
+        Log::info('Komisi Hasil: Mode legacy, mahasiswa input manual', [
+            'user_id' => $userId,
+        ]);
+        
+        return [
+            'eligible' => true,
+            'has_system_data' => false,
+            'sk_pembimbing' => null,
+            'prefilled_data' => null,
         ];
     }
 
