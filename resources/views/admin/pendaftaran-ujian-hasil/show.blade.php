@@ -241,6 +241,17 @@
                                     <i class="bx bx-x-circle me-1"></i> Tolak Pendaftaran
                                 </button>
                             @endif
+
+                            {{-- Tombol Delete --}}
+                            <form action="{{ route('admin.pendaftaran-ujian-hasil.destroy', $pendaftaranUjianHasil) }}" 
+                                  method="POST" class="d-inline"
+                                  onsubmit="return confirm('Apakah Anda yakin ingin menghapus pendaftaran ujian hasil ini? Semua data termasuk file akan dihapus secara permanen. Tindakan ini tidak dapat dibatalkan!');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-outline-danger w-100 mb-2">
+                                    <i class="bx bx-trash me-1"></i> Hapus Pendaftaran
+                                </button>
+                            </form>
                         @endif
 
                         {{-- Download Surat --}}

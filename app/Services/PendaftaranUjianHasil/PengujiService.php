@@ -4,6 +4,7 @@ namespace App\Services\PendaftaranUjianHasil;
 
 use App\Models\BeritaAcaraSeminarProposal;
 use App\Models\PendaftaranUjianHasil;
+use App\Models\PengajuanSkPembimbing;
 use App\Models\PengujiUjianHasil;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -13,6 +14,13 @@ class PengujiService
 {
     /**
      * Get available penguji from Berita Acara Seminar Proposal
+     * Returns structured array with Penguji 1 and Penguji 2
+     * 
+     * Logic:
+     * 1. Get completed Berita Acara for the student
+     * 2. Get Anggota Pembahas from the jadwal
+     * 3. Exclude any pembahas who became PS2 in SK Pembimbing
+     * 4. Return remaining pembahas as potential Penguji 1 & 2
      */
     public function getAvailablePengujiFromBA(int $userId): array
     {
@@ -21,7 +29,7 @@ class PengujiService
             $q->where('user_id', $userId);
         })
         ->where('status', 'selesai')
-        ->where('keputusan', 'Lanjut')
+        ->whereIn('keputusan', ['Ya', 'Ya, dengan perbaikan'])
         ->with(['jadwalSeminarProposal.dosenPenguji'])
         ->latest()
         ->first();
@@ -30,16 +38,47 @@ class PengujiService
             return [];
         }
 
-        // Get penguji from jadwal (excluding pembimbing/ketua)
-        $penguji = $beritaAcara->jadwalSeminarProposal->dosenPenguji
-            ->filter(function ($dosen) {
-                // Only get Anggota Pembahas (the actual penguji)
-                return str_contains($dosen->pivot->posisi, 'Anggota');
-            })
-            ->values()
-            ->toArray();
+        // Get SK Pembimbing (status 'selesai' or active processes that likely assigned PS2)
+        // We exclude rejected ones
+        $skPembimbing = PengajuanSkPembimbing::where('mahasiswa_id', $userId)
+            ->where('status', '!=', 'ditolak')
+            ->latest()
+            ->first();
 
-        return $penguji;
+        // Get ID dosen yang sudah menjadi PS2 (jika ada)
+        $ps2Id = $skPembimbing?->dosen_pembimbing_2_id;
+
+        // Get penguji from jadwal (only Anggota Pembahas, excluding Ketua/Pembimbing)
+        // Also exclude dosen who became PS2 in SK Pembimbing
+        $penguji = $beritaAcara->jadwalSeminarProposal->dosenPenguji
+            ->filter(function ($dosen) use ($ps2Id) {
+                // Only get Anggota Pembahas (the actual penguji) - Case insensitive check
+                if (stripos($dosen->pivot->posisi, 'Anggota') === false) {
+                    return false;
+                }
+                // Exclude dosen yang sudah menjadi PS2 di SK Pembimbing
+                if ($ps2Id && $dosen->id == $ps2Id) {
+                    return false;
+                }
+                return true;
+            })
+            ->values();
+
+        // Return as structured array with positions (max 2 penguji)
+        $result = [];
+        foreach ($penguji as $index => $dosen) {
+            if ($index < 2) { // Only take first 2 as Penguji 1 & 2
+                $result[] = [
+                    'id' => $dosen->id,
+                    'name' => $dosen->name,
+                    'nip' => $dosen->nip ?? null,
+                    'email' => $dosen->email,
+                    'posisi' => 'Penguji ' . ($index + 1)
+                ];
+            }
+        }
+
+        return $result;
     }
 
     /**

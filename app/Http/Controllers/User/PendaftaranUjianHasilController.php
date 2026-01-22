@@ -203,6 +203,39 @@ class PendaftaranUjianHasilController extends Controller
     }
 
     /**
+     * Delete a rejected registration.
+     */
+    public function destroy(PendaftaranUjianHasil $pendaftaran_ujian_hasil)
+    {
+        // Authorization: Only the owner can delete
+        if ($pendaftaran_ujian_hasil->user_id !== Auth::id()) {
+            abort(403, 'Anda tidak memiliki izin untuk menghapus pendaftaran ini.');
+        }
+
+        // Validation: Only rejected registrations can be deleted
+        if (!$pendaftaran_ujian_hasil->canBeDeleted()) {
+            return redirect()
+                ->route('user.pendaftaran-ujian-hasil.index')
+                ->with('error', 'Hanya pendaftaran yang ditolak yang dapat dihapus.');
+        }
+
+        try {
+            // Delete the registration (files will be deleted automatically via model boot method)
+            $pendaftaran_ujian_hasil->delete();
+
+            return redirect()
+                ->route('user.pendaftaran-ujian-hasil.index')
+                ->with('success', 'Pendaftaran ujian hasil berhasil dihapus.');
+        } catch (\Exception $e) {
+            Log::error('Error deleting pendaftaran ujian hasil: ' . $e->getMessage());
+            
+            return redirect()
+                ->route('user.pendaftaran-ujian-hasil.index')
+                ->with('error', 'Terjadi kesalahan saat menghapus pendaftaran.');
+        }
+    }
+
+    /**
      * Download slip UKT file.
      */
     public function downloadSlipUkt(PendaftaranUjianHasil $pendaftaran_ujian_hasil)

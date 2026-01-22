@@ -201,10 +201,28 @@
                                         <small class="text-muted">{{ $item->created_at->format('H:i') }}</small>
                                     </td>
                                     <td class="text-center">
-                                        <a href="{{ route('admin.pendaftaran-ujian-hasil.show', $item) }}"
-                                            class="btn btn-sm btn-info">
-                                            <i class="bx bx-show me-1"></i> Detail
-                                        </a>
+                                        <div class="d-flex justify-content-center gap-1">
+                                            {{-- Detail Button --}}
+                                            <a href="{{ route('admin.pendaftaran-ujian-hasil.show', $item) }}"
+                                                class="btn btn-sm btn-info" data-bs-toggle="tooltip"
+                                                title="Lihat Detail">
+                                                <i class="bx bx-show me-1"></i> Detail
+                                            </a>
+
+                                            {{-- Delete Button (Staff only) --}}
+                                            @can('role', 'staff')
+                                                <form action="{{ route('admin.pendaftaran-ujian-hasil.destroy', $item) }}"
+                                                    method="POST" class="d-inline"
+                                                    onsubmit="return confirm('Apakah Anda yakin ingin menghapus pendaftaran ujian hasil dari {{ $item->user->name }}? Tindakan ini tidak dapat dibatalkan.');">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-sm btn-danger"
+                                                        data-bs-toggle="tooltip" title="Hapus Pendaftaran">
+                                                        <i class="bx bx-trash"></i>
+                                                    </button>
+                                                </form>
+                                            @endcan
+                                        </div>
                                     </td>
                                 </tr>
                             @empty

@@ -292,6 +292,10 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa', 'check.ukt'])->group(fu
             ->name('download.permohonan');
         Route::get('/{pendaftaran_ujian_hasil}/download/slip-ukt', [PendaftaranUjianHasilController::class, 'downloadSlipUkt'])
             ->name('download.slip-ukt');
+
+        // Delete rejected registration
+        Route::delete('/{pendaftaran_ujian_hasil}', [PendaftaranUjianHasilController::class, 'destroy'])
+            ->name('destroy');
     });
 });
 

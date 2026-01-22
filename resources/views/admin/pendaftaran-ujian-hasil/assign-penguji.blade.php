@@ -207,7 +207,15 @@
                                     <div>
                                         <strong class="text-info">Ketentuan Penguji:</strong>
                                         <ul class="mb-0 mt-2 ps-3">
-                                            <li>Penguji 1, 2, dan 3 <strong>wajib</strong> diisi</li>
+                                            @if(count($pengujiFromBA) >= 2)
+                                                <li><strong>Penguji 1 & 2</strong> diambil otomatis dari <strong>Berita Acara Seminar Proposal</strong> (pembahas yang tersisa)</li>
+                                                <li><strong>Penguji 3</strong> adalah dosen utusan fakultas (pilih secara manual)</li>
+                                            @elseif(count($pengujiFromBA) == 1)
+                                                <li><strong>Penguji 1</strong> diambil otomatis dari <strong>Berita Acara Seminar Proposal</strong> (pembahas yang tersisa)</li>
+                                                <li><strong>Penguji 2 & 3</strong> pilih secara manual (salah satu pembahas sudah menjadi pembimbing)</li>
+                                            @else
+                                                <li><strong>Penguji 1, 2, & 3</strong> pilih secara manual (semua pembahas sudah menjadi pembimbing atau tidak ada data BA)</li>
+                                            @endif
                                             <li>Penguji Tambahan bersifat <strong>opsional</strong></li>
                                             <li>Setiap penguji harus <strong>berbeda</strong></li>
                                         </ul>
@@ -217,91 +225,159 @@
 
                             {{-- Penguji Selection Grid --}}
                             <div class="row g-4">
-                                {{-- Penguji 1 --}}
+                                {{-- Penguji 1 - CONDITIONAL: Auto from BA or Manual --}}
                                 <div class="col-12">
-                                    <div class="penguji-card" data-penguji="1">
-                                        <div class="penguji-header">
-                                            <div class="d-flex align-items-center">
-                                                <div class="penguji-number">1</div>
-                                                <div>
-                                                    <h6 class="mb-0">Penguji 1</h6>
-                                                    <small class="text-muted">Ketua Tim Penguji</small>
+                                    @if(isset($pengujiFromBA[0]))
+                                        {{-- READ-ONLY: Penguji 1 from BA --}}
+                                        <div class="penguji-card bg-light" data-penguji="1">
+                                            <div class="penguji-header">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="penguji-number bg-secondary">1</div>
+                                                    <div>
+                                                        <h6 class="mb-0">Penguji 1</h6>
+                                                        <small class="text-muted">Dari Berita Acara Seminar Proposal</small>
+                                                    </div>
+                                                </div>
+                                                <span class="badge bg-secondary">Otomatis</span>
+                                            </div>
+                                            <div class="penguji-body">
+                                                <input type="hidden" name="penguji_1_id" value="{{ $pengujiFromBA[0]['id'] }}">
+                                                <div class="d-flex align-items-center p-3 bg-white rounded border">
+                                                    <div class="avatar avatar-md me-3">
+                                                        <span class="avatar-initial rounded-circle bg-label-primary">
+                                                            {{ strtoupper(substr($pengujiFromBA[0]['name'], 0, 1)) }}
+                                                        </span>
+                                                    </div>
+                                                    <div class="flex-grow-1">
+                                                        <h6 class="mb-0">{{ $pengujiFromBA[0]['name'] }}</h6>
+                                                        <small class="text-muted">
+                                                            NIP: {{ $pengujiFromBA[0]['nip'] ?? '-' }}
+                                                        </small>
+                                                    </div>
+                                                    <i class="bx bx-lock-alt text-muted fs-4"></i>
                                                 </div>
                                             </div>
-                                            <span class="badge bg-danger">Wajib</span>
                                         </div>
-                                        <div class="penguji-body">
-                                            <select class="form-select penguji-select @error('penguji_1_id') is-invalid @enderror" 
-                                                    id="penguji_1_id" name="penguji_1_id" required>
-                                                <option value="">-- Pilih Penguji 1 --</option>
-                                                @foreach ($availableDosen as $dosen)
-                                                    <option value="{{ $dosen->id }}" 
-                                                        data-name="{{ $dosen->name }}"
-                                                        data-nip="{{ $dosen->nip ?? '-' }}"
-                                                        {{ old('penguji_1_id', $currentPenguji['Penguji 1'] ?? (isset($pengujiFromBA[0]) ? $pengujiFromBA[0]['id'] : '')) == $dosen->id ? 'selected' : '' }}>
-                                                        {{ $dosen->name }} {{ $dosen->nip ? '(' . $dosen->nip . ')' : '' }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                            @error('penguji_1_id')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
-                                            <div class="selected-info mt-2" style="display: none;">
-                                                <div class="d-flex align-items-center p-2 bg-primary bg-opacity-10 rounded">
-                                                    <i class="bx bx-check-circle text-primary me-2"></i>
+                                    @else
+                                        {{-- DROPDOWN: Manual selection --}}
+                                        <div class="penguji-card" data-penguji="1">
+                                            <div class="penguji-header">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="penguji-number">1</div>
                                                     <div>
-                                                        <small class="text-muted d-block">Terpilih:</small>
-                                                        <span class="fw-semibold selected-name"></span>
+                                                        <h6 class="mb-0">Penguji 1</h6>
+                                                        <small class="text-muted">Pilih Manual</small>
+                                                    </div>
+                                                </div>
+                                                <span class="badge bg-danger">Wajib</span>
+                                            </div>
+                                            <div class="penguji-body">
+                                                <select class="form-select penguji-select @error('penguji_1_id') is-invalid @enderror" 
+                                                        id="penguji_1_id" name="penguji_1_id" required>
+                                                    <option value="">-- Pilih Penguji 1 --</option>
+                                                    @foreach ($availableDosen as $dosen)
+                                                        <option value="{{ $dosen->id }}" 
+                                                            data-name="{{ $dosen->name }}"
+                                                            data-nip="{{ $dosen->nip ?? '-' }}"
+                                                            {{ old('penguji_1_id', $currentPenguji['Penguji 1'] ?? '') == $dosen->id ? 'selected' : '' }}>
+                                                            {{ $dosen->name }} {{ $dosen->nip ? '(' . $dosen->nip . ')' : '' }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                                @error('penguji_1_id')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                                <div class="selected-info mt-2" style="display: none;">
+                                                    <div class="d-flex align-items-center p-2 bg-primary bg-opacity-10 rounded">
+                                                        <i class="bx bx-check-circle text-primary me-2"></i>
+                                                        <div>
+                                                            <small class="text-muted d-block">Terpilih:</small>
+                                                            <span class="fw-semibold selected-name"></span>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    @endif
                                 </div>
 
-                                {{-- Penguji 2 --}}
+                                {{-- Penguji 2 - CONDITIONAL: Auto from BA or Manual --}}
                                 <div class="col-12">
-                                    <div class="penguji-card" data-penguji="2">
-                                        <div class="penguji-header">
-                                            <div class="d-flex align-items-center">
-                                                <div class="penguji-number">2</div>
-                                                <div>
-                                                    <h6 class="mb-0">Penguji 2</h6>
-                                                    <small class="text-muted">Anggota Tim Penguji</small>
+                                    @if(isset($pengujiFromBA[1]))
+                                        {{-- READ-ONLY: Penguji 2 from BA --}}
+                                        <div class="penguji-card bg-light" data-penguji="2">
+                                            <div class="penguji-header">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="penguji-number bg-secondary">2</div>
+                                                    <div>
+                                                        <h6 class="mb-0">Penguji 2</h6>
+                                                        <small class="text-muted">Dari Berita Acara Seminar Proposal</small>
+                                                    </div>
+                                                </div>
+                                                <span class="badge bg-secondary">Otomatis</span>
+                                            </div>
+                                            <div class="penguji-body">
+                                                <input type="hidden" name="penguji_2_id" value="{{ $pengujiFromBA[1]['id'] }}">
+                                                <div class="d-flex align-items-center p-3 bg-white rounded border">
+                                                    <div class="avatar avatar-md me-3">
+                                                        <span class="avatar-initial rounded-circle bg-label-primary">
+                                                            {{ strtoupper(substr($pengujiFromBA[1]['name'], 0, 1)) }}
+                                                        </span>
+                                                    </div>
+                                                    <div class="flex-grow-1">
+                                                        <h6 class="mb-0">{{ $pengujiFromBA[1]['name'] }}</h6>
+                                                        <small class="text-muted">
+                                                            NIP: {{ $pengujiFromBA[1]['nip'] ?? '-' }}
+                                                        </small>
+                                                    </div>
+                                                    <i class="bx bx-lock-alt text-muted fs-4"></i>
                                                 </div>
                                             </div>
-                                            <span class="badge bg-danger">Wajib</span>
                                         </div>
-                                        <div class="penguji-body">
-                                            <select class="form-select penguji-select @error('penguji_2_id') is-invalid @enderror" 
-                                                    id="penguji_2_id" name="penguji_2_id" required>
-                                                <option value="">-- Pilih Penguji 2 --</option>
-                                                @foreach ($availableDosen as $dosen)
-                                                    <option value="{{ $dosen->id }}"
-                                                        data-name="{{ $dosen->name }}"
-                                                        data-nip="{{ $dosen->nip ?? '-' }}"
-                                                        {{ old('penguji_2_id', $currentPenguji['Penguji 2'] ?? (isset($pengujiFromBA[1]) ? $pengujiFromBA[1]['id'] : '')) == $dosen->id ? 'selected' : '' }}>
-                                                        {{ $dosen->name }} {{ $dosen->nip ? '(' . $dosen->nip . ')' : '' }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                            @error('penguji_2_id')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
-                                            <div class="selected-info mt-2" style="display: none;">
-                                                <div class="d-flex align-items-center p-2 bg-primary bg-opacity-10 rounded">
-                                                    <i class="bx bx-check-circle text-primary me-2"></i>
+                                    @else
+                                        {{-- DROPDOWN: Manual selection --}}
+                                        <div class="penguji-card" data-penguji="2">
+                                            <div class="penguji-header">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="penguji-number">2</div>
                                                     <div>
-                                                        <small class="text-muted d-block">Terpilih:</small>
-                                                        <span class="fw-semibold selected-name"></span>
+                                                        <h6 class="mb-0">Penguji 2</h6>
+                                                        <small class="text-muted">Pilih Manual</small>
+                                                    </div>
+                                                </div>
+                                                <span class="badge bg-danger">Wajib</span>
+                                            </div>
+                                            <div class="penguji-body">
+                                                <select class="form-select penguji-select @error('penguji_2_id') is-invalid @enderror" 
+                                                        id="penguji_2_id" name="penguji_2_id" required>
+                                                    <option value="">-- Pilih Penguji 2 --</option>
+                                                    @foreach ($availableDosen as $dosen)
+                                                        <option value="{{ $dosen->id }}" 
+                                                            data-name="{{ $dosen->name }}"
+                                                            data-nip="{{ $dosen->nip ?? '-' }}"
+                                                            {{ old('penguji_2_id', $currentPenguji['Penguji 2'] ?? '') == $dosen->id ? 'selected' : '' }}>
+                                                            {{ $dosen->name }} {{ $dosen->nip ? '(' . $dosen->nip . ')' : '' }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                                @error('penguji_2_id')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                                <div class="selected-info mt-2" style="display: none;">
+                                                    <div class="d-flex align-items-center p-2 bg-primary bg-opacity-10 rounded">
+                                                        <i class="bx bx-check-circle text-primary me-2"></i>
+                                                        <div>
+                                                            <small class="text-muted d-block">Terpilih:</small>
+                                                            <span class="fw-semibold selected-name"></span>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    @endif
                                 </div>
 
-                                {{-- Penguji 3 --}}
+                                {{-- Penguji 3 - MANUAL SELECTION (Dosen Utusan Fakultas) --}}
                                 <div class="col-12">
                                     <div class="penguji-card" data-penguji="3">
                                         <div class="penguji-header">
@@ -309,7 +385,7 @@
                                                 <div class="penguji-number">3</div>
                                                 <div>
                                                     <h6 class="mb-0">Penguji 3</h6>
-                                                    <small class="text-muted">Anggota Tim Penguji</small>
+                                                    <small class="text-muted">Dosen Utusan Fakultas</small>
                                                 </div>
                                             </div>
                                             <span class="badge bg-danger">Wajib</span>
@@ -402,7 +478,7 @@
                                     <i class="bx bx-arrow-back me-1"></i> Batal
                                 </a>
                                 <button type="submit" class="btn btn-primary btn-lg">
-                                    <i class="bx bx-check me-1"></i> Simpan Tim Penguji
+                                    <i class="bx bx-check me-1"></i> Simpan Penguji
                                 </button>
                             </div>
                         </form>
@@ -415,9 +491,6 @@
                         <h5 class="card-title mb-0">
                             <i class="bx bx-list-ul me-1"></i>Daftar Beban Dosen Penguji
                         </h5>
-                        <button type="button" class="btn btn-sm btn-label-primary" id="btnRefreshStats">
-                            <i class="bx bx-refresh"></i>
-                        </button>
                     </div>
                     <div class="table-responsive">
                         <table class="table table-hover" id="tableStatistics">
@@ -532,8 +605,20 @@
 
             function validateDuplicates() {
                 const selectedValues = [];
-                const selectsArray = Array.from(selects);
                 
+                // Get Penguji 1 & 2 from hidden inputs
+                const penguji1Input = document.querySelector('input[name="penguji_1_id"]');
+                const penguji2Input = document.querySelector('input[name="penguji_2_id"]');
+                
+                if (penguji1Input && penguji1Input.value) {
+                    selectedValues.push(penguji1Input.value);
+                }
+                if (penguji2Input && penguji2Input.value) {
+                    selectedValues.push(penguji2Input.value);
+                }
+                
+                // Get Penguji 3 and Tambahan from selects
+                const selectsArray = Array.from(selects);
                 selectsArray.forEach(s => {
                     if (s.value) selectedValues.push(s.value);
                 });
@@ -563,9 +648,23 @@
             // Form submission validation
             const form = document.getElementById('assignPengujiForm');
             form.addEventListener('submit', function(e) {
-                const penguji1 = document.getElementById('penguji_1_id').value;
-                const penguji2 = document.getElementById('penguji_2_id').value;
-                const penguji3 = document.getElementById('penguji_3_id').value;
+                // Get values from hidden inputs OR select elements (flexible for Penguji 1 & 2)
+                let penguji1 = '';
+                let penguji2 = '';
+                
+                // Check for Penguji 1 (hidden input or select)
+                const penguji1Input = document.querySelector('input[name="penguji_1_id"]');
+                const penguji1Select = document.getElementById('penguji_1_id');
+                penguji1 = penguji1Input ? penguji1Input.value : (penguji1Select ? penguji1Select.value : '');
+                
+                // Check for Penguji 2 (hidden input or select)
+                const penguji2Input = document.querySelector('input[name="penguji_2_id"]');
+                const penguji2Select = document.getElementById('penguji_2_id');
+                penguji2 = penguji2Input ? penguji2Input.value : (penguji2Select ? penguji2Select.value : '');
+                
+                // Penguji 3 is always a select
+                const penguji3Select = document.getElementById('penguji_3_id');
+                const penguji3 = penguji3Select ? penguji3Select.value : '';
                 
                 if (!penguji1 || !penguji2 || !penguji3) {
                     e.preventDefault();
@@ -573,6 +672,25 @@
                         icon: 'warning',
                         title: 'Data Belum Lengkap',
                         text: 'Penguji 1, 2, dan 3 wajib diisi!',
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#696cff'
+                    });
+                    return false;
+                }
+                
+                // Check duplicates one more time
+                const allValues = [penguji1, penguji2, penguji3];
+                const pengujiTambahan = document.getElementById('penguji_tambahan_id');
+                if (pengujiTambahan && pengujiTambahan.value) {
+                    allValues.push(pengujiTambahan.value);
+                }
+                
+                if (allValues.length !== new Set(allValues).size) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Penguji Duplikat',
+                        text: 'Terdapat penguji yang sama. Setiap penguji harus berbeda.',
                         confirmButtonText: 'OK',
                         confirmButtonColor: '#696cff'
                     });

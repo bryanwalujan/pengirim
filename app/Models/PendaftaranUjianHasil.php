@@ -164,6 +164,11 @@ class PendaftaranUjianHasil extends Model
         return $this->isDitolak();
     }
 
+    public function canBeDeleted(): bool
+    {
+        return $this->isDitolak();
+    }
+
     public function hasAlasanPenolakan(): bool
     {
         return !empty($this->alasan_penolakan);
@@ -228,7 +233,7 @@ class PendaftaranUjianHasil extends Model
             ];
         }
 
-        // Check for existing registration
+        // Check for existing registration (exclude rejected ones)
         $existingRegistration = self::where('user_id', $userId)
             ->where('komisi_hasil_id', $komisiHasil->id)
             ->whereIn('status', [
@@ -237,21 +242,11 @@ class PendaftaranUjianHasil extends Model
                 'surat_diproses',
                 'menunggu_ttd_kaprodi',
                 'menunggu_ttd_kajur',
-                'selesai',
-                'ditolak'
+                'selesai'
             ])
             ->first();
 
         if ($existingRegistration) {
-            if ($existingRegistration->status === 'ditolak') {
-                return [
-                    'eligible' => false,
-                    'message' => 'Pendaftaran ujian hasil Anda telah ditolak. Anda harus membuat Komisi Hasil baru dengan revisi terlebih dahulu.',
-                    'komisi' => $komisiHasil,
-                    'rejected_registration' => $existingRegistration,
-                ];
-            }
-
             return [
                 'eligible' => false,
                 'message' => 'Anda sudah mendaftar ujian hasil dengan Komisi Hasil yang disetujui.',

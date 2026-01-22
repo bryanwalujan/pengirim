@@ -99,10 +99,46 @@ class AdminSkPembimbingController extends Controller
     {
         $this->authorizeStaff();
 
+        // Load berita acara dengan relasi yang diperlukan
+        $pengajuan->load([
+            'beritaAcara.jadwalSeminarProposal.pendaftaranSeminarProposal.dosenPembimbing',
+            'beritaAcara.jadwalSeminarProposal.dosenPenguji'
+        ]);
+
+        // Validasi: Pastikan ada berita acara
+        if (!$pengajuan->beritaAcara || !$pengajuan->beritaAcara->jadwalSeminarProposal) {
+            return back()->with('error', 'Pengajuan ini tidak memiliki berita acara seminar proposal. Tidak dapat menentukan pembimbing.');
+        }
+
+        $jadwal = $pengajuan->beritaAcara->jadwalSeminarProposal;
+        $pendaftaran = $jadwal->pendaftaranSeminarProposal;
+
+        // Kumpulkan ID dosen yang eligible (dari berita acara)
+        $eligibleDosenIds = collect();
+
+        // 1. Tambahkan dosen pembimbing awal (dari pendaftaran seminar proposal)
+        if ($pendaftaran && $pendaftaran->dosen_pembimbing_id) {
+            $eligibleDosenIds->push($pendaftaran->dosen_pembimbing_id);
+        }
+
+        // 2. Tambahkan semua dosen penguji (pembahas + ketua)
+        $dosenPengujiIds = $jadwal->dosenPenguji()->pluck('users.id');
+        $eligibleDosenIds = $eligibleDosenIds->merge($dosenPengujiIds);
+
+        // Hapus duplikat
+        $eligibleDosenIds = $eligibleDosenIds->unique()->values();
+
+        // Validasi: Pastikan ada dosen yang eligible
+        if ($eligibleDosenIds->isEmpty()) {
+            return back()->with('error', 'Tidak ada dosen yang terdaftar di berita acara seminar proposal mahasiswa ini.');
+        }
+
         $tahunAjaranId = TahunAjaran::where('status_aktif', true)->value('id');
 
+        // Filter dosen list hanya untuk dosen yang eligible
         $dosenList = User::role('dosen')
             ->select('id', 'name', 'nip')
+            ->whereIn('id', $eligibleDosenIds)
             ->with(['statistikPembimbing' => fn($q) => $q->forTahunAjaran($tahunAjaranId)])
             ->orderBy('name')
             ->get()
@@ -116,10 +152,7 @@ class AdminSkPembimbingController extends Controller
                     ($dosen->statistikPembimbing->first()?->jumlah_ps2 ?? 0),
             ]);
 
-        $defaultPs1 = $pengajuan->beritaAcara
-            ?->jadwalSeminarProposal
-            ?->pendaftaranSeminarProposal
-                ?->dosen_pembimbing_id ?? null;
+        $defaultPs1 = $pendaftaran?->dosen_pembimbing_id ?? null;
 
         $nextNomor = $this->getNextNomorSurat();
         $lastNomor = $this->getLastUsedNomorSurat();
@@ -133,7 +166,7 @@ class AdminSkPembimbingController extends Controller
             'year' => $academicYearId,
         ];
 
-        return view('admin.sk-pembimbing.assign-pembimbing', compact('pengajuan', 'dosenList', 'defaultPs1', 'nomorSuratInfo'));
+        return view('admin.sk-pembimbing.assign-pembimbing', compact('pengajuan', 'dosenList', 'defaultPs1', 'nomorSuratInfo', 'eligibleDosenIds'));
     }
 
     /**

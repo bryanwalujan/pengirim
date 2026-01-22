@@ -472,6 +472,9 @@ class PengajuanSkPembimbing extends Model
 
         // Clean up files on delete
         static::deleting(function (self $model) {
+            // Decrement statistik pembimbing if pengajuan was completed
+            StatistikPembimbingSkripsi::decrementFromPengajuan($model);
+
             $files = array_filter([
                 $model->file_surat_permohonan,
                 $model->file_slip_ukt,

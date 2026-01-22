@@ -41,6 +41,42 @@ class AssignPembimbingRequest extends FormRequest
                     $validator->errors()->add('dosen_pembimbing_2_id', 'PS2 harus dosen.');
                 }
             }
+
+            // Validate PS1 and PS2 are from berita acara
+            $pengajuan = $this->route('pengajuan');
+            if ($pengajuan) {
+                $pengajuan->load([
+                    'beritaAcara.jadwalSeminarProposal.pendaftaranSeminarProposal',
+                    'beritaAcara.jadwalSeminarProposal.dosenPenguji'
+                ]);
+
+                if ($pengajuan->beritaAcara && $pengajuan->beritaAcara->jadwalSeminarProposal) {
+                    $jadwal = $pengajuan->beritaAcara->jadwalSeminarProposal;
+                    $pendaftaran = $jadwal->pendaftaranSeminarProposal;
+
+                    // Kumpulkan ID dosen yang eligible
+                    $eligibleDosenIds = collect();
+
+                    // Dosen pembimbing awal
+                    if ($pendaftaran && $pendaftaran->dosen_pembimbing_id) {
+                        $eligibleDosenIds->push($pendaftaran->dosen_pembimbing_id);
+                    }
+
+                    // Dosen penguji
+                    $dosenPengujiIds = $jadwal->dosenPenguji()->pluck('users.id');
+                    $eligibleDosenIds = $eligibleDosenIds->merge($dosenPengujiIds)->unique();
+
+                    // Validasi PS1
+                    if ($this->dosen_pembimbing_1_id && !$eligibleDosenIds->contains($this->dosen_pembimbing_1_id)) {
+                        $validator->errors()->add('dosen_pembimbing_1_id', 'PS1 harus dipilih dari dosen yang ada di berita acara seminar proposal mahasiswa ini.');
+                    }
+
+                    // Validasi PS2
+                    if ($this->dosen_pembimbing_2_id && !$eligibleDosenIds->contains($this->dosen_pembimbing_2_id)) {
+                        $validator->errors()->add('dosen_pembimbing_2_id', 'PS2 harus dipilih dari dosen yang ada di berita acara seminar proposal mahasiswa ini.');
+                    }
+                }
+            }
         });
     }
 }

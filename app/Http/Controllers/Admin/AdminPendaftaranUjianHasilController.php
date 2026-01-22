@@ -111,10 +111,10 @@ class AdminPendaftaranUjianHasilController extends Controller
             'pengujiUjianHasil.dosen',
         ]);
 
-        // Get available penguji from Berita Acara
+        // Get available penguji from Berita Acara (Penguji 1 & 2)
         $pengujiFromBA = $this->pengujiService->getAvailablePengujiFromBA($pendaftaranUjianHasil->user_id);
 
-        // Get all available dosen for additional penguji
+        // Get all available dosen for Penguji 3 (and Penguji 1/2 if needed)
         $availableDosen = $this->pengujiService->getAvailableDosen($pendaftaranUjianHasil);
 
         // Get current penguji if any

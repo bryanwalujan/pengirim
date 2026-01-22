@@ -118,7 +118,60 @@ class StatistikPembimbingSkripsi extends Model
         )->increment('jumlah_ps2');
     }
 
+    /**
+     * Decrement PS1 count for dosen
+     */
+    public static function decrementPs1(int $dosenId, int $tahunAjaranId): void
+    {
+        $statistik = self::where('dosen_id', $dosenId)
+            ->where('tahun_ajaran_id', $tahunAjaranId)
+            ->first();
 
+        if ($statistik && $statistik->jumlah_ps1 > 0) {
+            $statistik->decrement('jumlah_ps1');
+        }
+    }
+
+    /**
+     * Decrement PS2 count for dosen
+     */
+    public static function decrementPs2(int $dosenId, int $tahunAjaranId): void
+    {
+        $statistik = self::where('dosen_id', $dosenId)
+            ->where('tahun_ajaran_id', $tahunAjaranId)
+            ->first();
+
+        if ($statistik && $statistik->jumlah_ps2 > 0) {
+            $statistik->decrement('jumlah_ps2');
+        }
+    }
+
+    /**
+     * Decrement statistik when pengajuan is deleted
+     */
+    public static function decrementFromPengajuan(PengajuanSkPembimbing $pengajuan): void
+    {
+        // Only decrement if the pengajuan was completed (selesai)
+        if (!$pengajuan->isSelesai()) {
+            return;
+        }
+
+        $tahunAjaran = TahunAjaran::where('status_aktif', true)->first();
+
+        if (!$tahunAjaran) {
+            return;
+        }
+
+        // Decrement PS1
+        if ($pengajuan->dosen_pembimbing_1_id) {
+            self::decrementPs1($pengajuan->dosen_pembimbing_1_id, $tahunAjaran->id);
+        }
+
+        // Decrement PS2
+        if ($pengajuan->dosen_pembimbing_2_id) {
+            self::decrementPs2($pengajuan->dosen_pembimbing_2_id, $tahunAjaran->id);
+        }
+    }
 
     /**
      * Get dashboard statistics

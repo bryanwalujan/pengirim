@@ -148,14 +148,34 @@
                                     <span>Ditolak pada: <strong
                                             class="text-gray-700">{{ $pendaftaran->tanggal_penolakan }}</strong></span>
                                 </div>
-                                <a href="{{ route('user.pendaftaran-ujian-hasil.create') }}"
-                                    class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-xl shadow-md hover:shadow-lg transition-all">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                    </svg>
-                                    Ajukan Ulang
-                                </a>
+                                <div class="flex flex-col sm:flex-row gap-2">
+                                    {{-- Delete Button --}}
+                                    <form action="{{ route('user.pendaftaran-ujian-hasil.destroy', $pendaftaran->id) }}"
+                                        method="POST" class="inline-block"
+                                        onsubmit="return confirm('Apakah Anda yakin ingin menghapus pendaftaran ini? Tindakan ini tidak dapat dibatalkan.');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit"
+                                            class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gray-600 hover:bg-gray-700 text-white text-sm font-semibold rounded-xl shadow-md hover:shadow-lg transition-all w-full sm:w-auto">
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd"
+                                                    d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                                                    clip-rule="evenodd" />
+                                            </svg>
+                                            Hapus Pendaftaran
+                                        </button>
+                                    </form>
+
+                                    {{-- Resubmit Button --}}
+                                    <a href="{{ route('user.pendaftaran-ujian-hasil.create') }}"
+                                        class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-xl shadow-md hover:shadow-lg transition-all w-full sm:w-auto">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                        </svg>
+                                        Ajukan Ulang
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
