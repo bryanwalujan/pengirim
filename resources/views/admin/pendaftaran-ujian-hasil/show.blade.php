@@ -192,23 +192,33 @@
                     </div>
                     <div class="card-body">
                          {{-- TTD KAPRODI --}}
-                        @if ($pendaftaranUjianHasil->suratUsulanSkripsi && $pendaftaranUjianHasil->suratUsulanSkripsi->canBeSignedByKaprodi(auth()->user()))
-                            <form action="{{ route('admin.pendaftaran-ujian-hasil.ttd-kaprodi', $pendaftaranUjianHasil) }}" method="POST" class="mb-2">
-                                @csrf
-                                <button type="submit" class="btn btn-success w-100" onclick="return confirm('Yakin ingin menandatangani sebagai Korprodi?')">
-                                    <i class="bx bx-pen me-1"></i> Tanda Tangan Korprodi
-                                </button>
-                            </form>
+                        @if ($pendaftaranUjianHasil->suratUsulanSkripsi && 
+                             $pendaftaranUjianHasil->suratUsulanSkripsi->status === 'menunggu_ttd_kaprodi' &&
+                             (auth()->user()->isKoordinatorProdi() || auth()->user()->hasRole('staff')))
+                            <button type="button" class="btn {{ auth()->user()->hasRole('staff') && !auth()->user()->isKoordinatorProdi() ? 'btn-warning' : 'btn-success' }} w-100 mb-2" 
+                                    data-bs-toggle="modal" data-bs-target="#ttdKaprodiModal">
+                                <i class="bx {{ auth()->user()->hasRole('staff') && !auth()->user()->isKoordinatorProdi() ? 'bx-shield-alt' : 'bx-pen' }} me-1"></i> 
+                                @if(auth()->user()->hasRole('staff') && !auth()->user()->isKoordinatorProdi())
+                                    Override TTD Korprodi
+                                @else
+                                    Tanda Tangan Korprodi
+                                @endif
+                            </button>
                         @endif
 
                         {{-- TTD KAJUR --}}
-                        @if ($pendaftaranUjianHasil->suratUsulanSkripsi && $pendaftaranUjianHasil->suratUsulanSkripsi->canBeSignedByKajur(auth()->user()))
-                            <form action="{{ route('admin.pendaftaran-ujian-hasil.ttd-kajur', $pendaftaranUjianHasil) }}" method="POST" class="mb-2">
-                                @csrf
-                                <button type="submit" class="btn btn-primary w-100" onclick="return confirm('Yakin ingin menandatangani sebagai Kajur?')">
-                                    <i class="bx bx-pen me-1"></i> Tanda Tangan Kajur
-                                </button>
-                            </form>
+                        @if ($pendaftaranUjianHasil->suratUsulanSkripsi && 
+                             $pendaftaranUjianHasil->suratUsulanSkripsi->status === 'menunggu_ttd_kajur' &&
+                             (auth()->user()->isKetuaJurusan() || auth()->user()->hasRole('staff')))
+                            <button type="button" class="btn {{ auth()->user()->hasRole('staff') && !auth()->user()->isKetuaJurusan() ? 'btn-warning' : 'btn-primary' }} w-100 mb-2" 
+                                    data-bs-toggle="modal" data-bs-target="#ttdKajurModal">
+                                <i class="bx {{ auth()->user()->hasRole('staff') && !auth()->user()->isKetuaJurusan() ? 'bx-shield-alt' : 'bx-pen' }} me-1"></i> 
+                                @if(auth()->user()->hasRole('staff') && !auth()->user()->isKetuaJurusan())
+                                    Override TTD Kajur
+                                @else
+                                    Tanda Tangan Kajur
+                                @endif
+                            </button>
                         @endif
 
                         {{-- STAFF ONLY ACTIONS --}}
@@ -227,7 +237,7 @@
                             @endif
                             
                             @if ($pendaftaranUjianHasil->hasPengujiAssigned() && !$pendaftaranUjianHasil->suratUsulanSkripsi)
-                                <form action="{{ route('admin.pendaftaran-ujian-hasil.reset-penguji', $pendaftaranUjianHasil) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin mereset penguji?')" >
+                                <form action="{{ route('admin.pendaftaran-ujian-hasil.reset-penguji', $pendaftaranUjianHasil) }}" method="POST" class="d-inline form-confirm-reset-penguji">
                                     @csrf
                                     <button type="submit" class="btn btn-warning w-100 mb-2">
                                         <i class="bx bx-reset me-1"></i> Reset Penguji
@@ -244,8 +254,7 @@
 
                             {{-- Tombol Delete --}}
                             <form action="{{ route('admin.pendaftaran-ujian-hasil.destroy', $pendaftaranUjianHasil) }}" 
-                                  method="POST" class="d-inline"
-                                  onsubmit="return confirm('Apakah Anda yakin ingin menghapus pendaftaran ujian hasil ini? Semua data termasuk file akan dihapus secara permanen. Tindakan ini tidak dapat dibatalkan!');">
+                                  method="POST" class="d-inline form-confirm-delete">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn btn-outline-danger w-100 mb-2">
@@ -521,11 +530,18 @@
                             <h5 class="card-title mb-0">
                                 <i class="bx bx-user-check me-2"></i>Tim Penguji
                             </h5>
-                            @if ($pendaftaranUjianHasil->tanggal_penentuan_penguji)
-                                <small class="text-muted">
-                                    Ditentukan: {{ \Carbon\Carbon::parse($pendaftaranUjianHasil->tanggal_penentuan_penguji)->format('d M Y') }}
-                                </small>
-                            @endif
+                            <div class="d-flex align-items-center gap-2">
+                                @if ($pendaftaranUjianHasil->tanggal_penentuan_penguji)
+                                    <small class="text-muted">
+                                        Ditentukan: {{ \Carbon\Carbon::parse($pendaftaranUjianHasil->tanggal_penentuan_penguji)->format('d M Y') }}
+                                    </small>
+                                @endif
+                                {{-- Status Dosen Button --}}
+                                <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal"
+                                    data-bs-target="#modalDosenStatus" title="Lihat Status Beban Dosen">
+                                    <i class="bx bx-list-ul me-1"></i> Status Dosen
+                                </button>
+                            </div>
                         </div>
                         <div class="card-body">
                             <div class="row g-3">
@@ -608,47 +624,119 @@
 
     {{-- Generate Surat Modal --}}
     @if (auth()->user()->hasRole('staff') && $pendaftaranUjianHasil->canGenerateSurat() && !$pendaftaranUjianHasil->suratUsulanSkripsi)
-        <div class="modal fade" id="generateSuratModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog">
+        <div class="modal fade" id="generateSuratModal" tabindex="-1" aria-labelledby="generateSuratModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">
+                        <h5 class="modal-title" id="generateSuratModalLabel">
                             <i class="bx bx-file me-2"></i>Generate Surat Usulan Skripsi
                         </h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <form action="{{ route('admin.pendaftaran-ujian-hasil.generate-surat', $pendaftaranUjianHasil) }}" method="POST">
+                    <form action="{{ route('admin.pendaftaran-ujian-hasil.generate-surat', $pendaftaranUjianHasil) }}" method="POST"
+                        id="generateSuratForm">
                         @csrf
                         <div class="modal-body">
-                            <div class="mb-3">
-                                <label class="form-label">Nomor Surat</label>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="nomor_surat_type" 
-                                           id="nomor_auto" value="auto" checked>
-                                    <label class="form-check-label" for="nomor_auto">
-                                        Otomatis (Gunakan nomor urut berikutnya)
-                                    </label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="nomor_surat_type" 
-                                           id="nomor_custom" value="custom">
-                                    <label class="form-check-label" for="nomor_custom">
-                                        Custom (Tentukan nomor sendiri)
-                                    </label>
+                            {{-- Info Section --}}
+                            <div class="alert alert-info mb-4">
+                                <div class="d-flex">
+                                    <i class="bx bx-info-circle fs-4 me-2"></i>
+                                    <div>
+                                        <strong>Informasi</strong>
+                                        <p class="mb-0 small">Surat usulan skripsi akan digenerate dengan nomor surat yang ditentukan di bawah ini.</p>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="mb-3" id="customNomorWrapper" style="display: none;">
-                                <label class="form-label" for="custom_nomor_surat">Nomor Surat (1-4 digit)</label>
-                                <input type="text" class="form-control" id="custom_nomor_surat" 
-                                       name="custom_nomor_surat" maxlength="4" pattern="[0-9]{1,4}"
-                                       placeholder="Contoh: 123">
-                                <small class="form-text text-muted">Masukkan hanya angka, 1-4 digit.</small>
+
+                            {{-- Nomor Surat Section --}}
+                            <div class="mb-4">
+                                <label class="form-label fw-semibold">Nomor Surat</label>
+
+                                {{-- Radio Options --}}
+                                <div class="mb-3">
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="radio" name="nomor_surat_type"
+                                            id="nomorSuratAuto" value="auto" checked>
+                                        <label class="form-check-label" for="nomorSuratAuto">
+                                            <strong>Otomatis</strong>
+                                            <span class="text-muted d-block small">Sistem akan generate nomor surat secara otomatis</span>
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="nomor_surat_type"
+                                            id="nomorSuratCustom" value="custom">
+                                        <label class="form-check-label" for="nomorSuratCustom">
+                                            <strong>Custom</strong>
+                                            <span class="text-muted d-block small">Tentukan nomor surat sendiri</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                {{-- Auto Nomor Preview --}}
+                                <div id="autoNomorPreview" class="p-3 bg-lighter rounded mb-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <small class="text-muted d-block">Nomor Surat Berikutnya:</small>
+                                            <code class="fs-6" id="nextNomorSurat">{{ $nomorSuratInfo['next_nomor'] ?? '-' }}</code>
+                                        </div>
+                                    </div>
+                                    @if (isset($nomorSuratInfo['last_nomor']) && $nomorSuratInfo['last_nomor'])
+                                        <div class="mt-2 pt-2 border-top">
+                                            <small class="text-muted">
+                                                <i class="bx bx-history me-1"></i>
+                                                Terakhir: <code>{{ $nomorSuratInfo['last_nomor'] }}</code>
+                                            </small>
+                                        </div>
+                                    @endif
+                                </div>
+
+                                {{-- Custom Nomor Input --}}
+                                <div id="customNomorSection" style="display: none;">
+                                    <div class="input-group mb-2">
+                                        <input type="text" class="form-control" id="customNomorSurat"
+                                            name="custom_nomor_surat" placeholder="Masukkan nomor (1-4 digit)" maxlength="4"
+                                            pattern="\d{1,4}">
+                                        <span class="input-group-text">/{{ $nomorSuratInfo['prefix'] ?? 'UN41.2/TI' }}/{{ date('Y') }}</span>
+                                        <button type="button" class="btn btn-outline-secondary" id="validateNomorBtn">
+                                            <i class="bx bx-check"></i> Validasi
+                                        </button>
+                                    </div>
+                                    <div id="customNomorFeedback" class="small"></div>
+                                    <div id="customNomorPreview" class="mt-2 p-2 bg-lighter rounded" style="display: none;">
+                                        <small class="text-muted">Preview: </small>
+                                        <code id="customNomorPreviewText"></code>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Summary --}}
+                            <div class="border rounded p-3 bg-light">
+                                <h6 class="mb-3"><i class="bx bx-list-check me-1"></i> Ringkasan</h6>
+                                <div class="row g-2 small">
+                                    <div class="col-5 text-muted">Mahasiswa:</div>
+                                    <div class="col-7 fw-medium">{{ $pendaftaranUjianHasil->user->name }}</div>
+
+                                    <div class="col-5 text-muted">NIM:</div>
+                                    <div class="col-7 fw-medium">{{ $pendaftaranUjianHasil->user->nim }}</div>
+
+                                    <div class="col-5 text-muted">Judul:</div>
+                                    <div class="col-7 fw-medium text-truncate" title="{{ $pendaftaranUjianHasil->judul_skripsi }}">
+                                        {{ Str::limit(strip_tags($pendaftaranUjianHasil->judul_skripsi), 50) }}
+                                    </div>
+
+                                    <div class="col-5 text-muted">Penguji:</div>
+                                    <div class="col-7 fw-medium">
+                                        {{ $pendaftaranUjianHasil->pengujiUjianHasil->count() }} Penguji
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
-                            <button type="submit" class="btn btn-success">
-                                <i class="bx bx-check me-1"></i> Generate Surat
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                                <i class="bx bx-x me-1"></i> Batal
+                            </button>
+                            <button type="submit" class="btn btn-success" id="generateSuratBtn">
+                                <i class="bx bx-file me-1"></i> Generate Surat
                             </button>
                         </div>
                     </form>
@@ -692,6 +780,13 @@
             </div>
         </div>
     @endif
+
+    {{-- Include Dosen Status Modal --}}
+    @include('admin.pendaftaran-ujian-hasil.dosen-status-modal')
+
+    {{-- Include TTD Modals --}}
+    @include('admin.pendaftaran-ujian-hasil.modals.ttd-kaprodi')
+    @include('admin.pendaftaran-ujian-hasil.modals.ttd-kajur')
 
 @endsection
 
@@ -815,32 +910,325 @@
                 }
             });
 
-             // Toggle custom nomor surat input for Modal
-            const nomorAuto = document.getElementById('nomor_auto');
-            const nomorCustom = document.getElementById('nomor_custom');
-            const customWrapper = document.getElementById('customNomorWrapper');
-            const customInput = document.getElementById('custom_nomor_surat');
 
-            if (nomorAuto && nomorCustom) {
-                nomorAuto.addEventListener('change', function() {
-                    if (this.checked) {
-                        customWrapper.style.display = 'none';
-                        customInput.removeAttribute('required');
-                    }
+            // Generate Surat Modal Logic
+            const generateSuratModal = document.getElementById('generateSuratModal');
+
+            if (generateSuratModal) {
+                // Initialize when modal is shown
+                generateSuratModal.addEventListener('shown.bs.modal', function() {
+                    initializeModal();
                 });
 
-                nomorCustom.addEventListener('change', function() {
-                    if (this.checked) {
-                        customWrapper.style.display = 'block';
-                        customInput.setAttribute('required', 'required');
+                function initializeModal() {
+                    const nomorSuratAuto = document.getElementById('nomorSuratAuto');
+                    const nomorSuratCustom = document.getElementById('nomorSuratCustom');
+                    const autoNomorPreview = document.getElementById('autoNomorPreview');
+                    const customNomorSection = document.getElementById('customNomorSection');
+                    const customNomorInput = document.getElementById('customNomorSurat');
+                    const validateNomorBtn = document.getElementById('validateNomorBtn');
+                    const customNomorFeedback = document.getElementById('customNomorFeedback');
+                    const customNomorPreview = document.getElementById('customNomorPreview');
+                    const customNomorPreviewText = document.getElementById('customNomorPreviewText');
+                    const generateSuratBtn = document.getElementById('generateSuratBtn');
+                    const generateSuratForm = document.getElementById('generateSuratForm');
+
+                    let isCustomValid = false;
+
+                    // Toggle between auto and custom
+                    function toggleNomorType() {
+                        if (nomorSuratCustom.checked) {
+                            autoNomorPreview.style.display = 'none';
+                            customNomorSection.style.display = 'block';
+                            customNomorInput.required = true;
+                        } else {
+                            autoNomorPreview.style.display = 'block';
+                            customNomorSection.style.display = 'none';
+                            customNomorInput.required = false;
+                            isCustomValid = false;
+                            resetCustomValidation();
+                        }
+                    }
+
+                    nomorSuratAuto.addEventListener('change', toggleNomorType);
+                    nomorSuratCustom.addEventListener('change', toggleNomorType);
+
+                    // Validate custom nomor
+                    function validateCustomNomor() {
+                        const customNumber = customNomorInput.value.trim();
+
+                        if (!customNumber) {
+                            showFeedback('warning', 'Masukkan nomor surat terlebih dahulu.');
+                            isCustomValid = false;
+                            return;
+                        }
+
+                        if (!/^\d{1,4}$/.test(customNumber)) {
+                            showFeedback('danger', 'Format tidak valid. Masukkan 1-4 digit angka.');
+                            isCustomValid = false;
+                            return;
+                        }
+
+                        validateNomorBtn.disabled = true;
+                        validateNomorBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+                        fetch('{{ route('admin.pendaftaran-ujian-hasil.validate-nomor-surat') }}', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                    'Accept': 'application/json',
+                                    'X-Requested-With': 'XMLHttpRequest'
+                                },
+                                body: JSON.stringify({
+                                    nomor: customNumber
+                                }),
+                                credentials: 'same-origin'
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.valid) {
+                                    showFeedback('success', data.message);
+                                    customNomorPreview.style.display = 'block';
+                                    customNomorPreviewText.textContent = data.nomor_surat;
+                                    isCustomValid = true;
+                                } else {
+                                    showFeedback('danger', data.message);
+                                    customNomorPreview.style.display = 'none';
+                                    isCustomValid = false;
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                showFeedback('danger', 'Terjadi kesalahan saat validasi.');
+                                isCustomValid = false;
+                            })
+                            .finally(() => {
+                                validateNomorBtn.disabled = false;
+                                validateNomorBtn.innerHTML = '<i class="bx bx-check"></i> Validasi';
+                            });
+                    }
+
+                    validateNomorBtn.addEventListener('click', validateCustomNomor);
+
+                    customNomorInput.addEventListener('input', function() {
+                        isCustomValid = false;
+                        customNomorPreview.style.display = 'none';
+                        resetCustomValidation();
+                    });
+
+                    customNomorInput.addEventListener('keypress', function(e) {
+                        if (!/\d/.test(e.key)) {
+                            e.preventDefault();
+                        }
+                    });
+
+                    function showFeedback(type, message) {
+                        const colors = {
+                            success: 'text-success',
+                            danger: 'text-danger',
+                            warning: 'text-warning'
+                        };
+                        const icons = {
+                            success: 'bx-check-circle',
+                            danger: 'bx-error-circle',
+                            warning: 'bx-info-circle'
+                        };
+                        customNomorFeedback.className = `small ${colors[type]}`;
+                        customNomorFeedback.innerHTML = `<i class="bx ${icons[type]} me-1"></i>${message}`;
+                    }
+
+                    function resetCustomValidation() {
+                        customNomorFeedback.innerHTML = '';
+                        customNomorPreview.style.display = 'none';
+                    }
+
+                    // Form validation
+                    generateSuratForm.addEventListener('submit', function(e) {
+                        if (nomorSuratCustom.checked && !isCustomValid) {
+                            e.preventDefault();
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Validasi Diperlukan',
+                                text: 'Silakan validasi nomor surat custom terlebih dahulu.',
+                                confirmButtonText: 'OK'
+                            });
+                            return false;
+                        }
+                        generateSuratBtn.disabled = true;
+                        generateSuratBtn.innerHTML =
+                            '<span class="spinner-border spinner-border-sm me-1"></span> Generating...';
+                    });
+                }
+
+                // Reset modal on close
+                generateSuratModal.addEventListener('hidden.bs.modal', function() {
+                    const nomorSuratAuto = document.getElementById('nomorSuratAuto');
+                    const generateSuratBtn = document.getElementById('generateSuratBtn');
+
+                    if (nomorSuratAuto) nomorSuratAuto.checked = true;
+                    if (generateSuratBtn) {
+                        generateSuratBtn.disabled = false;
+                        generateSuratBtn.innerHTML = '<i class="bx bx-file me-1"></i> Generate Surat';
                     }
                 });
             }
 
-            // Only allow numeric input for custom nomor surat
-            if (customInput) {
-                customInput.addEventListener('input', function() {
-                    this.value = this.value.replace(/[^0-9]/g, '');
+            // ========== SWEETALERT2 CONFIRMATIONS ==========
+
+            // TTD Korprodi Confirmation
+            const formTtdKaprodi = document.querySelector('.form-confirm-ttd-kaprodi');
+            if (formTtdKaprodi) {
+                formTtdKaprodi.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    Swal.fire({
+                        title: 'Konfirmasi Tanda Tangan',
+                        text: 'Apakah Anda yakin ingin menandatangani surat ini sebagai Korprodi?',
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: '#71dd37',
+                        cancelButtonColor: '#8592a3',
+                        confirmButtonText: '<i class="bx bx-pen me-1"></i> Ya, Tanda Tangan',
+                        cancelButtonText: 'Batal',
+                        reverseButtons: true,
+                        customClass: {
+                            confirmButton: 'btn btn-success',
+                            cancelButton: 'btn btn-outline-secondary'
+                        },
+                        buttonsStyling: false
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Show loading
+                            Swal.fire({
+                                title: 'Memproses...',
+                                text: 'Sedang menandatangani surat',
+                                allowOutsideClick: false,
+                                allowEscapeKey: false,
+                                didOpen: () => {
+                                    Swal.showLoading();
+                                }
+                            });
+                            formTtdKaprodi.submit();
+                        }
+                    });
+                });
+            }
+
+            // TTD Kajur Confirmation
+            const formTtdKajur = document.querySelector('.form-confirm-ttd-kajur');
+            if (formTtdKajur) {
+                formTtdKajur.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    Swal.fire({
+                        title: 'Konfirmasi Tanda Tangan',
+                        text: 'Apakah Anda yakin ingin menandatangani surat ini sebagai Kajur?',
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: '#696cff',
+                        cancelButtonColor: '#8592a3',
+                        confirmButtonText: '<i class="bx bx-pen me-1"></i> Ya, Tanda Tangan',
+                        cancelButtonText: 'Batal',
+                        reverseButtons: true,
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                            cancelButton: 'btn btn-outline-secondary'
+                        },
+                        buttonsStyling: false
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Show loading
+                            Swal.fire({
+                                title: 'Memproses...',
+                                text: 'Sedang menandatangani surat',
+                                allowOutsideClick: false,
+                                allowEscapeKey: false,
+                                didOpen: () => {
+                                    Swal.showLoading();
+                                }
+                            });
+                            formTtdKajur.submit();
+                        }
+                    });
+                });
+            }
+
+            // Reset Penguji Confirmation
+            const formResetPenguji = document.querySelector('.form-confirm-reset-penguji');
+            if (formResetPenguji) {
+                formResetPenguji.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    Swal.fire({
+                        title: 'Reset Penguji?',
+                        html: '<p class="mb-2">Apakah Anda yakin ingin mereset penguji yang telah ditentukan?</p><p class="text-muted small mb-0">Semua penguji yang telah ditentukan akan dihapus dan Anda perlu menentukan ulang.</p>',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#ffab00',
+                        cancelButtonColor: '#8592a3',
+                        confirmButtonText: '<i class="bx bx-reset me-1"></i> Ya, Reset',
+                        cancelButtonText: 'Batal',
+                        reverseButtons: true,
+                        customClass: {
+                            confirmButton: 'btn btn-warning',
+                            cancelButton: 'btn btn-outline-secondary'
+                        },
+                        buttonsStyling: false
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Show loading
+                            Swal.fire({
+                                title: 'Memproses...',
+                                text: 'Sedang mereset penguji',
+                                allowOutsideClick: false,
+                                allowEscapeKey: false,
+                                didOpen: () => {
+                                    Swal.showLoading();
+                                }
+                            });
+                            formResetPenguji.submit();
+                        }
+                    });
+                });
+            }
+
+            // Delete Confirmation
+            const formDelete = document.querySelector('.form-confirm-delete');
+            if (formDelete) {
+                formDelete.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    Swal.fire({
+                        title: 'Hapus Pendaftaran?',
+                        html: '<p class="mb-2">Apakah Anda yakin ingin menghapus pendaftaran ujian hasil ini?</p><p class="text-danger small mb-0"><i class="bx bx-error-circle me-1"></i>Semua data termasuk file akan dihapus secara permanen. Tindakan ini tidak dapat dibatalkan!</p>',
+                        icon: 'error',
+                        showCancelButton: true,
+                        confirmButtonColor: '#ff3e1d',
+                        cancelButtonColor: '#8592a3',
+                        confirmButtonText: '<i class="bx bx-trash me-1"></i> Ya, Hapus',
+                        cancelButtonText: 'Batal',
+                        reverseButtons: true,
+                        customClass: {
+                            confirmButton: 'btn btn-danger',
+                            cancelButton: 'btn btn-outline-secondary'
+                        },
+                        buttonsStyling: false
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Show loading
+                            Swal.fire({
+                                title: 'Menghapus...',
+                                text: 'Sedang menghapus pendaftaran',
+                                allowOutsideClick: false,
+                                allowEscapeKey: false,
+                                didOpen: () => {
+                                    Swal.showLoading();
+                                }
+                            });
+                            formDelete.submit();
+                        }
+                    });
                 });
             }
         });

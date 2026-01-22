@@ -1198,12 +1198,92 @@
 
         {{-- 4. Pendaftaran Hasil --}}
         @can('manage pendaftaran hasil')
-            <li class="menu-item {{ request()->routeIs('admin.pendaftaran-ujian-hasil.*') ? 'active' : '' }}">
-                <a href="{{ route('admin.pendaftaran-ujian-hasil.index') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-book-bookmark"></i>
-                    <div>Pendaftaran Ujian Hasil</div>
-                </a>
-            </li>
+            @php
+                $pendaftaranHasilPendingCount = 0;
+                if (auth()->user()->hasRole('staff')) {
+                    $pendaftaranHasilPendingCount = \App\Models\PendaftaranUjianHasil::whereIn('status', [
+                        'pending',
+                        'penguji_ditentukan',
+                    ])->count();
+                } elseif (auth()->user()->hasRole('dosen')) {
+                    if (auth()->user()->isKoordinatorProdi()) {
+                        $pendaftaranHasilPendingCount = \App\Models\PendaftaranUjianHasil::where(
+                            'status',
+                            'menunggu_ttd_kaprodi',
+                        )->count();
+                    } elseif (auth()->user()->isKetuaJurusan()) {
+                        $pendaftaranHasilPendingCount = \App\Models\PendaftaranUjianHasil::where(
+                            'status',
+                            'menunggu_ttd_kajur',
+                        )->count();
+                    }
+                }
+
+                $isPendaftaranHasilActive = request()->routeIs('admin.pendaftaran-ujian-hasil.*');
+            @endphp
+
+            @if (auth()->user()->isDosenWithApprovalAuthority())
+                <li class="menu-item {{ $isPendaftaranHasilActive ? 'active open' : '' }}">
+                    <a href="javascript:void(0);" class="menu-link menu-toggle">
+                        <i class="menu-icon tf-icons bx bx-book-bookmark"></i>
+                        <div>Pendaftaran Ujian Hasil</div>
+                        @if ($pendaftaranHasilPendingCount > 0)
+                            <span class="badge bg-danger rounded-pill ms-auto">{{ $pendaftaranHasilPendingCount }}</span>
+                        @endif
+                    </a>
+                    <ul class="menu-sub">
+                        @if (auth()->user()->isKoordinatorProdi())
+                            <li
+                                class="menu-item {{ request()->routeIs('admin.pendaftaran-ujian-hasil.index') && request()->input('status') === 'menunggu_ttd_kaprodi' ? 'active' : '' }}">
+                                <a href="{{ route('admin.pendaftaran-ujian-hasil.index', ['status' => 'menunggu_ttd_kaprodi']) }}"
+                                    class="menu-link">
+                                    <i class="menu-icon tf-icons bx bx-time"></i>
+                                    <div>Menunggu TTD Korprodi</div>
+                                    @if ($pendaftaranHasilPendingCount > 0 && auth()->user()->isKoordinatorProdi())
+                                        <span
+                                            class="badge bg-danger rounded-pill ms-auto">{{ $pendaftaranHasilPendingCount }}</span>
+                                    @endif
+                                </a>
+                            </li>
+                        @endif
+
+                        @if (auth()->user()->isKetuaJurusan())
+                            <li
+                                class="menu-item {{ request()->routeIs('admin.pendaftaran-ujian-hasil.index') && request()->input('status') === 'menunggu_ttd_kajur' ? 'active' : '' }}">
+                                <a href="{{ route('admin.pendaftaran-ujian-hasil.index', ['status' => 'menunggu_ttd_kajur']) }}"
+                                    class="menu-link">
+                                    <i class="menu-icon tf-icons bx bx-time"></i>
+                                    <div>Menunggu TTD Kajur</div>
+                                    @if ($pendaftaranHasilPendingCount > 0 && auth()->user()->isKetuaJurusan())
+                                        <span
+                                            class="badge bg-danger rounded-pill ms-auto">{{ $pendaftaranHasilPendingCount }}</span>
+                                    @endif
+                                </a>
+                            </li>
+                        @endif
+
+                        <li
+                            class="menu-item {{ request()->routeIs('admin.pendaftaran-ujian-hasil.index') && request()->input('status') === 'selesai' ? 'active' : '' }}">
+                            <a href="{{ route('admin.pendaftaran-ujian-hasil.index', ['status' => 'selesai']) }}"
+                                class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-check-circle"></i>
+                                <div>Selesai</div>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            @else
+                {{-- STAFF VIEW --}}
+                <li class="menu-item {{ $isPendaftaranHasilActive ? 'active' : '' }}">
+                    <a href="{{ route('admin.pendaftaran-ujian-hasil.index') }}" class="menu-link">
+                        <i class="menu-icon tf-icons bx bx-book-bookmark"></i>
+                        <div>Pendaftaran Ujian Hasil</div>
+                        @if ($pendaftaranHasilPendingCount > 0)
+                            <span class="badge bg-danger rounded-pill ms-auto">{{ $pendaftaranHasilPendingCount }}</span>
+                        @endif
+                    </a>
+                </li>
+            @endif
         @endcan
 
         {{-- ============================================================ --}}

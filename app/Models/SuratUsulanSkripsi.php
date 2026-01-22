@@ -81,7 +81,7 @@ class SuratUsulanSkripsi extends Model
         // If user is provided, check if they have permission
         if ($user) {
             // Staff can override, or user must be kaprodi
-            return $user->hasRole('staff') || $user->isKaprodi();
+            return $user->hasRole('staff') || $user->isKoordinatorProdi();
         }
 
         return true;
@@ -100,7 +100,7 @@ class SuratUsulanSkripsi extends Model
         // If user is provided, check if they have permission
         if ($user) {
             // Staff can override, or user must be kajur
-            return $user->hasRole('staff') || $user->isKajur();
+            return $user->hasRole('staff') || $user->isKetuaJurusan();
         }
 
         return true;

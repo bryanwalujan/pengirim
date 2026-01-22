@@ -142,6 +142,14 @@
                             <i class="bx bx-reset me-1"></i> Reset
                         </a>
                     </div>
+
+                    {{-- Status Dosen Button --}}
+                    <div class="col-md-2">
+                        <button type="button" class="btn btn-warning w-100" data-bs-toggle="modal"
+                            data-bs-target="#modalDosenStatus">
+                            <i class="bx bx-list-ul me-1"></i> Status Dosen
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -253,6 +261,9 @@
                 </div>
             @endif
         </div>
+
+        {{-- Include Dosen Status Modal --}}
+        @include('admin.pendaftaran-ujian-hasil.dosen-status-modal')
     </div>
 @endsection
 

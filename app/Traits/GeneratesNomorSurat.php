@@ -8,6 +8,7 @@ use App\Models\SuratIjinSurvey;
 use App\Models\SuratAktifKuliah;
 use App\Models\SuratCutiAkademik;
 use App\Models\SuratUsulanProposal;
+use App\Models\SuratUsulanSkripsi;
 use App\Models\PengajuanSkPembimbing;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
@@ -27,6 +28,7 @@ trait GeneratesNomorSurat
             SuratCutiAkademik::class,
             SuratPindah::class,
             SuratUsulanProposal::class,
+            SuratUsulanSkripsi::class,
             PengajuanSkPembimbing::class,
         ];
     }

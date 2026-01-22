@@ -66,10 +66,14 @@ class AdminPendaftaranUjianHasilController extends Controller
             'ditolak' => PendaftaranUjianHasil::ditolak()->count(),
         ];
 
+        // Get penguji statistics for modal
+        $pengujiStatistics = $this->pengujiService->getPengujiStatistics();
+
         return view('admin.pendaftaran-ujian-hasil.index', compact(
             'pendaftaranUjianHasils',
             'uniqueAngkatan',
-            'stats'
+            'stats',
+            'pengujiStatistics'
         ));
     }
 
@@ -89,7 +93,13 @@ class AdminPendaftaranUjianHasilController extends Controller
             'suratUsulanSkripsi.ttdKajurBy',
         ]);
 
-        return view('admin.pendaftaran-ujian-hasil.show', compact('pendaftaranUjianHasil'));
+        // Get nomor surat info for generate modal
+        $nomorSuratInfo = $this->suratService->getNextNomorSuratPreview();
+
+        // Get penguji statistics for modal
+        $pengujiStatistics = $this->pengujiService->getPengujiStatistics();
+
+        return view('admin.pendaftaran-ujian-hasil.show', compact('pendaftaranUjianHasil', 'nomorSuratInfo', 'pengujiStatistics'));
     }
 
     // ========== PENGUJI ASSIGNMENT ==========
@@ -316,39 +326,53 @@ class AdminPendaftaranUjianHasilController extends Controller
     {
         $surat = $pendaftaranUjianHasil->suratUsulanSkripsi;
 
-        if (!$surat || !$surat->canBeSignedByKaprodi()) {
+        if (!$surat || $surat->status !== 'menunggu_ttd_kaprodi') {
             return back()->with('error', 'Surat tidak dapat ditandatangani oleh Kaprodi saat ini.');
         }
 
-        $user = Auth::user();
-        $isOverride = false;
-        $overrideBy = null;
+        // Check if user is staff (override) or kaprodi (normal)
+        $isStaffOverride = auth()->user()->hasRole('staff') && !auth()->user()->isKoordinatorProdi();
+        
+        DB::beginTransaction();
+        try {
+            if ($isStaffOverride) {
+                // Find default Kaprodi
+                $kaprodi = User::whereHas('roles', function($q) {
+                    $q->where('name', 'dosen');
+                })->where(function($query) {
+                    $query->whereRaw('LOWER(jabatan) LIKE ?', ['%koordinator%'])
+                          ->orWhereRaw('LOWER(jabatan) LIKE ?', ['%kaprodi%'])
+                          ->orWhereRaw('LOWER(jabatan) LIKE ?', ['%korprodi%']);
+                })->first();
 
-        // Check if staff is doing override
-        if ($user->hasRole('staff')) {
-            $kaprodi = User::role('dosen')->whereHas('jabatan', function ($q) {
-                $q->where('nama', 'like', '%Koordinator Program Studi%');
-            })->first();
+                if (!$kaprodi) {
+                    throw new \Exception('Tidak ditemukan dosen dengan jabatan Kaprodi.');
+                }
 
-            if (!$kaprodi) {
-                return back()->with('error', 'Tidak ditemukan Kaprodi untuk override.');
+                // Sign with override info
+                $this->suratService->signByKaprodi($surat, $kaprodi->id, [
+                    'is_override' => true,
+                    'override_by' => auth()->id(),
+                    'override_by_name' => auth()->user()->name,
+                    'override_at' => now()->toDateTimeString(),
+                ]);
+            } else {
+                // Normal Kaprodi signature
+                $this->suratService->signByKaprodi($surat, auth()->id());
             }
 
-            $isOverride = true;
-            $overrideBy = $user->id;
-            $signerId = $kaprodi->id;
-        } else {
-            $signerId = $user->id;
-        }
-
-        try {
-            $this->suratService->signByKaprodi($surat, $signerId, $isOverride, $overrideBy);
+            DB::commit();
 
             return redirect()
                 ->route('admin.pendaftaran-ujian-hasil.show', $pendaftaranUjianHasil)
-                ->with('success', 'Surat berhasil ditandatangani oleh Kaprodi.');
-
+                ->with('success', 
+                    $isStaffOverride 
+                        ? 'Surat berhasil ditandatangani (Staff Override).' 
+                        : 'Surat berhasil ditandatangani sebagai Korprodi.'
+                );
         } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error signing as Kaprodi: ' . $e->getMessage());
             return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
@@ -360,39 +384,54 @@ class AdminPendaftaranUjianHasilController extends Controller
     {
         $surat = $pendaftaranUjianHasil->suratUsulanSkripsi;
 
-        if (!$surat || !$surat->canBeSignedByKajur()) {
+        if (!$surat || $surat->status !== 'menunggu_ttd_kajur') {
             return back()->with('error', 'Surat tidak dapat ditandatangani oleh Kajur saat ini.');
         }
 
-        $user = Auth::user();
-        $isOverride = false;
-        $overrideBy = null;
+        // Check if user is staff (override) or kajur (normal)
+        $isStaffOverride = auth()->user()->hasRole('staff') && !auth()->user()->isKetuaJurusan();
+        
+        DB::beginTransaction();
+        try {
+            if ($isStaffOverride) {
+                // Find default Kajur
+                $kajur = User::whereHas('roles', function($q) {
+                    $q->where('name', 'dosen');
+                })->where(function($query) {
+                    $query->whereRaw('LOWER(jabatan) LIKE ?', ['%ketua jurusan%'])
+                          ->orWhereRaw('LOWER(jabatan) LIKE ?', ['%kajur%'])
+                          ->orWhereRaw('LOWER(jabatan) LIKE ?', ['%pimpinan jurusan%'])
+                          ->orWhereRaw('LOWER(jabatan) LIKE ?', ['%kepala jurusan%']);
+                })->first();
 
-        // Check if staff is doing override
-        if ($user->hasRole('staff')) {
-            $kajur = User::role('dosen')->whereHas('jabatan', function ($q) {
-                $q->where('nama', 'like', '%Ketua Jurusan%');
-            })->first();
+                if (!$kajur) {
+                    throw new \Exception('Tidak ditemukan dosen dengan jabatan Kajur.');
+                }
 
-            if (!$kajur) {
-                return back()->with('error', 'Tidak ditemukan Kajur untuk override.');
+                // Sign with override info
+                $this->suratService->signByKajur($surat, $kajur->id, [
+                    'is_override' => true,
+                    'override_by' => auth()->id(),
+                    'override_by_name' => auth()->user()->name,
+                    'override_at' => now()->toDateTimeString(),
+                ]);
+            } else {
+                // Normal Kajur signature
+                $this->suratService->signByKajur($surat, auth()->id());
             }
 
-            $isOverride = true;
-            $overrideBy = $user->id;
-            $signerId = $kajur->id;
-        } else {
-            $signerId = $user->id;
-        }
-
-        try {
-            $this->suratService->signByKajur($surat, $signerId, $isOverride, $overrideBy);
+            DB::commit();
 
             return redirect()
                 ->route('admin.pendaftaran-ujian-hasil.show', $pendaftaranUjianHasil)
-                ->with('success', 'Surat berhasil ditandatangani oleh Kajur.');
-
+                ->with('success', 
+                    $isStaffOverride 
+                        ? 'Surat berhasil ditandatangani (Staff Override). Proses selesai.' 
+                        : 'Surat berhasil ditandatangani sebagai Kajur. Proses selesai.'
+                );
         } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error signing as Kajur: ' . $e->getMessage());
             return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }

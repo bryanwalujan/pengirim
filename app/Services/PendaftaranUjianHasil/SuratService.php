@@ -16,7 +16,13 @@ class SuratService
 {
     use GeneratesNomorSurat;
 
-    protected string $suratPrefix = 'UN41.2/TI';
+    /**
+     * Get prefix for nomor surat usulan skripsi
+     */
+    protected function getNomorSuratPrefix(): string
+    {
+        return 'UN41.2/TI';
+    }
 
     /**
      * Check if surat can be generated
@@ -57,12 +63,23 @@ class SuratService
     {
         DB::beginTransaction();
         try {
-            // Generate nomor surat
-            $nomorSurat = $this->generateNomorSurat(
-                SuratUsulanSkripsi::class,
-                $this->suratPrefix,
-                $customNomorSurat
-            );
+            // Generate atau gunakan nomor surat custom
+            if ($customNomorSurat) {
+                // Validate custom number format (hanya angka 1-4 digit)
+                if (preg_match('#^\d{1,4}$#', $customNomorSurat)) {
+                    $nomorSurat = $this->generateNomorSuratUniversal($this->getNomorSuratPrefix(), $customNomorSurat);
+                } else {
+                    // Jika format lengkap sudah diberikan
+                    $nomorSurat = $customNomorSurat;
+                }
+
+                // Validate uniqueness
+                if (!$this->validateNomorSuratUnique($nomorSurat)) {
+                    throw new \Exception('Nomor surat sudah digunakan. Silakan gunakan nomor lain.');
+                }
+            } else {
+                $nomorSurat = $this->generateNomorSuratUniversal($this->getNomorSuratPrefix());
+            }
 
             // Generate verification code
             $verificationCode = SuratUsulanSkripsi::generateVerificationCode();
@@ -85,6 +102,7 @@ class SuratService
                 'pendaftaran_id' => $pendaftaran->id,
                 'surat_id' => $surat->id,
                 'nomor_surat' => $nomorSurat,
+                'is_custom' => !is_null($customNomorSurat),
             ]);
 
             return $surat;
@@ -100,44 +118,71 @@ class SuratService
     }
 
     /**
+     * Get next nomor surat preview
+     */
+    public function getNextNomorSuratPreview(): array
+    {
+        try {
+            $nextNomor = $this->getNextNomorSurat();
+            $lastNomor = $this->getLastUsedNomorSurat();
+
+            return [
+                'success' => true,
+                'next_nomor' => $nextNomor,
+                'last_nomor' => $lastNomor,
+                'prefix' => $this->getNomorSuratPrefix(),
+            ];
+        } catch (\Exception $e) {
+            Log::error('Error getting nomor surat preview', [
+                'error' => $e->getMessage()
+            ]);
+
+            return [
+                'success' => false,
+                'next_nomor' => 'Error',
+                'last_nomor' => null,
+                'prefix' => $this->getNomorSuratPrefix(),
+                'error' => $e->getMessage()
+            ];
+        }
+    }
+
+    /**
      * Validate custom nomor surat
      */
-    public function validateCustomNomorSurat(string $customNomor): array
+    public function validateCustomNomorSurat(string $customNumber): array
     {
-        // Check if numeric
-        if (!is_numeric($customNomor)) {
+        // Check format
+        if (!preg_match('#^\d{1,4}$#', $customNumber)) {
             return [
                 'valid' => false,
-                'message' => 'Nomor surat harus berupa angka.'
+                'message' => 'Format nomor tidak valid. Masukkan 1-4 digit angka.',
             ];
         }
 
-        // Generate full nomor surat to check uniqueness
-        $fullNomorSurat = $this->generateNomorSurat(
-            SuratUsulanSkripsi::class,
-            $this->suratPrefix,
-            $customNomor
-        );
+        // Generate full nomor surat
+        $nomorSurat = $this->generateNomorSuratUniversal($this->getNomorSuratPrefix(), $customNumber);
 
-        // Check if already exists
-        if (SuratUsulanSkripsi::where('nomor_surat', $fullNomorSurat)->exists()) {
+        // Check uniqueness
+        if (!$this->validateNomorSuratUnique($nomorSurat)) {
             return [
                 'valid' => false,
-                'message' => 'Nomor surat sudah digunakan.'
+                'message' => 'Nomor surat sudah digunakan.',
+                'nomor_surat' => $nomorSurat,
             ];
         }
 
         return [
             'valid' => true,
-            'message' => 'Nomor surat valid.',
-            'full_nomor_surat' => $fullNomorSurat
+            'message' => 'Nomor surat tersedia.',
+            'nomor_surat' => $nomorSurat,
         ];
     }
 
     /**
      * Sign surat by Kaprodi
      */
-    public function signByKaprodi(SuratUsulanSkripsi $surat, int $kaprodiId, bool $isOverride = false, ?int $overrideBy = null): bool
+    public function signByKaprodi(SuratUsulanSkripsi $surat, int $kaprodiId, ?array $overrideInfo = null): bool
     {
         DB::beginTransaction();
         try {
@@ -153,12 +198,9 @@ class SuratService
                 'status' => 'menunggu_ttd_kajur',
             ];
 
-            if ($isOverride && $overrideBy) {
-                $surat->setOverrideInfo('kaprodi', [
-                    'original_signer_id' => $kaprodiId,
-                    'override_by_id' => $overrideBy,
-                    'reason' => 'Staff override'
-                ]);
+            // Store override info if provided
+            if ($overrideInfo && isset($overrideInfo['is_override']) && $overrideInfo['is_override']) {
+                $surat->setOverrideInfo('kaprodi', $overrideInfo);
                 $updateData['override_info'] = $surat->override_info;
             }
 
@@ -187,7 +229,7 @@ class SuratService
     /**
      * Sign surat by Kajur
      */
-    public function signByKajur(SuratUsulanSkripsi $surat, int $kajurId, bool $isOverride = false, ?int $overrideBy = null): bool
+    public function signByKajur(SuratUsulanSkripsi $surat, int $kajurId, ?array $overrideInfo = null): bool
     {
         DB::beginTransaction();
         try {
@@ -203,12 +245,9 @@ class SuratService
                 'status' => 'selesai',
             ];
 
-            if ($isOverride && $overrideBy) {
-                $surat->setOverrideInfo('kajur', [
-                    'original_signer_id' => $kajurId,
-                    'override_by_id' => $overrideBy,
-                    'reason' => 'Staff override'
-                ]);
+            // Store override info if provided
+            if ($overrideInfo && isset($overrideInfo['is_override']) && $overrideInfo['is_override']) {
+                $surat->setOverrideInfo('kajur', $overrideInfo);
                 $updateData['override_info'] = $surat->override_info;
             }
 
@@ -225,7 +264,7 @@ class SuratService
             Log::info('Surat signed by Kajur', [
                 'surat_id' => $surat->id,
                 'kajur_id' => $kajurId,
-                'is_override' => $isOverride,
+                'is_override' => ($overrideInfo && isset($overrideInfo['is_override'])) ? $overrideInfo['is_override'] : false,
             ]);
 
             return true;
@@ -269,9 +308,10 @@ class SuratService
      */
     public function getNextNomorSurat(): string
     {
-        return $this->generateNomorSurat(
-            SuratUsulanSkripsi::class,
-            $this->suratPrefix
-        );
+        $prefix = method_exists($this, 'getNomorSuratPrefix') 
+            ? $this->getNomorSuratPrefix() 
+            : 'UN41.2/TI';
+            
+        return $this->generateNomorSuratUniversal($prefix);
     }
 }
