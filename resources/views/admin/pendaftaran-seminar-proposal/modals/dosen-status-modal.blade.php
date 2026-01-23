@@ -168,6 +168,10 @@
                 </div>
             </div>
             <div class="modal-footer">
+                <a href="{{ route('admin.pendaftaran-seminar-proposal.export-status-dosen') }}" 
+                   class="btn btn-success me-2">
+                    <i class="bx bxs-file-export me-1"></i>Export ke Excel
+                </a>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                     <i class="bx bx-x me-1"></i>Tutup
                 </button>

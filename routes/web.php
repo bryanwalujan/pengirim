@@ -647,6 +647,10 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             Route::get('/', [AdminPendaftaranSeminarProposalController::class, 'index'])
                 ->name('index');
 
+            // Export Status Dosen (MUST be before dynamic route)
+            Route::get('/export-status-dosen', [AdminPendaftaranSeminarProposalController::class, 'exportStatusDosen'])
+                ->name('export-status-dosen');
+
             Route::get('/{pendaftaranSeminarProposal}', [AdminPendaftaranSeminarProposalController::class, 'show'])
                 ->name('show');
 
@@ -987,6 +991,11 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         // Staff & Dosen access
         Route::middleware(['role:staff|dosen'])->group(function () {
             Route::get('/', [AdminPendaftaranUjianHasilController::class, 'index'])->name('index');
+
+            // Export Status Dosen - must be before {pendaftaranUjianHasil} to avoid route conflict
+            Route::get('/export-status-dosen', [AdminPendaftaranUjianHasilController::class, 'exportStatusDosen'])
+                ->name('export-status-dosen');
+
             Route::get('/{pendaftaranUjianHasil}', [AdminPendaftaranUjianHasilController::class, 'show'])->name('show');
 
             // View Files (Inline Preview)
@@ -1012,10 +1021,6 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             // Download Surat Usulan
             Route::get('/{pendaftaranUjianHasil}/download-surat', [AdminPendaftaranUjianHasilController::class, 'downloadSuratUsulan'])
                 ->name('download-surat');
-
-            // Export Status Dosen
-            Route::get('/export-status-dosen', [AdminPendaftaranUjianHasilController::class, 'exportStatusDosen'])
-                ->name('export-status-dosen');
         });
 
         // Staff only routes

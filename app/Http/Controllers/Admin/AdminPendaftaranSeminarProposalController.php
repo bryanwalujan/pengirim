@@ -19,6 +19,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\StatusDosenPembahasExport;
 
 class AdminPendaftaranSeminarProposalController extends Controller
 {
@@ -239,6 +241,17 @@ class AdminPendaftaranSeminarProposalController extends Controller
             ]);
             return back()->with('error', 'Gagal menghapus pendaftaran: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Export Status Dosen Pembahas to Excel.
+     */
+    public function exportStatusDosen()
+    {
+        return Excel::download(
+            new StatusDosenPembahasExport(),
+            'Status_Dosen_Pembahas_' . date('Y-m-d_His') . '.xlsx'
+        );
     }
 
     /**
