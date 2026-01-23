@@ -177,7 +177,7 @@ class PendaftaranUjianHasil extends Model
     // ========== STATISTICS ==========
     /**
      * Get penguji statistics for all dosen
-     * Returns array of dosen with their current workload
+     * Returns array of dosen with their current workload as penguji (not pembimbing)
      */
     public static function getPengujiStatistics(): array
     {
@@ -185,17 +185,18 @@ class PendaftaranUjianHasil extends Model
         $statistics = [];
         
         foreach ($dosenList as $dosen) {
-            // Count active assignments for this dosen as penguji
-            $activeCount = PengujiUjianHasil::where('dosen_id', $dosen->id)
+            // Count assignments for this dosen as penguji only
+            // Include all except rejected (ditolak)
+            $pengujiCount = PengujiUjianHasil::where('dosen_id', $dosen->id)
                 ->whereHas('pendaftaranUjianHasil', function($q) {
-                    // Count only active registrations (not completed/rejected)
-                    $q->whereNotIn('status', ['selesai', 'ditolak']);
+                    // Count all registrations except rejected ones
+                    $q->where('status', '!=', 'ditolak');
                 })
                 ->count();
             
             $statistics[$dosen->id] = [
                 'dosen' => $dosen,
-                'total_beban' => $activeCount,
+                'total_beban' => $pengujiCount,
             ];
         }
         
@@ -262,24 +263,26 @@ class PendaftaranUjianHasil extends Model
     }
 
     // ========== FILE URL HELPERS ==========
+    // Note: Files are stored in local/private storage and accessed via controller routes
+    // These methods are deprecated - use controller download routes instead
     public function getFileTranskripUrlAttribute()
     {
-        return $this->file_transkrip_nilai ? asset('storage/' . $this->file_transkrip_nilai) : null;
+        return $this->file_transkrip_nilai ? route('user.pendaftaran-ujian-hasil.download-transkrip', $this) : null;
     }
 
     public function getFileSkripsiUrlAttribute()
     {
-        return $this->file_skripsi ? asset('storage/' . $this->file_skripsi) : null;
+        return $this->file_skripsi ? route('user.pendaftaran-ujian-hasil.download-skripsi', $this) : null;
     }
 
     public function getFilePermohonanUrlAttribute()
     {
-        return $this->file_surat_permohonan ? asset('storage/' . $this->file_surat_permohonan) : null;
+        return $this->file_surat_permohonan ? route('user.pendaftaran-ujian-hasil.download-permohonan', $this) : null;
     }
 
     public function getFileSlipUktUrlAttribute()
     {
-        return $this->file_slip_ukt ? asset('storage/' . $this->file_slip_ukt) : null;
+        return $this->file_slip_ukt ? route('user.pendaftaran-ujian-hasil.download-slip-ukt', $this) : null;
     }
 
     // ========== STATUS BADGE ==========
@@ -362,7 +365,7 @@ class PendaftaranUjianHasil extends Model
         parent::boot();
 
         static::deleting(function ($model) {
-            // Delete uploaded files
+            // Delete uploaded files from local storage
             $files = [
                 $model->file_transkrip_nilai,
                 $model->file_skripsi,
@@ -371,8 +374,8 @@ class PendaftaranUjianHasil extends Model
             ];
 
             foreach ($files as $file) {
-                if ($file && Storage::disk('public')->exists($file)) {
-                    Storage::disk('public')->delete($file);
+                if ($file && Storage::disk('local')->exists($file)) {
+                    Storage::disk('local')->delete($file);
                 }
             }
         });

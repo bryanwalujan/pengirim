@@ -102,10 +102,10 @@ class PendaftaranUjianHasilController extends Controller
         $basePath = "pendaftaran-ujian-hasil/{$nim}";
 
         // Store files
-        $fileTranskripPath = $request->file('file_transkrip_nilai')->store("{$basePath}/transkrip", 'public');
-        $fileSkripsiPath = $request->file('file_skripsi')->store("{$basePath}/skripsi", 'public');
-        $filePermohonanPath = $request->file('file_surat_permohonan')->store("{$basePath}/permohonan", 'public');
-        $fileSlipUktPath = $request->file('file_slip_ukt')->store("{$basePath}/slip-ukt", 'public');
+        $fileTranskripPath = $request->file('file_transkrip_nilai')->store("{$basePath}/transkrip", 'local');
+        $fileSkripsiPath = $request->file('file_skripsi')->store("{$basePath}/skripsi", 'local');
+        $filePermohonanPath = $request->file('file_surat_permohonan')->store("{$basePath}/permohonan", 'local');
+        $fileSlipUktPath = $request->file('file_slip_ukt')->store("{$basePath}/slip-ukt", 'local');
 
         // Create registration with data from KomisiHasil
         $pendaftaran = PendaftaranUjianHasil::create([
@@ -270,12 +270,12 @@ class PendaftaranUjianHasilController extends Controller
             return redirect()->back()->with('error', 'Surat usulan belum digenerate atau file tidak ditemukan.');
         }
 
-        if (!Storage::disk('public')->exists($surat->file_surat)) {
+        if (!Storage::disk('local')->exists($surat->file_surat)) {
             return redirect()->back()->with('error', 'File surat tidak ditemukan di server.');
         }
 
         $fileName = 'Surat_Usulan_Ujian_Skripsi_' . $pendaftaran_ujian_hasil->user->nim . '.pdf';
-        $filePath = Storage::disk('public')->path($surat->file_surat);
+        $filePath = Storage::disk('local')->path($surat->file_surat);
 
         return response()->download($filePath, $fileName);
     }
@@ -289,11 +289,11 @@ class PendaftaranUjianHasilController extends Controller
             abort(404, 'File tidak ditemukan.');
         }
 
-        if (!Storage::disk('public')->exists($filePath)) {
+        if (!Storage::disk('local')->exists($filePath)) {
             abort(404, 'File tidak ditemukan di storage.');
         }
 
-        $fullPath = Storage::disk('public')->path($filePath);
+        $fullPath = Storage::disk('local')->path($filePath);
 
         return response()->download($fullPath, $downloadName);
     }

@@ -38,7 +38,6 @@
 
         .underline {
             text-decoration: underline;
-            margin-bottom: -10px;
         }
 
         table.header-info {
@@ -83,7 +82,7 @@
 
         .signature-space {
             height: 100px;
-            padding-bottom: .4rem;
+            padding-bottom: .9rem;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -135,7 +134,7 @@
     </table>
 
     {{-- 3. TUJUAN SURAT --}}
-    <div style="margin-top: 15px; margin-bottom: 15px;">
+    <div style="margin-top: 15px;">
         <p style="margin: 0;">Kepada Yth;</p>
         <p style="margin: 0;">Dekan Fakultas Teknik Universitas Negeri Manado</p>
     </div>
@@ -153,9 +152,9 @@
             <thead>
                 <tr>
                     <th style="width: 5%;">NO</th>
-                    <th style="width: 20%;">NAMA / NIM</th>
-                    <th style="width: 30%;">JUDUL SKRIPSI</th>
-                    <th style="width: 45%;">PENGUJI</th>
+                    <th style="width: 18%;">NAMA / NIM</th>
+                    <th style="width: 27%;">JUDUL SKRIPSI</th>
+                    <th style="width: 50%;">PENGUJI</th>
                 </tr>
             </thead>
             <tbody>
@@ -171,42 +170,45 @@
                     <td>
                         {{-- Get penguji from the relationship --}}
                         @php
-                            $pengujiList = $pendaftaran->pengujiUjianHasil->sortBy('posisi');
-                            $penguji1 = $pengujiList->where('posisi', 1)->first();
-                            $penguji2 = $pengujiList->where('posisi', 2)->first();
-                            $penguji3 = $pengujiList->where('posisi', 3)->first(); // Dosen Fakultas
-                            $pengujiTambahan = $pengujiList->where('posisi', 4)->first();
+                            $pengujiList = $pendaftaran->pengujiUjianHasil ?? collect();
+                            
+                            // Ambil penguji berdasarkan posisi (gunakan string sesuai database)
+                            $pengujiByPosisi = $pengujiList->keyBy('posisi');
+                            $penguji1 = $pengujiByPosisi->get('Penguji 1');
+                            $penguji2 = $pengujiByPosisi->get('Penguji 2');
+                            $penguji3 = $pengujiByPosisi->get('Penguji 3'); // Dosen Fakultas
+                            $pengujiTambahan = $pengujiByPosisi->get('Penguji Tambahan');
                         @endphp
 
                         {{-- 1. Pembimbing 1 --}}
                         <div style="margin-bottom: 4px;">
-                            1. {{ $pendaftaran->dosenPembimbing1->name ?? '.....................' }} (Pembimbing 1)
+                            1. {{ $pendaftaran->dosenPembimbing1->name ?? '.....................' }} (P1)
                         </div>
 
                         {{-- 2. Pembimbing 2 --}}
                         <div style="margin-bottom: 4px;">
-                            2. {{ $pendaftaran->dosenPembimbing2->name ?? '.....................' }} (Pembimbing 2)
+                            2. {{ $pendaftaran->dosenPembimbing2->name ?? '.....................' }} (P2)
                         </div>
 
                         {{-- 3. Dosen Fakultas (Penguji 3) --}}
                         <div style="margin-bottom: 4px;">
-                            3. {{ $penguji3->dosen->name ?? '.....................' }} (Dosen Fakultas)
+                            3. {{ optional(optional($penguji3)->dosen)->name ?? '.....................' }}
                         </div>
 
                         {{-- 4. Penguji 1 --}}
                         <div style="margin-bottom: 4px;">
-                            4. {{ $penguji1->dosen->name ?? '.....................' }} (Penguji 1)
+                            4. {{ optional(optional($penguji1)->dosen)->name ?? '.....................' }}
                         </div>
 
                         {{-- 5. Penguji 2 --}}
                         <div style="margin-bottom: 4px;">
-                            5. {{ $penguji2->dosen->name ?? '.....................' }} (Penguji 2)
+                            5. {{ optional(optional($penguji2)->dosen)->name ?? '.....................' }}
                         </div>
 
                         {{-- 6. Penguji Tambahan (jika ada) --}}
-                        @if ($pengujiTambahan)
+                        @if ($pengujiTambahan && optional($pengujiTambahan)->dosen)
                             <div style="margin-bottom: 4px;">
-                                6. {{ $pengujiTambahan->dosen->name }} (Penguji Tambahan)
+                                6. {{ $pengujiTambahan->dosen->name }}
                             </div>
                         @endif
                     </td>
@@ -220,7 +222,7 @@
     </div>
 
     {{-- ✅ 5. TANDA TANGAN - SAMA PERSIS SEPERTI SURAT AKTIF KULIAH --}}
-    <table style="vertical-align: top; width: 100%; line-height: 0.8;">
+    <table style="vertical-align: top; width: 100%; line-height: 0.3;">
         <tr>
             {{-- KIRI: Kajur/Pimpinan Jurusan --}}
             <td>
@@ -233,7 +235,7 @@
                     @endif
                 </div>
                 <p class="underline">
-                    <strong>{{ optional($surat->ttdKajurBy)->name ?? '[Nama Penandatangan]' }}</strong>
+                    {{ optional($surat->ttdKajurBy)->name ?? '[Nama Penandatangan]' }}
                 </p>
                 <p>NIP. {{ optional($surat->ttdKajurBy)->nip ?? '[NIP]' }}</p>
             </td>
@@ -249,7 +251,7 @@
                     @endif
                 </div>
                 <p class="underline">
-                    <strong>{{ optional($surat->ttdKaprodiBy)->name ?? '[Nama Penandatangan]' }}</strong>
+                    {{ optional($surat->ttdKaprodiBy)->name ?? '[Nama Penandatangan]' }}
                 </p>
                 <p>NIP. {{ optional($surat->ttdKaprodiBy)->nip ?? '[NIP]' }}</p>
             </td>

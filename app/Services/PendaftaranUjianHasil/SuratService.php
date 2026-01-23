@@ -188,7 +188,9 @@ class SuratService
         try {
             // Generate QR code
             $qrCode = base64_encode(QrCode::format('png')
-                ->size(100)
+                ->size(200)
+                ->margin(1)
+                ->errorCorrection('H')
                 ->generate($surat->verification_url));
 
             $updateData = [
@@ -235,7 +237,9 @@ class SuratService
         try {
             // Generate QR code
             $qrCode = base64_encode(QrCode::format('png')
-                ->size(100)
+                ->size(200)
+                ->margin(1)
+                ->errorCorrection('H')
                 ->generate($surat->verification_url));
 
             $updateData = [
@@ -299,8 +303,8 @@ class SuratService
         ]);
 
         $filename = 'surat-usulan-skripsi/' . $surat->verification_code . '.pdf';
-        
-        Storage::disk('public')->put($filename, $pdf->output());
+
+        Storage::disk('local')->put($filename, $pdf->output());
 
         $surat->update(['file_surat' => $filename]);
 
@@ -312,10 +316,10 @@ class SuratService
      */
     public function getNextNomorSurat(): string
     {
-        $prefix = method_exists($this, 'getNomorSuratPrefix') 
-            ? $this->getNomorSuratPrefix() 
+        $prefix = method_exists($this, 'getNomorSuratPrefix')
+            ? $this->getNomorSuratPrefix()
             : 'UN41.2/TI';
-            
+
         return $this->generateNomorSuratUniversal($prefix);
     }
 }

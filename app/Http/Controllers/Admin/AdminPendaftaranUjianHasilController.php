@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\StatusDosenPengujiExport;
 
 class AdminPendaftaranUjianHasilController extends Controller
 {
@@ -288,12 +290,12 @@ class AdminPendaftaranUjianHasilController extends Controller
     {
         $surat = $pendaftaranUjianHasil->suratUsulanSkripsi;
 
-        if (!$surat || !$surat->file_surat || !Storage::disk('public')->exists($surat->file_surat)) {
+        if (!$surat || !$surat->file_surat || !Storage::disk('local')->exists($surat->file_surat)) {
             abort(404, 'File surat tidak ditemukan.');
         }
 
         return response()->download(
-            Storage::disk('public')->path($surat->file_surat),
+            Storage::disk('local')->path($surat->file_surat),
             'Surat_Usulan_Skripsi_' . $pendaftaranUjianHasil->user->nim . '.pdf'
         );
     }
@@ -334,7 +336,7 @@ class AdminPendaftaranUjianHasilController extends Controller
         }
 
         // Check if user is staff (override) or kaprodi (normal)
-        $isStaffOverride = User::find(Auth::id())->hasRole('staff') && User::find(!Auth::id())->isKoordinatorProdi();
+        $isStaffOverride = User::find(Auth::id())->hasRole('staff') && !User::find(Auth::id())->isKoordinatorProdi();
 
         DB::beginTransaction();
         try {
@@ -393,7 +395,7 @@ class AdminPendaftaranUjianHasilController extends Controller
         }
 
         // Check if user is staff (override) or kajur (normal)
-        $isStaffOverride = User::find(Auth::id())->hasRole('staff') && User::find(!Auth::id())->isKetuaJurusan();
+        $isStaffOverride = User::find(Auth::id())->hasRole('staff') && !User::find(Auth::id())->isKetuaJurusan();
 
         DB::beginTransaction();
         try {
@@ -486,19 +488,32 @@ class AdminPendaftaranUjianHasilController extends Controller
         }
     }
 
+    // ========== EXCEL EXPORT ==========
+
+    /**
+     * Export Status Dosen Penguji to Excel.
+     */
+    public function exportStatusDosen()
+    {
+        return Excel::download(
+            new StatusDosenPengujiExport(),
+            'Status_Dosen_Penguji_' . date('Y-m-d_His') . '.xlsx'
+        );
+    }
+
     // ========== VIEW FILES ==========
 
     public function viewTranskrip(PendaftaranUjianHasil $pendaftaranUjianHasil)
     {
         if (
             !$pendaftaranUjianHasil->file_transkrip_nilai ||
-            !Storage::disk('public')->exists($pendaftaranUjianHasil->file_transkrip_nilai)
+            !Storage::disk('local')->exists($pendaftaranUjianHasil->file_transkrip_nilai)
         ) {
             abort(404, 'File tidak ditemukan.');
         }
 
         return response()->file(
-            Storage::disk('public')->path($pendaftaranUjianHasil->file_transkrip_nilai),
+            Storage::disk('local')->path($pendaftaranUjianHasil->file_transkrip_nilai),
             ['Content-Type' => 'application/pdf']
         );
     }
@@ -507,13 +522,13 @@ class AdminPendaftaranUjianHasilController extends Controller
     {
         if (
             !$pendaftaranUjianHasil->file_skripsi ||
-            !Storage::disk('public')->exists($pendaftaranUjianHasil->file_skripsi)
+            !Storage::disk('local')->exists($pendaftaranUjianHasil->file_skripsi)
         ) {
             abort(404, 'File tidak ditemukan.');
         }
 
         return response()->file(
-            Storage::disk('public')->path($pendaftaranUjianHasil->file_skripsi),
+            Storage::disk('local')->path($pendaftaranUjianHasil->file_skripsi),
             ['Content-Type' => 'application/pdf']
         );
     }
@@ -522,13 +537,13 @@ class AdminPendaftaranUjianHasilController extends Controller
     {
         if (
             !$pendaftaranUjianHasil->file_surat_permohonan ||
-            !Storage::disk('public')->exists($pendaftaranUjianHasil->file_surat_permohonan)
+            !Storage::disk('local')->exists($pendaftaranUjianHasil->file_surat_permohonan)
         ) {
             abort(404, 'File tidak ditemukan.');
         }
 
         return response()->file(
-            Storage::disk('public')->path($pendaftaranUjianHasil->file_surat_permohonan),
+            Storage::disk('local')->path($pendaftaranUjianHasil->file_surat_permohonan),
             ['Content-Type' => 'application/pdf']
         );
     }
@@ -537,12 +552,12 @@ class AdminPendaftaranUjianHasilController extends Controller
     {
         if (
             !$pendaftaranUjianHasil->file_slip_ukt ||
-            !Storage::disk('public')->exists($pendaftaranUjianHasil->file_slip_ukt)
+            !Storage::disk('local')->exists($pendaftaranUjianHasil->file_slip_ukt)
         ) {
             abort(404, 'File tidak ditemukan.');
         }
 
-        $filePath = Storage::disk('public')->path($pendaftaranUjianHasil->file_slip_ukt);
+        $filePath = Storage::disk('local')->path($pendaftaranUjianHasil->file_slip_ukt);
         $mimeType = mime_content_type($filePath);
 
         return response()->file($filePath, ['Content-Type' => $mimeType]);
@@ -554,13 +569,13 @@ class AdminPendaftaranUjianHasilController extends Controller
     {
         if (
             !$pendaftaranUjianHasil->file_transkrip_nilai ||
-            !Storage::disk('public')->exists($pendaftaranUjianHasil->file_transkrip_nilai)
+            !Storage::disk('local')->exists($pendaftaranUjianHasil->file_transkrip_nilai)
         ) {
             abort(404, 'File tidak ditemukan.');
         }
 
         return response()->download(
-            Storage::disk('public')->path($pendaftaranUjianHasil->file_transkrip_nilai),
+            Storage::disk('local')->path($pendaftaranUjianHasil->file_transkrip_nilai),
             'Transkrip_Nilai_' . $pendaftaranUjianHasil->user->nim . '.pdf'
         );
     }
@@ -569,13 +584,13 @@ class AdminPendaftaranUjianHasilController extends Controller
     {
         if (
             !$pendaftaranUjianHasil->file_skripsi ||
-            !Storage::disk('public')->exists($pendaftaranUjianHasil->file_skripsi)
+            !Storage::disk('local')->exists($pendaftaranUjianHasil->file_skripsi)
         ) {
             abort(404, 'File tidak ditemukan.');
         }
 
         return response()->download(
-            Storage::disk('public')->path($pendaftaranUjianHasil->file_skripsi),
+            Storage::disk('local')->path($pendaftaranUjianHasil->file_skripsi),
             'Skripsi_' . $pendaftaranUjianHasil->user->nim . '.pdf'
         );
     }
@@ -584,13 +599,13 @@ class AdminPendaftaranUjianHasilController extends Controller
     {
         if (
             !$pendaftaranUjianHasil->file_surat_permohonan ||
-            !Storage::disk('public')->exists($pendaftaranUjianHasil->file_surat_permohonan)
+            !Storage::disk('local')->exists($pendaftaranUjianHasil->file_surat_permohonan)
         ) {
             abort(404, 'File tidak ditemukan.');
         }
 
         return response()->download(
-            Storage::disk('public')->path($pendaftaranUjianHasil->file_surat_permohonan),
+            Storage::disk('local')->path($pendaftaranUjianHasil->file_surat_permohonan),
             'Surat_Permohonan_' . $pendaftaranUjianHasil->user->nim . '.pdf'
         );
     }
@@ -599,7 +614,7 @@ class AdminPendaftaranUjianHasilController extends Controller
     {
         if (
             !$pendaftaranUjianHasil->file_slip_ukt ||
-            !Storage::disk('public')->exists($pendaftaranUjianHasil->file_slip_ukt)
+            !Storage::disk('local')->exists($pendaftaranUjianHasil->file_slip_ukt)
         ) {
             abort(404, 'File tidak ditemukan.');
         }
@@ -607,7 +622,7 @@ class AdminPendaftaranUjianHasilController extends Controller
         $extension = pathinfo($pendaftaranUjianHasil->file_slip_ukt, PATHINFO_EXTENSION);
 
         return response()->download(
-            Storage::disk('public')->path($pendaftaranUjianHasil->file_slip_ukt),
+            Storage::disk('local')->path($pendaftaranUjianHasil->file_slip_ukt),
             'Slip_UKT_' . $pendaftaranUjianHasil->user->nim . '.' . $extension
         );
     }
@@ -657,7 +672,7 @@ class AdminPendaftaranUjianHasilController extends Controller
         $pendaftaran = (object) [
             'id' => 999,
             'user' => (object) [
-                'name' => 'JUAN IMANUEL KAMASI',
+                'name' => 'PATRIK WILLEM LOUIS ROMPAS',
                 'nim' => '22210076'
             ],
             'angkatan' => '2022',

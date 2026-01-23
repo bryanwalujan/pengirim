@@ -1012,6 +1012,10 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             // Download Surat Usulan
             Route::get('/{pendaftaranUjianHasil}/download-surat', [AdminPendaftaranUjianHasilController::class, 'downloadSuratUsulan'])
                 ->name('download-surat');
+
+            // Export Status Dosen
+            Route::get('/export-status-dosen', [AdminPendaftaranUjianHasilController::class, 'exportStatusDosen'])
+                ->name('export-status-dosen');
         });
 
         // Staff only routes
