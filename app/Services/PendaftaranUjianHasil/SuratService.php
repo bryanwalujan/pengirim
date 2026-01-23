@@ -214,7 +214,7 @@ class SuratService
             Log::info('Surat signed by Kaprodi', [
                 'surat_id' => $surat->id,
                 'kaprodi_id' => $kaprodiId,
-                'is_override' => $isOverride,
+                'is_override' => ($overrideInfo && isset($overrideInfo['is_override'])) ? $overrideInfo['is_override'] : false,
             ]);
 
             return true;
@@ -281,6 +281,8 @@ class SuratService
      */
     public function generatePdf(SuratUsulanSkripsi $surat): string
     {
+        $surat->load(['ttdKaprodiBy', 'ttdKajurBy']);
+
         $pendaftaran = $surat->pendaftaranUjianHasil->load([
             'user',
             'dosenPembimbing1',
@@ -292,6 +294,8 @@ class SuratService
             'surat' => $surat,
             'pendaftaran' => $pendaftaran,
             'penguji' => $pendaftaran->getPenguji(),
+            'show_kaprodi_signature' => $surat->isKaprodiSigned(),
+            'show_kajur_signature' => $surat->isKajurSigned(),
         ]);
 
         $filename = 'surat-usulan-skripsi/' . $surat->verification_code . '.pdf';

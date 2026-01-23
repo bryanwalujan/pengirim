@@ -259,23 +259,125 @@
                                         <span class="text-xs font-medium text-gray-600">Tanggal Daftar</span>
                                     </div>
                                 </div>
-                                <p class="text-xs text-gray-600 text-right -mt-2">{{ $pendaftaran->created_at->translatedFormat('d F Y') }}
+                                <p class="text-xs text-gray-600 text-right -mt-2">
+                                    {{ $pendaftaran->created_at->translatedFormat('d F Y') }}
                                 </p>
                             </div>
                         </div>
                     </div>
 
+                    {{-- ✅ SURAT USULAN CARD --}}
+                    @if ($pendaftaran->suratUsulanSkripsi)
+                        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                            <!-- Header -->
+                            <div class="bg-emerald-500 px-6 py-4">
+                                <div class="flex items-center gap-3 text-white">
+                                    <div class="p-2 bg-white/20 rounded-lg">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-lg font-bold text-white">Surat Usulan Diterbitkan</h3>
+                                        <p class="text-sm text-emerald-100">Status: Selesai</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Content -->
+                            <div class="p-6">
+                                <p class="text-gray-700 text-sm leading-relaxed mb-4">
+                                    Selamat! Surat usulan ujian skripsi Anda telah disetujui dan diterbitkan secara resmi.
+                                </p>
+
+                                <!-- Approval Status -->
+                                <div class="space-y-3">
+                                    <!-- TTD Kaprodi -->
+                                    <div
+                                        class="flex items-center gap-3 p-3 bg-emerald-50 rounded-xl border border-emerald-200">
+                                        <div class="flex-shrink-0">
+                                            <svg class="w-5 h-5 text-emerald-600" fill="currentColor"
+                                                viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd"
+                                                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                                    clip-rule="evenodd" />
+                                            </svg>
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="text-xs font-bold text-emerald-700 uppercase tracking-wide">
+                                                TTD Kaprodi
+                                            </p>
+                                            <p class="text-xs text-gray-600 mt-0.5">
+                                                {{ $pendaftaran->suratUsulanSkripsi->ttd_kaprodi_at->format('d M Y, H:i') }}
+                                                WITA
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <!-- TTD Kajur -->
+                                    <div
+                                        class="flex items-center gap-3 p-3 bg-emerald-50 rounded-xl border border-emerald-200">
+                                        <div class="flex-shrink-0">
+                                            <svg class="w-5 h-5 text-emerald-600" fill="currentColor"
+                                                viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd"
+                                                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                                    clip-rule="evenodd" />
+                                            </svg>
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="text-xs font-bold text-emerald-700 uppercase tracking-wide">
+                                                TTD Kajur
+                                            </p>
+                                            <p class="text-xs text-gray-600 mt-0.5">
+                                                {{ $pendaftaran->suratUsulanSkripsi->ttd_kajur_at->format('d M Y, H:i') }}
+                                                WITA
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Download Button -->
+                                <div class="mt-6 pt-4 border-t border-gray-200">
+                                    <a href="{{ route('user.pendaftaran-ujian-hasil.download-surat', $pendaftaran) }}"
+                                        class="flex items-center justify-center gap-2 w-full px-4 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold rounded-xl shadow-md hover:shadow-lg transition-all">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                        </svg>
+                                        Download Surat Usulan
+                                    </a>
+                                </div>
+
+                                <!-- Info Footer -->
+                                <div class="mt-4 pt-4 border-t border-gray-200">
+                                    <div class="flex items-center gap-2 text-xs text-gray-500">
+                                        <svg class="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd"
+                                                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                                                clip-rule="evenodd" />
+                                        </svg>
+                                        <span>Surat telah ditandatangani dan dapat diunduh</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
                     {{-- Status Timeline --}}
-                     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                         <div class="px-6 py-4 bg-gray-50 border-b border-gray-100">
-                             <h4 class="font-bold text-gray-900 flex items-center gap-2">
+                            <h4 class="font-bold text-gray-900 flex items-center gap-2">
                                 <svg class="w-5 h-5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                                    <path fill-rule="evenodd"
+                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                                        clip-rule="evenodd" />
                                 </svg>
                                 Status Pendaftaran
                             </h4>
                         </div>
-                         <div class="p-6">
+                        <div class="p-6">
                             <div class="space-y-0">
                                 @php
                                     $statuses = [
@@ -293,28 +395,42 @@
                                 @foreach ($statuses as $key => $label)
                                     @php
                                         $index = array_search($key, array_keys($statuses));
-                                        $isCompleted = $currentStatus === 'selesai' || ($currentIndex !== false && $index <= $currentIndex);
+                                        $isCompleted =
+                                            $currentStatus === 'selesai' ||
+                                            ($currentIndex !== false && $index <= $currentIndex);
                                         $isActive = $key === $currentStatus;
                                         // Colors
-                                        $dotClass = $isCompleted ? 'bg-emerald-500 border-emerald-500' : 'bg-white border-gray-300';
-                                        if($isActive && $currentStatus !== 'selesai') $dotClass = 'bg-orange-600 border-orange-600 shadow-[0_0_0_4px_rgba(249,115,22,0.2)]';
-                                        
+                                        $dotClass = $isCompleted
+                                            ? 'bg-emerald-500 border-emerald-500'
+                                            : 'bg-white border-gray-300';
+                                        if ($isActive && $currentStatus !== 'selesai') {
+                                            $dotClass =
+                                                'bg-orange-600 border-orange-600 shadow-[0_0_0_4px_rgba(249,115,22,0.2)]';
+                                        }
+
                                         $lineClass = $isCompleted ? 'bg-emerald-500' : 'bg-gray-200';
                                         $textClass = $isCompleted ? 'text-emerald-700' : 'text-gray-500';
-                                        if($isActive) $textClass = 'text-orange-700 font-bold';
+                                        if ($isActive) {
+                                            $textClass = 'text-orange-700 font-bold';
+                                        }
                                     @endphp
-                                    
+
                                     <div class="relative pl-8 pb-8 last:pb-0">
                                         {{-- Line --}}
-                                        @if(!$loop->last)
-                                        <div class="absolute left-[11px] top-3 bottom-0 w-0.5 {{ ($currentIndex !== false && $index < $currentIndex) ? 'bg-emerald-500' : 'bg-gray-200' }}"></div>
+                                        @if (!$loop->last)
+                                            <div
+                                                class="absolute left-[11px] top-3 bottom-0 w-0.5 {{ $currentIndex !== false && $index < $currentIndex ? 'bg-emerald-500' : 'bg-gray-200' }}">
+                                            </div>
                                         @endif
-                                        
+
                                         {{-- Dot --}}
-                                        <div class="absolute left-0 top-1 w-6 h-6 rounded-full border-2 {{ $dotClass }} flex items-center justify-center z-10 transition-all duration-300">
-                                            @if($isCompleted)
+                                        <div
+                                            class="absolute left-0 top-1 w-6 h-6 rounded-full border-2 {{ $dotClass }} flex items-center justify-center z-10 transition-all duration-300">
+                                            @if ($isCompleted)
                                                 <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                                    <path fill-rule="evenodd"
+                                                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                                        clip-rule="evenodd" />
                                                 </svg>
                                             @endif
                                         </div>
@@ -326,8 +442,8 @@
                                     </div>
                                 @endforeach
                             </div>
-                         </div>
-                     </div>
+                        </div>
+                    </div>
 
                 </div>
 
@@ -361,7 +477,9 @@
                             <!-- Supervisor -->
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Pembimbing 1</label>
+                                    <label
+                                        class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Pembimbing
+                                        1</label>
                                     <div
                                         class="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl border border-blue-100">
                                         <div
@@ -369,12 +487,15 @@
                                             <span class="font-bold text-sm">P1</span>
                                         </div>
                                         <div>
-                                            <p class="font-bold text-sm text-gray-900">{{ $pendaftaran->dosenPembimbing1->name }}</p>
+                                            <p class="font-bold text-sm text-gray-900">
+                                                {{ $pendaftaran->dosenPembimbing1->name }}</p>
                                         </div>
                                     </div>
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Pembimbing 2</label>
+                                    <label
+                                        class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Pembimbing
+                                        2</label>
                                     <div
                                         class="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl border border-blue-100">
                                         <div
@@ -382,7 +503,8 @@
                                             <span class="font-bold text-sm">P2</span>
                                         </div>
                                         <div>
-                                            <p class="font-bold text-sm text-gray-900">{{ $pendaftaran->dosenPembimbing2->name }}</p>
+                                            <p class="font-bold text-sm text-gray-900">
+                                                {{ $pendaftaran->dosenPembimbing2->name }}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -404,12 +526,7 @@
                         </div>
                         <div class="p-6">
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                @foreach ([
-                                    ['route' => 'download.transkrip', 'name' => 'Transkrip Nilai', 'color' => 'blue', 'icon' => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'], 
-                                    ['route' => 'download.skripsi', 'name' => 'File Skripsi', 'color' => 'orange', 'icon' => 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253'], 
-                                    ['route' => 'download.permohonan', 'name' => 'Surat Permohonan', 'color' => 'emerald', 'icon' => 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z'], 
-                                    ['route' => 'download.slip-ukt', 'name' => 'Slip UKT', 'color' => 'amber', 'icon' => 'M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z']
-                                ] as $doc)
+                                @foreach ([['route' => 'download.transkrip', 'name' => 'Transkrip Nilai', 'color' => 'blue', 'icon' => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'], ['route' => 'download.skripsi', 'name' => 'File Skripsi', 'color' => 'orange', 'icon' => 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253'], ['route' => 'download.permohonan', 'name' => 'Surat Permohonan', 'color' => 'emerald', 'icon' => 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z'], ['route' => 'download.slip-ukt', 'name' => 'Slip UKT', 'color' => 'amber', 'icon' => 'M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z']] as $doc)
                                     <a href="{{ route('user.pendaftaran-ujian-hasil.' . $doc['route'], $pendaftaran) }}"
                                         class="group flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-{{ $doc['color'] }}-50 to-{{ $doc['color'] }}-50/50 border border-{{ $doc['color'] }}-100 hover:shadow-md hover:border-{{ $doc['color'] }}-300 transition-all"
                                         target="_blank">

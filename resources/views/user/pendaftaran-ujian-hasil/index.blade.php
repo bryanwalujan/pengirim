@@ -426,6 +426,7 @@
                                                 @break
 
                                                 {{-- DEFAULT: Unknown Status --}}
+
                                                 @default
                                                     <span
                                                         class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-800 border border-gray-200">
@@ -455,9 +456,25 @@
                                                 Detail
                                             </a>
 
+                                            {{-- Download Surat Button (only for selesai status with surat) --}}
+                                            @if ($item->status === 'selesai' && $item->suratUsulanSkripsi)
+                                                <a href="{{ route('user.pendaftaran-ujian-hasil.download-surat', $item->id) }}"
+                                                    class="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 text-white text-sm font-semibold shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105"
+                                                    data-bs-toggle="tooltip" title="Download Surat Usulan Ujian Skripsi">
+                                                    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                                    </svg>
+                                                    Surat
+                                                </a>
+                                            @endif
+
                                             {{-- Delete Button (only for rejected status) --}}
                                             @if ($item->status === 'ditolak')
-                                                <form action="{{ route('user.pendaftaran-ujian-hasil.destroy', $item->id) }}"
+                                                <form
+                                                    action="{{ route('user.pendaftaran-ujian-hasil.destroy', $item->id) }}"
                                                     method="POST" class="inline-block"
                                                     onsubmit="return confirm('Apakah Anda yakin ingin menghapus pendaftaran ini? Tindakan ini tidak dapat dibatalkan.');">
                                                     @csrf
@@ -478,69 +495,69 @@
                                         </div>
                                     </td>
                                 </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="6" class="px-5 py-16">
-                                        <div class="text-center space-y-4">
-                                            <div class="flex justify-center">
-                                                <div
-                                                    class="w-20 h-20 bg-gradient-to-br from-orange-100 to-orange-200 rounded-2xl flex items-center justify-center shadow-md">
-                                                    <svg class="w-10 h-10 text-orange-400" fill="none"
-                                                        stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            stroke-width="2"
-                                                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                                    </svg>
+                                @empty
+                                    <tr>
+                                        <td colspan="6" class="px-5 py-16">
+                                            <div class="text-center space-y-4">
+                                                <div class="flex justify-center">
+                                                    <div
+                                                        class="w-20 h-20 bg-gradient-to-br from-orange-100 to-orange-200 rounded-2xl flex items-center justify-center shadow-md">
+                                                        <svg class="w-10 h-10 text-orange-400" fill="none"
+                                                            stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2"
+                                                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                        </svg>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <h3 class="text-xl font-bold text-gray-900 mb-2">Belum Ada Pendaftaran</h3>
+                                                    <p class="text-gray-600 text-sm max-w-sm mx-auto mb-6 leading-relaxed">
+                                                        Anda belum pernah membuat pendaftaran ujian hasil. Mulai
+                                                        pendaftaran pertama Anda sekarang!
+                                                    </p>
+                                                    @if (isset($eligibility) && $eligibility['eligible'])
+                                                        <a href="{{ route('user.pendaftaran-ujian-hasil.create') }}"
+                                                            class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                                                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                                <path fill-rule="evenodd"
+                                                                    d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
+                                                                    clip-rule="evenodd" />
+                                                            </svg>
+                                                            Daftar Ujian Hasil
+                                                        </a>
+                                                    @endif
                                                 </div>
                                             </div>
-                                            <div>
-                                                <h3 class="text-xl font-bold text-gray-900 mb-2">Belum Ada Pendaftaran</h3>
-                                                <p class="text-gray-600 text-sm max-w-sm mx-auto mb-6 leading-relaxed">
-                                                    Anda belum pernah membuat pendaftaran ujian hasil. Mulai
-                                                    pendaftaran pertama Anda sekarang!
-                                                </p>
-                                                @if (isset($eligibility) && $eligibility['eligible'])
-                                                    <a href="{{ route('user.pendaftaran-ujian-hasil.create') }}"
-                                                        class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
-                                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                                            <path fill-rule="evenodd"
-                                                                d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
-                                                                clip-rule="evenodd" />
-                                                        </svg>
-                                                        Daftar Ujian Hasil
-                                                    </a>
-                                                @endif
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-        </div>
-    </section>
-@endsection
+        </section>
+    @endsection
 
-@push('scripts')
-    <script>
-        // Menggunakan vanilla JavaScript untuk menghindari error jQuery
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize Bootstrap tooltips
-            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl);
-            });
-
-            // Initialize AOS
-            if (typeof AOS !== 'undefined') {
-                AOS.init({
-                    duration: 400,
-                    once: true,
-                    offset: 50
+    @push('scripts')
+        <script>
+            // Menggunakan vanilla JavaScript untuk menghindari error jQuery
+            document.addEventListener('DOMContentLoaded', function() {
+                // Initialize Bootstrap tooltips
+                var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+                    return new bootstrap.Tooltip(tooltipTriggerEl);
                 });
-            }
-        });
-    </script>
-@endpush
+
+                // Initialize AOS
+                if (typeof AOS !== 'undefined') {
+                    AOS.init({
+                        duration: 400,
+                        once: true,
+                        offset: 50
+                    });
+                }
+            });
+        </script>
+    @endpush

@@ -62,6 +62,10 @@ Route::get('/preview-sk-pembimbing-pdf', [AdminSkPembimbingController::class, 'p
     ->name('preview.sk-pembimbing.pdf')
     ->middleware('auth');
 
+Route::get('/preview-surat-usulan-ujian-hasil-pdf', [AdminPendaftaranUjianHasilController::class, 'previewPdf'])
+    ->name('preview.surat-usulan-ujian-hasil.pdf')
+    ->middleware('auth');
+
 
 // ========== DEVELOPMENT QUICK LOGIN (Local Only) ==========
 Route::middleware('local.only')->prefix('dev')->name('dev.')->group(function () {
@@ -292,6 +296,10 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa', 'check.ukt'])->group(fu
             ->name('download.permohonan');
         Route::get('/{pendaftaran_ujian_hasil}/download/slip-ukt', [PendaftaranUjianHasilController::class, 'downloadSlipUkt'])
             ->name('download.slip-ukt');
+
+        // Download Surat Usulan (jika sudah digenerate)
+        Route::get('/{pendaftaran_ujian_hasil}/download-surat', [PendaftaranUjianHasilController::class, 'downloadSuratUsulan'])
+            ->name('download-surat');
 
         // Delete rejected registration
         Route::delete('/{pendaftaran_ujian_hasil}', [PendaftaranUjianHasilController::class, 'destroy'])

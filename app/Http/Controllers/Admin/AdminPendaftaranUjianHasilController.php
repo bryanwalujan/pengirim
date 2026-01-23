@@ -8,9 +8,12 @@ use App\Models\PendaftaranUjianHasil;
 use App\Models\User;
 use App\Services\PendaftaranUjianHasil\PengujiService;
 use App\Services\PendaftaranUjianHasil\SuratService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class AdminPendaftaranUjianHasilController extends Controller
 {
@@ -289,8 +292,8 @@ class AdminPendaftaranUjianHasilController extends Controller
             abort(404, 'File surat tidak ditemukan.');
         }
 
-        return Storage::disk('public')->download(
-            $surat->file_surat,
+        return response()->download(
+            Storage::disk('public')->path($surat->file_surat),
             'Surat_Usulan_Skripsi_' . $pendaftaranUjianHasil->user->nim . '.pdf'
         );
     }
@@ -331,18 +334,18 @@ class AdminPendaftaranUjianHasilController extends Controller
         }
 
         // Check if user is staff (override) or kaprodi (normal)
-        $isStaffOverride = auth()->user()->hasRole('staff') && !auth()->user()->isKoordinatorProdi();
-        
+        $isStaffOverride = User::find(Auth::id())->hasRole('staff') && User::find(!Auth::id())->isKoordinatorProdi();
+
         DB::beginTransaction();
         try {
             if ($isStaffOverride) {
                 // Find default Kaprodi
-                $kaprodi = User::whereHas('roles', function($q) {
+                $kaprodi = User::whereHas('roles', function ($q) {
                     $q->where('name', 'dosen');
-                })->where(function($query) {
+                })->where(function ($query) {
                     $query->whereRaw('LOWER(jabatan) LIKE ?', ['%koordinator%'])
-                          ->orWhereRaw('LOWER(jabatan) LIKE ?', ['%kaprodi%'])
-                          ->orWhereRaw('LOWER(jabatan) LIKE ?', ['%korprodi%']);
+                        ->orWhereRaw('LOWER(jabatan) LIKE ?', ['%kaprodi%'])
+                        ->orWhereRaw('LOWER(jabatan) LIKE ?', ['%korprodi%']);
                 })->first();
 
                 if (!$kaprodi) {
@@ -352,23 +355,24 @@ class AdminPendaftaranUjianHasilController extends Controller
                 // Sign with override info
                 $this->suratService->signByKaprodi($surat, $kaprodi->id, [
                     'is_override' => true,
-                    'override_by' => auth()->id(),
-                    'override_by_name' => auth()->user()->name,
+                    'override_by' => Auth::id(),
+                    'override_by_name' => Auth::user()->name,
                     'override_at' => now()->toDateTimeString(),
                 ]);
             } else {
                 // Normal Kaprodi signature
-                $this->suratService->signByKaprodi($surat, auth()->id());
+                $this->suratService->signByKaprodi($surat, Auth::id());
             }
 
             DB::commit();
 
             return redirect()
                 ->route('admin.pendaftaran-ujian-hasil.show', $pendaftaranUjianHasil)
-                ->with('success', 
-                    $isStaffOverride 
-                        ? 'Surat berhasil ditandatangani (Staff Override).' 
-                        : 'Surat berhasil ditandatangani sebagai Korprodi.'
+                ->with(
+                    'success',
+                    $isStaffOverride
+                    ? 'Surat berhasil ditandatangani (Staff Override).'
+                    : 'Surat berhasil ditandatangani sebagai Korprodi.'
                 );
         } catch (\Exception $e) {
             DB::rollBack();
@@ -389,19 +393,19 @@ class AdminPendaftaranUjianHasilController extends Controller
         }
 
         // Check if user is staff (override) or kajur (normal)
-        $isStaffOverride = auth()->user()->hasRole('staff') && !auth()->user()->isKetuaJurusan();
-        
+        $isStaffOverride = User::find(Auth::id())->hasRole('staff') && User::find(!Auth::id())->isKetuaJurusan();
+
         DB::beginTransaction();
         try {
             if ($isStaffOverride) {
                 // Find default Kajur
-                $kajur = User::whereHas('roles', function($q) {
+                $kajur = User::whereHas('roles', function ($q) {
                     $q->where('name', 'dosen');
-                })->where(function($query) {
+                })->where(function ($query) {
                     $query->whereRaw('LOWER(jabatan) LIKE ?', ['%ketua jurusan%'])
-                          ->orWhereRaw('LOWER(jabatan) LIKE ?', ['%kajur%'])
-                          ->orWhereRaw('LOWER(jabatan) LIKE ?', ['%pimpinan jurusan%'])
-                          ->orWhereRaw('LOWER(jabatan) LIKE ?', ['%kepala jurusan%']);
+                        ->orWhereRaw('LOWER(jabatan) LIKE ?', ['%kajur%'])
+                        ->orWhereRaw('LOWER(jabatan) LIKE ?', ['%pimpinan jurusan%'])
+                        ->orWhereRaw('LOWER(jabatan) LIKE ?', ['%kepala jurusan%']);
                 })->first();
 
                 if (!$kajur) {
@@ -411,23 +415,24 @@ class AdminPendaftaranUjianHasilController extends Controller
                 // Sign with override info
                 $this->suratService->signByKajur($surat, $kajur->id, [
                     'is_override' => true,
-                    'override_by' => auth()->id(),
-                    'override_by_name' => auth()->user()->name,
+                    'override_by' => Auth::id(),
+                    'override_by_name' => Auth::user()->name,
                     'override_at' => now()->toDateTimeString(),
                 ]);
             } else {
                 // Normal Kajur signature
-                $this->suratService->signByKajur($surat, auth()->id());
+                $this->suratService->signByKajur($surat, Auth::id());
             }
 
             DB::commit();
 
             return redirect()
                 ->route('admin.pendaftaran-ujian-hasil.show', $pendaftaranUjianHasil)
-                ->with('success', 
-                    $isStaffOverride 
-                        ? 'Surat berhasil ditandatangani (Staff Override). Proses selesai.' 
-                        : 'Surat berhasil ditandatangani sebagai Kajur. Proses selesai.'
+                ->with(
+                    'success',
+                    $isStaffOverride
+                    ? 'Surat berhasil ditandatangani (Staff Override). Proses selesai.'
+                    : 'Surat berhasil ditandatangani sebagai Kajur. Proses selesai.'
                 );
         } catch (\Exception $e) {
             DB::rollBack();
@@ -485,8 +490,10 @@ class AdminPendaftaranUjianHasilController extends Controller
 
     public function viewTranskrip(PendaftaranUjianHasil $pendaftaranUjianHasil)
     {
-        if (!$pendaftaranUjianHasil->file_transkrip_nilai || 
-            !Storage::disk('public')->exists($pendaftaranUjianHasil->file_transkrip_nilai)) {
+        if (
+            !$pendaftaranUjianHasil->file_transkrip_nilai ||
+            !Storage::disk('public')->exists($pendaftaranUjianHasil->file_transkrip_nilai)
+        ) {
             abort(404, 'File tidak ditemukan.');
         }
 
@@ -498,8 +505,10 @@ class AdminPendaftaranUjianHasilController extends Controller
 
     public function viewSkripsi(PendaftaranUjianHasil $pendaftaranUjianHasil)
     {
-        if (!$pendaftaranUjianHasil->file_skripsi || 
-            !Storage::disk('public')->exists($pendaftaranUjianHasil->file_skripsi)) {
+        if (
+            !$pendaftaranUjianHasil->file_skripsi ||
+            !Storage::disk('public')->exists($pendaftaranUjianHasil->file_skripsi)
+        ) {
             abort(404, 'File tidak ditemukan.');
         }
 
@@ -511,8 +520,10 @@ class AdminPendaftaranUjianHasilController extends Controller
 
     public function viewPermohonan(PendaftaranUjianHasil $pendaftaranUjianHasil)
     {
-        if (!$pendaftaranUjianHasil->file_surat_permohonan || 
-            !Storage::disk('public')->exists($pendaftaranUjianHasil->file_surat_permohonan)) {
+        if (
+            !$pendaftaranUjianHasil->file_surat_permohonan ||
+            !Storage::disk('public')->exists($pendaftaranUjianHasil->file_surat_permohonan)
+        ) {
             abort(404, 'File tidak ditemukan.');
         }
 
@@ -524,72 +535,197 @@ class AdminPendaftaranUjianHasilController extends Controller
 
     public function viewSlipUkt(PendaftaranUjianHasil $pendaftaranUjianHasil)
     {
-        if (!$pendaftaranUjianHasil->file_slip_ukt || 
-            !Storage::disk('public')->exists($pendaftaranUjianHasil->file_slip_ukt)) {
+        if (
+            !$pendaftaranUjianHasil->file_slip_ukt ||
+            !Storage::disk('public')->exists($pendaftaranUjianHasil->file_slip_ukt)
+        ) {
             abort(404, 'File tidak ditemukan.');
         }
 
-        $mimeType = Storage::disk('public')->mimeType($pendaftaranUjianHasil->file_slip_ukt);
+        $filePath = Storage::disk('public')->path($pendaftaranUjianHasil->file_slip_ukt);
+        $mimeType = mime_content_type($filePath);
 
-        return response()->file(
-            Storage::disk('public')->path($pendaftaranUjianHasil->file_slip_ukt),
-            ['Content-Type' => $mimeType]
-        );
+        return response()->file($filePath, ['Content-Type' => $mimeType]);
     }
 
     // ========== DOWNLOAD FILES ==========
 
     public function downloadTranskrip(PendaftaranUjianHasil $pendaftaranUjianHasil)
     {
-        if (!$pendaftaranUjianHasil->file_transkrip_nilai || 
-            !Storage::disk('public')->exists($pendaftaranUjianHasil->file_transkrip_nilai)) {
+        if (
+            !$pendaftaranUjianHasil->file_transkrip_nilai ||
+            !Storage::disk('public')->exists($pendaftaranUjianHasil->file_transkrip_nilai)
+        ) {
             abort(404, 'File tidak ditemukan.');
         }
 
-        return Storage::disk('public')->download(
-            $pendaftaranUjianHasil->file_transkrip_nilai,
+        return response()->download(
+            Storage::disk('public')->path($pendaftaranUjianHasil->file_transkrip_nilai),
             'Transkrip_Nilai_' . $pendaftaranUjianHasil->user->nim . '.pdf'
         );
     }
 
     public function downloadSkripsi(PendaftaranUjianHasil $pendaftaranUjianHasil)
     {
-        if (!$pendaftaranUjianHasil->file_skripsi || 
-            !Storage::disk('public')->exists($pendaftaranUjianHasil->file_skripsi)) {
+        if (
+            !$pendaftaranUjianHasil->file_skripsi ||
+            !Storage::disk('public')->exists($pendaftaranUjianHasil->file_skripsi)
+        ) {
             abort(404, 'File tidak ditemukan.');
         }
 
-        return Storage::disk('public')->download(
-            $pendaftaranUjianHasil->file_skripsi,
+        return response()->download(
+            Storage::disk('public')->path($pendaftaranUjianHasil->file_skripsi),
             'Skripsi_' . $pendaftaranUjianHasil->user->nim . '.pdf'
         );
     }
 
     public function downloadPermohonan(PendaftaranUjianHasil $pendaftaranUjianHasil)
     {
-        if (!$pendaftaranUjianHasil->file_surat_permohonan || 
-            !Storage::disk('public')->exists($pendaftaranUjianHasil->file_surat_permohonan)) {
+        if (
+            !$pendaftaranUjianHasil->file_surat_permohonan ||
+            !Storage::disk('public')->exists($pendaftaranUjianHasil->file_surat_permohonan)
+        ) {
             abort(404, 'File tidak ditemukan.');
         }
 
-        return Storage::disk('public')->download(
-            $pendaftaranUjianHasil->file_surat_permohonan,
+        return response()->download(
+            Storage::disk('public')->path($pendaftaranUjianHasil->file_surat_permohonan),
             'Surat_Permohonan_' . $pendaftaranUjianHasil->user->nim . '.pdf'
         );
     }
 
     public function downloadSlipUkt(PendaftaranUjianHasil $pendaftaranUjianHasil)
     {
-        if (!$pendaftaranUjianHasil->file_slip_ukt || 
-            !Storage::disk('public')->exists($pendaftaranUjianHasil->file_slip_ukt)) {
+        if (
+            !$pendaftaranUjianHasil->file_slip_ukt ||
+            !Storage::disk('public')->exists($pendaftaranUjianHasil->file_slip_ukt)
+        ) {
             abort(404, 'File tidak ditemukan.');
         }
 
         $extension = pathinfo($pendaftaranUjianHasil->file_slip_ukt, PATHINFO_EXTENSION);
 
-        return Storage::disk('public')->download(
-            $pendaftaranUjianHasil->file_slip_ukt,
+        return response()->download(
+            Storage::disk('public')->path($pendaftaranUjianHasil->file_slip_ukt),
             'Slip_UKT_' . $pendaftaranUjianHasil->user->nim . '.' . $extension
         );
+    }
+
+    /**
+     * Preview PDF dengan data dummy untuk testing template
+     */
+    public function previewPdf()
+    {
+        // Data penguji dummy (4 penguji)
+        $pengujiData = collect([
+            (object) [
+                'posisi' => 'Penguji 1',
+                'dosen' => (object) [
+                    'name' => 'Dr. Irene Realyta Halldy Trosi Tangkawarow, ST., MISD',
+                    'nip' => '198501012010122001',
+                    'jabatan' => 'Lektor Kepala'
+                ]
+            ],
+            (object) [
+                'posisi' => 'Penguji 2',
+                'dosen' => (object) [
+                    'name' => 'Dr. Glenn David Paulus Maramis, M.Compsc',
+                    'nip' => '198012152008121002',
+                    'jabatan' => 'Lektor Kepala'
+                ]
+            ],
+            (object) [
+                'posisi' => 'Penguji 3',
+                'dosen' => (object) [
+                    'name' => 'Alfiansyah Hasibuan, S.Kom, M.Kom.',
+                    'nip' => '199005152019031015',
+                    'jabatan' => 'Asisten Ahli'
+                ]
+            ],
+            (object) [
+                'posisi' => 'Penguji Tambahan',
+                'dosen' => (object) [
+                    'name' => 'Merry T. Karundeng, ST., MTI',
+                    'nip' => '198707122015042001',
+                    'jabatan' => 'Lektor'
+                ]
+            ]
+        ]);
+
+        // Data pendaftaran dummy
+        $pendaftaran = (object) [
+            'id' => 999,
+            'user' => (object) [
+                'name' => 'JUAN IMANUEL KAMASI',
+                'nim' => '22210076'
+            ],
+            'angkatan' => '2022',
+            'ipk' => '3.75',
+            'judul_skripsi' => 'Analisis Tren dan Visualisasi Data Kasus Narkotika Berbasis Statistik Deskriptif Pada Badan Narkotika Nasional Provinsi Sulawesi Utara',
+            'dosenPembimbing1' => (object) [
+                'name' => 'Dr. Quido C Kainde, ST.,MM.,MT',
+                'nip' => '198005151998031001',
+                'jabatan' => 'Lektor Kepala'
+            ],
+            'dosenPembimbing2' => (object) [
+                'name' => 'Agus Tjahjono, ST., MMSI',
+                'nip' => '197508251999031002',
+                'jabatan' => 'Lektor'
+            ],
+            'pengujiUjianHasil' => $pengujiData,
+        ];
+
+        // Surat dummy dengan QR codes
+        $surat = (object) [
+            'qr_code_kaprodi' => base64_encode(QrCode::format('png')
+                ->size(200)
+                ->margin(1)
+                ->errorCorrection('H')
+                ->generate('https://eservice.example.com/verify/surat-usulan-skripsi/PREVIEW-KAPRODI')),
+            'qr_code_kajur' => base64_encode(QrCode::format('png')
+                ->size(200)
+                ->margin(1)
+                ->errorCorrection('H')
+                ->generate('https://eservice.example.com/verify/surat-usulan-skripsi/PREVIEW-KAJUR')),
+            'ttdKaprodiBy' => (object) [
+                'name' => 'Kristofel Santa, S.ST, M.MT',
+                'nip' => '19870531 201504 1 003',
+                'jabatan' => 'Koordinator Program Studi'
+            ],
+            'ttdKajurBy' => (object) [
+                'name' => 'Dr. Arje C. Djamen. ST, MT',
+                'nip' => '19870712 201012 1 006',
+                'jabatan' => 'Ketua Jurusan Teknik Elektro'
+            ],
+            'verification_code' => 'PREVIEW-' . strtoupper(uniqid()),
+            'nomor_surat' => '2869/UN41.2/TI/2025',
+            'tanggal_surat' => now(),
+            'is_kaprodi_signed' => true,
+            'is_kajur_signed' => true,
+        ];
+
+        // Variabel pendukung view
+        $nomorSurat = $surat->nomor_surat;
+        $tanggalSurat = $surat->tanggal_surat;
+        $show_kajur_signature = true; // Agar watermark DRAFT hilang saat preview
+        $show_kaprodi_signature = true;
+
+        // Generate PDF
+        $pdf = Pdf::loadView('pdf.surat-usulan-skripsi', compact(
+            'pendaftaran',
+            'surat',
+            'nomorSurat',
+            'tanggalSurat',
+            'show_kajur_signature',
+            'show_kaprodi_signature'
+        ))
+            ->setPaper('a4', 'portrait')
+            ->setOption('margin-top', '0.39in')
+            ->setOption('margin-bottom', '1in')
+            ->setOption('margin-left', '1in')
+            ->setOption('margin-right', '1in');
+
+        return $pdf->stream('preview-surat-usulan-ujian-hasil.pdf');
     }
 }

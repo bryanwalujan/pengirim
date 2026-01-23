@@ -18,9 +18,9 @@ class PendaftaranUjianHasilController extends Controller
     public function index()
     {
         $user = Auth::user();
-        
+
         $pendaftaran = PendaftaranUjianHasil::where('user_id', $user->id)
-            ->with(['komisiHasil', 'dosenPembimbing1', 'dosenPembimbing2'])
+            ->with(['komisiHasil', 'dosenPembimbing1', 'dosenPembimbing2', 'suratUsulanSkripsi'])
             ->latest()
             ->paginate(10);
 
@@ -150,6 +150,8 @@ class PendaftaranUjianHasilController extends Controller
             'dosenPembimbing1',
             'dosenPembimbing2',
             'penentuPenguji',
+            'suratUsulanSkripsi.ttdKaprodiBy',
+            'suratUsulanSkripsi.ttdKajurBy',
         ]);
 
         return view('user.pendaftaran-ujian-hasil.show', [
@@ -228,7 +230,7 @@ class PendaftaranUjianHasilController extends Controller
                 ->with('success', 'Pendaftaran ujian hasil berhasil dihapus.');
         } catch (\Exception $e) {
             Log::error('Error deleting pendaftaran ujian hasil: ' . $e->getMessage());
-            
+
             return redirect()
                 ->route('user.pendaftaran-ujian-hasil.index')
                 ->with('error', 'Terjadi kesalahan saat menghapus pendaftaran.');
@@ -253,6 +255,32 @@ class PendaftaranUjianHasilController extends Controller
     }
 
     /**
+     * Download Surat Usulan Ujian Skripsi.
+     */
+    public function downloadSuratUsulan(PendaftaranUjianHasil $pendaftaran_ujian_hasil)
+    {
+        // Authorization
+        if ($pendaftaran_ujian_hasil->user_id !== Auth::id()) {
+            abort(403, 'Anda tidak memiliki akses.');
+        }
+
+        $surat = $pendaftaran_ujian_hasil->suratUsulanSkripsi;
+
+        if (!$surat || !$surat->file_surat) {
+            return redirect()->back()->with('error', 'Surat usulan belum digenerate atau file tidak ditemukan.');
+        }
+
+        if (!Storage::disk('public')->exists($surat->file_surat)) {
+            return redirect()->back()->with('error', 'File surat tidak ditemukan di server.');
+        }
+
+        $fileName = 'Surat_Usulan_Ujian_Skripsi_' . $pendaftaran_ujian_hasil->user->nim . '.pdf';
+        $filePath = Storage::disk('public')->path($surat->file_surat);
+
+        return response()->download($filePath, $fileName);
+    }
+
+    /**
      * Private helper method for downloading files.
      */
     private function downloadFile($filePath, $downloadName)
@@ -265,6 +293,8 @@ class PendaftaranUjianHasilController extends Controller
             abort(404, 'File tidak ditemukan di storage.');
         }
 
-        return Storage::disk('public')->download($filePath, $downloadName);
+        $fullPath = Storage::disk('public')->path($filePath);
+
+        return response()->download($fullPath, $downloadName);
     }
 }
