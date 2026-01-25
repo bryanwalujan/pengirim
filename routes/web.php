@@ -33,6 +33,7 @@ use App\Http\Controllers\Admin\AdminKomisiProposalController;
 use App\Http\Controllers\Admin\LembarCatatanSemproController;
 use App\Http\Controllers\Admin\AdminSuratIjinSurveyController;
 use App\Http\Controllers\User\JadwalSeminarProposalController;
+use App\Http\Controllers\User\JadwalUjianHasilController;
 use App\Http\Controllers\User\PendaftaranUjianHasilController;
 use App\Http\Controllers\Admin\AdminSuratAktifKuliahController;
 use App\Http\Controllers\User\PeminjamanLaboratoriumController;
@@ -43,6 +44,7 @@ use App\Http\Controllers\User\BeritaAcaraSeminarProposalController;
 use App\Http\Controllers\User\PendaftaranSeminarProposalController;
 use App\Http\Controllers\Admin\AdminJadwalSeminarProposalController;
 use App\Http\Controllers\Admin\AdminPendaftaranUjianHasilController;
+use App\Http\Controllers\Admin\AdminJadwalUjianHasilController;
 use App\Http\Controllers\Admin\AdminPeminjamanLaboratoriumController;
 use App\Http\Controllers\Admin\AdminPendaftaranSeminarProposalController;
 
@@ -304,6 +306,15 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa', 'check.ukt'])->group(fu
         // Delete rejected registration
         Route::delete('/{pendaftaran_ujian_hasil}', [PendaftaranUjianHasilController::class, 'destroy'])
             ->name('destroy');
+    });
+
+    // Layanan Jadwal Ujian Hasil
+    Route::prefix('jadwal-ujian-hasil')->name('user.jadwal-ujian-hasil.')->group(function () {
+        Route::get('/', [JadwalUjianHasilController::class, 'index'])->name('index');
+        Route::post('/upload-sk', [JadwalUjianHasilController::class, 'storeSkUjianHasil'])->name('upload-sk');
+        Route::get('/{jadwal}/download-sk', [JadwalUjianHasilController::class, 'downloadSkUjianHasil'])->name('download-sk');
+        Route::get('/{jadwal}/view-sk', [JadwalUjianHasilController::class, 'viewSkUjianHasil'])->name('view-sk');
+        Route::delete('/{jadwal}/delete-sk', [JadwalUjianHasilController::class, 'deleteSkUjianHasil'])->name('delete-sk');
     });
 });
 
@@ -987,7 +998,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     });
 
     // Pendaftaran Ujian Hasil
-    Route::prefix('pendaftaran-ujian-hasil')->name('pendaftaran-ujian-hasil.')->group(function () {
+    Route::middleware(['can:manage pendaftaran ujian hasil'])->prefix('pendaftaran-ujian-hasil')->name('pendaftaran-ujian-hasil.')->group(function () {
         // Staff & Dosen access
         Route::middleware(['role:staff|dosen'])->group(function () {
             Route::get('/', [AdminPendaftaranUjianHasilController::class, 'index'])->name('index');
@@ -1058,6 +1069,46 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
                 ->name('ttd-kaprodi');
             Route::post('/{pendaftaranUjianHasil}/ttd-kajur', [AdminPendaftaranUjianHasilController::class, 'ttdKajur'])
                 ->name('ttd-kajur');
+        });
+    });
+
+    // Jadwal Ujian Hasil - Complete Routes
+    Route::middleware(['can:manage jadwal ujian hasil'])->group(function () {
+        Route::prefix('jadwal-ujian-hasil')->name('jadwal-ujian-hasil.')->group(function () {
+            // List & Show
+            Route::get('/', [AdminJadwalUjianHasilController::class, 'index'])->name('index');
+            Route::get('/calendar', [AdminJadwalUjianHasilController::class, 'calendar'])->name('calendar');
+            Route::get('/{jadwal}', [AdminJadwalUjianHasilController::class, 'show'])->name('show');
+
+            // Create & Store Jadwal
+            Route::get('/{jadwal}/create', [AdminJadwalUjianHasilController::class, 'create'])->name('create');
+            Route::post('/{jadwal}/store', [AdminJadwalUjianHasilController::class, 'store'])->name('store');
+
+            // Edit & Update Jadwal  
+            Route::get('/{jadwal}/edit', [AdminJadwalUjianHasilController::class, 'edit'])->name('edit');
+            Route::put('/{jadwal}', [AdminJadwalUjianHasilController::class, 'update'])->name('update');
+
+            // Batch Info (AJAX)
+            Route::post('/get-batch-info', [AdminJadwalUjianHasilController::class, 'getBatchInfo'])
+                ->name('get-batch-info');
+
+            // SK Actions
+            Route::get('/{jadwal}/download-sk', [AdminJadwalUjianHasilController::class, 'downloadSk'])
+                ->name('download-sk');
+            Route::get('/{jadwal}/view-sk', [AdminJadwalUjianHasilController::class, 'viewSk'])
+                ->name('view-sk');
+
+            // Other Actions
+            Route::post('/{jadwal}/mark-selesai', [AdminJadwalUjianHasilController::class, 'markAsSelesai'])
+                ->name('mark-selesai');
+            Route::post('/{jadwal}/kirim-ulang-undangan', [AdminJadwalUjianHasilController::class, 'kirimUlangUndangan'])
+                ->name('kirim-ulang-undangan');
+
+            // Delete
+            Route::delete('/{jadwal}', [AdminJadwalUjianHasilController::class, 'destroy'])
+                ->name('destroy');
+            Route::post('/bulk-destroy', [AdminJadwalUjianHasilController::class, 'bulkDestroy'])
+                ->name('bulk-destroy');
         });
     });
 

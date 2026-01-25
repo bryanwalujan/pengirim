@@ -44,6 +44,7 @@ class Service extends Model
             'berita-acara-sempro' => 'user.berita-acara-sempro.index',
             'sk-pembimbing' => 'user.sk-pembimbing.index',
             'pendaftaran-ujian-hasil' => 'user.pendaftaran-ujian-hasil.index',
+            'jadwal-ujian-hasil' => 'user.jadwal-ujian-hasil.index',
             'komisi-proposal' => 'user.komisi-proposal.index',
             'komisi-hasil' => 'user.komisi-hasil.index',
         ];

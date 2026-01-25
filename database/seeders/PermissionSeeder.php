@@ -56,10 +56,10 @@ class PermissionSeeder extends Seeder
             // Komisi Hasil - Available for ALL dosen
             ['name' => 'manage komisi hasil', 'group' => 'Tugas Akhir'],
 
-            // ✅ NEW: Pendaftaran Hasil & Jadwal Hasil (untuk masa depan)
-            ['name' => 'manage pendaftaran hasil', 'group' => 'Tugas Akhir'],
-            ['name' => 'manage jadwal hasil', 'group' => 'Tugas Akhir'],
-            ['name' => 'manage berita acara hasil', 'group' => 'Tugas Akhir'],
+            // ✅ NEW: Pendaftaran Ujian Hasil & Jadwal Ujian Hasil
+            ['name' => 'manage pendaftaran ujian hasil', 'group' => 'Tugas Akhir'],
+            ['name' => 'manage jadwal ujian hasil', 'group' => 'Tugas Akhir'],
+            ['name' => 'manage berita acara ujian hasil', 'group' => 'Tugas Akhir'],
 
             // SK Pembimbing Skripsi
             ['name' => 'manage sk pembimbing', 'group' => 'Tugas Akhir'],

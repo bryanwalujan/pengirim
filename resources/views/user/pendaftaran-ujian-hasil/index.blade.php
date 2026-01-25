@@ -215,6 +215,47 @@
                 @endif
             @endif
 
+            {{-- ✅ TAMBAHAN: Call-to-Action untuk Jadwal Ujian Hasil --}}
+            @php
+                $latestSelesai = $pendaftaran->where('status', 'selesai')->first();
+            @endphp
+            @if($latestSelesai)
+                <div class="mb-6 animate-fade-in" data-aos="fade-up" x-data="{ show: true }" x-show="show">
+                    <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-xl p-5 shadow-md">
+                        <div class="flex items-start gap-4">
+                            <div class="flex-shrink-0">
+                                <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+                                    <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
+                                    <span>Langkah Selanjutnya</span>
+                                </h4>
+                                <p class="text-gray-700 text-sm mb-4 leading-relaxed">
+                                    Pendaftaran ujian hasil Anda telah selesai diproses! Sekarang Anda dapat melihat 
+                                    <strong class="text-blue-700">Jadwal Ujian Hasil</strong> yang telah ditentukan.
+                                </p>
+                                <a href="{{ route('user.jadwal-ujian-hasil.index') }}" 
+                                   class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-bold rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 hover:from-blue-700 hover:to-indigo-700">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                                    </svg>
+                                    Lihat Jadwal Ujian Hasil
+                                </a>
+                            </div>
+                            <button @click="show = false" class="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
             {{-- Main Card Table --}}
             <div class="bg-white rounded-2xl shadow-xl overflow-hidden card-hover" data-aos="fade-up"
                 data-aos-delay="100">

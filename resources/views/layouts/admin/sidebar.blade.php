@@ -36,7 +36,7 @@
                 auth()->user()->can('manage peminjaman proyektor') ||
                 auth()->user()->can('manage peminjaman laboratorium') ||
                 auth()->user()->can('manage pendaftaran sempro') ||
-                auth()->user()->can('manage pendaftaran hasil') ||
+                auth()->user()->can('manage pendaftaran ujian hasil') ||
                 auth()->user()->can('manage komisi proposal') ||
                 auth()->user()->can('manage komisi hasil');
         @endphp
@@ -776,7 +776,7 @@
                 auth()->user()->can('manage komisi proposal') ||
                 auth()->user()->can('manage pendaftaran sempro') ||
                 auth()->user()->can('manage komisi hasil') ||
-                auth()->user()->can('manage pendaftaran hasil') ||
+                auth()->user()->can('manage pendaftaran ujian hasil') ||
                 auth()->user()->isDosenWithApprovalAuthority();
         @endphp
 
@@ -1196,8 +1196,8 @@
             </li>
         @endcan
 
-        {{-- 4. Pendaftaran Hasil --}}
-        @can('manage pendaftaran hasil')
+        {{-- 4. Pendaftaran Ujian Hasil --}}
+        @can('manage pendaftaran ujian hasil')
             @php
                 $pendaftaranHasilPendingCount = 0;
                 if (auth()->user()->hasRole('staff')) {
@@ -1284,6 +1284,77 @@
                     </a>
                 </li>
             @endif
+        @endcan
+
+        {{-- 4.1 Jadwal Ujian Hasil --}}
+        @can('manage jadwal ujian hasil')
+            @php
+                $jadwalHasilActiveStates = [
+                    'admin.jadwal-ujian-hasil.index',
+                    'admin.jadwal-ujian-hasil.show',
+                    'admin.jadwal-ujian-hasil.calendar',
+                    'admin.jadwal-ujian-hasil.create',
+                    'admin.jadwal-ujian-hasil.edit',
+                ];
+                $isJadwalHasilActive = request()->routeIs($jadwalHasilActiveStates);
+            @endphp
+
+            <li class="menu-item {{ $isJadwalHasilActive ? 'active open' : '' }}">
+                <a href="javascript:void(0);" class="menu-link menu-toggle">
+                    <i class="menu-icon tf-icons bx bx-calendar-star"></i>
+                    <div>Jadwal Ujian Hasil</div>
+                </a>
+                <ul class="menu-sub">
+                    {{-- Menunggu Upload SK --}}
+                    <li
+                        class="menu-item {{ request()->routeIs('admin.jadwal-ujian-hasil.index') && request()->input('status') === 'menunggu_sk' ? 'active' : '' }}">
+                        <a href="{{ route('admin.jadwal-ujian-hasil.index', ['status' => 'menunggu_sk']) }}"
+                            class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-upload"></i>
+                            <div>Menunggu Upload SK</div>
+                        </a>
+                    </li>
+
+                    {{-- Menunggu Penjadwalan --}}
+                    <li
+                        class="menu-item {{ request()->routeIs('admin.jadwal-ujian-hasil.index') && request()->input('status') === 'menunggu_jadwal' ? 'active' : '' }}">
+                        <a href="{{ route('admin.jadwal-ujian-hasil.index', ['status' => 'menunggu_jadwal']) }}"
+                            class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-calendar-check"></i>
+                            <div>Menunggu Penjadwalan</div>
+                        </a>
+                    </li>
+
+                    {{-- Sudah Dijadwalkan --}}
+                    <li
+                        class="menu-item {{ request()->routeIs('admin.jadwal-ujian-hasil.index') && request()->input('status') === 'dijadwalkan' ? 'active' : '' }}">
+                        <a href="{{ route('admin.jadwal-ujian-hasil.index', ['status' => 'dijadwalkan']) }}"
+                            class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-calendar"></i>
+                            <div>Sudah Dijadwalkan</div>
+                        </a>
+                    </li>
+
+                    {{-- Selesai --}}
+                    <li
+                        class="menu-item {{ request()->routeIs('admin.jadwal-ujian-hasil.index') && request()->input('status') === 'selesai' ? 'active' : '' }}">
+                        <a href="{{ route('admin.jadwal-ujian-hasil.index', ['status' => 'selesai']) }}"
+                            class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-check-circle"></i>
+                            <div>Selesai</div>
+                        </a>
+                    </li>
+
+                    {{-- Kalender Jadwal --}}
+                    <li
+                        class="menu-item {{ request()->routeIs('admin.jadwal-ujian-hasil.calendar') ? 'active' : '' }}">
+                        <a href="{{ route('admin.jadwal-ujian-hasil.calendar') }}" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-calendar-alt"></i>
+                            <div>Kalender Jadwal</div>
+                        </a>
+                    </li>
+                </ul>
+            </li>
         @endcan
 
         {{-- ============================================================ --}}

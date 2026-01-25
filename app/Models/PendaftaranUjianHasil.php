@@ -75,6 +75,14 @@ class PendaftaranUjianHasil extends Model
     }
 
     /**
+     * Relasi ke Jadwal Ujian Hasil (One-to-One)
+     */
+    public function jadwalUjianHasil()
+    {
+        return $this->hasOne(JadwalUjianHasil::class);
+    }
+
+    /**
      * Get all penguji as collection of dosen
      */
     public function getPenguji()
@@ -117,6 +125,14 @@ class PendaftaranUjianHasil extends Model
     public function isSuratFullySigned(): bool
     {
         return $this->suratUsulanSkripsi && $this->suratUsulanSkripsi->isFullySigned();
+    }
+
+    /**
+     * Alias for isSuratFullySigned() - for consistency with PendaftaranSeminarProposal
+     */
+    public function isFullySigned(): bool
+    {
+        return $this->isSuratFullySigned();
     }
 
     /**
@@ -389,5 +405,62 @@ class PendaftaranUjianHasil extends Model
                 }
             }
         });
+
+        // ✅ TAMBAHAN: Auto-create jadwal ujian hasil saat status berubah ke 'selesai'
+        static::updated(function ($model) {
+            // Cek jika status berubah menjadi 'selesai' dan belum ada jadwal
+            if (
+                $model->isDirty('status') &&
+                $model->status === 'selesai' &&
+                !$model->hasJadwal()
+            ) {
+                try {
+                    // Create jadwal ujian hasil dengan status menunggu_sk
+                    JadwalUjianHasil::create([
+                        'pendaftaran_ujian_hasil_id' => $model->id,
+                        'status' => 'menunggu_sk',
+                        'file_sk_ujian_hasil' => null,
+                        'tanggal_ujian' => null,
+                        'waktu_mulai' => null,
+                        'waktu_selesai' => null,
+                        'ruangan' => null,
+                    ]);
+
+                    Log::info('✅ Jadwal ujian hasil auto-created', [
+                        'pendaftaran_id' => $model->id,
+                        'mahasiswa_nim' => $model->user->nim,
+                        'mahasiswa_nama' => $model->user->name,
+                        'status' => 'menunggu_sk',
+                        'created_at' => now(),
+                    ]);
+
+                } catch (\Exception $e) {
+                    Log::error('❌ Gagal auto-create jadwal ujian hasil', [
+                        'pendaftaran_id' => $model->id,
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString(),
+                    ]);
+                }
+            }
+        });
+    }
+
+    /**
+     * Check if has jadwal
+     */
+    public function hasJadwal(): bool
+    {
+        return $this->jadwalUjianHasil()->exists();
+    }
+
+    /**
+     * Check if can create jadwal
+     * Hanya bisa create jadwal jika status = selesai (surat sudah fully signed)
+     */
+    public function canCreateJadwal(): bool
+    {
+        return $this->status === 'selesai'
+            && $this->isSuratFullySigned()
+            && !$this->hasJadwal();
     }
 }

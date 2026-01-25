@@ -183,7 +183,7 @@
                         <div class="info-card-body">
                             @foreach ($document['penguji'] as $penguji)
                                 <div class="info-row">
-                                    <div class="info-label">Penguji {{ $penguji['posisi'] }}</div>
+                                    <div class="info-label">{{ $penguji['posisi'] }}</div>
                                     <div class="info-value">
                                         <strong>{{ $penguji['name'] }}</strong>
                                         @if (isset($penguji['keterangan']) && $penguji['keterangan'])
@@ -345,7 +345,8 @@
                             Dokumen ini merupakan hasil verifikasi otomatis sistem E-Service Program Studi Teknik
                             Informatika UNIMA.
                             @if ($document['status_code'] === 'selesai')
-                                Surat Usulan Ujian Hasil (Skripsi) ini telah melalui proses persetujuan lengkap dari Koordinator
+                                Surat Usulan Ujian Hasil (Skripsi) ini telah melalui proses persetujuan lengkap dari
+                                Koordinator
                                 Program Studi dan Ketua Jurusan.
                             @else
                                 Surat Usulan Ujian Hasil (Skripsi) ini sedang dalam proses persetujuan bertingkat.

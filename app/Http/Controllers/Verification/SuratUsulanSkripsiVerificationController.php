@@ -68,7 +68,7 @@ class SuratUsulanSkripsiVerificationController extends Controller
         $data = [
             'type' => 'Surat Usulan Ujian Hasil (Skripsi)',
             'nomor_surat' => $surat->nomor_surat ?? '-',
-            'tanggal_surat' => $surat->tanggal_surat?->translatedFormat('d F Y') ?? '-',
+            'tanggal_surat' => $surat->tanggal_surat instanceof \Carbon\Carbon ? $surat->tanggal_surat->translatedFormat('d F Y') : '-',
             'verification_code' => $surat->verification_code,
             'status' => $this->getStatusText($surat->status),
             'status_code' => $surat->status,
