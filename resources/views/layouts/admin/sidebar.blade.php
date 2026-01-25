@@ -788,10 +788,38 @@
 
         {{-- 1. Komisi Proposal --}}
         @can('manage komisi proposal')
+            @php
+                // Hitung notifikasi untuk Komisi Proposal
+                $komisiProposalNotifCount = 0;
+
+                try {
+                    if (auth()->user()->hasRole('staff')) {
+                        // Staff bisa lihat semua komisi proposal yang pending atau approved_pa
+                        $komisiProposalNotifCount = \App\Models\KomisiProposal::whereIn('status', [
+                            'pending',
+                            'approved_pa',
+                        ])->count();
+                    } elseif (auth()->user()->hasRole('dosen')) {
+                        // Dosen hanya lihat notifikasi yang ditujukan ke mereka
+                        $komisiProposalNotifCount = auth()
+                            ->user()
+                            ->unreadNotifications()
+                            ->where('type', 'App\Notifications\KomisiProposalNeedApprovalNotification')
+                            ->count();
+                    }
+                } catch (\Exception $e) {
+                    \Log::error('Sidebar notification error for Komisi Proposal: ' . $e->getMessage());
+                    $komisiProposalNotifCount = 0;
+                }
+            @endphp
+
             <li class="menu-item {{ request()->routeIs('admin.komisi-proposal.*') ? 'active' : '' }}">
                 <a href="{{ route('admin.komisi-proposal.index') }}" class="menu-link">
                     <i class="menu-icon tf-icons bx bx-detail"></i>
                     <div>Komisi Proposal</div>
+                    @if ($komisiProposalNotifCount > 0)
+                        <span class="badge bg-danger rounded-pill ms-auto">{{ $komisiProposalNotifCount }}</span>
+                    @endif
                 </a>
             </li>
         @endcan

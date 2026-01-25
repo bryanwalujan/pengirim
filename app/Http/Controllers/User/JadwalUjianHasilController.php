@@ -56,10 +56,14 @@ class JadwalUjianHasilController extends Controller
         // STEP 1: Validasi request
         $validated = $request->validate([
             'pendaftaran_id' => 'required|exists:pendaftaran_ujian_hasils,id',
+            'nomor_sk' => 'required|string|max:100',
             'file_sk' => 'required|file|mimes:pdf|max:2048', // Max 2MB
         ], [
             'pendaftaran_id.required' => 'Data pendaftaran tidak ditemukan.',
             'pendaftaran_id.exists' => 'Data pendaftaran tidak valid.',
+            'nomor_sk.required' => 'Nomor SK wajib diisi.',
+            'nomor_sk.string' => 'Nomor SK harus berupa text.',
+            'nomor_sk.max' => 'Nomor SK maksimal 100 karakter.',
             'file_sk.required' => 'File SK Ujian Hasil wajib diupload.',
             'file_sk.file' => 'File yang diupload harus berupa file.',
             'file_sk.mimes' => 'File SK Ujian Hasil harus berformat PDF.',
@@ -112,6 +116,7 @@ class JadwalUjianHasilController extends Controller
 
             // STEP 8: Update atau create jadwal dengan file baru
             $jadwal->pendaftaran_ujian_hasil_id = $pendaftaran->id;
+            $jadwal->nomor_sk = $validated['nomor_sk'];
             $jadwal->file_sk_ujian_hasil = $filePath;
             $jadwal->status = 'menunggu_jadwal'; // Auto-update status via model boot method
             $jadwal->save();
@@ -122,6 +127,7 @@ class JadwalUjianHasilController extends Controller
                 'user_id' => Auth::id(),
                 'pendaftaran_id' => $pendaftaran->id,
                 'jadwal_id' => $jadwal->id,
+                'nomor_sk' => $validated['nomor_sk'],
                 'file_path' => $filePath,
             ]);
 
@@ -226,6 +232,7 @@ class JadwalUjianHasilController extends Controller
 
             // Update jadwal
             $jadwal->file_sk_ujian_hasil = null;
+            $jadwal->nomor_sk = null;
             $jadwal->status = 'menunggu_sk';
             $jadwal->save();
 
