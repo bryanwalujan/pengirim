@@ -221,11 +221,13 @@
                     </h5>
 
                     {{-- Bulk Delete Button --}}
-                    <button type="button" class="btn btn-sm btn-danger" id="bulkDeleteBtn" style="display: none;">
-                        <i class="bx bx-trash me-1"></i>
-                        <span class="d-none d-sm-inline">Hapus Terpilih</span>
-                        (<span id="selectedCount">0</span>)
-                    </button>
+                    @if(auth()->user()->hasRole('staff') || auth()->user()->hasRole('admin'))
+                        <button type="button" class="btn btn-sm btn-danger" id="bulkDeleteBtn" style="display: none;">
+                            <i class="bx bx-trash me-1"></i>
+                            <span class="d-none d-sm-inline">Hapus Terpilih</span>
+                            (<span id="selectedCount">0</span>)
+                        </button>
+                    @endif
                 </div>
 
                 {{-- Filter Tabs --}}
@@ -294,12 +296,14 @@
                     <table class="table table-hover">
                         <thead>
                             <tr>
-                                <th width="3%">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="selectAll">
-                                        <label class="form-check-label" for="selectAll"></label>
-                                    </div>
-                                </th>
+                                @if(auth()->user()->hasRole('staff') || auth()->user()->hasRole('admin'))
+                                    <th width="3%">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="selectAll">
+                                            <label class="form-check-label" for="selectAll"></label>
+                                        </div>
+                                    </th>
+                                @endif
                                 <th width="4%">No</th>
                                 <th width="17%">Mahasiswa</th>
                                 <th width="20%">Judul Skripsi</th>
@@ -313,24 +317,26 @@
                             @forelse($jadwals as $index => $jadwal)
                                 <tr class="clickable-row"
                                     data-href="{{ route('admin.jadwal-seminar-proposal.show', $jadwal) }}">
-                                    {{-- ✅ Checkbox (Fixed) --}}
-                                    <td onclick="event.stopPropagation();">
-                                        @if ($jadwal->canBeDeleted())
-                                            <div class="form-check">
-                                                <input class="form-check-input row-checkbox" type="checkbox"
-                                                    value="{{ $jadwal->id }}"
-                                                    data-mahasiswa="{{ $jadwal->pendaftaranSeminarProposal->user->name }}"
-                                                    data-nim="{{ $jadwal->pendaftaranSeminarProposal->user->nim }}"
-                                                    id="check-{{ $jadwal->id }}">
-                                                <label class="form-check-label" for="check-{{ $jadwal->id }}"></label>
-                                            </div>
-                                        @else
-                                            <div class="text-center">
-                                                <i class="bx bx-lock-alt text-muted" data-bs-toggle="tooltip"
-                                                    title="Tidak dapat dihapus"></i>
-                                            </div>
-                                        @endif
-                                    </td>
+                                    {{-- ✅ Checkbox (Fixed) - Hanya untuk Staff/Admin --}}
+                                    @if(auth()->user()->hasRole('staff') || auth()->user()->hasRole('admin'))
+                                        <td onclick="event.stopPropagation();">
+                                            @if ($jadwal->canBeDeleted())
+                                                <div class="form-check">
+                                                    <input class="form-check-input row-checkbox" type="checkbox"
+                                                        value="{{ $jadwal->id }}"
+                                                        data-mahasiswa="{{ $jadwal->pendaftaranSeminarProposal->user->name }}"
+                                                        data-nim="{{ $jadwal->pendaftaranSeminarProposal->user->nim }}"
+                                                        id="check-{{ $jadwal->id }}">
+                                                    <label class="form-check-label" for="check-{{ $jadwal->id }}"></label>
+                                                </div>
+                                            @else
+                                                <div class="text-center">
+                                                    <i class="bx bx-lock-alt text-muted" data-bs-toggle="tooltip"
+                                                        title="Tidak dapat dihapus"></i>
+                                                </div>
+                                            @endif
+                                        </td>
+                                    @endif
 
                                     {{-- No --}}
                                     <td><span class="fw-medium">{{ $jadwals->firstItem() + $index }}</span></td>
@@ -460,74 +466,83 @@
                                                     <i class="bx bx-show me-1"></i> Lihat Detail
                                                 </a>
 
-                                                @if ($jadwal->status === 'menunggu_jadwal' || $jadwal->status === 'dijadwalkan')
-                                                    {{-- Set Jadwal --}}
-                                                    <button type="button" class="dropdown-item" data-bs-toggle="modal"
-                                                        data-bs-target="#scheduleModal"
-                                                        data-jadwal-id="{{ $jadwal->id }}"
-                                                        data-mahasiswa-nama="{{ $jadwal->pendaftaranSeminarProposal->user->name }}"
-                                                        data-mahasiswa-nim="{{ $jadwal->pendaftaranSeminarProposal->user->nim }}"
-                                                        data-mahasiswa-judul="{{ $jadwal->pendaftaranSeminarProposal->judul_skripsi }}"
-                                                        data-tanggal_ujian="{{ $jadwal->tanggal_ujian?->format('Y-m-d') }}"
-                                                        data-jam-mulai="{{ $jadwal->waktu_mulai }}"
-                                                        data-jam-selesai="{{ $jadwal->waktu_selesai }}"
-                                                        data-ruangan="{{ $jadwal->ruangan }}">
-                                                        <i class="bx bx-calendar-edit me-1"></i>
-                                                        {{ $jadwal->hasJadwal() ? 'Edit Jadwal' : 'Set Jadwal' }}
-                                                    </button>
+                                                @if(auth()->user()->hasRole('staff') || auth()->user()->hasRole('admin'))
+                                                    @if ($jadwal->status === 'menunggu_jadwal' || $jadwal->status === 'dijadwalkan')
+                                                        {{-- Set Jadwal --}}
+                                                        <button type="button" class="dropdown-item" data-bs-toggle="modal"
+                                                            data-bs-target="#scheduleModal"
+                                                            data-jadwal-id="{{ $jadwal->id }}"
+                                                            data-mahasiswa-nama="{{ $jadwal->pendaftaranSeminarProposal->user->name }}"
+                                                            data-mahasiswa-nim="{{ $jadwal->pendaftaranSeminarProposal->user->nim }}"
+                                                            data-mahasiswa-judul="{{ $jadwal->pendaftaranSeminarProposal->judul_skripsi }}"
+                                                            data-tanggal_ujian="{{ $jadwal->tanggal_ujian?->format('Y-m-d') }}"
+                                                            data-jam-mulai="{{ $jadwal->waktu_mulai }}"
+                                                            data-jam-selesai="{{ $jadwal->waktu_selesai }}"
+                                                            data-ruangan="{{ $jadwal->ruangan }}">
+                                                            <i class="bx bx-calendar-edit me-1"></i>
+                                                            {{ $jadwal->hasJadwal() ? 'Edit Jadwal' : 'Set Jadwal' }}
+                                                        </button>
+                                                    @endif
                                                 @endif
 
-                                                @if ($jadwal->status === 'dijadwalkan')
-                                                    <div class="dropdown-divider"></div>
+                                                @if(auth()->user()->hasRole('staff') || auth()->user()->hasRole('admin'))
+                                                    @if ($jadwal->status === 'dijadwalkan')
+                                                        <div class="dropdown-divider"></div>
 
-                                                    {{-- Mark as Selesai --}}
-                                                    @if ($jadwal->canMarkAsSelesai())
+                                                        {{-- Mark as Selesai --}}
+                                                        @if ($jadwal->canMarkAsSelesai())
+                                                            <form
+                                                                action="{{ route('admin.jadwal-seminar-proposal.mark-selesai', $jadwal) }}"
+                                                                method="POST" class="mark-selesai-form">
+                                                                @csrf
+                                                                <button type="submit" class="dropdown-item text-success">
+                                                                    <i class="bx bx-check-circle me-1"></i> Tandai Selesai
+                                                                </button>
+                                                            </form>
+                                                        @endif
+
+                                                        {{-- Kirim Ulang Undangan --}}
                                                         <form
-                                                            action="{{ route('admin.jadwal-seminar-proposal.mark-selesai', $jadwal) }}"
-                                                            method="POST" class="mark-selesai-form">
+                                                            action="{{ route('admin.jadwal-seminar-proposal.kirim-ulang-undangan', $jadwal) }}"
+                                                            method="POST" class="kirim-ulang-form">
                                                             @csrf
-                                                            <button type="submit" class="dropdown-item text-success">
-                                                                <i class="bx bx-check-circle me-1"></i> Tandai Selesai
+                                                            <button type="submit" class="dropdown-item text-info">
+                                                                <i class="bx bx-send me-1"></i> Kirim Ulang Undangan
                                                             </button>
                                                         </form>
                                                     @endif
-
-                                                    {{-- Kirim Ulang Undangan --}}
-                                                    <form
-                                                        action="{{ route('admin.jadwal-seminar-proposal.kirim-ulang-undangan', $jadwal) }}"
-                                                        method="POST" class="kirim-ulang-form">
-                                                        @csrf
-                                                        <button type="submit" class="dropdown-item text-info">
-                                                            <i class="bx bx-send me-1"></i> Kirim Ulang Undangan
-                                                        </button>
-                                                    </form>
                                                 @endif
 
-                                                @if ($jadwal->canBeDeleted())
-                                                    <div class="dropdown-divider"></div>
+                                                @if(auth()->user()->hasRole('staff') || auth()->user()->hasRole('admin'))
+                                                    @if ($jadwal->canBeDeleted())
+                                                        <div class="dropdown-divider"></div>
 
-                                                    {{-- Delete --}}
-                                                    <form
-                                                        action="{{ route('admin.jadwal-seminar-proposal.destroy', $jadwal) }}"
-                                                        method="POST" class="delete-form"
-                                                        data-mahasiswa="{{ $jadwal->pendaftaranSeminarProposal->user->name }}"
-                                                        data-nim="{{ $jadwal->pendaftaranSeminarProposal->user->nim }}"
-                                                        data-status="{{ $jadwal->status }}"
-                                                        data-confirmation="{{ $jadwal->getDeleteConfirmationMessage() }}">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="submit" class="dropdown-item text-danger">
-                                                            <i class="bx bx-trash me-1"></i> Hapus Jadwal
-                                                        </button>
-                                                    </form>
+                                                        {{-- Delete --}}
+                                                        <form
+                                                            action="{{ route('admin.jadwal-seminar-proposal.destroy', $jadwal) }}"
+                                                            method="POST" class="delete-form"
+                                                            data-mahasiswa="{{ $jadwal->pendaftaranSeminarProposal->user->name }}"
+                                                            data-nim="{{ $jadwal->pendaftaranSeminarProposal->user->nim }}"
+                                                            data-status="{{ $jadwal->status }}"
+                                                            data-confirmation="{{ $jadwal->getDeleteConfirmationMessage() }}">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" class="dropdown-item text-danger">
+                                                                <i class="bx bx-trash me-1"></i> Hapus Jadwal
+                                                            </button>
+                                                        </form>
+                                                    @endif
                                                 @endif
                                             </div>
                                         </div>
                                     </td>
                                 </tr>
                             @empty
+                                @php
+                                    $colspan = (auth()->user()->hasRole('staff') || auth()->user()->hasRole('admin')) ? 8 : 7;
+                                @endphp
                                 <tr>
-                                    <td colspan="8" class="text-center py-5">
+                                    <td colspan="{{ $colspan }}" class="text-center py-5">
                                         <div class="d-flex flex-column align-items-center">
                                             <i class="bx bx-calendar-x display-4 text-muted mb-3"></i>
                                             <h5 class="text-muted">Tidak ada data jadwal</h5>

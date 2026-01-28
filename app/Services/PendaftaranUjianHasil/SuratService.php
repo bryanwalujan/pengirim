@@ -304,7 +304,7 @@ class SuratService
 
         $filename = 'surat-usulan-skripsi/' . $surat->verification_code . '.pdf';
 
-        Storage::disk('local')->put($filename, $pdf->output());
+        Storage::disk('public')->put($filename, $pdf->output());
 
         $surat->update(['file_surat' => $filename]);
 

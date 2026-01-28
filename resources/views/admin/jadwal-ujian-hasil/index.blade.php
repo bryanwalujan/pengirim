@@ -483,6 +483,22 @@
                                                 @if ($jadwal->status === 'dijadwalkan')
                                                     <div class="dropdown-divider"></div>
 
+                                                    {{-- Buat/Lihat Berita Acara --}}
+                                                    @if (!$jadwal->hasBeritaAcara())
+                                                        <a class="dropdown-item text-primary"
+                                                            href="{{ route('admin.berita-acara-ujian-hasil.create', $jadwal) }}">
+                                                            <i class="bx bxs-file-plus me-1"></i> Buat Berita Acara
+                                                        </a>
+                                                    @else
+                                                        @php
+                                                            $beritaAcara = $jadwal->beritaAcaraUjianHasil;
+                                                        @endphp
+                                                        <a class="dropdown-item text-success"
+                                                            href="{{ route('admin.berita-acara-ujian-hasil.show', $beritaAcara) }}">
+                                                            <i class="bx bxs-file me-1"></i>  Lihat Berita Acara
+                                                        </a>
+                                                    @endif
+
                                                     {{-- Mark as Selesai --}}
                                                     @if ($jadwal->canMarkAsSelesai())
                                                         <form

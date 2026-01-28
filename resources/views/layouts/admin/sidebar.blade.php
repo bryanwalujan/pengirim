@@ -895,7 +895,7 @@
         @endif
 
         {{-- ✅ TAMBAHAN BARU: 2.1 Jadwal Seminar Proposal --}}
-        @can('manage jadwal sempro')
+        @if(auth()->user()->can('manage jadwal sempro') || auth()->user()->can('view jadwal sempro'))
             @php
                 $jadwalSemproActiveStates = [
                     'admin.jadwal-seminar-proposal.index',
@@ -962,7 +962,7 @@
                     </li>
                 </ul>
             </li>
-        @endcan
+        @endif
 
         @if (auth()->user()->can('manage berita acara sempro') ||
                 auth()->user()->can('view berita acara sempro') ||
@@ -1384,6 +1384,126 @@
                 </ul>
             </li>
         @endcan
+
+        {{-- 4.2 Berita Acara Ujian Hasil --}}
+        @php
+            $baUjianHasilActiveStates = [
+                'admin.berita-acara-ujian-hasil.index',
+                'admin.berita-acara-ujian-hasil.show',
+                'admin.berita-acara-ujian-hasil.create',
+                'admin.berita-acara-ujian-hasil.fill-by-ketua',
+                'admin.berita-acara-ujian-hasil.approve-penguji',
+            ];
+            $isBAUjianHasilActive = request()->routeIs($baUjianHasilActiveStates);
+
+            // Hitung notifikasi berdasarkan role
+            $baUjianHasilNotifCount = 0;
+
+            if (auth()->user()->hasRole('staff')) {
+                $baUjianHasilNotifCount = \App\Models\BeritaAcaraUjianHasil::whereIn('status', [
+                    'draft',
+                    'menunggu_ttd_penguji',
+                ])->count();
+            } elseif (auth()->user()->hasRole('dosen')) {
+                $userId = auth()->id();
+
+                $asPenguji = \App\Models\BeritaAcaraUjianHasil::where('status', 'menunggu_ttd_penguji')
+                    ->whereHas('jadwalUjianHasil.dosenPenguji', function ($q) use ($userId) {
+                        $q->where('users.id', $userId)->where('posisi', '!=', 'Ketua Penguji');
+                    })
+                    ->where(function ($q) use ($userId) {
+                        $q->whereNull('ttd_dosen_penguji')->orWhereRaw(
+                            "NOT JSON_CONTAINS(ttd_dosen_penguji, JSON_OBJECT('dosen_id', ?), '$')",
+                            [$userId],
+                        );
+                    })
+                    ->count();
+
+                $asKetua = \App\Models\BeritaAcaraUjianHasil::where('status', 'menunggu_ttd_ketua')
+                    ->whereHas('jadwalUjianHasil.dosenPenguji', function ($q) use ($userId) {
+                        $q->where('users.id', $userId)->where('posisi', 'Ketua Penguji');
+                    })
+                    ->count();
+
+                $baUjianHasilNotifCount = $asPenguji + $asKetua;
+            }
+        @endphp
+
+        @if (auth()->user()->can('manage berita acara ujian hasil') ||
+                auth()->user()->can('view berita acara ujian hasil') ||
+                auth()->user()->can('sign berita acara ujian hasil'))
+            <li class="menu-item {{ $isBAUjianHasilActive ? 'active' . (auth()->user()->hasRole('dosen') ? ' open' : '') : '' }}">
+                @if (auth()->user()->hasRole('staff'))
+                    <a href="{{ route('admin.berita-acara-ujian-hasil.index') }}" class="menu-link">
+                        <i class="menu-icon tf-icons bx bxs-file-blank"></i>
+                        <div>Berita Acara Ujian Hasil</div>
+                        @if ($baUjianHasilNotifCount > 0)
+                            <span class="badge bg-danger rounded-pill ms-auto">{{ $baUjianHasilNotifCount }}</span>
+                        @endif
+                    </a>
+                @else
+                    <a href="javascript:void(0);" class="menu-link menu-toggle">
+                        <i class="menu-icon tf-icons bx bxs-file-blank"></i>
+                        <div>Berita Acara Ujian Hasil</div>
+                        @if ($baUjianHasilNotifCount > 0)
+                            <span class="badge bg-danger rounded-pill ms-auto">{{ $baUjianHasilNotifCount }}</span>
+                        @endif
+                    </a>
+                    <ul class="menu-sub">
+                        <li class="menu-item {{ request()->routeIs('admin.berita-acara-ujian-hasil.index') && request()->input('filter') === 'penguji' ? 'active' : '' }}">
+                            <a href="{{ route('admin.berita-acara-ujian-hasil.index', ['filter' => 'penguji']) }}"
+                                class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-pen"></i>
+                                <div>Menunggu TTD Saya</div>
+                                @php
+                                    $userId = auth()->id();
+                                    $pengujiMeCount = \App\Models\BeritaAcaraUjianHasil::where('status', 'menunggu_ttd_penguji')
+                                        ->whereHas('jadwalUjianHasil.dosenPenguji', function ($q) use ($userId) {
+                                            $q->where('users.id', $userId)->where('posisi', '!=', 'Ketua Penguji');
+                                        })
+                                        ->where(function ($q) use ($userId) {
+                                            $q->whereNull('ttd_dosen_penguji')->orWhereRaw(
+                                                "NOT JSON_CONTAINS(ttd_dosen_penguji, JSON_OBJECT('dosen_id', ?), '$')",
+                                                [$userId],
+                                            );
+                                        })
+                                        ->count();
+                                @endphp
+                                @if ($pengujiMeCount > 0)
+                                    <span class="badge bg-danger rounded-pill ms-auto">{{ $pengujiMeCount }}</span>
+                                @endif
+                            </a>
+                        </li>
+
+                        <li class="menu-item {{ request()->routeIs('admin.berita-acara-ujian-hasil.index') && request()->input('filter') === 'ketua' ? 'active' : '' }}">
+                            <a href="{{ route('admin.berita-acara-ujian-hasil.index', ['filter' => 'ketua']) }}"
+                                class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-edit"></i>
+                                <div>Perlu Saya Isi</div>
+                                @php
+                                    $userId = auth()->id();
+                                    $ketuaMeCount = \App\Models\BeritaAcaraUjianHasil::where('status', 'menunggu_ttd_ketua')
+                                        ->whereHas('jadwalUjianHasil.dosenPenguji', function ($q) use ($userId) {
+                                            $q->where('users.id', $userId)->where('posisi', 'Ketua Penguji');
+                                        })
+                                        ->count();
+                                @endphp
+                                @if ($ketuaMeCount > 0)
+                                    <span class="badge bg-danger rounded-pill ms-auto">{{ $ketuaMeCount }}</span>
+                                @endif
+                            </a>
+                        </li>
+
+                        <li class="menu-item {{ request()->routeIs('admin.berita-acara-ujian-hasil.index') && !request()->has('filter') ? 'active' : '' }}">
+                            <a href="{{ route('admin.berita-acara-ujian-hasil.index') }}" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-history"></i>
+                                <div>Riwayat Berita Acara</div>
+                            </a>
+                        </li>
+                    </ul>
+                @endif
+            </li>
+        @endif
 
         {{-- ============================================================ --}}
         {{-- KATEGORI 3: LAYANAN AKADEMIK --}}

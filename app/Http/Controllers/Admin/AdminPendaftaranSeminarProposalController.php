@@ -52,7 +52,9 @@ class AdminPendaftaranSeminarProposalController extends Controller
 
     public function index(Request $request)
     {
-        $user = User::find(Auth::id());
+        $user = Auth::user();
+        $isStaffOrAdmin = $user->hasAnyRole(['staff', 'admin']);
+        $isApprovalAuthority = $user->isDosenWithApprovalAuthority();
 
         // Base query
         $query = PendaftaranSeminarProposal::with([
@@ -63,14 +65,19 @@ class AdminPendaftaranSeminarProposalController extends Controller
             'suratUsulan'
         ])->latest();
 
-        // ✅ PERBAIKAN: Filter by status (URL parameter)
+        // Restriction for regular Dosen (Pembimbing only)
+        if ($user->hasRole('dosen') && !$isStaffOrAdmin && !$isApprovalAuthority) {
+            $query->where('dosen_pembimbing_id', $user->id);
+        }
+
+        // Filter by status (URL parameter)
         if ($request->has('status')) {
             $status = $request->input('status');
             $query->where('status', $status);
         }
 
-        // ✅ PERBAIKAN: Filter berdasarkan role dosen
-        if ($user->isDosenWithApprovalAuthority()) {
+        // Filter berdasarkan role dosen with approval authority
+        if ($isApprovalAuthority && !$isStaffOrAdmin) {
             if ($user->isKoordinatorProdi()) {
                 // Kaprodi: hanya lihat yang perlu TTD Kaprodi atau sudah selesai
                 if (!$request->has('status')) {
@@ -112,29 +119,34 @@ class AdminPendaftaranSeminarProposalController extends Controller
             ->orderBy('angkatan', 'desc')
             ->pluck('angkatan');
 
-        // ✅ Statistics (adjusted for dosen)
-        if ($user->isDosenWithApprovalAuthority()) {
+        // Statistics (adjusted for user role)
+        $statsQuery = PendaftaranSeminarProposal::query();
+        if ($user->hasRole('dosen') && !$isStaffOrAdmin && !$isApprovalAuthority) {
+            $statsQuery->where('dosen_pembimbing_id', $user->id);
+        }
+
+        if ($user->hasRole('dosen') && $isApprovalAuthority && !$isStaffOrAdmin) {
             if ($user->isKoordinatorProdi()) {
                 $statistics = [
-                    'menunggu_ttd_kaprodi' => PendaftaranSeminarProposal::where('status', 'menunggu_ttd_kaprodi')->count(),
-                    'selesai' => PendaftaranSeminarProposal::where('status', 'selesai')->count(),
+                    'menunggu_ttd_kaprodi' => (clone $statsQuery)->where('status', 'menunggu_ttd_kaprodi')->count(),
+                    'selesai' => (clone $statsQuery)->where('status', 'selesai')->count(),
                 ];
             } else {
                 $statistics = [
-                    'menunggu_ttd_kajur' => PendaftaranSeminarProposal::where('status', 'menunggu_ttd_kajur')->count(),
-                    'selesai' => PendaftaranSeminarProposal::where('status', 'selesai')->count(),
+                    'menunggu_ttd_kajur' => (clone $statsQuery)->where('status', 'menunggu_ttd_kajur')->count(),
+                    'selesai' => (clone $statsQuery)->where('status', 'selesai')->count(),
                 ];
             }
         } else {
-            // Staff - semua statistik
+            // Staff/Admin or restricted Dosen stats display
             $statistics = [
-                'total' => PendaftaranSeminarProposal::count(),
-                'pending' => PendaftaranSeminarProposal::where('status', 'pending')->count(),
-                'pembahas_ditentukan' => PendaftaranSeminarProposal::where('status', 'pembahas_ditentukan')->count(),
-                'menunggu_ttd_kaprodi' => PendaftaranSeminarProposal::where('status', 'menunggu_ttd_kaprodi')->count(),
-                'menunggu_ttd_kajur' => PendaftaranSeminarProposal::where('status', 'menunggu_ttd_kajur')->count(),
-                'selesai' => PendaftaranSeminarProposal::where('status', 'selesai')->count(),
-                'ditolak' => PendaftaranSeminarProposal::where('status', 'ditolak')->count(),
+                'total' => (clone $statsQuery)->count(),
+                'pending' => (clone $statsQuery)->where('status', 'pending')->count(),
+                'pembahas_ditentukan' => (clone $statsQuery)->where('status', 'pembahas_ditentukan')->count(),
+                'menunggu_ttd_kaprodi' => (clone $statsQuery)->where('status', 'menunggu_ttd_kaprodi')->count(),
+                'menunggu_ttd_kajur' => (clone $statsQuery)->where('status', 'menunggu_ttd_kajur')->count(),
+                'selesai' => (clone $statsQuery)->where('status', 'selesai')->count(),
+                'ditolak' => (clone $statsQuery)->where('status', 'ditolak')->count(),
             ];
         }
 
@@ -151,6 +163,8 @@ class AdminPendaftaranSeminarProposalController extends Controller
 
     public function show(PendaftaranSeminarProposal $pendaftaranSeminarProposal)
     {
+        $this->authorizeAccess($pendaftaranSeminarProposal);
+
         $pendaftaranSeminarProposal->load([
             'user',
             'dosenPembimbing',
@@ -188,6 +202,7 @@ class AdminPendaftaranSeminarProposalController extends Controller
      */
     public function destroy(PendaftaranSeminarProposal $pendaftaranSeminarProposal)
     {
+        $this->authorizeStaffOrAdmin();
         try {
             $user = User::find(Auth::id());
 
@@ -262,6 +277,7 @@ class AdminPendaftaranSeminarProposalController extends Controller
 
     public function showAssignPembahasForm(PendaftaranSeminarProposal $pendaftaranSeminarProposal)
     {
+        $this->authorizeStaffOrAdmin();
         if (!in_array($pendaftaranSeminarProposal->status, ['pending', 'pembahas_ditentukan'])) {
             return redirect()
                 ->route('admin.pendaftaran-seminar-proposal.show', $pendaftaranSeminarProposal)
@@ -303,6 +319,7 @@ class AdminPendaftaranSeminarProposalController extends Controller
 
     public function assignPembahas(Request $request, PendaftaranSeminarProposal $pendaftaranSeminarProposal)
     {
+        $this->authorizeStaffOrAdmin();
         // Validation check
         $validation = $this->pembahasService->canAssignPembahas($pendaftaranSeminarProposal);
         if (!$validation['can_assign']) {
@@ -368,6 +385,7 @@ class AdminPendaftaranSeminarProposalController extends Controller
 
     public function resetPembahas(PendaftaranSeminarProposal $pendaftaranSeminarProposal)
     {
+        $this->authorizeStaffOrAdmin();
         try {
             $this->pembahasService->resetPembahas($pendaftaranSeminarProposal, Auth::id());
 
@@ -388,6 +406,7 @@ class AdminPendaftaranSeminarProposalController extends Controller
 
     public function generateSuratUsulan(Request $request, PendaftaranSeminarProposal $pendaftaranSeminarProposal)
     {
+        $this->authorizeStaffOrAdmin();
         $validation = $this->suratService->canGenerateSurat($pendaftaranSeminarProposal);
         if (!$validation['can_generate']) {
             return back()->with('error', $validation['message']);
@@ -751,6 +770,7 @@ class AdminPendaftaranSeminarProposalController extends Controller
 
     public function downloadSuratUsulan(PendaftaranSeminarProposal $pendaftaranSeminarProposal)
     {
+        $this->authorizeAccess($pendaftaranSeminarProposal);
         if (!$pendaftaranSeminarProposal->suratUsulan?->file_surat) {
             return back()->with('error', 'File surat tidak ditemukan.');
         }
@@ -765,6 +785,7 @@ class AdminPendaftaranSeminarProposalController extends Controller
 
     public function viewTranskrip(PendaftaranSeminarProposal $pendaftaranSeminarProposal)
     {
+        $this->authorizeAccess($pendaftaranSeminarProposal);
         return $this->documentService->viewFile(
             $pendaftaranSeminarProposal->file_transkrip_nilai,
             $this->documentService->getDocumentFileName($pendaftaranSeminarProposal, 'transkrip')
@@ -773,6 +794,7 @@ class AdminPendaftaranSeminarProposalController extends Controller
 
     public function viewProposal(PendaftaranSeminarProposal $pendaftaranSeminarProposal)
     {
+        $this->authorizeAccess($pendaftaranSeminarProposal);
         return $this->documentService->viewFile(
             $pendaftaranSeminarProposal->file_proposal_penelitian,
             $this->documentService->getDocumentFileName($pendaftaranSeminarProposal, 'proposal')
@@ -781,6 +803,7 @@ class AdminPendaftaranSeminarProposalController extends Controller
 
     public function viewPermohonan(PendaftaranSeminarProposal $pendaftaranSeminarProposal)
     {
+        $this->authorizeAccess($pendaftaranSeminarProposal);
         return $this->documentService->viewFile(
             $pendaftaranSeminarProposal->file_surat_permohonan,
             $this->documentService->getDocumentFileName($pendaftaranSeminarProposal, 'permohonan')
@@ -789,6 +812,7 @@ class AdminPendaftaranSeminarProposalController extends Controller
 
     public function viewSlipUkt(PendaftaranSeminarProposal $pendaftaranSeminarProposal)
     {
+        $this->authorizeAccess($pendaftaranSeminarProposal);
         return $this->documentService->viewFile(
             $pendaftaranSeminarProposal->file_slip_ukt,
             $this->documentService->getDocumentFileName($pendaftaranSeminarProposal, 'slip_ukt')
@@ -797,6 +821,7 @@ class AdminPendaftaranSeminarProposalController extends Controller
 
     public function downloadTranskrip(PendaftaranSeminarProposal $pendaftaranSeminarProposal)
     {
+        $this->authorizeAccess($pendaftaranSeminarProposal);
         return $this->documentService->downloadFile(
             $pendaftaranSeminarProposal->file_transkrip_nilai,
             $this->documentService->getDocumentFileName($pendaftaranSeminarProposal, 'transkrip')
@@ -805,6 +830,7 @@ class AdminPendaftaranSeminarProposalController extends Controller
 
     public function downloadProposal(PendaftaranSeminarProposal $pendaftaranSeminarProposal)
     {
+        $this->authorizeAccess($pendaftaranSeminarProposal);
         return $this->documentService->downloadFile(
             $pendaftaranSeminarProposal->file_proposal_penelitian,
             $this->documentService->getDocumentFileName($pendaftaranSeminarProposal, 'proposal')
@@ -813,6 +839,7 @@ class AdminPendaftaranSeminarProposalController extends Controller
 
     public function downloadPermohonan(PendaftaranSeminarProposal $pendaftaranSeminarProposal)
     {
+        $this->authorizeAccess($pendaftaranSeminarProposal);
         return $this->documentService->downloadFile(
             $pendaftaranSeminarProposal->file_surat_permohonan,
             $this->documentService->getDocumentFileName($pendaftaranSeminarProposal, 'permohonan')
@@ -821,6 +848,7 @@ class AdminPendaftaranSeminarProposalController extends Controller
 
     public function downloadSlipUkt(PendaftaranSeminarProposal $pendaftaranSeminarProposal)
     {
+        $this->authorizeAccess($pendaftaranSeminarProposal);
         return $this->documentService->downloadFile(
             $pendaftaranSeminarProposal->file_slip_ukt,
             $this->documentService->getDocumentFileName($pendaftaranSeminarProposal, 'slip_ukt')
@@ -856,6 +884,7 @@ class AdminPendaftaranSeminarProposalController extends Controller
 
     public function reject(Request $request, PendaftaranSeminarProposal $pendaftaranSeminarProposal)
     {
+        $this->authorizeStaffOrAdmin();
         // Validasi hanya bisa reject jika status masih pending atau pembahas_ditentukan
         if (!in_array($pendaftaranSeminarProposal->status, ['pending', 'pembahas_ditentukan'])) {
             return back()->with('error', 'Pendaftaran tidak dapat ditolak pada status ini.');
@@ -895,4 +924,29 @@ class AdminPendaftaranSeminarProposalController extends Controller
     }
 
 
+    /**
+     * Helper to authorize staff or admin access.
+     */
+    private function authorizeStaffOrAdmin(): void
+    {
+        if (!Auth::user()->hasAnyRole(['staff', 'admin'])) {
+            abort(403, 'Tindakan ini hanya dapat dilakukan oleh Staff atau Admin.');
+        }
+    }
+
+    /**
+     * Helper to authorize access for Dosen.
+     */
+    private function authorizeAccess(PendaftaranSeminarProposal $pendaftaranSeminarProposal): void
+    {
+        $user = Auth::user();
+        $isStaffOrAdmin = $user->hasAnyRole(['staff', 'admin']);
+        $isApprovalAuthority = $user->isDosenWithApprovalAuthority();
+
+        if ($user->hasRole('dosen') && !$isStaffOrAdmin && !$isApprovalAuthority) {
+            if ($pendaftaranSeminarProposal->dosen_pembimbing_id != $user->id) {
+                abort(403, 'Akses ditolak. Anda hanya dapat melihat pendaftaran mahasiswa yang Anda bimbing.');
+            }
+        }
+    }
 }

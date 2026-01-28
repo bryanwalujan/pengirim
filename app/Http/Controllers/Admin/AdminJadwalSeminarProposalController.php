@@ -19,6 +19,13 @@ class AdminJadwalSeminarProposalController extends Controller
 {
     public function index(Request $request)
     {
+        // ✅ Authorization: Staff, Admin, atau Koordinator Program Studi
+        if (!auth()->user()->hasRole('staff') 
+            && !auth()->user()->hasRole('admin')
+            && !(auth()->user()->hasRole('dosen') && auth()->user()->jabatan === 'Koordinator Program Studi')) {
+            abort(403, 'Anda tidak memiliki akses untuk melihat jadwal seminar proposal.');
+        }
+
         $status = $request->input('status', 'menunggu_jadwal');
 
         $query = JadwalSeminarProposal::with([
@@ -51,6 +58,13 @@ class AdminJadwalSeminarProposalController extends Controller
      */
     public function calendar(Request $request)
     {
+        // ✅ Authorization: Staff, Admin, atau Koordinator Program Studi
+        if (!auth()->user()->hasRole('staff') 
+            && !auth()->user()->hasRole('admin')
+            && !(auth()->user()->hasRole('dosen') && auth()->user()->jabatan === 'Koordinator Program Studi')) {
+            abort(403, 'Anda tidak memiliki akses untuk melihat jadwal seminar proposal.');
+        }
+
         // Get bulan dan tahun dari request, default ke bulan/tahun sekarang
         $bulan = $request->input('bulan', now()->month);
         $tahun = $request->input('tahun', now()->year);
@@ -104,6 +118,11 @@ class AdminJadwalSeminarProposalController extends Controller
 
     public function create(JadwalSeminarProposal $jadwal)
     {
+        // ✅ Authorization: Hanya Staff/Admin
+        if (!auth()->user()->hasRole('staff') && !auth()->user()->hasRole('admin')) {
+            abort(403, 'Hanya Staff yang dapat membuat jadwal seminar proposal.');
+        }
+
         if ($jadwal->status !== 'menunggu_jadwal') {
             return back()->with('error', 'Jadwal hanya dapat dibuat untuk yang berstatus menunggu penjadwalan.');
         }
@@ -123,6 +142,11 @@ class AdminJadwalSeminarProposalController extends Controller
      */
     public function store(Request $request, JadwalSeminarProposal $jadwal)
     {
+        // ✅ Authorization: Hanya Staff/Admin
+        if (!auth()->user()->hasRole('staff') && !auth()->user()->hasRole('admin')) {
+            abort(403, 'Hanya Staff yang dapat menyimpan jadwal seminar proposal.');
+        }
+
         $validated = $request->validate([
             'tanggal_ujian' => 'required|date|after_or_equal:today',
             'waktu_mulai' => 'required|date_format:H:i',
@@ -244,6 +268,13 @@ class AdminJadwalSeminarProposalController extends Controller
 
     public function show(JadwalSeminarProposal $jadwal)
     {
+        // ✅ Authorization: Staff, Admin, atau Koordinator Program Studi
+        if (!auth()->user()->hasRole('staff') 
+            && !auth()->user()->hasRole('admin')
+            && !(auth()->user()->hasRole('dosen') && auth()->user()->jabatan === 'Koordinator Program Studi')) {
+            abort(403, 'Anda tidak memiliki akses untuk melihat jadwal seminar proposal.');
+        }
+
         $jadwal->load([
             'pendaftaranSeminarProposal.user',
             'pendaftaranSeminarProposal.dosenPembimbing',
@@ -256,6 +287,11 @@ class AdminJadwalSeminarProposalController extends Controller
 
     public function edit(JadwalSeminarProposal $jadwal)
     {
+        // ✅ Authorization: Hanya Staff/Admin
+        if (!auth()->user()->hasRole('staff') && !auth()->user()->hasRole('admin')) {
+            abort(403, 'Hanya Staff yang dapat mengedit jadwal seminar proposal.');
+        }
+
         if (!in_array($jadwal->status, ['menunggu_jadwal', 'dijadwalkan'])) {
             return back()->with('error', 'Jadwal tidak dapat diubah untuk status ' . $jadwal->status);
         }
@@ -277,6 +313,13 @@ class AdminJadwalSeminarProposalController extends Controller
 
     public function downloadSk(JadwalSeminarProposal $jadwal)
     {
+        // ✅ Authorization: Staff, Admin, atau Koordinator Program Studi
+        if (!auth()->user()->hasRole('staff') 
+            && !auth()->user()->hasRole('admin')
+            && !(auth()->user()->hasRole('dosen') && auth()->user()->jabatan === 'Koordinator Program Studi')) {
+            abort(403, 'Anda tidak memiliki akses untuk download SK Proposal.');
+        }
+
         if (!$jadwal->hasSkFile()) {
             return back()->with('error', 'File SK Proposal tidak ditemukan.');
         }
@@ -289,6 +332,13 @@ class AdminJadwalSeminarProposalController extends Controller
 
     public function viewSk(JadwalSeminarProposal $jadwal)
     {
+        // ✅ Authorization: Staff, Admin, atau Koordinator Program Studi
+        if (!auth()->user()->hasRole('staff') 
+            && !auth()->user()->hasRole('admin')
+            && !(auth()->user()->hasRole('dosen') && auth()->user()->jabatan === 'Koordinator Program Studi')) {
+            abort(403, 'Anda tidak memiliki akses untuk melihat SK Proposal.');
+        }
+
         if (!$jadwal->hasSkFile()) {
             abort(404, 'File SK Proposal tidak ditemukan.');
         }
@@ -303,6 +353,11 @@ class AdminJadwalSeminarProposalController extends Controller
 
     public function markAsSelesai(JadwalSeminarProposal $jadwal)
     {
+        // ✅ Authorization: Hanya Staff/Admin
+        if (!auth()->user()->hasRole('staff') && !auth()->user()->hasRole('admin')) {
+            abort(403, 'Hanya Staff yang dapat menandai jadwal sebagai selesai.');
+        }
+
         if ($jadwal->status !== 'dijadwalkan') {
             return back()->with('error', 'Hanya jadwal yang sudah dijadwalkan yang dapat ditandai selesai.');
         }
@@ -322,6 +377,11 @@ class AdminJadwalSeminarProposalController extends Controller
 
     public function kirimUlangUndangan(JadwalSeminarProposal $jadwal)
     {
+        // ✅ Authorization: Hanya Staff/Admin
+        if (!auth()->user()->hasRole('staff') && !auth()->user()->hasRole('admin')) {
+            abort(403, 'Hanya Staff yang dapat mengirim ulang undangan.');
+        }
+
         if ($jadwal->status !== 'dijadwalkan') {
             return back()->with('error', 'Undangan hanya dapat dikirim ulang untuk jadwal yang sudah dijadwalkan.');
         }
@@ -418,6 +478,11 @@ class AdminJadwalSeminarProposalController extends Controller
 
     public function destroy(JadwalSeminarProposal $jadwal)
     {
+        // ✅ Authorization: Hanya Staff/Admin
+        if (!auth()->user()->hasRole('staff') && !auth()->user()->hasRole('admin')) {
+            abort(403, 'Hanya Staff yang dapat menghapus jadwal seminar proposal.');
+        }
+
         try {
             DB::beginTransaction();
 
@@ -529,6 +594,11 @@ class AdminJadwalSeminarProposalController extends Controller
 
     public function bulkDestroy(Request $request)
     {
+        // ✅ Authorization: Hanya Staff/Admin
+        if (!auth()->user()->hasRole('staff') && !auth()->user()->hasRole('admin')) {
+            abort(403, 'Hanya Staff yang dapat menghapus jadwal secara bulk.');
+        }
+
         $validated = $request->validate([
             'jadwal_ids' => 'required|array|min:1',
             'jadwal_ids.*' => 'exists:jadwal_seminar_proposals,id',

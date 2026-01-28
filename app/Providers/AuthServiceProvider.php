@@ -3,18 +3,21 @@
 namespace App\Providers;
 
 use App\Models\BeritaAcaraSeminarProposal;
+use App\Models\BeritaAcaraUjianHasil;
 use App\Models\PengajuanSkPembimbing;
 use App\Models\SuratPindah;
 use App\Models\SuratIjinSurvey;
 use App\Models\SuratAktifKuliah;
 use App\Models\SuratCutiAkademik;
 use App\Policies\BeritaAcaraSeminarProposalPolicy;
+use App\Policies\BeritaAcaraUjianHasilPolicy;
 use App\Policies\PengajuanSkPembimbingPolicy;
 use App\Policies\SuratPindahPolicy;
 use App\Policies\SuratIjinSurveyPolicy;
 use Illuminate\Support\ServiceProvider;
 use App\Policies\SuratAktifKuliahPolicy;
 use App\Policies\SuratCutiAkademikPolicy;
+
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -25,6 +28,7 @@ class AuthServiceProvider extends ServiceProvider
         SuratPindah::class => SuratPindahPolicy::class,
         BeritaAcaraSeminarProposal::class => BeritaAcaraSeminarProposalPolicy::class,
         PengajuanSkPembimbing::class => PengajuanSkPembimbingPolicy::class,
+        BeritaAcaraUjianHasil::class => BeritaAcaraUjianHasilPolicy::class,
         // Tambahkan model dan policy lainnya di sini
     ];
     /**

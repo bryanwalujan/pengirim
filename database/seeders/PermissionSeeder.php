@@ -43,6 +43,7 @@ class PermissionSeeder extends Seeder
             // Penjadwalan & Pendaftaran (Staff)
             ['name' => 'manage pendaftaran sempro', 'group' => 'Tugas Akhir'],
             ['name' => 'manage jadwal sempro', 'group' => 'Tugas Akhir'],
+            ['name' => 'view jadwal sempro', 'group' => 'Tugas Akhir'], // ✅ NEW: Read-only untuk Koordinator Prodi
 
             // ✅ NEW: Berita Acara & Lembar Catatan Sempro
             ['name' => 'manage berita acara sempro', 'group' => 'Tugas Akhir'],
@@ -59,7 +60,12 @@ class PermissionSeeder extends Seeder
             // ✅ NEW: Pendaftaran Ujian Hasil & Jadwal Ujian Hasil
             ['name' => 'manage pendaftaran ujian hasil', 'group' => 'Tugas Akhir'],
             ['name' => 'manage jadwal ujian hasil', 'group' => 'Tugas Akhir'],
+            
+            // ✅ Berita Acara Ujian Hasil (konsisten dengan pattern Sempro)
             ['name' => 'manage berita acara ujian hasil', 'group' => 'Tugas Akhir'],
+            ['name' => 'view berita acara ujian hasil', 'group' => 'Tugas Akhir'],
+            ['name' => 'sign berita acara ujian hasil', 'group' => 'Tugas Akhir'],
+            ['name' => 'submit lembar catatan ujian hasil', 'group' => 'Tugas Akhir'],
 
             // SK Pembimbing Skripsi
             ['name' => 'manage sk pembimbing', 'group' => 'Tugas Akhir'],
@@ -123,25 +129,27 @@ class PermissionSeeder extends Seeder
             'manage komisi proposal',
             'manage komisi hasil',
             'manage pendaftaran sempro',
-            'manage jadwal sempro',
+            'manage pendaftaran ujian hasil',
+            // ❌ REMOVED: 'manage jadwal sempro' - Dosen biasa tidak boleh manage jadwal
+            // Koordinator Prodi akan dapat 'view jadwal sempro' secara manual/dynamic
 
-            // ✅ Berita Acara - Dosen bisa view, sign, dan submit catatan
+            // ✅ Berita Acara Sempro - Dosen bisa view, sign, dan submit catatan
             'view berita acara sempro',
             'sign berita acara sempro',
             'submit lembar catatan sempro',
+
+            // ✅ Berita Acara Ujian Hasil - Dosen bisa view, sign, dan submit catatan
+            'view berita acara ujian hasil',
+            'sign berita acara ujian hasil',
+            'submit lembar catatan ujian hasil',
 
             // SK Pembimbing - Dosen can view and sign
             'manage sk pembimbing',
             'sign sk pembimbing',
         ];
 
-        // Gunakan givePermissionTo (aman dijalankan berulang, tidak akan duplikat)
-        foreach ($dosenPermissions as $pName) {
-            // Cek dulu apakah permission ada di DB untuk menghindari error jika typo
-            if (Permission::where('name', $pName)->exists()) {
-                $dosenRole->givePermissionTo($pName);
-            }
-        }
+        // Gunakan syncPermissions untuk ensure hanya permission yang ada di list yang dimiliki role
+        $dosenRole->syncPermissions($dosenPermissions);
 
         // Note: Approval permissions akan di-assign secara dinamis 
         // berdasarkan jabatan saat create/update dosen

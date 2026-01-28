@@ -138,7 +138,7 @@ trait GeneratesNomorSurat
             $latest = $query
                 ->whereNotNull('nomor_surat')
                 ->where('nomor_surat', 'like', $pattern)
-                ->orderByRaw('CAST(SUBSTRING_INDEX(nomor_surat, "/", 1) AS UNSIGNED) DESC')
+                ->orderBy('nomor_surat', 'desc')
                 ->first();
 
             if ($latest) {
@@ -198,7 +198,7 @@ trait GeneratesNomorSurat
             $surat = $query
                 ->whereNotNull('nomor_surat')
                 ->where('nomor_surat', 'like', "%/{$academicYearId}")
-                ->orderByRaw('CAST(SUBSTRING_INDEX(nomor_surat, "/", 1) AS UNSIGNED) DESC')
+                ->orderBy('nomor_surat', 'desc')
                 ->first();
 
             if ($surat) {
@@ -240,8 +240,10 @@ trait GeneratesNomorSurat
         $academicYearId = $this->getAcademicYearIdentifier($activeTahunAjaran);
         
         // Clear all related caches
+        // Clear specific related caches
         Cache::forget('active_tahun_ajaran');
-        Cache::flush(); // Clear semua cache yang terkait dengan nomor surat
+        // Note: latest_nomor_surat_* caches have short TTL (5m) and will naturally expire.
+        // We avoid Cache::flush() as it's too aggressive and clears the entire app cache.
         
         $shouldReset = $this->shouldResetCounter($activeTahunAjaran);
         
@@ -296,7 +298,7 @@ trait GeneratesNomorSurat
             $latest = $query
                 ->whereNotNull('nomor_surat')
                 ->where('nomor_surat', 'like', "%/{$academicYearId}")
-                ->orderByRaw('CAST(SUBSTRING_INDEX(nomor_surat, "/", 1) AS UNSIGNED) DESC')
+                ->orderBy('nomor_surat', 'desc')
                 ->first();
 
             $statistics['models'][$modelName] = [

@@ -472,6 +472,55 @@ class JadwalSeminarProposal extends Model
             ->orderBy('waktu_mulai');
     }
 
+    // ========== AUTHORIZATION HELPERS ==========
+
+    /**
+     * Check if jadwal can be edited by user
+     * Only staff/admin can edit
+     */
+    public function canBeEditedByUser($user): bool
+    {
+        return $user->hasRole('staff') || $user->hasRole('admin');
+    }
+
+    /**
+     * Check if jadwal can be deleted by user
+     * Only staff/admin can delete
+     */
+    public function canBeDeletedByUser($user): bool
+    {
+        return $user->hasRole('staff') || $user->hasRole('admin');
+    }
+
+    /**
+     * Check if user can perform actions (mark as selesai, kirim ulang undangan)
+     * Only staff/admin can perform actions
+     */
+    public function canPerformActionsByUser($user): bool
+    {
+        return $user->hasRole('staff') || $user->hasRole('admin');
+    }
+
+    /**
+     * Check if jadwal can be viewed by user
+     * Staff, admin, and koordinator prodi can view
+     */
+    public function canBeViewedByUser($user): bool
+    {
+        // Staff dan admin bisa lihat semua
+        if ($user->hasRole('staff') || $user->hasRole('admin')) {
+            return true;
+        }
+
+        // Koordinator program studi bisa lihat semua
+        if ($user->hasRole('dosen') && $user->jabatan === 'Koordinator Program Studi') {
+            return true;
+        }
+
+        // Dosen biasa tidak bisa lihat
+        return false;
+    }
+
     // ========== BOOT METHOD ==========
 
     protected static function boot()

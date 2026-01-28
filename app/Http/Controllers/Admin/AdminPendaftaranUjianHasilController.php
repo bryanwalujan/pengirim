@@ -33,6 +33,10 @@ class AdminPendaftaranUjianHasilController extends Controller
      */
     public function index(Request $request)
     {
+        $user = Auth::user();
+        $isStaffOrAdmin = $user->hasAnyRole(['staff', 'admin']);
+        $isApprovalAuthority = $user->isKoordinatorProdi() || $user->isKetuaJurusan();
+
         $query = PendaftaranUjianHasil::with([
             'user',
             'komisiHasil',
@@ -41,6 +45,14 @@ class AdminPendaftaranUjianHasilController extends Controller
             'pengujiUjianHasil.dosen',
             'suratUsulanSkripsi',
         ])->latest();
+
+        // Restriction for regular Dosen (PS1/PS2 only)
+        if ($user->hasRole('dosen') && !$isStaffOrAdmin && !$isApprovalAuthority) {
+            $query->where(function ($q) use ($user) {
+                $q->where('dosen_pembimbing1_id', $user->id)
+                    ->orWhere('dosen_pembimbing2_id', $user->id);
+            });
+        }
 
         // Search by nama or nim
         if ($search = $request->query('search')) {
@@ -63,12 +75,20 @@ class AdminPendaftaranUjianHasilController extends Controller
         $pendaftaranUjianHasils = $query->paginate(15)->withQueryString();
         $uniqueAngkatan = PendaftaranUjianHasil::select('angkatan')->distinct()->pluck('angkatan')->sort();
 
-        // Statistics
+        // Statistics - also restricted
+        $statsQuery = PendaftaranUjianHasil::query();
+        if ($user->hasRole('dosen') && !$isStaffOrAdmin && !$isApprovalAuthority) {
+            $statsQuery->where(function ($q) use ($user) {
+                $q->where('dosen_pembimbing1_id', $user->id)
+                    ->orWhere('dosen_pembimbing2_id', $user->id);
+            });
+        }
+
         $stats = [
-            'total' => PendaftaranUjianHasil::count(),
-            'pending' => PendaftaranUjianHasil::pending()->count(),
-            'selesai' => PendaftaranUjianHasil::selesai()->count(),
-            'ditolak' => PendaftaranUjianHasil::ditolak()->count(),
+            'total' => (clone $statsQuery)->count(),
+            'pending' => (clone $statsQuery)->pending()->count(),
+            'selesai' => (clone $statsQuery)->selesai()->count(),
+            'ditolak' => (clone $statsQuery)->ditolak()->count(),
         ];
 
         // Get penguji statistics for modal
@@ -87,6 +107,18 @@ class AdminPendaftaranUjianHasilController extends Controller
      */
     public function show(PendaftaranUjianHasil $pendaftaranUjianHasil)
     {
+        $user = Auth::user();
+        $isStaffOrAdmin = $user->hasAnyRole(['staff', 'admin']);
+        $isApprovalAuthority = $user->isKoordinatorProdi() || $user->isKetuaJurusan();
+
+        // Authorization: Only PS1, PS2, or authorized officials can view
+        if ($user->hasRole('dosen') && !$isStaffOrAdmin && !$isApprovalAuthority) {
+            if ($pendaftaranUjianHasil->dosen_pembimbing1_id != $user->id && 
+                $pendaftaranUjianHasil->dosen_pembimbing2_id != $user->id) {
+                abort(403, 'Akses ditolak. Anda hanya dapat melihat pendaftaran mahasiswa yang Anda bimbing.');
+            }
+        }
+
         $pendaftaranUjianHasil->load([
             'user',
             'komisiHasil',
@@ -114,6 +146,7 @@ class AdminPendaftaranUjianHasilController extends Controller
      */
     public function showAssignPengujiForm(PendaftaranUjianHasil $pendaftaranUjianHasil)
     {
+        $this->authorizeStaffOrAdmin();
         $validation = $this->pengujiService->canAssignPenguji($pendaftaranUjianHasil);
         if (!$validation['can_assign']) {
             return back()->with('error', $validation['message']);
@@ -152,6 +185,7 @@ class AdminPendaftaranUjianHasilController extends Controller
      */
     public function assignPenguji(Request $request, PendaftaranUjianHasil $pendaftaranUjianHasil)
     {
+        $this->authorizeStaffOrAdmin();
         $validation = $this->pengujiService->canAssignPenguji($pendaftaranUjianHasil);
         if (!$validation['can_assign']) {
             return back()->with('error', $validation['message'])->withInput();
@@ -229,6 +263,7 @@ class AdminPendaftaranUjianHasilController extends Controller
      */
     public function resetPenguji(PendaftaranUjianHasil $pendaftaranUjianHasil)
     {
+        $this->authorizeStaffOrAdmin();
         try {
             $this->pengujiService->resetPenguji($pendaftaranUjianHasil, Auth::id());
 
@@ -248,6 +283,7 @@ class AdminPendaftaranUjianHasilController extends Controller
      */
     public function generateSuratUsulan(Request $request, PendaftaranUjianHasil $pendaftaranUjianHasil)
     {
+        $this->authorizeStaffOrAdmin();
         $validation = $this->suratService->canGenerateSurat($pendaftaranUjianHasil);
         if (!$validation['can_generate']) {
             return back()->with('error', $validation['message']);
@@ -290,12 +326,12 @@ class AdminPendaftaranUjianHasilController extends Controller
     {
         $surat = $pendaftaranUjianHasil->suratUsulanSkripsi;
 
-        if (!$surat || !$surat->file_surat || !Storage::disk('local')->exists($surat->file_surat)) {
+        if (!$surat || !$surat->file_surat || !Storage::disk('public')->exists($surat->file_surat)) {
             abort(404, 'File surat tidak ditemukan.');
         }
 
         return response()->download(
-            Storage::disk('local')->path($surat->file_surat),
+            Storage::disk('public')->path($surat->file_surat),
             'Surat_Usulan_Skripsi_' . $pendaftaranUjianHasil->user->nim . '.pdf'
         );
     }
@@ -448,6 +484,7 @@ class AdminPendaftaranUjianHasilController extends Controller
      */
     public function reject(Request $request, PendaftaranUjianHasil $pendaftaranUjianHasil)
     {
+        $this->authorizeStaffOrAdmin();
         $validated = $request->validate([
             'alasan_penolakan' => 'required|string|max:1000',
         ]);
@@ -476,6 +513,7 @@ class AdminPendaftaranUjianHasilController extends Controller
      */
     public function destroy(PendaftaranUjianHasil $pendaftaranUjianHasil)
     {
+        $this->authorizeStaffOrAdmin();
         try {
             $studentName = $pendaftaranUjianHasil->user->name ?? 'Unknown';
             $pendaftaranUjianHasil->delete();
@@ -505,6 +543,7 @@ class AdminPendaftaranUjianHasilController extends Controller
 
     public function viewTranskrip(PendaftaranUjianHasil $pendaftaranUjianHasil)
     {
+        $this->authorizeAccess($pendaftaranUjianHasil);
         if (
             !$pendaftaranUjianHasil->file_transkrip_nilai ||
             !Storage::disk('local')->exists($pendaftaranUjianHasil->file_transkrip_nilai)
@@ -520,6 +559,7 @@ class AdminPendaftaranUjianHasilController extends Controller
 
     public function viewSkripsi(PendaftaranUjianHasil $pendaftaranUjianHasil)
     {
+        $this->authorizeAccess($pendaftaranUjianHasil);
         if (
             !$pendaftaranUjianHasil->file_skripsi ||
             !Storage::disk('local')->exists($pendaftaranUjianHasil->file_skripsi)
@@ -535,6 +575,7 @@ class AdminPendaftaranUjianHasilController extends Controller
 
     public function viewPermohonan(PendaftaranUjianHasil $pendaftaranUjianHasil)
     {
+        $this->authorizeAccess($pendaftaranUjianHasil);
         if (
             !$pendaftaranUjianHasil->file_surat_permohonan ||
             !Storage::disk('local')->exists($pendaftaranUjianHasil->file_surat_permohonan)
@@ -550,6 +591,7 @@ class AdminPendaftaranUjianHasilController extends Controller
 
     public function viewSlipUkt(PendaftaranUjianHasil $pendaftaranUjianHasil)
     {
+        $this->authorizeAccess($pendaftaranUjianHasil);
         if (
             !$pendaftaranUjianHasil->file_slip_ukt ||
             !Storage::disk('local')->exists($pendaftaranUjianHasil->file_slip_ukt)
@@ -742,5 +784,32 @@ class AdminPendaftaranUjianHasilController extends Controller
             ->setOption('margin-right', '1in');
 
         return $pdf->stream('preview-surat-usulan-ujian-hasil.pdf');
+    }
+
+    /**
+     * Helper to authorize staff or admin access.
+     */
+    private function authorizeStaffOrAdmin(): void
+    {
+        if (!Auth::user()->hasAnyRole(['staff', 'admin'])) {
+            abort(403, 'Tindakan ini hanya dapat dilakukan oleh Staff atau Admin.');
+        }
+    }
+
+    /**
+     * Helper to authorize access for Dosen.
+     */
+    private function authorizeAccess(PendaftaranUjianHasil $pendaftaranUjianHasil): void
+    {
+        $user = Auth::user();
+        $isStaffOrAdmin = $user->hasAnyRole(['staff', 'admin']);
+        $isApprovalAuthority = $user->isKoordinatorProdi() || $user->isKetuaJurusan();
+
+        if ($user->hasRole('dosen') && !$isStaffOrAdmin && !$isApprovalAuthority) {
+            if ($pendaftaranUjianHasil->dosen_pembimbing1_id != $user->id && 
+                $pendaftaranUjianHasil->dosen_pembimbing2_id != $user->id) {
+                abort(403, 'Akses ditolak. Anda tidak berwenang melihat data ini.');
+            }
+        }
     }
 }

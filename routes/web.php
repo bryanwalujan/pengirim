@@ -45,6 +45,7 @@ use App\Http\Controllers\User\PendaftaranSeminarProposalController;
 use App\Http\Controllers\Admin\AdminJadwalSeminarProposalController;
 use App\Http\Controllers\Admin\AdminPendaftaranUjianHasilController;
 use App\Http\Controllers\Admin\AdminJadwalUjianHasilController;
+use App\Http\Controllers\Admin\AdminBeritaAcaraUjianHasilController;
 use App\Http\Controllers\Admin\AdminPeminjamanLaboratoriumController;
 use App\Http\Controllers\Admin\AdminPendaftaranSeminarProposalController;
 
@@ -66,6 +67,10 @@ Route::get('/preview-sk-pembimbing-pdf', [AdminSkPembimbingController::class, 'p
 
 Route::get('/preview-surat-usulan-ujian-hasil-pdf', [AdminPendaftaranUjianHasilController::class, 'previewPdf'])
     ->name('preview.surat-usulan-ujian-hasil.pdf')
+    ->middleware('auth');
+
+Route::get('/preview-berita-acara-ujian-hasil-pdf', [AdminBeritaAcaraUjianHasilController::class, 'previewPdf'])
+    ->name('preview.berita-acara-ujian-hasil.pdf')
     ->middleware('auth');
 
 
@@ -113,6 +118,13 @@ Route::get('/verify/berita-acara-sempro/{code}/download', [AdminBeritaAcaraSempr
 
 Route::get('/verify/sk-pembimbing/{code}', [AdminSkPembimbingController::class, 'verify'])
     ->name('sk-pembimbing.verify');
+
+// Public verification routes for Berita Acara Ujian Hasil
+Route::get('/verify/berita-acara-ujian-hasil/{code}', [AdminBeritaAcaraUjianHasilController::class, 'verify'])
+    ->name('berita-acara-ujian-hasil.verify');
+
+Route::get('/verify/berita-acara-ujian-hasil/{code}/download', [AdminBeritaAcaraUjianHasilController::class, 'verifyAndDownload'])
+    ->name('berita-acara-ujian-hasil.verify.download');
 
 // ========== USER ROUTES (Mahasiswa) ==========
 Route::middleware(['auth', 'verified', 'role:mahasiswa', 'check.ukt'])->group(function () {
@@ -315,6 +327,14 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa', 'check.ukt'])->group(fu
         Route::get('/{jadwal}/download-sk', [JadwalUjianHasilController::class, 'downloadSkUjianHasil'])->name('download-sk');
         Route::get('/{jadwal}/view-sk', [JadwalUjianHasilController::class, 'viewSkUjianHasil'])->name('view-sk');
         Route::delete('/{jadwal}/delete-sk', [JadwalUjianHasilController::class, 'deleteSkUjianHasil'])->name('delete-sk');
+    });
+
+    // Layanan Berita Acara Ujian Hasil (Mahasiswa View - nilai & koreksi)
+    Route::prefix('berita-acara-ujian-hasil')->name('user.berita-acara-ujian-hasil.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\User\UserBeritaAcaraUjianHasilController::class, 'index'])
+            ->name('index');
+        Route::get('/{beritaAcara}', [\App\Http\Controllers\User\UserBeritaAcaraUjianHasilController::class, 'show'])
+            ->name('show');
     });
 });
 
@@ -737,14 +757,23 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     });
 
     // Jadwal Seminar Proposal & Berita Acara - COMPLETE ROUTES
-    Route::middleware(['can:manage jadwal sempro'])->group(function () {
-        // Jadwal Seminar Proposal
+    // ✅ Routes yang bisa diakses dengan 'view jadwal sempro' (Read-only untuk Koordinator Prodi)
+    Route::middleware(['can:view jadwal sempro'])->group(function () {
         Route::prefix('jadwal-seminar-proposal')->name('jadwal-seminar-proposal.')->group(function () {
-            // List & Show
+            // Read-only routes (accessible by koordinator prodi)
             Route::get('/', [AdminJadwalSeminarProposalController::class, 'index'])->name('index');
             Route::get('/calendar', [AdminJadwalSeminarProposalController::class, 'calendar'])->name('calendar');
             Route::get('/{jadwal}', [AdminJadwalSeminarProposalController::class, 'show'])->name('show');
+            Route::get('/{jadwal}/download-sk', [AdminJadwalSeminarProposalController::class, 'downloadSk'])
+                ->name('download-sk');
+            Route::get('/{jadwal}/view-sk', [AdminJadwalSeminarProposalController::class, 'viewSk'])
+                ->name('view-sk');
+        });
+    });
 
+    // ✅ Routes yang memerlukan 'manage jadwal sempro' (Full access untuk Staff)
+    Route::middleware(['can:manage jadwal sempro'])->group(function () {
+        Route::prefix('jadwal-seminar-proposal')->name('jadwal-seminar-proposal.')->group(function () {
             // Create & Store Jadwal
             Route::get('/{jadwal}/create', [AdminJadwalSeminarProposalController::class, 'create'])->name('create');
             Route::post('/{jadwal}/store', [AdminJadwalSeminarProposalController::class, 'store'])->name('store');
@@ -753,15 +782,9 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             Route::get('/{jadwal}/edit', [AdminJadwalSeminarProposalController::class, 'edit'])->name('edit');
             Route::put('/{jadwal}', [AdminJadwalSeminarProposalController::class, 'update'])->name('update');
 
-            // ✅ TAMBAHKAN: Route untuk get batch info (AJAX)
+            // ✅ Route untuk get batch info (AJAX)
             Route::post('/get-batch-info', [AdminJadwalSeminarProposalController::class, 'getBatchInfo'])
                 ->name('get-batch-info');
-
-            // SK Actions
-            Route::get('/{jadwal}/download-sk', [AdminJadwalSeminarProposalController::class, 'downloadSk'])
-                ->name('download-sk');
-            Route::get('/{jadwal}/view-sk', [AdminJadwalSeminarProposalController::class, 'viewSk'])
-                ->name('view-sk');
 
             // Other Actions
             Route::post('/{jadwal}/mark-selesai', [AdminJadwalSeminarProposalController::class, 'markAsSelesai'])
@@ -775,9 +798,10 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             Route::post('/bulk-destroy', [AdminJadwalSeminarProposalController::class, 'bulkDestroy'])
                 ->name('bulk-destroy');
         });
+    });
 
-        // ✅ BERITA ACARA SEMINAR PROPOSAL
-        Route::prefix('berita-acara-sempro')->name('berita-acara-sempro.')->group(function () {
+    // ✅ BERITA ACARA SEMINAR PROPOSAL
+    Route::prefix('berita-acara-sempro')->name('berita-acara-sempro.')->group(function () {
             // ========== STATIC ROUTES (tanpa parameter) ==========
             Route::get('/', [AdminBeritaAcaraSemproController::class, 'index'])
                 ->name('index');
@@ -897,8 +921,8 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
                 ->middleware('role:dosen');
         });
 
-        // ✅ LEMBAR CATATAN SEMINAR PROPOSAL
-        Route::prefix('lembar-catatan-sempro')->name('lembar-catatan-sempro.')->group(function () {
+    // ✅ LEMBAR CATATAN SEMINAR PROPOSAL
+    Route::prefix('lembar-catatan-sempro')->name('lembar-catatan-sempro.')->group(function () {
 
             // ========== STATIC ROUTES ==========
 
@@ -934,7 +958,6 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
                 ->name('destroy')
                 ->middleware('role:dosen|staff|admin');
         });
-    });
 
     // SK Pembimbing Skripsi
     Route::prefix('sk-pembimbing')->name('sk-pembimbing.')->group(function () {
@@ -1112,6 +1135,96 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         });
     });
 
+    // ✅ BERITA ACARA UJIAN HASIL
+    Route::prefix('berita-acara-ujian-hasil')->name('berita-acara-ujian-hasil.')->group(function () {
+        // ========== STATIC ROUTES ==========
+        Route::get('/', [AdminBeritaAcaraUjianHasilController::class, 'index'])
+            ->name('index');
+
+        Route::get('/create/{jadwal}', [AdminBeritaAcaraUjianHasilController::class, 'create'])
+            ->name('create')
+            ->middleware('role:staff|admin');
+
+        Route::post('/create/{jadwal}', [AdminBeritaAcaraUjianHasilController::class, 'store'])
+            ->name('store')
+            ->middleware('role:staff|admin');
+
+        // ========== DYNAMIC ROUTES ==========
+        Route::get('/{beritaAcara}', [AdminBeritaAcaraUjianHasilController::class, 'show'])
+            ->name('show');
+
+        // ✅ APPROVE BY PENGUJI - Dosen Only
+        Route::get('/{beritaAcara}/approve-penguji', [AdminBeritaAcaraUjianHasilController::class, 'showApprovePenguji'])
+            ->name('approve-penguji')
+            ->middleware('role:dosen');
+
+        Route::post('/{beritaAcara}/sign-penguji', [AdminBeritaAcaraUjianHasilController::class, 'signByPenguji'])
+            ->name('sign-penguji')
+            ->middleware('role:dosen');
+
+        // ✅ Staff approve on behalf of penguji
+        Route::post('/{beritaAcara}/approve-on-behalf', [AdminBeritaAcaraUjianHasilController::class, 'approveOnBehalfOfPenguji'])
+            ->name('approve-on-behalf')
+            ->middleware('role:staff|admin');
+
+        // ✅ FILL BY KETUA
+        Route::get('/{beritaAcara}/fill-by-ketua', [AdminBeritaAcaraUjianHasilController::class, 'fillByKetua'])
+            ->name('fill-by-ketua')
+            ->middleware('role:dosen');
+
+        Route::post('/{beritaAcara}/fill-by-ketua', [AdminBeritaAcaraUjianHasilController::class, 'storeFillByKetua'])
+            ->name('store-fill-by-ketua')
+            ->middleware('role:dosen');
+
+        // ✅ Staff fill on behalf of ketua (OVERRIDE)
+        Route::get('/{beritaAcara}/fill-on-behalf', [AdminBeritaAcaraUjianHasilController::class, 'showFillOnBehalfForm'])
+            ->name('fill-on-behalf')
+            ->middleware('role:staff|admin');
+
+        Route::post('/{beritaAcara}/fill-on-behalf', [AdminBeritaAcaraUjianHasilController::class, 'fillOnBehalfOfKetua'])
+            ->name('store-fill-on-behalf')
+            ->middleware('role:staff|admin');
+
+        // ✅ PDF OPERATIONS
+        Route::get('/{beritaAcara}/download-pdf', [AdminBeritaAcaraUjianHasilController::class, 'downloadPdf'])
+            ->name('download-pdf');
+
+        Route::get('/{beritaAcara}/view-pdf', [AdminBeritaAcaraUjianHasilController::class, 'viewPdf'])
+            ->name('view-pdf');
+
+        Route::post('/{beritaAcara}/generate-pdf', [AdminBeritaAcaraUjianHasilController::class, 'generatePdf'])
+            ->name('generate-pdf')
+            ->middleware('role:staff|admin');
+
+        // ✅ DELETE BA (Staff only)
+        Route::delete('/{beritaAcara}', [AdminBeritaAcaraUjianHasilController::class, 'destroy'])
+            ->name('destroy')
+            ->middleware('role:staff|admin');
+        });
+
+});
+
+// ========== DOSEN SPECIFIC ROUTES ==========
+Route::middleware(['auth', 'role:dosen'])->prefix('dosen')->name('dosen.')->group(function () {
+    // Berita Acara Ujian Hasil (Penilaian & Koreksi)
+    Route::resource('berita-acara-ujian-hasil', \App\Http\Controllers\Dosen\DosenBeritaAcaraUjianHasilController::class)
+        ->only(['index', 'show']);
+
+    Route::get('berita-acara-ujian-hasil/{beritaAcara}/penilaian',
+        [\App\Http\Controllers\Dosen\DosenBeritaAcaraUjianHasilController::class, 'showPenilaian'])
+        ->name('berita-acara-ujian-hasil.penilaian');
+
+    Route::post('berita-acara-ujian-hasil/{beritaAcara}/penilaian',
+        [\App\Http\Controllers\Dosen\DosenBeritaAcaraUjianHasilController::class, 'storePenilaian'])
+        ->name('berita-acara-ujian-hasil.penilaian.store');
+
+    Route::get('berita-acara-ujian-hasil/{beritaAcara}/koreksi',
+        [\App\Http\Controllers\Dosen\DosenBeritaAcaraUjianHasilController::class, 'showKoreksi'])
+        ->name('berita-acara-ujian-hasil.koreksi');
+
+    Route::post('berita-acara-ujian-hasil/{beritaAcara}/koreksi',
+        [\App\Http\Controllers\Dosen\DosenBeritaAcaraUjianHasilController::class, 'storeKoreksi'])
+        ->name('berita-acara-ujian-hasil.koreksi.store');
 });
 
 Route::middleware('auth')->group(function () {

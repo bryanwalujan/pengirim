@@ -270,12 +270,12 @@ class PendaftaranUjianHasilController extends Controller
             return redirect()->back()->with('error', 'Surat usulan belum digenerate atau file tidak ditemukan.');
         }
 
-        if (!Storage::disk('local')->exists($surat->file_surat)) {
+        if (!Storage::disk('public')->exists($surat->file_surat)) {
             return redirect()->back()->with('error', 'File surat tidak ditemukan di server.');
         }
 
         $fileName = 'Surat_Usulan_Ujian_Skripsi_' . $pendaftaran_ujian_hasil->user->nim . '.pdf';
-        $filePath = Storage::disk('local')->path($surat->file_surat);
+        $filePath = Storage::disk('public')->path($surat->file_surat);
 
         return response()->download($filePath, $fileName);
     }

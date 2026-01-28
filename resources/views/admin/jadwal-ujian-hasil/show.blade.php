@@ -191,6 +191,22 @@
 
                             {{-- Edit Jadwal --}}
                             @if ($jadwal->status === 'dijadwalkan')
+                                {{-- Buat Berita Acara --}}
+                                @if (!$jadwal->hasBeritaAcara())
+                                    <a href="{{ route('admin.berita-acara-ujian-hasil.create', $jadwal) }}" 
+                                       class="btn btn-primary w-100 mb-2">
+                                        <i class="bx bxs-file-plus me-1"></i> Buat Berita Acara
+                                    </a>
+                                @else
+                                    @php
+                                        $beritaAcara = $jadwal->beritaAcaraUjianHasil;
+                                    @endphp
+                                    <a href="{{ route('admin.berita-acara-ujian-hasil.show', $beritaAcara) }}" 
+                                       class="btn btn-success w-100 mb-2">
+                                        <i class="bx bxs-file me-1"></i> Lihat Berita Acara
+                                    </a>
+                                @endif
+
                                 <button type="button" class="btn btn-warning w-100 mb-2" data-bs-toggle="modal"
                                     data-bs-target="#scheduleModal" data-jadwal-id="{{ $jadwal->id }}"
                                     data-mahasiswa-nama="{{ $jadwal->pendaftaranUjianHasil->user->name }}"

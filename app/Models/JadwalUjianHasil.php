@@ -82,14 +82,21 @@ class JadwalUjianHasil extends Model
     }
 
     /**
+     * Relasi ke Berita Acara Ujian Hasil
+     */
+    public function beritaAcaraUjianHasil()
+    {
+        return $this->hasOne(BeritaAcaraUjianHasil::class);
+    }
+
+    /**
      * Check if berita acara exists for this jadwal
-     * (Placeholder for future berita acara ujian hasil feature)
      */
     public function hasBeritaAcara(): bool
     {
-        // TODO: Implement when BeritaAcaraUjianHasil model is created
-        // return $this->beritaAcaraUjianHasil()->exists();
-        return false;
+        return $this->beritaAcaraUjianHasil()
+            ->whereNotIn('status', ['ditolak'])
+            ->exists();
     }
 
     /**
@@ -431,11 +438,28 @@ class JadwalUjianHasil extends Model
                     ];
                 }
 
+                // Tambahan: Masukkan PS1 dan PS2 sebagai penguji jika ada
+                if ($pendaftaran->dosen_pembimbing1_id) {
+                    $dosenData[$pendaftaran->dosen_pembimbing1_id] = [
+                        'posisi' => 'Penguji 4 (PS1)',
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+                }
+
+                if ($pendaftaran->dosen_pembimbing2_id) {
+                    $dosenData[$pendaftaran->dosen_pembimbing2_id] = [
+                        'posisi' => 'Penguji 5 (PS2)',
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+                }
+
                 // Sync dosen penguji
                 if (!empty($dosenData)) {
                     $model->dosenPenguji()->syncWithoutDetaching($dosenData);
 
-                    Log::info('✅ Auto-sync dosen penguji on jadwal ujian hasil created', [
+                    Log::info('✅ Auto-sync dosen penguji (termasuk PS1/PS2) on jadwal ujian hasil created', [
                         'jadwal_id' => $model->id,
                         'dosen_count' => count($dosenData),
                     ]);

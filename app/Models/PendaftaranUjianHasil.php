@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
@@ -198,21 +199,21 @@ class PendaftaranUjianHasil extends Model
     public static function getPengujiStatistics(): array
     {
         $dosenList = User::role('dosen')->get();
-        $statistics = [];
         
+        // Get counts for all dosen in one query
+        $counts = PengujiUjianHasil::select('dosen_id', DB::raw('count(*) as total'))
+            ->whereHas('pendaftaranUjianHasil', function($q) {
+                $q->where('status', '!=', 'ditolak');
+            })
+            ->groupBy('dosen_id')
+            ->pluck('total', 'dosen_id')
+            ->all();
+
+        $statistics = [];
         foreach ($dosenList as $dosen) {
-            // Count assignments for this dosen as penguji only
-            // Include all except rejected (ditolak)
-            $pengujiCount = PengujiUjianHasil::where('dosen_id', $dosen->id)
-                ->whereHas('pendaftaranUjianHasil', function($q) {
-                    // Count all registrations except rejected ones
-                    $q->where('status', '!=', 'ditolak');
-                })
-                ->count();
-            
             $statistics[$dosen->id] = [
                 'dosen' => $dosen,
-                'total_beban' => $pengujiCount,
+                'total_beban' => $counts[$dosen->id] ?? 0,
             ];
         }
         

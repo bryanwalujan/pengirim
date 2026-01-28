@@ -301,7 +301,7 @@
                 </div>
 
                 {{-- Card: Quick Actions --}}
-                @can('manage jadwal sempro')
+                @if(auth()->user()->hasRole('staff') || auth()->user()->hasRole('admin'))
                     <div class="card">
                         <div class="card-header">
                             <h6 class="card-title mb-0">
@@ -372,7 +372,7 @@
                                 </form>
                             @endif
 
-                            {{-- SK Actions --}}
+                            {{-- SK Actions - Tetap tampil untuk semua yang punya akses view --}}
                             @if ($jadwal->hasSkFile())
                                 <a href="{{ route('admin.jadwal-seminar-proposal.download-sk', $jadwal) }}"
                                     class="btn btn-outline-primary w-100 mb-2">
@@ -389,7 +389,37 @@
                             @endif
                         </div>
                     </div>
-                @endcan
+                @else
+                    {{-- Card untuk Koordinator Prodi (Read-only actions) --}}
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="card-title mb-0">
+                                <i class="bx bx-file me-1"></i>Dokumen
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            {{-- SK Actions - Koordinator bisa download/view SK --}}
+                            @if ($jadwal->hasSkFile())
+                                <a href="{{ route('admin.jadwal-seminar-proposal.view-sk', $jadwal) }}" target="_blank"
+                                    class="btn btn-outline-primary w-100 mb-2">
+                                    <i class="bx bx-show me-1"></i> Lihat SK
+                                </a>
+                                <a href="{{ route('admin.jadwal-seminar-proposal.download-sk', $jadwal) }}"
+                                    class="btn btn-outline-primary w-100 mb-2">
+                                    <i class="bx bx-download me-1"></i> Download SK
+                                </a>
+                            @endif
+
+                            {{-- Berita Acara (read-only) --}}
+                            @if ($jadwal->hasBeritaAcara())
+                                <a href="{{ route('admin.berita-acara-sempro.show', $jadwal->beritaAcaraSeminarProposal) }}"
+                                    class="btn btn-outline-success w-100 mb-2">
+                                    <i class="bx bx-show me-1"></i> Lihat Berita Acara
+                                </a>
+                            @endif
+                        </div>
+                    </div>
+                @endif
             </div>
 
             {{-- Right Column --}}
