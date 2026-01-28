@@ -2,13 +2,17 @@
 
 namespace App\Models;
 
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Log;
+use App\Enums\BeritaAcaraStatus;
+use App\Traits\HasPengujiProgress;
+use App\Traits\HasSignatureCheckers;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class BeritaAcaraUjianHasil extends Model
 {
+    use HasSignatureCheckers;
+    use HasPengujiProgress;
+
     protected $fillable = [
         'jadwal_ujian_hasil_id',
         'mahasiswa_id',
@@ -49,208 +53,88 @@ class BeritaAcaraUjianHasil extends Model
     // RELATIONSHIPS
     // ========================================
 
-    /**
-     * Relasi ke Jadwal Ujian Hasil
-     */
-    public function jadwalUjianHasil()
+    public function jadwalUjianHasil(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(JadwalUjianHasil::class);
     }
 
-    /**
-     * Relasi ke User (Ketua Penguji yang mengisi)
-     */
-    public function ketuaPengisi()
+    public function ketuaPengisi(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(User::class, 'diisi_oleh_ketua_id');
     }
 
-    /**
-     * Relasi ke User (Mahasiswa)
-     */
-    public function mahasiswa()
+    public function mahasiswa(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(User::class, 'mahasiswa_id');
     }
 
-    /**
-     * Relasi ke User (Ketua Penguji yang menandatangani)
-     */
-    public function ketuaPenguji()
+    public function ketuaPenguji(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(User::class, 'ttd_ketua_penguji_by');
     }
 
-    /**
-     * Relasi ke User (Pembuat Berita Acara)
-     */
-    public function pembuatBeritaAcara()
+    public function pembuatBeritaAcara(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(User::class, 'dibuat_oleh_id');
     }
 
-    /**
-     * Relasi ke Penilaian dari dosen penguji
-     */
-    public function penilaians()
+    public function penilaians(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(PenilaianUjianHasil::class);
     }
 
-    /**
-     * Relasi ke Lembar Koreksi dari PS1/PS2
-     */
-    public function lembarKoreksis()
+    public function lembarKoreksis(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(LembarKoreksiSkripsi::class);
     }
 
     // ========================================
-    // STATUS CHECKERS
+    // STATUS CHECKERS (using Enum)
     // ========================================
+
+    public function statusEnum(): BeritaAcaraStatus
+    {
+        return BeritaAcaraStatus::from($this->status);
+    }
 
     public function isDraft(): bool
     {
-        return $this->status === 'draft';
+        return $this->status === BeritaAcaraStatus::DRAFT->value;
     }
 
     public function isMenungguTtdPenguji(): bool
     {
-        return $this->status === 'menunggu_ttd_penguji';
+        return $this->status === BeritaAcaraStatus::MENUNGGU_TTD_PENGUJI->value;
     }
 
     public function isMenungguTtdKetua(): bool
     {
-        return $this->status === 'menunggu_ttd_ketua';
+        return $this->status === BeritaAcaraStatus::MENUNGGU_TTD_KETUA->value;
     }
 
     public function isSelesai(): bool
     {
-        return $this->status === 'selesai';
+        return $this->status === BeritaAcaraStatus::SELESAI->value;
     }
 
     public function isDitolak(): bool
     {
-        return $this->status === 'ditolak';
-    }
-
-    /**
-     * Check if ketua has signed (no keputusan needed for ujian hasil)
-     */
-    public function isFilledByKetua(): bool
-    {
-        return !is_null($this->ttd_ketua_penguji_at);
-    }
-
-    public function isSigned(): bool
-    {
-        return !is_null($this->ttd_ketua_penguji_at);
+        return $this->status === BeritaAcaraStatus::DITOLAK->value;
     }
 
     // ========================================
-    // PENGUJI SIGNATURE CHECKERS
+    // TRAIT IMPLEMENTATION
     // ========================================
 
-    /**
-     * Check apakah semua dosen penguji (exclude Ketua) sudah TTD
-     */
-    public function allPengujiHaveSigned(): bool
+    public function getJadwalUjianHasil(): ?JadwalUjianHasil
     {
-        $jadwal = $this->jadwalUjianHasil;
-
-        if (!$jadwal) {
-            return false;
-        }
-
-        // Count semua penguji (exclude Ketua Penguji)
-        $totalPenguji = $jadwal->dosenPenguji()
-            ->where('posisi', '!=', 'Ketua Penguji')
-            ->count();
-
-        $signedPenguji = count($this->ttd_dosen_penguji ?? []);
-
-        return $signedPenguji === $totalPenguji && $totalPenguji > 0;
-    }
-
-    /**
-     * Check apakah dosen penguji tertentu sudah TTD
-     */
-    public function hasSignedByPenguji(int $dosenId): bool
-    {
-        $signatures = $this->ttd_dosen_penguji ?? [];
-
-        foreach ($signatures as $signature) {
-            if ($signature['dosen_id'] === $dosenId) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Get list dosen penguji yang belum TTD
-     */
-    public function getPengujiYangBelumTtd()
-    {
-        $jadwal = $this->jadwalUjianHasil;
-
-        if (!$jadwal) {
-            return collect();
-        }
-
-        $signedIds = collect($this->ttd_dosen_penguji ?? [])->pluck('dosen_id')->toArray();
-
-        return $jadwal->dosenPenguji()
-            ->where('posisi', '!=', 'Ketua Penguji')
-            ->whereNotIn('users.id', $signedIds)
-            ->get();
-    }
-
-    /**
-     * Get jumlah penguji yang sudah TTD vs total
-     */
-    public function getTtdPengujiProgress(): array
-    {
-        $jadwal = $this->jadwalUjianHasil;
-
-        if (!$jadwal) {
-            return [
-                'signed' => 0,
-                'total' => 0,
-                'percentage' => 0,
-            ];
-        }
-
-        $total = $jadwal->dosenPenguji()
-            ->where('posisi', '!=', 'Ketua Penguji')
-            ->count();
-
-        $signed = count($this->ttd_dosen_penguji ?? []);
-
-        return [
-            'signed' => $signed,
-            'total' => $total,
-            'percentage' => $total > 0 ? round(($signed / $total) * 100, 1) : 0,
-        ];
-    }
-
-    // ========================================
-    // KETUA SIGNATURE CHECKER
-    // ========================================
-
-    public function hasKetuaSigned(): bool
-    {
-        return !is_null($this->ttd_ketua_penguji_at);
+        return $this->jadwalUjianHasil;
     }
 
     // ========================================
     // PERMISSION CHECKERS
     // ========================================
 
-    /**
-     * Check if BA can be signed by specific penguji (exclude Ketua)
-     */
     public function canBeSignedByPenguji(int $dosenId): bool
     {
         if (!$this->isMenungguTtdPenguji()) {
@@ -271,16 +155,9 @@ class BeritaAcaraUjianHasil extends Model
             return false;
         }
 
-        if ($this->hasSignedByPenguji($dosenId)) {
-            return false;
-        }
-
-        return true;
+        return !$this->hasSignedByPenguji($dosenId);
     }
 
-    /**
-     * Check apakah ketua bisa mengisi & TTD
-     */
     public function canBeFilledAndSignedByKetua(int $dosenId): bool
     {
         if (!$this->isMenungguTtdKetua()) {
@@ -306,15 +183,11 @@ class BeritaAcaraUjianHasil extends Model
             return false;
         }
 
-        if ($this->hasKetuaSigned()) {
-            return false;
-        }
-
-        return true;
+        return !$this->hasKetuaSigned();
     }
 
     /**
-     * Alias untuk backward compatibility
+     * @deprecated Use canBeFilledAndSignedByKetua instead
      */
     public function canBeFilledByKetua(int $dosenId): bool
     {
@@ -322,102 +195,66 @@ class BeritaAcaraUjianHasil extends Model
     }
 
     // ========================================
-    // WORKFLOW MESSAGES
+    // ACCESSORS
     // ========================================
 
     public function getWorkflowMessageAttribute(): string
     {
-        return match ($this->status) {
-            'draft' => 'Draft berita acara',
-            'menunggu_ttd_penguji' => 'Menunggu persetujuan dari dosen penguji (' .
-                $this->getTtdPengujiProgress()['signed'] . '/' .
-                $this->getTtdPengujiProgress()['total'] . ' sudah TTD)',
-            'menunggu_ttd_ketua' => 'Menunggu ketua penguji menandatangani berita acara',
-            'selesai' => 'Berita acara telah selesai dan ditandatangani',
-            default => 'Status tidak diketahui',
-        };
+        $progress = $this->getTtdPengujiProgress();
+
+        return $this->statusEnum()->workflowMessage($progress['signed'], $progress['total']);
     }
 
     public function getStatusBadgeAttribute(): string
     {
-        return match ($this->status) {
-            'draft' => '<span class="badge bg-label-secondary">
-                <i class="bx bx-edit me-1"></i>Draft
-            </span>',
-            'menunggu_ttd_penguji' => '<span class="badge bg-label-info">
-                <i class="bx bx-time me-1"></i>Menunggu TTD Penguji
-            </span>',
-            'menunggu_ttd_ketua' => '<span class="badge bg-label-primary">
-                <i class="bx bx-pen me-1"></i>Menunggu Ketua Penguji
-            </span>',
-            'selesai' => '<span class="badge bg-label-success">
-                <i class="bx bx-check-circle me-1"></i>Selesai
-            </span>',
-            'ditolak' => '<span class="badge bg-label-danger">
-                <i class="bx bx-x-circle me-1"></i>Ditolak - Perlu Dijadwalkan Ulang
-            </span>',
-            default => '<span class="badge bg-label-dark">Unknown</span>',
-        };
+        return $this->statusEnum()->badge();
     }
 
-    /**
-     * Keputusan badge - tidak diperlukan untuk ujian hasil
-     * Berita acara ujian hasil hanya mencatat pelaksanaan, bukan hasil keputusan
-     */
     public function getKeputusanBadgeAttribute(): string
     {
-        // Ujian hasil tidak memerlukan keputusan
         return '<span class="badge bg-label-info"><i class="bx bx-file me-1"></i>Berita Acara</span>';
     }
-
-    // ========================================
-    // VERIFICATION
-    // ========================================
 
     public function getVerificationUrlAttribute(): string
     {
         return route('berita-acara-ujian-hasil.verify', $this->verification_code);
     }
 
+    public function getAverageNilaiAttribute(): ?float
+    {
+        $penilaians = $this->penilaians()->whereNotNull('total_nilai')->get();
+
+        if ($penilaians->isEmpty()) {
+            return null;
+        }
+
+        return round($penilaians->avg('total_nilai'), 2);
+    }
+
     // ========================================
     // PENILAIAN & KOREKSI HELPERS
     // ========================================
 
-    /**
-     * Check if penguji has submitted penilaian
-     */
     public function hasPenilaianFrom(int $dosenId): bool
     {
         return $this->penilaians()->where('dosen_id', $dosenId)->exists();
     }
 
-    /**
-     * Get penilaian by dosen
-     */
     public function getPenilaianFrom(int $dosenId): ?PenilaianUjianHasil
     {
         return $this->penilaians()->where('dosen_id', $dosenId)->first();
     }
 
-    /**
-     * Check if PS has submitted lembar koreksi
-     */
     public function hasLembarKoreksiFrom(int $dosenId): bool
     {
         return $this->lembarKoreksis()->where('dosen_id', $dosenId)->exists();
     }
 
-    /**
-     * Get lembar koreksi by dosen
-     */
     public function getLembarKoreksiFrom(int $dosenId): ?LembarKoreksiSkripsi
     {
         return $this->lembarKoreksis()->where('dosen_id', $dosenId)->first();
     }
 
-    /**
-     * Check if dosen is PS1 or PS2 (Pembimbing)
-     */
     public function isPembimbing(int $dosenId): bool
     {
         $jadwal = $this->jadwalUjianHasil;
@@ -432,100 +269,17 @@ class BeritaAcaraUjianHasil extends Model
             ->exists();
     }
 
-    /**
-     * Get rata-rata nilai dari semua penguji
-     */
-    public function getAverageNilaiAttribute(): ?float
-    {
-        $penilaians = $this->penilaians()->whereNotNull('total_nilai')->get();
-
-        if ($penilaians->isEmpty()) {
-            return null;
-        }
-
-        return round($penilaians->avg('total_nilai'), 2);
-    }
-
-    /**
-     * Get count of penilaian yang sudah masuk
-     */
-    public function getPenilaianProgressAttribute(): array
-    {
-        $jadwal = $this->jadwalUjianHasil;
-
-        if (!$jadwal) {
-            return [
-                'submitted' => 0,
-                'total' => 0,
-                'percentage' => 0,
-            ];
-        }
-
-        $totalPenguji = $jadwal->dosenPenguji()
-            ->where('posisi', '!=', 'Ketua Penguji')
-            ->count();
-
-        $submittedPenilaian = $this->penilaians()->count();
-
-        return [
-            'submitted' => $submittedPenilaian,
-            'total' => $totalPenguji,
-            'percentage' => $totalPenguji > 0 ? round(($submittedPenilaian / $totalPenguji) * 100, 1) : 0,
-        ];
-    }
-
     // ========================================
     // BOOT
     // ========================================
 
-    protected static function boot()
+    protected static function boot(): void
     {
         parent::boot();
 
         static::creating(function ($model) {
             if (!$model->verification_code) {
                 $model->verification_code = 'BA-UH-' . strtoupper(Str::random(12));
-            }
-        });
-
-        // Auto-update status jadwal menjadi 'selesai' 
-        // ketika berita acara sudah selesai dan PDF sudah ada
-        static::updated(function ($model) {
-            if ($model->status === 'selesai' && !is_null($model->file_path)) {
-                $jadwal = $model->jadwalUjianHasil;
-
-                if ($jadwal && $jadwal->status !== 'selesai') {
-                    $jadwal->update(['status' => 'selesai']);
-
-                    Log::info('✅ Auto-update jadwal ujian hasil status to selesai', [
-                        'jadwal_id' => $jadwal->id,
-                        'berita_acara_id' => $model->id,
-                        'file_path' => $model->file_path,
-                    ]);
-                }
-            }
-        });
-
-        static::deleting(function ($model) {
-            // Delete PDF file if exists
-            if ($model->file_path && Storage::disk('local')->exists($model->file_path)) {
-                Storage::disk('local')->delete($model->file_path);
-            }
-
-            // Reset jadwal status when berita acara is deleted
-            $jadwal = $model->jadwalUjianHasil;
-
-            if ($jadwal) {
-                if ($jadwal->status === 'selesai') {
-                    $jadwal->update(['status' => 'dijadwalkan']);
-
-                    Log::info('✅ Auto-reset jadwal ujian hasil status after berita acara deleted', [
-                        'jadwal_id' => $jadwal->id,
-                        'berita_acara_id' => $model->id,
-                        'old_status' => 'selesai',
-                        'new_status' => 'dijadwalkan',
-                    ]);
-                }
             }
         });
     }

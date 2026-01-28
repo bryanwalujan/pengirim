@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\BeritaAcaraUjianHasil;
+use App\Observers\BeritaAcaraUjianHasilObserver;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\HtmlString;
 use Illuminate\Pagination\Paginator;
@@ -27,11 +29,12 @@ class AppServiceProvider extends ServiceProvider
     {
         Paginator::useBootstrapFive();
 
-
-        //  Set locale for Carbon to Indonesian
+        // Set locale for Carbon to Indonesian
         Carbon::setLocale('id');
         setlocale(LC_TIME, 'id_ID.utf8', 'id_ID', 'Indonesian');
 
+        // Register observers
+        BeritaAcaraUjianHasil::observe(BeritaAcaraUjianHasilObserver::class);
     }
 
     /**
