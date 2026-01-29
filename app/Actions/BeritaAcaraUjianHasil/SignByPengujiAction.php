@@ -31,13 +31,7 @@ class SignByPengujiAction
                 ];
             }
 
-            // [NEW] Validate Lembar Koreksi for Pembimbing
-            if ($beritaAcara->isPembimbing($penguji->id) && !$beritaAcara->hasLembarKoreksiFrom($penguji->id)) {
-                return [
-                    'success' => false,
-                    'message' => 'Sebagai Pembimbing, Anda harus mengisi lembar koreksi terlebih dahulu.',
-                ];
-            }
+            // Note: Lembar Koreksi is optional for Pembimbing
 
             // Get penguji position
             $jadwal = $beritaAcara->jadwalUjianHasil;

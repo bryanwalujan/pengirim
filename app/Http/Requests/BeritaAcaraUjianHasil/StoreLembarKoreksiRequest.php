@@ -14,20 +14,16 @@ class StoreLembarKoreksiRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'koreksi' => ['required', 'array', 'min:1'],
-            'koreksi.*.halaman' => ['required', 'string', 'max:50'],
-            'koreksi.*.catatan' => ['required', 'string', 'max:1000'],
+            'koreksi' => ['nullable', 'array'],
+            'koreksi.*.halaman' => ['nullable', 'string', 'max:50'],
+            'koreksi.*.catatan' => ['nullable', 'string', 'max:1000'],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'koreksi.required' => 'Minimal satu item koreksi harus diisi.',
-            'koreksi.min' => 'Minimal satu item koreksi harus diisi.',
-            'koreksi.*.halaman.required' => 'Nomor halaman harus diisi.',
             'koreksi.*.halaman.max' => 'Nomor halaman maksimal 50 karakter.',
-            'koreksi.*.catatan.required' => 'Catatan koreksi harus diisi.',
             'koreksi.*.catatan.max' => 'Catatan koreksi maksimal 1000 karakter.',
         ];
     }
@@ -49,7 +45,14 @@ class StoreLembarKoreksiRequest extends FormRequest
         $koreksi = [];
         $no = 1;
 
-        foreach ($this->validated()['koreksi'] as $item) {
+        $validated = $this->validated();
+
+        // Handle empty or null koreksi array
+        if (empty($validated['koreksi'])) {
+            return [];
+        }
+
+        foreach ($validated['koreksi'] as $item) {
             if (!empty($item['halaman']) || !empty($item['catatan'])) {
                 $koreksi[] = [
                     'no' => $no++,

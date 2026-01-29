@@ -89,7 +89,7 @@ class AdminBeritaAcaraUjianHasilController extends Controller
         // Sync if needed
         if ($changes && !empty($dosenData)) {
             $jadwal->dosenPenguji()->syncWithoutDetaching($dosenData);
-            
+
             Log::info('✅ Self-healing: Added missing Pembimbing to Penguji List', [
                 'jadwal_id' => $jadwal->id,
                 'added_dosen' => array_keys($dosenData),
@@ -116,7 +116,7 @@ class AdminBeritaAcaraUjianHasilController extends Controller
                     ->whereHas('jadwalUjianHasil.dosenPenguji', fn($q) => $q->where('dosen_id', $user->id)->where('posisi', '!=', 'Ketua Penguji'))
                     ->where(function ($q) use ($user) {
                         $q->whereNull('ttd_dosen_penguji')
-                          ->orWhereRaw("NOT JSON_CONTAINS(ttd_dosen_penguji, JSON_OBJECT('dosen_id', ?), '$')", [$user->id]);
+                            ->orWhereRaw("NOT JSON_CONTAINS(ttd_dosen_penguji, JSON_OBJECT('dosen_id', ?), '$')", [$user->id]);
                     });
             } elseif ($filter === 'ketua') {
                 $query->where('status', 'menunggu_ttd_ketua')
@@ -171,7 +171,7 @@ class AdminBeritaAcaraUjianHasilController extends Controller
                     ->whereHas('jadwalUjianHasil.dosenPenguji', fn($q) => $q->where('dosen_id', $user->id)->where('posisi', '!=', 'Ketua Penguji'))
                     ->where(function ($q) use ($user) {
                         $q->whereNull('ttd_dosen_penguji')
-                          ->orWhereRaw("NOT JSON_CONTAINS(ttd_dosen_penguji, JSON_OBJECT('dosen_id', ?), '$')", [$user->id]);
+                            ->orWhereRaw("NOT JSON_CONTAINS(ttd_dosen_penguji, JSON_OBJECT('dosen_id', ?), '$')", [$user->id]);
                     })->count(),
                 'menunggu_ttd_ketua' => BeritaAcaraUjianHasil::where('status', 'menunggu_ttd_ketua')
                     ->whereHas('jadwalUjianHasil.dosenPenguji', fn($q) => $q->where('dosen_id', $user->id)->where('posisi', 'Ketua Penguji'))->count(),
@@ -290,11 +290,39 @@ class AdminBeritaAcaraUjianHasilController extends Controller
         $beritaAcara->load([
             'jadwalUjianHasil.pendaftaranUjianHasil.user',
             'jadwalUjianHasil.dosenPenguji',
+            'penilaians',
+            'lembarKoreksis',
         ]);
 
-        $pengujiHadir = $beritaAcara->jadwalUjianHasil?->dosenPenguji()->get() ?? collect();
+        // Validate user is a penguji for this exam
+        $jadwal = $beritaAcara->jadwalUjianHasil;
+        if (!$jadwal) {
+            return back()->with('error', 'Jadwal ujian tidak ditemukan.');
+        }
 
-        return view('admin.berita-acara-ujian-hasil.approve-penguji', compact('beritaAcara', 'pengujiHadir'));
+        $isPenguji = $jadwal->dosenPenguji()
+            ->where('users.id', $user->id)
+            ->where('posisi', '!=', 'Ketua Penguji')
+            ->exists();
+
+        if (!$isPenguji) {
+            return back()->with('error', 'Anda tidak terdaftar sebagai penguji untuk ujian ini.');
+        }
+
+        // Check prerequisites: Penilaian only (Lembar Koreksi is optional)
+        $hasPenilaian = $beritaAcara->hasPenilaianFrom($user->id);
+        $isPembimbing = $beritaAcara->isPembimbing($user->id);
+        $hasKoreksi = $beritaAcara->hasLembarKoreksiFrom($user->id); // For display only, not required
+
+        $pengujiHadir = $jadwal->dosenPenguji()->get() ?? collect();
+
+        return view('admin.berita-acara-ujian-hasil.approve-penguji', compact(
+            'beritaAcara',
+            'pengujiHadir',
+            'hasPenilaian',
+            'isPembimbing',
+            'hasKoreksi'
+        ));
     }
 
     public function signByPenguji(SignPengujiRequest $request, BeritaAcaraUjianHasil $beritaAcara)
@@ -319,7 +347,8 @@ class AdminBeritaAcaraUjianHasilController extends Controller
             Auth::user(),
             $beritaAcara,
             $validated['dosen_id'],
-            $validated['alasan'] ?? null
+            $validated['alasan'] ?? null,
+            $validated['lembar_koreksi'] ?? []
         );
 
         if (!$result['success']) {
@@ -486,7 +515,7 @@ class AdminBeritaAcaraUjianHasilController extends Controller
                 'judul_skripsi' => 'Sistem Informasi E-Service Berbasis Web Menggunakan Framework Laravel dan Model Context Protocol',
             ],
             // Mock dosenPenguji() as a collection with pivot
-            'dosenPenguji' => function() {
+            'dosenPenguji' => function () {
                 return collect([
                     (object) [
                         'id' => 1,
@@ -522,7 +551,7 @@ class AdminBeritaAcaraUjianHasilController extends Controller
         // Di dummy ini, kita buat $jadwal jadi array-accessible atau mock method.
         // Tapi cara paling mudah adalah memanggilnya langsung di compact jika kita ubah template sedikit.
         // Namun, saya akan mencoba mock method get() jika memungkinkan.
-        
+
         // Mocking the query builder results
         $mockPenguji = collect([
             (object) ['id' => 1, 'name' => 'Cindy Pamela Cornelia Munaiseche, S.T., M.Eng', 'pivot' => (object) ['posisi' => 'Ketua Penguji']],
@@ -534,7 +563,7 @@ class AdminBeritaAcaraUjianHasilController extends Controller
 
         // Simpler approach: update template to check if $jadwal is an object or mock
         // For now, let's keep it simple and pass everything needed by the template.
-        
+
         $beritaAcara = (object) [
             'mahasiswa_name' => 'Nama Mahasiswa Contoh',
             'mahasiswa_nim' => '20210001',
@@ -559,7 +588,7 @@ class AdminBeritaAcaraUjianHasilController extends Controller
 
         // We need to handle the $jadwal->dosenPenguji() call in the template.
         // Let's modify the template to use a variable if provided, or the method.
-        
+
         $pdf = Pdf::loadView('admin.berita-acara-ujian-hasil.pdf', [
             'jadwal' => $jadwal,
             'beritaAcara' => $beritaAcara,

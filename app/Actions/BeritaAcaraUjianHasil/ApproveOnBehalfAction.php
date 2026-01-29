@@ -3,6 +3,7 @@
 namespace App\Actions\BeritaAcaraUjianHasil;
 
 use App\Models\BeritaAcaraUjianHasil;
+use App\Models\LembarKoreksiSkripsi;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -13,7 +14,8 @@ class ApproveOnBehalfAction
         User $staff,
         BeritaAcaraUjianHasil $beritaAcara,
         int $dosenId,
-        ?string $alasan = null
+        ?string $alasan = null,
+        array $lembarKoreksiData = []
     ): array {
         try {
             DB::beginTransaction();
@@ -59,6 +61,22 @@ class ApproveOnBehalfAction
             $beritaAcara->update([
                 'ttd_dosen_penguji' => $signatures,
             ]);
+
+            // Save Lembar Koreksi if provided
+            if (!empty($lembarKoreksiData)) {
+                $lembarKoreksi = LembarKoreksiSkripsi::updateOrCreate(
+                    [
+                        'berita_acara_ujian_hasil_id' => $beritaAcara->id,
+                        'dosen_id' => $dosenId,
+                    ],
+                    [
+                        'koreksi_data' => null // Will set using setKoreksiFromArray
+                    ]
+                );
+                
+                $lembarKoreksi->setKoreksiFromArray($lembarKoreksiData);
+                $lembarKoreksi->save();
+            }
 
             // Check if all penguji have signed
             if ($beritaAcara->fresh()->allPengujiHaveSigned()) {

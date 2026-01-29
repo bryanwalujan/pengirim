@@ -268,5 +268,96 @@
         </div>
     </div>
 
+    {{-- Lembar Koreksi Loop --}}
+    @if($beritaAcara->lembarKoreksis && $beritaAcara->lembarKoreksis->count() > 0)
+        <style>
+            .page-break {
+                page-break-before: always;
+            }
+            .koreksi-title {
+                text-align: center;
+                font-weight: bold;
+                text-decoration: underline;
+                font-size: 14pt;
+                margin-bottom: 25px;
+            }
+            .koreksi-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 20px;
+            }
+            .koreksi-table th, .koreksi-table td {
+                border: 1px solid black;
+                padding: 10px;
+                vertical-align: top;
+            }
+            .koreksi-table th {
+                text-align: center;
+                background-color: #ffffff;
+                font-weight: bold;
+            }
+            .koreksi-row {
+                height: 30px; 
+            }
+        </style>
+
+        @foreach($beritaAcara->lembarKoreksis as $koreksi)
+            <div class="page-break"></div>
+
+            <div class="koreksi-title">LEMBAR KOREKSI SKRIPSI</div>
+
+            <table class="info-table">
+                <tr>
+                    <td width="15%">Nama</td>
+                    <td width="2%">:</td>
+                    <td>{{ $beritaAcara->mahasiswa_name ?? ($jadwal->pendaftaranUjianHasil->user->name ?? '..........') }}</td>
+                </tr>
+                <tr>
+                    <td>NIM</td>
+                    <td>:</td>
+                    <td>{{ $beritaAcara->mahasiswa_nim ?? ($jadwal->pendaftaranUjianHasil->user->nim ?? '..........') }}</td>
+                </tr>
+                <tr>
+                    <td>Prodi</td>
+                    <td>:</td>
+                    <td>{{ $beritaAcara->mahasiswa_prodi ?? 'Teknik Informatika' }}</td>
+                </tr>
+                <tr>
+                    <td style="padding-top: 5px;">Judul</td>
+                    <td style="padding-top: 5px;">:</td>
+                    <td style="padding-top: 5px; line-height: 1.3;">{{ $beritaAcara->judul_skripsi ?? ($jadwal->pendaftaranUjianHasil->judul_skripsi ?? '..........') }}</td>
+                </tr>
+            </table>
+
+            <table class="koreksi-table">
+                <thead>
+                    <tr>
+                        <th width="10%">NO</th>
+                        <th width="20%">HALAMAN</th>
+                        <th width="70%">CATATAN (Oleh: {{ $koreksi->dosen->name ?? 'Penguji' }})</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($koreksi->koreksi_collection as $index => $item)
+                        <tr>
+                            <td class="text-center">{{ $index + 1 }}</td>
+                            <td class="text-center">{{ $item['halaman'] ?? '' }}</td>
+                            <td>{!! nl2br(e($item['catatan'] ?? '')) !!}</td>
+                        </tr>
+                    @empty
+                        {{-- Empty rows for manual filling if needed, though usually populated via system --}}
+                        @for($i=1; $i<=5; $i++)
+                            <tr>
+                                <td class="text-center"></td>
+                                <td class="text-center"></td>
+                                <td style="height: 50px;"></td>
+                            </tr>
+                        @endfor
+                    @endforelse
+                </tbody>
+            </table>
+        @endforeach
+    @endif
+
 </body>
 </html>

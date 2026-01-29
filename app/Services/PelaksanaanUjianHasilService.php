@@ -18,6 +18,7 @@ class PelaksanaanUjianHasilService
             'jadwalUjianHasil.pendaftaranUjianHasil.user',
             'jadwalUjianHasil.dosenPenguji',
             'ketuaPenguji',
+            'lembarKoreksis.dosen',
         ]);
 
         $jadwal = $beritaAcara->jadwalUjianHasil;
@@ -65,6 +66,7 @@ class PelaksanaanUjianHasilService
                 'jadwalUjianHasil.pendaftaranUjianHasil.user',
                 'jadwalUjianHasil.dosenPenguji',
                 'ketuaPenguji',
+                'lembarKoreksis.dosen',
             ]);
 
             $jadwal = $beritaAcara->jadwalUjianHasil;

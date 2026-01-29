@@ -4,66 +4,88 @@
 @section('title', 'Detail Berita Acara Ujian Hasil')
 
 @push('styles')
-{{-- Ensure Boxicons is available --}}
-<style>
-    .rounded-xl { border-radius: 0.75rem !important; }
-    .rounded-2xl { border-radius: 1rem !important; }
-    .x-small { font-size: 0.7rem !important; }
-    .fs-small { font-size: 0.8rem !important; }
-    .leading-relaxed { line-height: 1.6 !important; }
-    
-    /* Workflow Timeline */
-    .workflow-timeline {
-        position: relative;
-    }
-    .timeline-step {
-        position: relative;
-    }
-    .timeline-step::before {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 24px;
-        bottom: 0;
-        width: 2px;
-        background: #eceef1; /* Sneat lighter border */
-        margin-left: -1px;
-    }
-    .timeline-step:last-child::before {
-        display: none;
-    }
-    .timeline-step.active::before {
-        background: #ffab00; /* Sneat warning/amber */
-    }
-    
-    /* Card Hover Effects */
-    .card {
-        transition: all 0.3s ease;
-    }
-    
-    /* Custom Scrollbar for Table */
-    .table-responsive::-webkit-scrollbar {
-        height: 6px;
-    }
-    .table-responsive::-webkit-scrollbar-track {
-        background: #f5f5f9;
-    }
-    .table-responsive::-webkit-scrollbar-thumb {
-        background: #d9dee3;
-        border-radius: 3px;
-    }
-    
-    /* Premium Swal Classes */
-    .premium-swal-container .swal2-popup {
-        padding: 2rem;
-    }
+    {{-- Ensure Boxicons is available --}}
+    <style>
+        .rounded-xl {
+            border-radius: 0.75rem !important;
+        }
 
-    /* Sneat specific overrides for premium feel */
-    .bg-label-amber {
-        background-color: #fff2e0 !important;
-        color: #ffab00 !important;
-    }
-</style>
+        .rounded-2xl {
+            border-radius: 1rem !important;
+        }
+
+        .x-small {
+            font-size: 0.7rem !important;
+        }
+
+        .fs-small {
+            font-size: 0.8rem !important;
+        }
+
+        .leading-relaxed {
+            line-height: 1.6 !important;
+        }
+
+        /* Workflow Timeline */
+        .workflow-timeline {
+            position: relative;
+        }
+
+        .timeline-step {
+            position: relative;
+        }
+
+        .timeline-step::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 24px;
+            bottom: 0;
+            width: 2px;
+            background: #eceef1;
+            /* Sneat lighter border */
+            margin-left: -1px;
+        }
+
+        .timeline-step:last-child::before {
+            display: none;
+        }
+
+        .timeline-step.active::before {
+            background: #ffab00;
+            /* Sneat warning/amber */
+        }
+
+        /* Card Hover Effects */
+        .card {
+            transition: all 0.3s ease;
+        }
+
+        /* Custom Scrollbar for Table */
+        .table-responsive::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .table-responsive::-webkit-scrollbar-track {
+            background: #f5f5f9;
+        }
+
+        .table-responsive::-webkit-scrollbar-thumb {
+            background: #d9dee3;
+            border-radius: 3px;
+        }
+
+        /* Premium Swal Classes */
+        .premium-swal-container .swal2-popup {
+            padding: 2rem;
+        }
+
+        /* Sneat specific overrides for premium feel */
+        .bg-label-amber {
+            background-color: #fff2e0 !important;
+            color: #ffab00 !important;
+        }
+    </style>
 @endpush
 
 @section('content')
@@ -71,14 +93,14 @@
         @php
             // Handle null jadwalUjianHasil (for rejected BA)
             $jadwal = $beritaAcara->jadwalUjianHasil;
-            
+
             if ($jadwal) {
                 $pendaftaran = $jadwal->pendaftaranUjianHasil;
                 $mahasiswa = $pendaftaran->user;
             } else {
                 // BA ditolak, jadwal sudah dihapus
                 $pendaftaran = null;
-                $mahasiswa = (object)[
+                $mahasiswa = (object) [
                     'id' => $beritaAcara->mahasiswa_id,
                     'name' => $beritaAcara->mahasiswa_name,
                     'nim' => $beritaAcara->mahasiswa_nim,
@@ -106,10 +128,7 @@
             $isKetua = false;
             $ketuaPenguji = null;
             if ($isDosen && $jadwal) {
-                $ketuaPenguji = $jadwal
-                    ->dosenPenguji()
-                    ->wherePivot('posisi', 'Ketua Penguji')
-                    ->first();
+                $ketuaPenguji = $jadwal->dosenPenguji()->wherePivot('posisi', 'Ketua Penguji')->first();
 
                 if ($ketuaPenguji) {
                     $isKetua = $ketuaPenguji->id === $user->id;
@@ -159,11 +178,13 @@
 
         {{-- Alert Area --}}
         @if (!$jadwal && $beritaAcara->isDitolak())
-            <div class="alert alert-danger d-flex align-items-start gap-3 p-4 rounded-3 text-white" role="alert" style="background-color: #ff3e1d !important; border: 0;">
+            <div class="alert alert-danger d-flex align-items-start gap-3 p-4 rounded-3 text-white" role="alert"
+                style="background-color: #ff3e1d !important; border: 0;">
                 <i class="bx bx-x-circle fs-3 mt-1"></i>
                 <div>
                     <h6 class="fw-bold mb-1 text-white">Berita Acara Ditolak</h6>
-                    <p class="mb-0">Berita acara ini telah ditolak. Jadwal ujian hasil telah dihapus dari sistem. Mahasiswa harus membuat pendaftaran ujian hasil baru.</p>
+                    <p class="mb-0">Berita acara ini telah ditolak. Jadwal ujian hasil telah dihapus dari sistem.
+                        Mahasiswa harus membuat pendaftaran ujian hasil baru.</p>
                 </div>
             </div>
         @endif
@@ -252,7 +273,8 @@
                             @endif
 
                             @if ($beritaAcara->isSelesai() && !$beritaAcara->file_path)
-                                <form action="{{ route('admin.berita-acara-ujian-hasil.generate-pdf', $beritaAcara) }}" method="POST" class="d-inline">
+                                <form action="{{ route('admin.berita-acara-ujian-hasil.generate-pdf', $beritaAcara) }}"
+                                    method="POST" class="d-inline">
                                     @csrf
                                     <button type="submit" class="btn btn-info fw-bold shadow-sm">
                                         <i class="bx bxs-file-pdf me-1"></i>Generate PDF
@@ -289,13 +311,15 @@
                 {{-- Detail Information Card --}}
                 <div class="card mb-4 shadow-sm border-0">
                     <div class="card-header border-bottom p-4">
-                        <h5 class="mb-0 fw-bold"><i class="bx bx-info-circle me-2 text-warning"></i>Informasi Mahasiswa & Ujian</h5>
+                        <h5 class="mb-0 fw-bold"><i class="bx bx-info-circle me-2 text-warning"></i>Informasi Mahasiswa &
+                            Ujian</h5>
                     </div>
                     <div class="card-body p-4">
                         <div class="row g-4">
                             <div class="col-md-6">
                                 <div class="p-3 rounded-3 border bg-light">
-                                    <label class="text-muted small fw-bold text-uppercase mb-2 d-block">Data Mahasiswa</label>
+                                    <label class="text-muted small fw-bold text-uppercase mb-2 d-block">Data
+                                        Mahasiswa</label>
                                     <div class="d-flex align-items-center gap-3">
                                         <div class="avatar">
                                             <span class="avatar-initial rounded bg-warning">
@@ -304,14 +328,16 @@
                                         </div>
                                         <div>
                                             <div class="fw-bold fs-6">{{ $mahasiswa->name }}</div>
-                                            <div class="text-muted small">{{ $mahasiswa->nim }} • {{ $beritaAcara->mahasiswa_prodi ?? 'Teknik Informatika' }}</div>
+                                            <div class="text-muted small">{{ $mahasiswa->nim }} •
+                                                {{ $beritaAcara->mahasiswa_prodi ?? 'Teknik Informatika' }}</div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="p-3 rounded-3 border bg-light h-100">
-                                    <label class="text-muted small fw-bold text-uppercase mb-2 d-block">Waktu & Tempat</label>
+                                    <label class="text-muted small fw-bold text-uppercase mb-2 d-block">Waktu &
+                                        Tempat</label>
                                     @if ($jadwal && $jadwal->tanggal_ujian)
                                         <div class="d-flex align-items-start gap-3">
                                             <div class="avatar">
@@ -320,12 +346,16 @@
                                                 </span>
                                             </div>
                                             <div>
-                                                <div class="fw-bold small">{{ \Carbon\Carbon::parse($jadwal->tanggal_ujian)->isoFormat('dddd, D MMMM Y') }}</div>
+                                                <div class="fw-bold small">
+                                                    {{ \Carbon\Carbon::parse($jadwal->tanggal_ujian)->isoFormat('dddd, D MMMM Y') }}
+                                                </div>
                                                 <div class="text-muted small mb-1">
-                                                    {{ \Carbon\Carbon::parse($jadwal->waktu_mulai)->format('H:i') }} - {{ \Carbon\Carbon::parse($jadwal->waktu_selesai)->format('H:i') }} WITA
+                                                    {{ \Carbon\Carbon::parse($jadwal->waktu_mulai)->format('H:i') }} -
+                                                    {{ \Carbon\Carbon::parse($jadwal->waktu_selesai)->format('H:i') }} WITA
                                                 </div>
                                                 <span class="badge bg-label-warning rounded-pill">
-                                                    <i class="bx bx-buildings me-1"></i> {{ $beritaAcara->ruangan ?? $jadwal?->ruangan ?? '-' }}
+                                                    <i class="bx bx-buildings me-1"></i>
+                                                    {{ $beritaAcara->ruangan ?? ($jadwal?->ruangan ?? '-') }}
                                                 </span>
                                             </div>
                                         </div>
@@ -336,9 +366,10 @@
                             </div>
                             <div class="col-12">
                                 <div class="p-4 rounded-3 border bg-light">
-                                    <label class="text-muted small fw-bold text-uppercase mb-2 d-block">Judul Skripsi</label>
+                                    <label class="text-muted small fw-bold text-uppercase mb-2 d-block">Judul
+                                        Skripsi</label>
                                     <h6 class="fw-bold mb-0 leading-relaxed">
-                                        {{ $beritaAcara->judul_skripsi ?? $pendaftaran?->judul_skripsi ?? '-' }}
+                                        {{ $beritaAcara->judul_skripsi ?? ($pendaftaran?->judul_skripsi ?? '-') }}
                                     </h6>
                                 </div>
                             </div>
@@ -349,7 +380,8 @@
                 {{-- Examiners Status Card --}}
                 <div class="card mb-4 shadow-sm border-0">
                     <div class="card-header border-bottom p-4">
-                        <h5 class="mb-0 fw-bold"><i class="bx bx-group me-2 text-warning"></i>Status Persetujuan Dewan Penguji</h5>
+                        <h5 class="mb-0 fw-bold"><i class="bx bx-group me-2 text-warning"></i>Status Persetujuan Dewan
+                            Penguji</h5>
                     </div>
                     <div class="table-responsive">
                         <table class="table table-hover align-middle mb-0">
@@ -367,15 +399,18 @@
                             <tbody>
                                 @if ($jadwal)
                                     @php
-                                        $allPenguji = $jadwal->dosenPenguji()
-                                            ->orderByRaw("CASE 
+                                        $allPenguji = $jadwal
+                                            ->dosenPenguji()
+                                            ->orderByRaw(
+                                                "CASE 
                                                 WHEN posisi = 'Ketua Penguji' THEN 1 
                                                 WHEN posisi = 'Penguji 1' THEN 2 
                                                 WHEN posisi = 'Penguji 2' THEN 3 
                                                 WHEN posisi = 'Penguji 3' THEN 4 
                                                 WHEN posisi LIKE '%(PS1)%' THEN 5
                                                 WHEN posisi LIKE '%(PS2)%' THEN 6
-                                                ELSE 7 END")
+                                                ELSE 7 END",
+                                            )
                                             ->get();
                                     @endphp
                                     @foreach ($allPenguji as $index => $dosen)
@@ -384,26 +419,31 @@
                                             $hasSigned = false;
                                             $signedAt = null;
                                             $isStaffApproval = false;
-                                            
+
                                             if ($isKetuaPenguji) {
                                                 $hasSigned = $beritaAcara->hasKetuaSigned();
                                                 $signedAt = $beritaAcara->ttd_ketua_penguji_at;
                                             } else {
                                                 $hasSigned = $beritaAcara->hasSignedByPenguji($dosen->id);
                                                 if ($hasSigned) {
-                                                    $signature = collect($beritaAcara->ttd_dosen_penguji)->firstWhere('dosen_id', $dosen->id);
+                                                    $signature = collect($beritaAcara->ttd_dosen_penguji)->firstWhere(
+                                                        'dosen_id',
+                                                        $dosen->id,
+                                                    );
                                                     $signedAt = $signature['signed_at'] ?? null;
                                                     $isStaffApproval = $signature['approved_by_staff'] ?? false;
                                                 }
                                             }
                                             $isCurrentUser = $dosen->id === $user->id;
                                         @endphp
-                                        <tr class="{{ $isCurrentUser ? 'table-warning bg-label-amber shadow-none border-transparent' : '' }}">
+                                        <tr
+                                            class="{{ $isCurrentUser ? 'table-warning bg-label-amber shadow-none border-transparent' : '' }}">
                                             <td class="ps-4 text-muted">{{ $index + 1 }}</td>
                                             <td>
                                                 <div class="d-flex justify-content-start align-items-center">
                                                     <div class="avatar avatar-sm me-3">
-                                                        <span class="avatar-initial rounded-circle {{ $isCurrentUser ? 'bg-warning' : 'bg-label-primary' }}">
+                                                        <span
+                                                            class="avatar-initial rounded-circle {{ $isCurrentUser ? 'bg-warning' : 'bg-label-primary' }}">
                                                             {{ strtoupper(substr($dosen->name, 0, 1)) }}
                                                         </span>
                                                     </div>
@@ -411,14 +451,16 @@
                                                         <span class="fw-bold text-dark">{{ $dosen->name }}</span>
                                                         <small class="text-muted">NIP: {{ $dosen->nip ?? '-' }}</small>
                                                         @if ($isCurrentUser)
-                                                            <span class="x-small text-warning fw-bold"><i class="bx bx-star me-1"></i>Akun Anda</span>
+                                                            <span class="x-small text-warning fw-bold"><i
+                                                                    class="bx bx-star me-1"></i>Akun Anda</span>
                                                         @endif
                                                     </div>
                                                 </div>
                                             </td>
                                             <td class="text-center">
-                                                <span class="badge {{ $isKetuaPenguji ? 'bg-dark' : 'bg-label-secondary' }} rounded-pill p-2 px-3">
-                                                    @if(str_contains($dosen->pivot->posisi, '(PS1)'))
+                                                <span
+                                                    class="badge {{ $isKetuaPenguji ? 'bg-dark' : 'bg-label-secondary' }} rounded-pill p-2 px-3">
+                                                    @if (str_contains($dosen->pivot->posisi, '(PS1)'))
                                                         PS1
                                                     @elseif(str_contains($dosen->pivot->posisi, '(PS2)'))
                                                         PS2
@@ -434,15 +476,16 @@
                                                             <i class="bx bx-check-double me-1"></i> Sudah Disetujui
                                                         </span>
                                                         @if ($signedAt)
-                                                            <small class="text-muted x-small mt-1 mt-md-0" style="font-size: 0.65rem;">
+                                                            <small class="text-muted x-small mt-1 mt-md-0"
+                                                                style="font-size: 0.65rem;">
                                                                 {{ \Carbon\Carbon::parse($signedAt)->isoFormat('D MMM, HH:mm') }}
                                                             </small>
                                                         @endif
                                                         @if ($isStaffApproval)
-                                                            <span class="badge bg-label-info mt-1 x-small" style="font-size: 0.6rem;" 
-                                                                  data-bs-toggle="tooltip" 
-                                                                  data-bs-placement="top"
-                                                                  title="Diverifikasi oleh Staff: {{ $signature['staff_name'] ?? 'Admin' }}">
+                                                            <span class="badge bg-label-info mt-1 x-small"
+                                                                style="font-size: 0.6rem;" data-bs-toggle="tooltip"
+                                                                data-bs-placement="top"
+                                                                title="Diverifikasi oleh Staff: {{ $signature['staff_name'] ?? 'Admin' }}">
                                                                 <i class="bx bx-user-check me-1"></i>DISETUJUI STAF
                                                             </span>
                                                         @endif
@@ -456,9 +499,9 @@
                                             @if ($isStaff && $beritaAcara->isMenungguTtdPenguji())
                                                 <td class="pe-4 text-center">
                                                     @if (!$hasSigned && !$isKetuaPenguji)
-                                                        <button type="button" 
-                                                                class="btn btn-sm btn-outline-primary fw-bold transition-all"
-                                                                onclick="showApproveOnBehalfModal({{ $dosen->id }}, '{{ addslashes($dosen->name) }}')">
+                                                        <button type="button"
+                                                            class="btn btn-sm btn-outline-primary fw-bold transition-all"
+                                                            onclick="showApproveOnBehalfModal({{ $dosen->id }}, '{{ addslashes($dosen->name) }}', '{{ $dosen->pivot->posisi }}')">
                                                             <i class="bx bx-user-check me-1"></i>Approve
                                                         </button>
                                                     @endif
@@ -485,19 +528,23 @@
                 @if ($beritaAcara->isFilledByKetua())
                     <div class="card mb-4 shadow-sm border-0 overflow-hidden">
                         <div class="card-header bg-dark p-4 border-0">
-                            <h5 class="mb-0 fw-bold text-white"><i class="bx bx-clipboard me-2"></i>Keputusan Berita Acara</h5>
+                            <h5 class="mb-0 fw-bold text-white"><i class="bx bx-clipboard me-2"></i>Keputusan Berita Acara
+                            </h5>
                         </div>
                         <div class="card-body p-4 bg-white">
                             <div class="row g-4">
                                 <div class="col-md-7 border-end">
-                                    <label class="text-muted small fw-bold text-uppercase mb-3 d-block">1. Keputusan Akhir</label>
+                                    <label class="text-muted small fw-bold text-uppercase mb-3 d-block">1. Keputusan
+                                        Akhir</label>
                                     <div class="p-4 rounded-3 bg-light border mb-4">
                                         <div class="mb-3">{!! $beritaAcara->keputusan_badge !!}</div>
-                                        <p class="text-dark leading-relaxed mb-0 font-italic">"{{ $beritaAcara->keputusan_description }}"</p>
+                                        <p class="text-dark leading-relaxed mb-0 font-italic">
+                                            "{{ $beritaAcara->keputusan_description }}"</p>
                                     </div>
-                                    
+
                                     @if ($beritaAcara->catatan_tambahan)
-                                        <label class="text-muted small fw-bold text-uppercase mb-3 d-block">3. Catatan Tambahan</label>
+                                        <label class="text-muted small fw-bold text-uppercase mb-3 d-block">3. Catatan
+                                            Tambahan</label>
                                         <div class="p-3 rounded-2 border border-dashed text-muted fs-small">
                                             {{ $beritaAcara->catatan_tambahan }}
                                         </div>
@@ -505,11 +552,15 @@
                                 </div>
                                 <div class="col-md-5 ps-md-4">
                                     @if ($beritaAcara->average_nilai)
-                                        <label class="text-muted small fw-bold text-uppercase mb-3 d-block">2. Nilai Rata-rata</label>
+                                        <label class="text-muted small fw-bold text-uppercase mb-3 d-block">2. Nilai
+                                            Rata-rata</label>
                                         <div class="text-center p-4 rounded-3 bg-label-warning border">
                                             <small class="text-muted mb-1 d-block">Skor Akhir</small>
-                                            <div class="display-5 fw-bold text-warning mb-0">{{ $beritaAcara->average_nilai }}</div>
-                                            <span class="badge bg-warning text-white rounded-pill px-3 py-1 fw-bold fs-6 mt-2 shadow-sm">GRADE A</span>
+                                            <div class="display-5 fw-bold text-warning mb-0">
+                                                {{ $beritaAcara->average_nilai }}</div>
+                                            <span
+                                                class="badge bg-warning text-white rounded-pill px-3 py-1 fw-bold fs-6 mt-2 shadow-sm">GRADE
+                                                A</span>
                                         </div>
                                     @endif
                                 </div>
@@ -518,9 +569,11 @@
                         <div class="card-footer bg-light border-top p-3 text-center">
                             <div class="small text-muted">
                                 <i class="bx bx-check-circle me-1 text-success"></i> Disahkan oleh
-                                <span class="fw-bold text-dark">{{ $beritaAcara->ketuaPenguji->name ?? 'Ketua Penguji' }}</span>
+                                <span
+                                    class="fw-bold text-dark">{{ $beritaAcara->ketuaPenguji->name ?? 'Ketua Penguji' }}</span>
                                 <span class="mx-2">|</span>
-                                <span class="font-mono">{{ $beritaAcara->ttd_ketua_penguji_at?->isoFormat('D MMMM Y • HH:mm') ?? '-' }}</span>
+                                <span
+                                    class="font-mono">{{ $beritaAcara->ttd_ketua_penguji_at?->isoFormat('D MMMM Y • HH:mm') ?? '-' }}</span>
                             </div>
                         </div>
                     </div>
@@ -535,7 +588,8 @@
                             <h5 class="fw-bold">Isi Berita Acara Belum Tersedia</h5>
                             <p class="text-muted mb-0 small mx-auto" style="max-width: 350px;">
                                 @if ($beritaAcara->isMenungguTtdPenguji())
-                                    Sistem menunggu semua dosen penguji menyetujui dokumen sebelum Ketua Penguji dapat mengisikan hasil.
+                                    Sistem menunggu semua dosen penguji menyetujui dokumen sebelum Ketua Penguji dapat
+                                    mengisikan hasil.
                                 @else
                                     Ketua Penguji dapat melakukan pengisian data hasil ujian melalui panel kontrol di atas.
                                 @endif
@@ -548,7 +602,8 @@
                 @if ($beritaAcara->penilaians->count() > 0 || $beritaAcara->lembarKoreksis->count() > 0)
                     <div class="card mb-4 shadow-sm border-0 overflow-hidden">
                         <div class="card-header border-bottom p-4">
-                            <h5 class="mb-0 fw-bold"><i class="bx bx-bar-chart-alt-2 me-2 text-warning"></i>Rekapitulasi Nilai & Koreksi</h5>
+                            <h5 class="mb-0 fw-bold"><i class="bx bx-bar-chart-alt-2 me-2 text-warning"></i>Rekapitulasi
+                                Nilai & Koreksi</h5>
                         </div>
                         <div class="table-responsive">
                             <table class="table table-hover align-middle mb-0">
@@ -557,16 +612,24 @@
                                         <th class="ps-4 fw-bold py-3" width="5%">No</th>
                                         <th class="fw-bold py-3">Dosen Penguji</th>
                                         <th class="fw-bold py-3 text-center" width="20%">Nilai Akhir</th>
-                                        <th class="fw-bold py-3 text-center" width="20%">Status Koreksi</th>
-                                        <th class="pe-4 fw-bold py-3 text-center" width="15%">Detail</th>
+                                        <th class="fw-bold py-3 text-center" width="20%">Status Koreksi (PS1/PS2)</th>
+                                        <th class="pe-4 fw-bold py-3 text-center" width="15%">Detail Koreksi</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @if ($jadwal)
                                         @foreach ($jadwal->dosenPenguji as $index => $penguji)
                                             @php
-                                                $penilaian = $beritaAcara->penilaians->where('dosen_id', $penguji->id)->first();
-                                                $koreksi = $beritaAcara->lembarKoreksis->where('dosen_id', $penguji->id)->first();
+                                                $penilaian = $beritaAcara->penilaians
+                                                    ->where('dosen_id', $penguji->id)
+                                                    ->first();
+                                                $koreksi = $beritaAcara->lembarKoreksis
+                                                    ->where('dosen_id', $penguji->id)
+                                                    ->first();
+                                                $isPembimbing =
+                                                    str_contains($penguji->pivot->posisi, 'PS1') ||
+                                                    str_contains($penguji->pivot->posisi, 'PS2') ||
+                                                    str_contains($penguji->pivot->posisi, 'Pembimbing');
                                             @endphp
                                             <tr>
                                                 <td class="ps-4 text-muted">{{ $index + 1 }}</td>
@@ -577,28 +640,35 @@
                                                 <td class="text-center">
                                                     @if ($penilaian)
                                                         <div class="d-flex flex-column align-items-center">
-                                                            <span class="fw-bold text-warning fs-5">{{ $penilaian->total_nilai }}</span>
-                                                            <span class="badge bg-label-warning px-2 rounded" style="font-size: 10px;">{{ $penilaian->grade_letter }}</span>
+                                                            <span
+                                                                class="fw-bold text-warning fs-5">{{ $penilaian->total_nilai }}</span>
+                                                            <span class="badge bg-label-warning px-2 rounded"
+                                                                style="font-size: 10px;">{{ $penilaian->grade_letter }}</span>
                                                         </div>
                                                     @else
                                                         <span class="text-muted small">Belum diinput</span>
                                                     @endif
                                                 </td>
                                                 <td class="text-center">
-                                                    @if ($koreksi)
-                                                        <span class="badge bg-label-success p-2 rounded-2">
-                                                            <i class="bx bx-check-double"></i> Selesai
-                                                        </span>
+                                                    @if ($isPembimbing)
+                                                        @if ($koreksi)
+                                                            <span class="badge bg-label-success p-2 rounded-2">
+                                                                <i class="bx bx-check-double"></i> Selesai
+                                                            </span>
+                                                        @else
+                                                            <span class="badge bg-label-secondary p-2 rounded-2">
+                                                                <i class="bx bx-minus"></i> Belum
+                                                            </span>
+                                                        @endif
                                                     @else
-                                                        <span class="badge bg-label-secondary p-2 rounded-2">
-                                                            <i class="bx bx-minus"></i> Belum
-                                                        </span>
+                                                        <span class="text-muted small">-</span>
                                                     @endif
                                                 </td>
                                                 <td class="pe-4 text-center">
-                                                    @if ($penilaian || $koreksi)
-                                                        <button class="btn btn-sm btn-label-secondary">
-                                                            <i class="bx bx-show"></i>
+                                                    @if ($isPembimbing && $koreksi)
+                                                        <button class="btn btn-sm btn-secondary"
+                                                            onclick="showDetailModal({{ $penguji->id }}, '{{ addslashes($penguji->name) }}', '{{ $penguji->pivot->posisi }}')">
+                                                            <i class="bx bx-show"></i> Lihat
                                                         </button>
                                                     @else
                                                         <span class="text-muted small">-</span>
@@ -625,21 +695,26 @@
                         <div class="workflow-timeline">
                             {{-- Step 1 --}}
                             <div class="timeline-step active pb-4 ps-4 border-start border-2">
-                                <div class="step-icon position-absolute rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style="width: 24px; height: 24px; left: -13px; top: 0;">
+                                <div class="step-icon position-absolute rounded-circle bg-success text-white d-flex align-items-center justify-content-center"
+                                    style="width: 24px; height: 24px; left: -13px; top: 0;">
                                     <i class="bx bx-check fs-small"></i>
                                 </div>
                                 <div class="fw-bold small mb-1">Berita Acara Dibuat</div>
-                                <div class="text-muted x-small mb-1 font-mono">{{ $beritaAcara->created_at->isoFormat('D MMM Y, HH:mm') }}</div>
-                                <div class="text-muted x-small">Diterbitkan oleh {{ $beritaAcara->pembuatBeritaAcara->name ?? 'Sistem' }}</div>
+                                <div class="text-muted x-small mb-1 font-mono">
+                                    {{ $beritaAcara->created_at->isoFormat('D MMM Y, HH:mm') }}</div>
+                                <div class="text-muted x-small">Diterbitkan oleh
+                                    {{ $beritaAcara->pembuatBeritaAcara->name ?? 'Sistem' }}</div>
                             </div>
 
                             {{-- Step 2 --}}
                             @php $isStep2Done = $beritaAcara->allPengujiHaveSigned(); @endphp
                             <div class="timeline-step {{ $isStep2Done ? 'active' : '' }} pb-4 ps-4 border-start border-2">
-                                <div class="step-icon position-absolute rounded-circle {{ $isStep2Done ? 'bg-success text-white' : 'bg-secondary text-white' }} d-flex align-items-center justify-content-center" style="width: 24px; height: 24px; left: -13px; top: 0;">
+                                <div class="step-icon position-absolute rounded-circle {{ $isStep2Done ? 'bg-success text-white' : 'bg-secondary text-white' }} d-flex align-items-center justify-content-center"
+                                    style="width: 24px; height: 24px; left: -13px; top: 0;">
                                     <i class="bx {{ $isStep2Done ? 'bx-check' : 'bx-time' }} fs-small"></i>
                                 </div>
-                                <div class="fw-bold {{ $isStep2Done ? 'text-dark' : 'text-muted' }} small mb-1">Validasi Penguji</div>
+                                <div class="fw-bold {{ $isStep2Done ? 'text-dark' : 'text-muted' }} small mb-1">Validasi
+                                    Penguji</div>
                                 <div class="text-muted x-small">
                                     @php $p = $beritaAcara->getTtdPengujiProgress(); @endphp
                                     {{ $p['signed'] }}/{{ $p['total'] }} Dosen telah validasi.
@@ -649,12 +724,15 @@
                             {{-- Step 3 --}}
                             @php $isStep3Done = $beritaAcara->hasKetuaSigned(); @endphp
                             <div class="timeline-step {{ $isStep3Done ? 'active' : '' }} pb-4 ps-4 border-start border-2">
-                                <div class="step-icon position-absolute rounded-circle {{ $isStep3Done ? 'bg-success text-white' : 'bg-secondary text-white' }} d-flex align-items-center justify-content-center" style="width: 24px; height: 24px; left: -13px; top: 0;">
+                                <div class="step-icon position-absolute rounded-circle {{ $isStep3Done ? 'bg-success text-white' : 'bg-secondary text-white' }} d-flex align-items-center justify-content-center"
+                                    style="width: 24px; height: 24px; left: -13px; top: 0;">
                                     <i class="bx {{ $isStep3Done ? 'bx-check' : 'bx-edit' }} fs-small"></i>
                                 </div>
-                                <div class="fw-bold {{ $isStep3Done ? 'text-dark' : 'text-muted' }} small mb-1">Hasil & TTD Ketua</div>
-                                @if($isStep3Done)
-                                    <div class="text-muted x-small font-mono">{{ $beritaAcara->ttd_ketua_penguji_at->isoFormat('D MMM Y, HH:mm') }}</div>
+                                <div class="fw-bold {{ $isStep3Done ? 'text-dark' : 'text-muted' }} small mb-1">Hasil &
+                                    TTD Ketua</div>
+                                @if ($isStep3Done)
+                                    <div class="text-muted x-small font-mono">
+                                        {{ $beritaAcara->ttd_ketua_penguji_at->isoFormat('D MMM Y, HH:mm') }}</div>
                                 @else
                                     <div class="text-muted x-small italic text-warning">Menunggu giliran...</div>
                                 @endif
@@ -663,11 +741,15 @@
                             {{-- Step 4 --}}
                             @php $isStep4Done = !is_null($beritaAcara->file_path); @endphp
                             <div class="timeline-step ps-4 border-start border-2">
-                                <div class="step-icon position-absolute rounded-circle {{ $isStep4Done ? 'bg-warning text-white' : 'bg-secondary text-white' }} d-flex align-items-center justify-content-center" style="width: 24px; height: 24px; left: -13px; top: 0;">
+                                <div class="step-icon position-absolute rounded-circle {{ $isStep4Done ? 'bg-warning text-white' : 'bg-secondary text-white' }} d-flex align-items-center justify-content-center"
+                                    style="width: 24px; height: 24px; left: -13px; top: 0;">
                                     <i class="bx bx-file fs-small"></i>
                                 </div>
-                                <div class="fw-bold {{ $isStep4Done ? 'text-dark' : 'text-muted' }} small mb-1">Arsip PDF</div>
-                                <div class="text-muted x-small">{{ $isStep4Done ? 'Berkas digital telah tersedia.' : 'Menunggu penyelesaian proses.' }}</div>
+                                <div class="fw-bold {{ $isStep4Done ? 'text-dark' : 'text-muted' }} small mb-1">Arsip PDF
+                                </div>
+                                <div class="text-muted x-small">
+                                    {{ $isStep4Done ? 'Berkas digital telah tersedia.' : 'Menunggu penyelesaian proses.' }}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -684,10 +766,12 @@
                             <div class="p-4 text-center">
                                 <small class="text-muted text-uppercase fw-bold mb-2 d-block">Kode Verifikasi</small>
                                 <div class="bg-light rounded p-3 mb-3 border">
-                                    <code class="fs-4 text-dark fw-bold font-mono tracking-widest">{{ $beritaAcara->verification_code }}</code>
+                                    <code
+                                        class="fs-4 text-dark fw-bold font-mono tracking-widest">{{ $beritaAcara->verification_code }}</code>
                                 </div>
                                 @if ($beritaAcara->verification_url)
-                                    <a href="{{ $beritaAcara->verification_url }}" target="_blank" class="btn btn-dark w-100 shadow-sm">
+                                    <a href="{{ $beritaAcara->verification_url }}" target="_blank"
+                                        class="btn btn-dark w-100 shadow-sm">
                                         <i class="bx bx-qr-scan me-2"></i>Validasi Berkas
                                     </a>
                                 @endif
@@ -698,6 +782,59 @@
                         </div>
                     </div>
                 @endif
+            </div>
+        </div>
+    </div>
+
+    {{-- Modal: Detail Penilaian & Koreksi --}}
+    <div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow-lg rounded-3">
+                <div class="modal-header border-bottom p-4 bg-label-primary">
+                    <h5 class="modal-title fw-bold">
+                        <i class="bx bx-detail me-2 text-primary"></i>Detail Penilaian & Koreksi
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-muted small text-uppercase">Dosen Penguji</label>
+                        <input type="text" class="form-control bg-light border-0 fw-bold" id="detail_dosen_name"
+                            readonly>
+                        <small class="text-muted" id="detail_posisi"></small>
+                    </div>
+
+                    {{-- Penilaian Section --}}
+                    <div id="penilaianSection" class="mb-4">
+                        <h6 class="fw-bold mb-3 border-bottom pb-2">
+                            <i class="bx bx-bar-chart-alt-2 me-2 text-warning"></i>Penilaian
+                        </h6>
+                        <div id="penilaianContent" class="p-3 bg-light rounded">
+                            <div class="text-center text-muted py-3">
+                                <i class="bx bx-info-circle fs-4"></i>
+                                <p class="mb-0 mt-2">Belum ada data penilaian</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Lembar Koreksi Section --}}
+                    <div id="koreksiSection" class="mb-4">
+                        <h6 class="fw-bold mb-3 border-bottom pb-2">
+                            <i class="bx bx-edit me-2 text-info"></i>Lembar Koreksi Skripsi
+                        </h6>
+                        <div id="koreksiContent" class="p-3 bg-light rounded">
+                            <div class="text-center text-muted py-3">
+                                <i class="bx bx-info-circle fs-4"></i>
+                                <p class="mb-0 mt-2">Belum ada lembar koreksi</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top p-4">
+                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">
+                        Tutup
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -716,33 +853,59 @@
                     </div>
                     <div class="modal-body p-4">
                         <input type="hidden" name="dosen_id" id="modal_dosen_id">
-                        
+
                         <div class="alert bg-label-warning border-0 mb-4 d-flex gap-3">
                             <i class="bx bx-info-circle fs-4"></i>
                             <div class="small">
-                                <strong>Pemberitahuan:</strong> Fitur ini digunakan hanya jika dosen bersangkutan memberikan mandat atau berhalangan mengakses sistem secara teknis.
+                                <strong>Pemberitahuan:</strong> Fitur ini digunakan hanya jika dosen bersangkutan memberikan
+                                mandat atau berhalangan mengakses sistem secara teknis.
                             </div>
                         </div>
 
                         <div class="mb-4">
                             <label class="form-label fw-bold text-muted small text-uppercase">Dosen Penguji</label>
-                            <input type="text" class="form-control bg-light border-0 fw-bold" id="modal_dosen_name" readonly>
+                            <input type="text" class="form-control bg-light border-0 fw-bold" id="modal_dosen_name"
+                                readonly>
+                        </div>
+
+                        <div id="lembarKoreksiSection" class="mb-4" style="display:none;">
+                            <label class="form-label fw-bold text-muted small text-uppercase mb-2">Lembar Koreksi Skripsi
+                                (Input Data)</label>
+                            <div class="p-3 bg-light border rounded mb-3">
+                                <small class="text-muted d-block mb-3"><i class="bx bx-pencil me-1"></i>Masukkan hasil
+                                    koreksi dari pembimbing.</small>
+                                <table class="table table-bordered bg-white" id="koreksiTable">
+                                    <thead>
+                                        <tr class="table-light">
+                                            <th width="15%" class="x-small text-uppercase">Halaman</th>
+                                            <th class="x-small text-uppercase">Catatan Koreksi</th>
+                                            <th width="5%"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="koreksiTableBody">
+                                        {{-- Rows added via JS --}}
+                                    </tbody>
+                                </table>
+                                <button type="button" class="btn btn-sm btn-outline-primary mt-2 fw-bold"
+                                    onclick="addKoreksiRow()">
+                                    <i class="bx bx-plus me-1"></i>Tambah Baris Koreksi
+                                </button>
+                            </div>
                         </div>
 
                         <div class="mb-4">
-                            <label for="alasan" class="form-label fw-bold text-muted small text-uppercase">Alasan Persetujuan</label>
-                            <textarea class="form-control border rounded" 
-                                      id="alasan" 
-                                      name="alasan" 
-                                      rows="3" 
-                                      placeholder="Berikan alasan singkat..."
-                                      maxlength="500"></textarea>
+                            <label for="alasan" class="form-label fw-bold text-muted small text-uppercase">Alasan
+                                Persetujuan</label>
+                            <textarea class="form-control border rounded" id="alasan" name="alasan" rows="3"
+                                placeholder="Berikan alasan singkat..." maxlength="500"></textarea>
                         </div>
 
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="confirmation" id="confirmation" required>
+                            <input class="form-check-input" type="checkbox" name="confirmation" id="confirmation"
+                                required>
                             <label class="form-check-label text-muted small" for="confirmation">
-                                Saya menyatakan bahwa persetujuan ini dilakukan secara sah dan akan tercatat secara permanen dalam sistem log audit.
+                                Saya menyatakan bahwa persetujuan ini dilakukan secara sah dan akan tercatat secara permanen
+                                dalam sistem log audit.
                             </label>
                         </div>
                     </div>
@@ -764,23 +927,197 @@
     <script>
         // Initialize tooltips
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl)
         });
 
+        // Prepare data for modal
+        const penilaianData = @json($beritaAcara->penilaians->keyBy('dosen_id'));
+        const koreksiData = {};
+        @foreach ($beritaAcara->lembarKoreksis as $koreksi)
+            koreksiData[{{ $koreksi->dosen_id }}] = {
+                id: {{ $koreksi->id }},
+                dosen_id: {{ $koreksi->dosen_id }},
+                koreksi_data: @json($koreksi->koreksi_data),
+                created_at: '{{ $koreksi->created_at }}'
+            };
+        @endforeach
+        const pengujiData = @json($jadwal ? $jadwal->dosenPenguji->keyBy('id') : collect());
+
+        // Function to show detail modal
+        function showDetailModal(dosenId, dosenName, posisi) {
+            document.getElementById('detail_dosen_name').value = dosenName;
+            document.getElementById('detail_posisi').textContent = posisi;
+
+            const penilaian = penilaianData[dosenId];
+
+            // Populate Penilaian
+            const penilaianContent = document.getElementById('penilaianContent');
+            if (penilaian) {
+                penilaianContent.innerHTML = `
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="p-3 bg-white rounded border">
+                                <small class="text-muted d-block mb-1">Nilai Akhir</small>
+                                <div class="fs-3 fw-bold text-warning">${penilaian.total_nilai}</div>
+                                <span class="badge bg-label-warning">${penilaian.grade_letter || '-'}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 bg-white rounded border">
+                                <small class="text-muted d-block mb-1">Waktu Input</small>
+                                <div class="fw-semibold">${penilaian.created_at ? new Date(penilaian.created_at).toLocaleDateString('id-ID', { 
+                                    day: 'numeric', 
+                                    month: 'long', 
+                                    year: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                }) : '-'}</div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th class="text-center" width="50%">Aspek Penilaian</th>
+                                            <th class="text-center">Skor</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${penilaian.nilai_presentasi ? `<tr><td>Presentasi</td><td class="text-center fw-bold">${penilaian.nilai_presentasi}</td></tr>` : ''}
+                                        ${penilaian.nilai_penguasaan_materi ? `<tr><td>Penguasaan Materi</td><td class="text-center fw-bold">${penilaian.nilai_penguasaan_materi}</td></tr>` : ''}
+                                        ${penilaian.nilai_metodologi ? `<tr><td>Metodologi</td><td class="text-center fw-bold">${penilaian.nilai_metodologi}</td></tr>` : ''}
+                                        ${penilaian.nilai_hasil ? `<tr><td>Hasil & Analisis</td><td class="text-center fw-bold">${penilaian.nilai_hasil}</td></tr>` : ''}
+                                        ${penilaian.nilai_kemampuan_menjawab ? `<tr><td>Kemampuan Menjawab</td><td class="text-center fw-bold">${penilaian.nilai_kemampuan_menjawab}</td></tr>` : ''}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        ${penilaian.catatan ? `
+                                    <div class="col-12">
+                                        <label class="form-label fw-bold small">Catatan Dosen:</label>
+                                        <div class="p-3 bg-white rounded border">
+                                            <p class="mb-0 small text-muted">${penilaian.catatan}</p>
+                                        </div>
+                                    </div>
+                                    ` : ''}
+                    </div>
+                `;
+            } else {
+                penilaianContent.innerHTML = `
+                    <div class="text-center text-muted py-3">
+                        <i class="bx bx-info-circle fs-4"></i>
+                        <p class="mb-0 mt-2">Belum ada data penilaian</p>
+                    </div>
+                `;
+            }
+
+            // Populate Koreksi
+            const koreksiContent = document.getElementById('koreksiContent');
+            const koreksi = koreksiData[dosenId];
+
+            if (koreksi && koreksi.koreksi_data && koreksi.koreksi_data.length > 0) {
+                koreksiContent.innerHTML = `
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="text-center" width="15%">Halaman</th>
+                                    <th>Catatan Koreksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${koreksi.koreksi_data.map(item => `
+                                                <tr>
+                                                    <td class="text-center fw-bold">${item.halaman || '-'}</td>
+                                                    <td>${item.catatan || '-'}</td>
+                                                </tr>
+                                            `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-3 p-2 bg-white rounded border">
+                        <small class="text-muted">
+                            <i class="bx bx-time me-1"></i>
+                            Diisi pada: ${koreksi.created_at ? new Date(koreksi.created_at).toLocaleDateString('id-ID', { 
+                                day: 'numeric', 
+                                month: 'long', 
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            }) : '-'}
+                        </small>
+                    </div>
+                `;
+            } else {
+                koreksiContent.innerHTML = `
+                    <div class="text-center text-muted py-3">
+                        <i class="bx bx-info-circle fs-4"></i>
+                        <p class="mb-0 mt-2">Belum ada lembar koreksi</p>
+                    </div>
+                `;
+            }
+
+            const modal = new bootstrap.Modal(document.getElementById('detailModal'));
+            modal.show();
+        }
+
         // Function to show approve on behalf modal
-        function showApproveOnBehalfModal(dosenId, dosenName) {
+        function showApproveOnBehalfModal(dosenId, dosenName, posisi) {
             const form = document.getElementById('approveOnBehalfForm');
             form.action = `/admin/berita-acara-ujian-hasil/{{ $beritaAcara->id }}/approve-on-behalf`;
-            
+
             document.getElementById('modal_dosen_id').value = dosenId;
             document.getElementById('modal_dosen_name').value = dosenName;
-            
+
             document.getElementById('alasan').value = '';
             document.getElementById('confirmation').checked = false;
-            
+
+            // Handle Lembar Koreksi
+            const koreksiSection = document.getElementById('lembarKoreksiSection');
+            const tbody = document.getElementById('koreksiTableBody');
+
+            // Check if position contains PS1 or PS2 or Pembimbing
+            const isPembimbing = posisi && (posisi.includes('PS1') || posisi.includes('PS2') || posisi.includes(
+                'Pembimbing'));
+
+            if (isPembimbing) {
+                koreksiSection.style.display = 'block';
+                tbody.innerHTML = ''; // Clear previous
+                // Add one default row if empty
+                if (tbody.children.length === 0) {
+                    addKoreksiRow();
+                }
+            } else {
+                koreksiSection.style.display = 'none';
+                tbody.innerHTML = '';
+            }
+
             const modal = new bootstrap.Modal(document.getElementById('approveOnBehalfModal'));
             modal.show();
+        }
+
+        let koreksiRowIndex = 0;
+
+        function addKoreksiRow() {
+            const tbody = document.getElementById('koreksiTableBody');
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>
+                    <input type="text" name="lembar_koreksi[${koreksiRowIndex}][halaman]" class="form-control form-control-sm" placeholder="Hal.">
+                </td>
+                <td>
+                    <textarea name="lembar_koreksi[${koreksiRowIndex}][catatan]" class="form-control form-control-sm" rows="1" placeholder="Catatan..."></textarea>
+                </td>
+                <td class="text-center">
+                    <button type="button" class="btn btn-sm btn-icon btn-label-danger" onclick="this.closest('tr').remove()">
+                        <i class="bx bx-trash"></i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(row);
+            koreksiRowIndex++;
         }
 
         function deleteBeritaAcara(id, mahasiswaName, status) {
@@ -793,13 +1130,13 @@
             };
 
             const isSelesai = status === 'selesai';
-            const warningMessage = isSelesai 
-                ? `<div class="alert alert-danger mt-3 mb-0 text-white" style="background-color: #ff3e1d !important;">
+            const warningMessage = isSelesai ?
+                `<div class="alert alert-danger mt-3 mb-0 text-white" style="background-color: #ff3e1d !important;">
                         <i class="bx bx-error-circle me-2"></i>
                         <strong>PERINGATAN!</strong> Dokumen ini sudah <strong>SELESAI</strong>. 
                         Penghapusan akan menghilangkan semua data permanen!
-                   </div>`
-                : `<div class="alert alert-warning mt-3 mb-0" style="background-color: #fff2e0 !important; color: #ffab00 !important;">
+                   </div>` :
+                `<div class="alert alert-warning mt-3 mb-0" style="background-color: #fff2e0 !important; color: #ffab00 !important;">
                         <i class="bx bx-error-circle me-2"></i>
                         Data berita acara akan dihapus permanen!
                    </div>`;
@@ -820,7 +1157,7 @@
                 showCancelButton: true,
                 confirmButtonText: 'Ya, Hapus Permanen',
                 cancelButtonText: 'Batalkan',
-                confirmButtonColor: '#ff3e1d', 
+                confirmButtonColor: '#ff3e1d',
                 cancelButtonColor: '#8592a3',
                 reverseButtons: true,
                 customClass: {
@@ -834,17 +1171,17 @@
                     const form = document.createElement('form');
                     form.method = 'POST';
                     form.action = `/admin/berita-acara-ujian-hasil/${id}`;
-                    
+
                     const csrfToken = document.createElement('input');
                     csrfToken.type = 'hidden';
                     csrfToken.name = '_token';
                     csrfToken.value = '{{ csrf_token() }}';
-                    
+
                     const methodField = document.createElement('input');
                     methodField.type = 'hidden';
                     methodField.name = '_method';
                     methodField.value = 'DELETE';
-                    
+
                     form.appendChild(csrfToken);
                     form.appendChild(methodField);
                     document.body.appendChild(form);
