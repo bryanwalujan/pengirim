@@ -15,23 +15,30 @@
         body {
             font-family: 'Times New Roman', Times, serif;
             font-size: 11pt;
-            line-height: 1.4;
+            line-height: 1.15;
             color: #000;
-            margin: 0;
+            margin: 0 auto;
             padding: 0;
+            width: 100%;
         }
-
 
         .title-section {
             text-align: center;
-            margin-top: 15px;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
 
-        .title-section h4 {
-            margin: 0;
-            text-decoration: underline;
+        .title-section .panitia-title {
+            font-weight: bold;
             font-size: 12pt;
+            margin-bottom: 0;
+            line-height: 1.2;
+        }
+
+        .title-section h3 {
+            margin: 10px 0 0 0;
+            font-weight: bold;
+            text-decoration: underline;
+            font-size: 13pt;
         }
 
         .content-text {
@@ -41,16 +48,15 @@
 
         .info-table {
             width: 100%;
-            margin-bottom: 15px;
-            margin-left: 20px;
+            margin-bottom: 10px;
         }
 
         .info-table td {
             vertical-align: top;
-            padding: 2px 0;
+            padding: 3px 0;
         }
 
-        /* Tabel Dosen Penguji (Main Table Style) */
+        /* Tabel Dosen Penguji */
         .main-table {
             width: 100%;
             border-collapse: collapse;
@@ -60,41 +66,58 @@
         .main-table th,
         .main-table td {
             border: 1px solid #000;
-            padding: 5px 8px;
-            font-size: 10.5pt;
+            padding: 4px 8px;
+            font-size: 11pt;
         }
 
         .main-table th {
             text-align: center;
             background-color: #ffffff;
+            font-weight: bold;
         }
 
         .text-center { text-align: center; }
+        .text-right { text-align: right; }
         .font-bold { font-weight: bold; }
+        .underline { text-decoration: underline; }
 
-        /* Signature Section (Sempro Style) */
-        .signature-wrapper {
+        .signature-line {
+            border-bottom: 1px dotted #000;
+            display: inline-block;
+            width: 70%;
+        }
+
+        /* Footer Signature Section */
+        .footer-section {
             margin-top: 15px;
+            width: 100%;
+        }
+
+        .location-date {
             float: right;
-            width: 300px;
-            text-align: start;
+            width: 250px;
+            margin-bottom: 20px;
+        }
+
+        .signature-grid {
+            width: 100%;
+            clear: both;
         }
 
         .signature-space {
-            height: 75px;
-            margin: 8px 0;
+            height: 85px;
+            padding-bottom: .5rem;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
-        .qr-code-img {
-            width: 75px;
-            height: 75px;
+        .signature-image {
+            width: 95px;
+            height: auto;
+            background: white;
         }
 
-        .underline { text-decoration: underline; }
-        
         .clearfix::after {
             content: "";
             clear: both;
@@ -108,24 +131,20 @@
     @include('admin.kop-surat.template')
 
     <div class="title-section">
-        <div class="font-bold">PANITIA UJIAN HASIL SKRIPSI FATEK UNIMA</div>
-        <div class="font-bold">PROGRAM STUDI TEKNIK INFORMATIKA</div>
-        <h4 style="margin-top: 5px;">BERITA ACARA UJIAN SKRIPSI</h4>
+        <div class="panitia-title">PANITIA UJIAN HASIL SKRIPSI FATEK UNIMA</div>
+        <div class="panitia-title">PROGRAM STUDI TEKNIK INFORMATIKA</div>
+        <h3>BERITA ACARA UJIAN SKRIPSI</h3>
     </div>
 
     <div class="content-text">
-        Pada hari ini <strong>{{ $jadwal->tanggal_ujian?->translatedFormat('l') ?? '..........' }}</strong>, 
-        tanggal <strong>{{ $jadwal->tanggal_ujian?->translatedFormat('d F Y') ?? '..........' }}</strong> bertempat di 
-        <strong>{{ $beritaAcara->ruangan ?? ($jadwal->ruangan ?? '..........') }}</strong>, oleh Panitia Ujian Hasil Skripsi yang dibentuk dengan surat Keputusan Dekan Fakultas Teknik UNIMA Nomor: 
-        <strong>{{ $beritaAcara->nomor_sk_dekan ?? ($jadwal->nomor_sk ?? '..........') }}</strong> Tanggal 
-        <strong>{{ $beritaAcara->tanggal_sk_dekan ? $beritaAcara->tanggal_sk_dekan->translatedFormat('d F Y') : ($jadwal->tanggal_sk ? $jadwal->tanggal_sk->translatedFormat('d F Y') : '..........') }}</strong> telah diadakan Ujian Hasil Skripsi Terhadap Mahasiswa Tersebut di bawah ini:
+        Pada hari ini {{ $jadwal->tanggal_ujian?->translatedFormat('l') ?? '..........' }}, {{ $jadwal->tanggal_ujian?->translatedFormat('d F Y') ?? '..........' }} bertempat di {{ $beritaAcara->ruangan ?? ($jadwal->ruangan ?? '..........') }}, oleh Panitia Ujian Hasil Skripsi yang dibentuk dengan surat Keputusan Dekan Fakultas Teknik UNIMA Nomor: {{ $beritaAcara->nomor_sk_dekan ?? ($jadwal->nomor_sk ?? '..........') }} Tanggal {{ $beritaAcara->tanggal_sk_dekan ? $beritaAcara->tanggal_sk_dekan->translatedFormat('d F Y') : ($jadwal->tanggal_sk ? $jadwal->tanggal_sk->translatedFormat('d F Y') : '..........') }} telah diadakan Ujian Hasil Skripsi Terhadap Mahasiswa Tersebut di bawah ini :
     </div>
 
     <table class="info-table">
         <tr>
-            <td width="15%">Nama</td>
+            <td width="12%">Nama</td>
             <td width="2%">:</td>
-            <td class="font-bold">{{ $beritaAcara->mahasiswa_name ?? ($jadwal->pendaftaranUjianHasil->user->name ?? '..........') }}</td>
+            <td>{{ $beritaAcara->mahasiswa_name ?? ($jadwal->pendaftaranUjianHasil->user->name ?? '..........') }}</td>
         </tr>
         <tr>
             <td>NIM</td>
@@ -138,9 +157,9 @@
             <td>{{ $beritaAcara->mahasiswa_prodi ?? 'Teknik Informatika' }}</td>
         </tr>
         <tr>
-            <td>Judul</td>
-            <td>:</td>
-            <td class="font-bold">{{ $beritaAcara->judul_skripsi ?? ($jadwal->pendaftaranUjianHasil->judul_skripsi ?? '..........') }}</td>
+            <td style="padding-top: 5px;">Judul</td>
+            <td style="padding-top: 5px;">:</td>
+            <td style="padding-top: 5px; line-height: 1.3;">{{ $beritaAcara->judul_skripsi ?? ($jadwal->pendaftaranUjianHasil->judul_skripsi ?? '..........') }}</td>
         </tr>
     </table>
 
@@ -148,8 +167,8 @@
         <thead>
             <tr>
                 <th width="5%">NO</th>
-                <th width="45%">NAMA</th>
-                <th width="30%">PANITIA/PENGUJI</th>
+                <th width="55%">NAMA</th>
+                <th width="20%">PANITIA/PENGUJI</th>
                 <th width="20%">TANDA TANGAN</th>
             </tr>
         </thead>
@@ -161,38 +180,37 @@
                         WHEN posisi = 'Penguji 1' THEN 2 
                         WHEN posisi = 'Penguji 2' THEN 3 
                         WHEN posisi = 'Penguji 3' THEN 4 
-                        ELSE 5 END")
+                        WHEN posisi LIKE '%(PS1)%' THEN 5
+                        WHEN posisi LIKE '%(PS2)%' THEN 6
+                        ELSE 7 END")
                     ->get());
             @endphp
             @foreach($pengujiList as $index => $penguji)
                 <tr>
                     <td class="text-center">{{ $index + 1 }}.</td>
                     <td>{{ $penguji->name }}</td>
-                    <td class="text-center">
-                        {{ $penguji->pivot->posisi }}
-                    </td>
-                    
-                    {{-- Logic Tanda Tangan: Tanda Centang (Match Sempro Style) --}}
+                    <td class="text-center">Penguji</td>
                     <td class="text-center">
                         @php
-                            $isKetua = $penguji->pivot->posisi === 'Ketua Penguji';
                             $hasSigned = false;
+                            $isKetua = $penguji->pivot->posisi === 'Ketua Penguji';
                             
                             if ($isKetua) {
                                 $hasSigned = !is_null($beritaAcara->ttd_ketua_penguji_at);
                             } else {
-                                $signatures = is_array($beritaAcara->ttd_dosen_penguji) ? $beritaAcara->ttd_dosen_penguji : [];
-                                foreach ($signatures as $sig) {
-                                    if (isset($sig['dosen_id']) && $sig['dosen_id'] == $penguji->id) {
-                                        $hasSigned = true;
-                                        break;
+                                $signatures = $beritaAcara->ttd_dosen_penguji ?? [];
+                                if (is_array($signatures)) {
+                                    foreach ($signatures as $sig) {
+                                        if (isset($sig['dosen_id']) && $sig['dosen_id'] == $penguji->id) {
+                                            $hasSigned = true;
+                                            break;
+                                        }
                                     }
                                 }
                             }
                         @endphp
-
-                        @if($hasSigned)
-                            <span style="font-family: DejaVu Sans, sans-serif; color: #000; font-size: 10pt; font-weight: bold;">&#10003;</span>
+                        @if ($hasSigned)
+                            <span style="font-family: DejaVu Sans, sans-serif; color: #000; font-size: 11pt; font-weight: bold;">&#10003;</span>
                         @else
                             <span style="color: #999; font-size: 8pt;">-</span>
                         @endif
@@ -202,25 +220,52 @@
         </tbody>
     </table>
 
-    <div class="signature-wrapper clearfix">
-        <p style="margin-bottom: 3px;">Tondano, {{ $jadwal->tanggal_ujian ? $jadwal->tanggal_ujian->translatedFormat('d F Y') : '..........' }}</p>
-        <p style="margin-bottom: 5px; margin-top: 0;">Ketua Panitia/Ketua Jurusan,</p>
+    <div class="content-text">
+        Hasil Pelaksanaan ujian dituangkan dalam Keputusan Panitia ujian yang isinya seperti terlampir. Demikian Berita Acara ini dibuat dengan sebenarnya.
+    </div>
 
-        <div class="signature-space">
-            @php
-                // Check if signed by kajur (usually when status is selesai and file_path exists)
-                $isSignedByKajur = ($beritaAcara->status === 'selesai' && !is_null($beritaAcara->file_path));
-            @endphp
-
-            @if($isSignedByKajur)
-                <img src="data:image/png;base64,{{ base64_encode(QrCode::format('png')->size(150)->errorCorrection('H')->generate($beritaAcara->verification_url ?? route('berita-acara-ujian-hasil.verify', $beritaAcara->verification_code))) }}" 
-                     alt="QR Code Digital Signature"
-                     class="qr-code-img">
-            @endif
+    <div class="footer-section clearfix">
+        <div class="location-date">
+            Ditetapkan di : Tondano <br>
+            Pada Tanggal  : {{ $jadwal->tanggal_ujian ? $jadwal->tanggal_ujian->translatedFormat('d F Y') : '..........' }}
         </div>
 
-        <p class="font-bold underline" style="margin-bottom: 2px; margin-top: 0;">{{ $beritaAcara->nama_kajur ?? 'Dr. Chrisant F. Lotulung, S.Pd, M.Si' }}</p>
-        <p style="margin-top: 0;">NIP. {{ $beritaAcara->nip_kajur ?? '197805122005011001' }}</p>
+        <div class="signature-grid">
+            <!-- Section Panitia -->
+            <div class="text-center" style="margin-top: 5px;">PANITIA UJIAN</div>
+            <table style="vertical-align: top; width: 100%; line-height: 0.3; margin-top: 10px;">
+                <tr>
+                    {{-- KIRI: KETUA --}}
+                    <td style="padding-left: 4rem;">
+                        <p>KETUA,</p>
+                        <div class="signature-space">
+                            @php
+                                $isSignedByKetua = ($beritaAcara->status === 'selesai' || !is_null($beritaAcara->ttd_ketua_penguji_at));
+                            @endphp
+                            @if($isSignedByKetua && isset($beritaAcara->verification_url))
+                                <img src="data:image/png;base64,{{ base64_encode(QrCode::format('png')->size(150)->errorCorrection('H')->generate($beritaAcara->verification_url)) }}" 
+                                     alt="QR Code Sign" class="signature-image">
+                            @endif
+                        </div>
+                        <p class="underline">{{ $beritaAcara->nama_kajur ?? 'Dr. Hendro M. Sumual, ST, M.Eng, M.Pd' }}</p>
+                        <p>NIP. {{ $beritaAcara->nip_kajur ?? '19840522 200501 1 005' }}</p>
+                    </td>
+
+                    {{-- KANAN: SEKRETARIS --}}
+                    <td style="padding-left: 4rem;">
+                        <p>SEKRETARIS,</p>
+                        <div class="signature-space">
+                            @if($isSignedByKetua && isset($beritaAcara->verification_url))
+                                <img src="data:image/png;base64,{{ base64_encode(QrCode::format('png')->size(150)->errorCorrection('H')->generate($beritaAcara->verification_url)) }}" 
+                                     alt="QR Code Sign" class="signature-image">
+                            @endif
+                        </div>
+                        <p class="underline">{{ $beritaAcara->nama_sekretaris ?? 'Kristofel Santa, S.ST., M.MT' }}</p>
+                        <p>NIP. {{ $beritaAcara->nip_sekretaris ?? '19870531 201504 1 003' }}</p>
+                    </td>
+                </tr>
+            </table>
+        </div>
     </div>
 
 </body>

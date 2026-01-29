@@ -483,14 +483,14 @@ class AdminBeritaAcaraUjianHasilController extends Controller
                     'name' => 'Nama Mahasiswa Contoh',
                     'nim' => '20210001',
                 ],
-                'judul_skripsi' => 'Pengembangan Sistem Informasi E-Service Berbasis Web Menggunakan Framework Laravel dan Model Context Protocol',
+                'judul_skripsi' => 'Sistem Informasi E-Service Berbasis Web Menggunakan Framework Laravel dan Model Context Protocol',
             ],
             // Mock dosenPenguji() as a collection with pivot
             'dosenPenguji' => function() {
                 return collect([
                     (object) [
                         'id' => 1,
-                        'name' => 'Dosen Ketua Penguji, S.T., M.T.',
+                        'name' => 'Cindy Pamela Cornelia Munaiseche, S.T., M.Eng',
                         'pivot' => (object) ['posisi' => 'Ketua Penguji']
                     ],
                     (object) [
@@ -508,6 +508,11 @@ class AdminBeritaAcaraUjianHasilController extends Controller
                         'name' => 'Dosen Anggota 2, S.Pd., M.Pd.',
                         'pivot' => (object) ['posisi' => 'Penguji 3']
                     ],
+                    (object) [
+                        'id' => 5,
+                        'name' => 'Dosen Pembimbing 1, S.T., M.T.',
+                        'pivot' => (object) ['posisi' => 'Penguji 4 (PS1)']
+                    ],
                 ]);
             }
         ];
@@ -520,10 +525,11 @@ class AdminBeritaAcaraUjianHasilController extends Controller
         
         // Mocking the query builder results
         $mockPenguji = collect([
-            (object) ['id' => 1, 'name' => 'Dosen Ketua Penguji, S.T., M.T.', 'pivot' => (object) ['posisi' => 'Ketua Penguji']],
+            (object) ['id' => 1, 'name' => 'Cindy Pamela Cornelia Munaiseche, S.T., M.Eng', 'pivot' => (object) ['posisi' => 'Ketua Penguji']],
             (object) ['id' => 2, 'name' => 'Dosen Sekretaris, S.Kom., M.Cs.', 'pivot' => (object) ['posisi' => 'Penguji 1']],
             (object) ['id' => 3, 'name' => 'Dosen Anggota 1, S.T., M.Eng.', 'pivot' => (object) ['posisi' => 'Penguji 2']],
             (object) ['id' => 4, 'name' => 'Dosen Anggota 2, S.Pd., M.Pd.', 'pivot' => (object) ['posisi' => 'Penguji 3']],
+            (object) ['id' => 5, 'name' => 'Dosen Pembimbing 1, S.T., M.T.', 'pivot' => (object) ['posisi' => 'Penguji 4 (PS1)']],
         ]);
 
         // Simpler approach: update template to check if $jadwal is an object or mock
@@ -537,7 +543,7 @@ class AdminBeritaAcaraUjianHasilController extends Controller
             'ruangan' => 'Laboratorium Komputer 1',
             'nomor_sk_dekan' => '123/UN36.11/AK/2026',
             'tanggal_sk_dekan' => now()->subDays(5),
-            'nama_kajur' => 'Dr. Chrisant F. Lotulung, S.Pd, M.Si',
+            'nama_kajur' => 'Dr. Hendro M. Sumual, ST, M.Eng, M.Pd',
             'nip_kajur' => '197805122005011001',
             'status' => 'selesai',
             'verification_code' => 'BA-UH-MOCK123456',
