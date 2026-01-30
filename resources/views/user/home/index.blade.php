@@ -355,11 +355,6 @@
             // Fixed AOS initialization with proper error handling
             if (typeof AOS !== 'undefined' && AOS && typeof AOS.init === 'function') {
                 try {
-                    // Clear any existing AOS instances first
-                    if (typeof AOS.refresh === 'function') {
-                        AOS.refresh();
-                    }
-
                     // Reset all AOS elements before initialization
                     document.querySelectorAll('[data-aos]').forEach(element => {
                         element.classList.remove('aos-animate', 'aos-init');
@@ -392,6 +387,11 @@
                             animatedClassName: 'aos-animate',
                             initClassName: 'aos-init'
                         });
+
+                        // Refresh only after init to avoid undefined options
+                        if (typeof AOS.refresh === 'function') {
+                            AOS.refresh();
+                        }
                     }, 100);
 
                 } catch (error) {

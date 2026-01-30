@@ -1,66 +1,216 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# E-Service App
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Aplikasi layanan elektronik (e-service) untuk manajemen dokumen akademik berbasis web. Dibangun menggunakan Laravel 12 dengan fitur pengelolaan surat, penugasan komite, penetapan dosen pembimbing, dan penjadwalan seminar.
 
-## About Laravel
+## 📋 Fitur Utama
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+### Manajemen Dokumen Akademik
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- **Surat Keterangan (SK) Pembimbing** - Pengajuan dan penerbitan SK dosen pembimbing tugas akhir
+- **Berita Acara Seminar Proposal** - Pengelolaan dokumen seminar proposal mahasiswa
+- **Berita Acara Ujian Hasil** - Pengelolaan dokumen ujian hasil/sidang akhir
+- **Dokumen Pendukung** - Upload dan verifikasi dokumen pendukung
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### Sistem Tanda Tangan Digital
 
-## Learning Laravel
+- Alur persetujuan bertingkat (Koordinator Prodi → Ketua Jurusan)
+- QR Code untuk verifikasi keaslian dokumen
+- Halaman verifikasi publik tanpa autentikasi
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### Manajemen Pengguna & Hak Akses
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+- **Mahasiswa** - Mengajukan permohonan surat dan dokumen
+- **Dosen** - Menyetujui dan menandatangani dokumen (Koordinator Prodi, Ketua Jurusan)
+- **Staff** - Administrasi penuh dan pengelolaan sistem
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Fitur Tambahan
 
-## Laravel Sponsors
+- Generasi nomor surat otomatis berdasarkan tahun ajaran
+- Export data ke Excel
+- Import data mahasiswa & pembayaran UKT
+- Kalender akademik terintegrasi
+- Notifikasi dan tracking status pengajuan
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## 🛠️ Tech Stack
 
-### Premium Partners
+### Backend
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+- **PHP 8.2+**
+- **Laravel 12** - Framework PHP
+- **Spatie Permission** - Role & Permission Management
+- **DomPDF** - Generasi dokumen PDF
+- **Maatwebsite Excel** - Import/Export Excel
+- **SimpleSoftwareIO QR Code** - Generasi QR Code
 
-## Contributing
+### Frontend
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+- **Tailwind CSS 3** - Utility-first CSS framework
+- **Alpine.js** - Lightweight JavaScript framework
+- **Vite 6** - Build tool & asset bundler
+- **PDF.js & pdf-lib** - Manipulasi PDF client-side
 
-## Code of Conduct
+### Database & Storage
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+- **MySQL/MariaDB** - Database relasional
+- **Laravel Queue** - Background job processing
+- **File Storage** - Penyimpanan dokumen privat
 
-## Security Vulnerabilities
+## 📦 Instalasi
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### Prasyarat
 
-## License
+- PHP >= 8.2
+- Composer
+- Node.js >= 18
+- MySQL/MariaDB
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### Langkah Instalasi
+
+1. **Clone repository**
+
+    ```bash
+    git clone https://github.com/username/eservice-app.git
+    cd eservice-app
+    ```
+
+2. **Install dependencies**
+
+    ```bash
+    composer install
+    npm install
+    ```
+
+3. **Setup environment**
+
+    ```bash
+    cp .env.example .env
+    php artisan key:generate
+    ```
+
+4. **Konfigurasi database**
+
+    Edit file `.env` dan sesuaikan konfigurasi database:
+
+    ```env
+    DB_CONNECTION=mysql
+    DB_HOST=127.0.0.1
+    DB_PORT=3306
+    DB_DATABASE=eservice_app
+    DB_USERNAME=root
+    DB_PASSWORD=
+    ```
+
+5. **Migrasi & Seeding**
+
+    ```bash
+    php artisan migrate --seed
+    ```
+
+6. **Build assets**
+    ```bash
+    npm run build
+    ```
+
+## 🚀 Menjalankan Aplikasi
+
+### Mode Development
+
+```bash
+# Jalankan semua service secara bersamaan (server, queue, vite)
+composer dev
+
+# Atau jalankan secara terpisah:
+php artisan serve
+php artisan queue:listen --tries=1
+npm run dev
+```
+
+### Mode Production
+
+```bash
+npm run build
+php artisan optimize
+```
+
+## 🧪 Testing
+
+Aplikasi menggunakan **Pest PHP** untuk testing:
+
+```bash
+# Jalankan semua test
+vendor/bin/pest
+
+# Jalankan test spesifik
+vendor/bin/pest --filter=NamaTest
+```
+
+## 📝 Code Quality
+
+```bash
+# Format kode dengan Laravel Pint (PSR-12)
+./vendor/bin/pint
+```
+
+## 📁 Struktur Project
+
+```
+app/
+├── Actions/           # Single-purpose business operations
+│   ├── BeritaAcaraSempro/
+│   ├── BeritaAcaraUjianHasil/
+│   └── SkPembimbing/
+├── Services/          # Complex domain logic
+├── Models/            # Eloquent models
+├── Http/
+│   ├── Controllers/   # Route handlers
+│   ├── Requests/      # Form validation
+│   └── Middleware/    # HTTP middleware
+├── Policies/          # Authorization policies
+└── Traits/            # Reusable traits
+
+resources/views/
+├── admin/             # Views untuk staff/dosen
+├── user/              # Views untuk mahasiswa
+├── layouts/           # Layout templates
+└── components/        # Blade components
+```
+
+## 🔐 Sistem Role & Permission
+
+| Role        | Deskripsi                                               |
+| ----------- | ------------------------------------------------------- |
+| `mahasiswa` | Mahasiswa yang mengajukan permohonan                    |
+| `dosen`     | Dosen dengan jabatan (Koordinator Prodi, Ketua Jurusan) |
+| `staff`     | Administrator dengan akses penuh                        |
+
+## 📄 Alur Dokumen
+
+```
+Draft → Menunggu TTD Korprodi → Menunggu TTD Kajur → Selesai
+                    ↓                    ↓
+                 Ditolak              Ditolak
+```
+
+## 🔧 Konfigurasi
+
+- `config/surat.php` - Konfigurasi dokumen dan aturan pengajuan
+- `config/dompdf.php` - Konfigurasi generasi PDF
+- `config/permission.php` - Konfigurasi role & permission
+
+## 📚 Dokumentasi Tambahan
+
+- [Laravel Documentation](https://laravel.com/docs)
+- [Spatie Permission](https://spatie.be/docs/laravel-permission)
+- [Tailwind CSS](https://tailwindcss.com/docs)
+
+## 🤝 Kontribusi
+
+1. Fork repository ini
+2. Buat branch fitur (`git checkout -b feature/fitur-baru`)
+3. Commit perubahan (`git commit -m 'Menambahkan fitur baru'`)
+4. Push ke branch (`git push origin feature/fitur-baru`)
+5. Buat Pull Request
+
+## 📜 Lisensi
+
+Project ini dilisensikan di bawah [MIT License](LICENSE).
