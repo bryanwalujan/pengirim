@@ -348,7 +348,9 @@ class AdminBeritaAcaraUjianHasilController extends Controller
             $beritaAcara,
             $validated['dosen_id'],
             $validated['alasan'] ?? null,
-            $validated['lembar_koreksi'] ?? []
+            $validated['lembar_koreksi'] ?? [],
+            isset($validated['nilai_mutu']) ? (float) $validated['nilai_mutu'] : null,
+            $validated['catatan_penilaian'] ?? null
         );
 
         if (!$result['success']) {

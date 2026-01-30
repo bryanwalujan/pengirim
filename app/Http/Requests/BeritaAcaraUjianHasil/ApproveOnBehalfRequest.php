@@ -16,6 +16,8 @@ class ApproveOnBehalfRequest extends FormRequest
         return [
             'dosen_id' => ['required', 'exists:users,id'],
             'alasan' => ['nullable', 'string', 'max:500'],
+            'nilai_mutu' => ['nullable', 'numeric', 'min:0', 'max:4'],
+            'catatan_penilaian' => ['nullable', 'string', 'max:1000'],
             'lembar_koreksi' => ['nullable', 'array'],
             'lembar_koreksi.*.halaman' => ['nullable', 'string', 'max:50'],
             'lembar_koreksi.*.catatan' => ['nullable', 'string', 'max:1000'],
@@ -27,6 +29,9 @@ class ApproveOnBehalfRequest extends FormRequest
         return [
             'dosen_id.required' => 'Pilih dosen penguji yang akan disetujui.',
             'dosen_id.exists' => 'Dosen penguji tidak ditemukan.',
+            'nilai_mutu.numeric' => 'Nilai mutu harus berupa angka.',
+            'nilai_mutu.min' => 'Nilai mutu minimal 0.',
+            'nilai_mutu.max' => 'Nilai mutu maksimal 4.00.',
         ];
     }
 }

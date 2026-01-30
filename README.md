@@ -69,7 +69,7 @@ Aplikasi layanan elektronik (e-service) untuk manajemen dokumen akademik berbasi
 1. **Clone repository**
 
     ```bash
-    git clone https://github.com/username/eservice-app.git
+    git clone https://github.com/patrickrompas20/project-skripsi
     cd eservice-app
     ```
 
