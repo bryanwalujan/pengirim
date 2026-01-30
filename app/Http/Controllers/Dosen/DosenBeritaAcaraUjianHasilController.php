@@ -14,6 +14,58 @@ use Illuminate\Support\Facades\Log;
 
 class DosenBeritaAcaraUjianHasilController extends Controller
 {
+    /**
+     * Self-healing: Ensure PS1 and PS2 are included in the penguji list
+     */
+    private function ensurePembimbingIncludedInPenguji($jadwal): void
+    {
+        if (!$jadwal || !$jadwal->pendaftaranUjianHasil) {
+            return;
+        }
+
+        $pendaftaran = $jadwal->pendaftaranUjianHasil;
+        $changes = false;
+        $dosenData = [];
+
+        if ($pendaftaran->dosen_pembimbing1_id) {
+            $exists = $jadwal->dosenPenguji()
+                ->where('users.id', $pendaftaran->dosen_pembimbing1_id)
+                ->exists();
+
+            if (!$exists) {
+                $dosenData[$pendaftaran->dosen_pembimbing1_id] = [
+                    'posisi' => 'Penguji 4 (PS1)',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+                $changes = true;
+            }
+        }
+
+        if ($pendaftaran->dosen_pembimbing2_id) {
+            $exists = $jadwal->dosenPenguji()
+                ->where('users.id', $pendaftaran->dosen_pembimbing2_id)
+                ->exists();
+
+            if (!$exists) {
+                $dosenData[$pendaftaran->dosen_pembimbing2_id] = [
+                    'posisi' => 'Penguji 5 (PS2)',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+                $changes = true;
+            }
+        }
+
+        if ($changes && !empty($dosenData)) {
+            $jadwal->dosenPenguji()->syncWithoutDetaching($dosenData);
+
+            Log::info('✅ Self-healing (Dosen): Added missing Pembimbing to Penguji List', [
+                'jadwal_id' => $jadwal->id,
+                'added_dosen' => array_keys($dosenData),
+            ]);
+        }
+    }
     // ========================================
     // INDEX - List BA yang perlu di-review oleh dosen
     // ========================================
@@ -28,14 +80,14 @@ class DosenBeritaAcaraUjianHasilController extends Controller
                 $q->where('users.id', $user->id);
             });
         })
-        ->with([
-            'jadwalUjianHasil.pendaftaranUjianHasil.user',
-            'jadwalUjianHasil.dosenPenguji',
-            'mahasiswa',
-            'penilaians',
-        ])
-        ->latest()
-        ->paginate(10);
+            ->with([
+                'jadwalUjianHasil.pendaftaranUjianHasil.user',
+                'jadwalUjianHasil.dosenPenguji',
+                'mahasiswa',
+                'penilaians',
+            ])
+            ->latest()
+            ->paginate(10);
 
         return view('dosen.berita-acara-ujian-hasil.index', compact('beritaAcaras'));
     }
@@ -47,6 +99,14 @@ class DosenBeritaAcaraUjianHasilController extends Controller
     public function show(BeritaAcaraUjianHasil $beritaAcara)
     {
         $user = Auth::user();
+
+        if (!$beritaAcara->jadwalUjianHasil) {
+            return redirect()
+                ->route('dosen.berita-acara-ujian-hasil.index')
+                ->with('error', 'Jadwal ujian tidak ditemukan.');
+        }
+
+        $this->ensurePembimbingIncludedInPenguji($beritaAcara->jadwalUjianHasil);
 
         // Check if user is penguji for this BA
         $this->authorizeAccess($beritaAcara, $user->id);
@@ -80,6 +140,14 @@ class DosenBeritaAcaraUjianHasilController extends Controller
     {
         $user = Auth::user();
 
+        if (!$beritaAcara->jadwalUjianHasil) {
+            return redirect()
+                ->route('dosen.berita-acara-ujian-hasil.index')
+                ->with('error', 'Jadwal ujian tidak ditemukan.');
+        }
+
+        $this->ensurePembimbingIncludedInPenguji($beritaAcara->jadwalUjianHasil);
+
         // Check if user is penguji for this BA
         $this->authorizeAccess($beritaAcara, $user->id);
 
@@ -103,6 +171,14 @@ class DosenBeritaAcaraUjianHasilController extends Controller
     public function storePenilaian(StorePenilaianRequest $request, BeritaAcaraUjianHasil $beritaAcara)
     {
         $user = Auth::user();
+
+        if (!$beritaAcara->jadwalUjianHasil) {
+            return redirect()
+                ->route('dosen.berita-acara-ujian-hasil.index')
+                ->with('error', 'Jadwal ujian tidak ditemukan.');
+        }
+
+        $this->ensurePembimbingIncludedInPenguji($beritaAcara->jadwalUjianHasil);
 
         // Check if user is penguji for this BA
         $this->authorizeAccess($beritaAcara, $user->id);
@@ -136,7 +212,7 @@ class DosenBeritaAcaraUjianHasilController extends Controller
             }
 
             return redirect()
-                ->route('dosen.berita-acara-ujian-hasil.show', $beritaAcara)
+                ->route('admin.berita-acara-ujian-hasil.show', $beritaAcara)
                 ->with('success', 'Penilaian berhasil disimpan.');
 
         } catch (\Exception $e) {
@@ -157,6 +233,14 @@ class DosenBeritaAcaraUjianHasilController extends Controller
     public function showKoreksi(BeritaAcaraUjianHasil $beritaAcara)
     {
         $user = Auth::user();
+
+        if (!$beritaAcara->jadwalUjianHasil) {
+            return redirect()
+                ->route('dosen.berita-acara-ujian-hasil.index')
+                ->with('error', 'Jadwal ujian tidak ditemukan.');
+        }
+
+        $this->ensurePembimbingIncludedInPenguji($beritaAcara->jadwalUjianHasil);
 
         // Check if user is PS1/PS2
         if (!$beritaAcara->isPembimbing($user->id)) {
@@ -183,6 +267,14 @@ class DosenBeritaAcaraUjianHasilController extends Controller
     public function storeKoreksi(StoreLembarKoreksiRequest $request, BeritaAcaraUjianHasil $beritaAcara)
     {
         $user = Auth::user();
+
+        if (!$beritaAcara->jadwalUjianHasil) {
+            return redirect()
+                ->route('dosen.berita-acara-ujian-hasil.index')
+                ->with('error', 'Jadwal ujian tidak ditemukan.');
+        }
+
+        $this->ensurePembimbingIncludedInPenguji($beritaAcara->jadwalUjianHasil);
 
         // Check if user is PS1/PS2
         if (!$beritaAcara->isPembimbing($user->id)) {
@@ -213,7 +305,7 @@ class DosenBeritaAcaraUjianHasilController extends Controller
             ]);
 
             return redirect()
-                ->route('dosen.berita-acara-ujian-hasil.show', $beritaAcara)
+                ->route('admin.berita-acara-ujian-hasil.show', $beritaAcara)
                 ->with('success', 'Lembar Koreksi berhasil disimpan. Anda dapat melanjutkan untuk menandatangani Berita Acara.');
 
         } catch (\Exception $e) {

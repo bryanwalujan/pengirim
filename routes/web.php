@@ -802,162 +802,162 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 
     // ✅ BERITA ACARA SEMINAR PROPOSAL
     Route::prefix('berita-acara-sempro')->name('berita-acara-sempro.')->group(function () {
-            // ========== STATIC ROUTES (tanpa parameter) ==========
-            Route::get('/', [AdminBeritaAcaraSemproController::class, 'index'])
-                ->name('index');
+        // ========== STATIC ROUTES (tanpa parameter) ==========
+        Route::get('/', [AdminBeritaAcaraSemproController::class, 'index'])
+            ->name('index');
 
-            Route::get('/create/{jadwal}', [AdminBeritaAcaraSemproController::class, 'create'])
-                ->name('create')
-                ->middleware('role:staff|admin');
+        Route::get('/create/{jadwal}', [AdminBeritaAcaraSemproController::class, 'create'])
+            ->name('create')
+            ->middleware('role:staff|admin');
 
-            Route::post('/create/{jadwal}', [AdminBeritaAcaraSemproController::class, 'store'])
-                ->name('store')
-                ->middleware('role:staff|admin');
+        Route::post('/create/{jadwal}', [AdminBeritaAcaraSemproController::class, 'store'])
+            ->name('store')
+            ->middleware('role:staff|admin');
 
-            // Edit BA (Staff only - before TTD)
-            Route::get('/{beritaAcara}/edit', [AdminBeritaAcaraSemproController::class, 'edit'])->name('edit');
-            Route::put('/{beritaAcara}', [AdminBeritaAcaraSemproController::class, 'update'])->name('update');
+        // Edit BA (Staff only - before TTD)
+        Route::get('/{beritaAcara}/edit', [AdminBeritaAcaraSemproController::class, 'edit'])->name('edit');
+        Route::put('/{beritaAcara}', [AdminBeritaAcaraSemproController::class, 'update'])->name('update');
 
-            // ✅ MANAGE PEMBAHAS - PASTIKAN METHOD POST
-            Route::get('/{beritaAcara}/manage-pembahas', [AdminBeritaAcaraSemproController::class, 'managePembahas'])
-                ->name('manage-pembahas');
-            Route::post('/{beritaAcara}/update-pembahas', [AdminBeritaAcaraSemproController::class, 'updatePembahas'])
-                ->name('update-pembahas');
+        // ✅ MANAGE PEMBAHAS - PASTIKAN METHOD POST
+        Route::get('/{beritaAcara}/manage-pembahas', [AdminBeritaAcaraSemproController::class, 'managePembahas'])
+            ->name('manage-pembahas');
+        Route::post('/{beritaAcara}/update-pembahas', [AdminBeritaAcaraSemproController::class, 'updatePembahas'])
+            ->name('update-pembahas');
 
 
-            // ========== DYNAMIC ROUTES (dengan parameter {beritaAcara}) ==========
-            Route::get('/{beritaAcara}', [AdminBeritaAcaraSemproController::class, 'show'])
-                ->name('show');
+        // ========== DYNAMIC ROUTES (dengan parameter {beritaAcara}) ==========
+        Route::get('/{beritaAcara}', [AdminBeritaAcaraSemproController::class, 'show'])
+            ->name('show');
 
-            Route::get('/{beritaAcara}/edit', [AdminBeritaAcaraSemproController::class, 'edit'])
-                ->name('edit')
-                ->middleware('role:staff|admin');
+        Route::get('/{beritaAcara}/edit', [AdminBeritaAcaraSemproController::class, 'edit'])
+            ->name('edit')
+            ->middleware('role:staff|admin');
 
-            Route::put('/{beritaAcara}', [AdminBeritaAcaraSemproController::class, 'update'])
-                ->name('update')
-                ->middleware('role:staff|admin');
+        Route::put('/{beritaAcara}', [AdminBeritaAcaraSemproController::class, 'update'])
+            ->name('update')
+            ->middleware('role:staff|admin');
 
-            // ✅ APPROVE BY PEMBAHAS - Dosen Only
-            Route::get('/{beritaAcara}/approve-pembahas', [AdminBeritaAcaraSemproController::class, 'showApprovePembahas'])
-                ->name('approve-pembahas')
-                ->middleware('role:dosen');
+        // ✅ APPROVE BY PEMBAHAS - Dosen Only
+        Route::get('/{beritaAcara}/approve-pembahas', [AdminBeritaAcaraSemproController::class, 'showApprovePembahas'])
+            ->name('approve-pembahas')
+            ->middleware('role:dosen');
 
-            // ✅ TAMBAHKAN INI - Route yang HILANG!
-            Route::post('/{beritaAcara}/sign-pembahas', [AdminBeritaAcaraSemproController::class, 'signByPembahas'])
-                ->name('sign-pembahas')
-                ->middleware('role:dosen');
+        // ✅ TAMBAHKAN INI - Route yang HILANG!
+        Route::post('/{beritaAcara}/sign-pembahas', [AdminBeritaAcaraSemproController::class, 'signByPembahas'])
+            ->name('sign-pembahas')
+            ->middleware('role:dosen');
 
-            // ✅ NEW: Staff approve on behalf of pembahas
-            Route::post('/{beritaAcara}/approve-on-behalf', [AdminBeritaAcaraSemproController::class, 'approveOnBehalfOfPembahas'])
-                ->name('approve-on-behalf')
-                ->middleware('role:staff|admin');
+        // ✅ NEW: Staff approve on behalf of pembahas
+        Route::post('/{beritaAcara}/approve-on-behalf', [AdminBeritaAcaraSemproController::class, 'approveOnBehalfOfPembahas'])
+            ->name('approve-on-behalf')
+            ->middleware('role:staff|admin');
 
-            // ✅ FILL BY PEMBIMBING/KETUA
-            Route::get('/{beritaAcara}/fill-by-pembimbing', [AdminBeritaAcaraSemproController::class, 'fillByPembimbing'])
-                ->name('fill-by-pembimbing')
-                ->middleware('role:dosen');
+        // ✅ FILL BY PEMBIMBING/KETUA
+        Route::get('/{beritaAcara}/fill-by-pembimbing', [AdminBeritaAcaraSemproController::class, 'fillByPembimbing'])
+            ->name('fill-by-pembimbing')
+            ->middleware('role:dosen');
 
-            Route::post('/{beritaAcara}/fill-by-pembimbing', [AdminBeritaAcaraSemproController::class, 'storeFillByPembimbing'])
-                ->name('store-fill-by-pembimbing')
-                ->middleware('role:dosen');
+        Route::post('/{beritaAcara}/fill-by-pembimbing', [AdminBeritaAcaraSemproController::class, 'storeFillByPembimbing'])
+            ->name('store-fill-by-pembimbing')
+            ->middleware('role:dosen');
 
-            // ✅ NEW: Staff fill on behalf of pembimbing (OVERRIDE)
-            Route::get('/{beritaAcara}/fill-on-behalf', [AdminBeritaAcaraSemproController::class, 'showFillOnBehalfForm'])
-                ->name('fill-on-behalf')
-                ->middleware('role:staff|admin');
+        // ✅ NEW: Staff fill on behalf of pembimbing (OVERRIDE)
+        Route::get('/{beritaAcara}/fill-on-behalf', [AdminBeritaAcaraSemproController::class, 'showFillOnBehalfForm'])
+            ->name('fill-on-behalf')
+            ->middleware('role:staff|admin');
 
-            Route::post('/{beritaAcara}/fill-on-behalf', [AdminBeritaAcaraSemproController::class, 'fillOnBehalfOfPembimbing'])
-                ->name('store-fill-on-behalf')
-                ->middleware('role:staff|admin');
+        Route::post('/{beritaAcara}/fill-on-behalf', [AdminBeritaAcaraSemproController::class, 'fillOnBehalfOfPembimbing'])
+            ->name('store-fill-on-behalf')
+            ->middleware('role:staff|admin');
 
-            // ✅ SIGN BY KETUA (jika terpisah dari pembimbing)
-            Route::get('/{beritaAcara}/preview-signing', [AdminBeritaAcaraSemproController::class, 'previewBeforeSigning'])
-                ->name('preview-signing')
-                ->middleware('role:dosen');
+        // ✅ SIGN BY KETUA (jika terpisah dari pembimbing)
+        Route::get('/{beritaAcara}/preview-signing', [AdminBeritaAcaraSemproController::class, 'previewBeforeSigning'])
+            ->name('preview-signing')
+            ->middleware('role:dosen');
 
-            Route::post('/{beritaAcara}/sign-ketua', [AdminBeritaAcaraSemproController::class, 'signByKetua'])
-                ->name('sign-ketua')
-                ->middleware('role:dosen');
+        Route::post('/{beritaAcara}/sign-ketua', [AdminBeritaAcaraSemproController::class, 'signByKetua'])
+            ->name('sign-ketua')
+            ->middleware('role:dosen');
 
-            // ✅ PDF OPERATIONS
-            Route::get('/{beritaAcara}/download-pdf', [AdminBeritaAcaraSemproController::class, 'downloadPdf'])
-                ->name('download-pdf');
+        // ✅ PDF OPERATIONS
+        Route::get('/{beritaAcara}/download-pdf', [AdminBeritaAcaraSemproController::class, 'downloadPdf'])
+            ->name('download-pdf');
 
-            Route::get('/{beritaAcara}/view-pdf', [AdminBeritaAcaraSemproController::class, 'viewPdf'])
-                ->name('view-pdf');
+        Route::get('/{beritaAcara}/view-pdf', [AdminBeritaAcaraSemproController::class, 'viewPdf'])
+            ->name('view-pdf');
 
-            Route::post('/{beritaAcara}/generate-pdf', [AdminBeritaAcaraSemproController::class, 'generatePdf'])
-                ->name('generate-pdf')
-                ->middleware('role:staff|admin');
+        Route::post('/{beritaAcara}/generate-pdf', [AdminBeritaAcaraSemproController::class, 'generatePdf'])
+            ->name('generate-pdf')
+            ->middleware('role:staff|admin');
 
-            // ✅ RESET BA (Staff only)
-            Route::post('/{beritaAcara}/reset', [AdminBeritaAcaraSemproController::class, 'resetBeritaAcara'])
-                ->name('reset')
-                ->middleware('role:staff|admin');
+        // ✅ RESET BA (Staff only)
+        Route::post('/{beritaAcara}/reset', [AdminBeritaAcaraSemproController::class, 'resetBeritaAcara'])
+            ->name('reset')
+            ->middleware('role:staff|admin');
 
-            // ✅ DELETE BA (Staff only)
-            Route::delete('/{beritaAcara}', [AdminBeritaAcaraSemproController::class, 'destroy'])
-                ->name('destroy')
-                ->middleware('role:staff|admin');
+        // ✅ DELETE BA (Staff only)
+        Route::delete('/{beritaAcara}', [AdminBeritaAcaraSemproController::class, 'destroy'])
+            ->name('destroy')
+            ->middleware('role:staff|admin');
 
-            // PDF Management
-            Route::get('/{beritaAcara}/preview-pdf', [AdminBeritaAcaraSemproController::class, 'previewPdf'])
-                ->name('preview-pdf')
-                ->middleware('role:staff|admin');
+        // PDF Management
+        Route::get('/{beritaAcara}/preview-pdf', [AdminBeritaAcaraSemproController::class, 'previewPdf'])
+            ->name('preview-pdf')
+            ->middleware('role:staff|admin');
 
-            Route::post('/{beritaAcara}/generate-pdf', [AdminBeritaAcaraSemproController::class, 'generatePdf'])
-                ->name('generate-pdf')
-                ->middleware('role:staff|admin');
+        Route::post('/{beritaAcara}/generate-pdf', [AdminBeritaAcaraSemproController::class, 'generatePdf'])
+            ->name('generate-pdf')
+            ->middleware('role:staff|admin');
 
-            Route::get('/{beritaAcara}/download-pdf', [AdminBeritaAcaraSemproController::class, 'downloadPdf'])
-                ->name('download-pdf');
+        Route::get('/{beritaAcara}/download-pdf', [AdminBeritaAcaraSemproController::class, 'downloadPdf'])
+            ->name('download-pdf');
 
-            Route::get('/{beritaAcara}/view-pdf', [AdminBeritaAcaraSemproController::class, 'viewPdf'])
-                ->name('view-pdf');
+        Route::get('/{beritaAcara}/view-pdf', [AdminBeritaAcaraSemproController::class, 'viewPdf'])
+            ->name('view-pdf');
 
-            // Legacy
-            Route::post('/{beritaAcara}/sign', [AdminBeritaAcaraSemproController::class, 'sign'])
-                ->name('sign')
-                ->middleware('role:dosen');
-        });
+        // Legacy
+        Route::post('/{beritaAcara}/sign', [AdminBeritaAcaraSemproController::class, 'sign'])
+            ->name('sign')
+            ->middleware('role:dosen');
+    });
 
     // ✅ LEMBAR CATATAN SEMINAR PROPOSAL
     Route::prefix('lembar-catatan-sempro')->name('lembar-catatan-sempro.')->group(function () {
 
-            // ========== STATIC ROUTES ==========
+        // ========== STATIC ROUTES ==========
 
-            // Create Lembar Catatan (Dosen Penguji)
-            Route::get('/create/{beritaAcara}', [LembarCatatanSemproController::class, 'create'])
-                ->name('create')
-                ->middleware('role:dosen');
+        // Create Lembar Catatan (Dosen Penguji)
+        Route::get('/create/{beritaAcara}', [LembarCatatanSemproController::class, 'create'])
+            ->name('create')
+            ->middleware('role:dosen');
 
-            // Store Lembar Catatan
-            Route::post('/create/{beritaAcara}', [LembarCatatanSemproController::class, 'store'])
-                ->name('store')
-                ->middleware('role:dosen');
+        // Store Lembar Catatan
+        Route::post('/create/{beritaAcara}', [LembarCatatanSemproController::class, 'store'])
+            ->name('store')
+            ->middleware('role:dosen');
 
 
-            // ========== DYNAMIC ROUTES ==========
+        // ========== DYNAMIC ROUTES ==========
 
-            // Show Lembar Catatan
-            Route::get('/{lembarCatatan}', [LembarCatatanSemproController::class, 'show'])
-                ->name('show');
+        // Show Lembar Catatan
+        Route::get('/{lembarCatatan}', [LembarCatatanSemproController::class, 'show'])
+            ->name('show');
 
-            // Edit Lembar Catatan (before BA signed)
-            Route::get('/{lembarCatatan}/edit', [LembarCatatanSemproController::class, 'edit'])
-                ->name('edit')
-                ->middleware('role:dosen');
+        // Edit Lembar Catatan (before BA signed)
+        Route::get('/{lembarCatatan}/edit', [LembarCatatanSemproController::class, 'edit'])
+            ->name('edit')
+            ->middleware('role:dosen');
 
-            // Update Lembar Catatan
-            Route::put('/{lembarCatatan}', [LembarCatatanSemproController::class, 'update'])
-                ->name('update')
-                ->middleware('role:dosen');
+        // Update Lembar Catatan
+        Route::put('/{lembarCatatan}', [LembarCatatanSemproController::class, 'update'])
+            ->name('update')
+            ->middleware('role:dosen');
 
-            // Delete Lembar Catatan
-            Route::delete('/{lembarCatatan}', [LembarCatatanSemproController::class, 'destroy'])
-                ->name('destroy')
-                ->middleware('role:dosen|staff|admin');
-        });
+        // Delete Lembar Catatan
+        Route::delete('/{lembarCatatan}', [LembarCatatanSemproController::class, 'destroy'])
+            ->name('destroy')
+            ->middleware('role:dosen|staff|admin');
+    });
 
     // SK Pembimbing Skripsi
     Route::prefix('sk-pembimbing')->name('sk-pembimbing.')->group(function () {
@@ -1200,7 +1200,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::delete('/{beritaAcara}', [AdminBeritaAcaraUjianHasilController::class, 'destroy'])
             ->name('destroy')
             ->middleware('role:staff|admin');
-        });
+    });
 
 });
 
@@ -1210,20 +1210,40 @@ Route::middleware(['auth', 'role:dosen'])->prefix('dosen')->name('dosen.')->grou
     Route::resource('berita-acara-ujian-hasil', \App\Http\Controllers\Dosen\DosenBeritaAcaraUjianHasilController::class)
         ->only(['index', 'show']);
 
-    Route::get('berita-acara-ujian-hasil/{beritaAcara}/penilaian',
-        [\App\Http\Controllers\Dosen\DosenBeritaAcaraUjianHasilController::class, 'showPenilaian'])
+    Route::get(
+        'berita-acara-ujian-hasil/{beritaAcara}/approve-penguji',
+        [\App\Http\Controllers\Admin\AdminBeritaAcaraUjianHasilController::class, 'showApprovePenguji']
+    )
+        ->name('berita-acara-ujian-hasil.approve-penguji');
+
+    Route::post(
+        'berita-acara-ujian-hasil/{beritaAcara}/sign-penguji',
+        [\App\Http\Controllers\Admin\AdminBeritaAcaraUjianHasilController::class, 'signByPenguji']
+    )
+        ->name('berita-acara-ujian-hasil.sign-penguji');
+
+    Route::get(
+        'berita-acara-ujian-hasil/{beritaAcara}/penilaian',
+        [\App\Http\Controllers\Dosen\DosenBeritaAcaraUjianHasilController::class, 'showPenilaian']
+    )
         ->name('berita-acara-ujian-hasil.penilaian');
 
-    Route::post('berita-acara-ujian-hasil/{beritaAcara}/penilaian',
-        [\App\Http\Controllers\Dosen\DosenBeritaAcaraUjianHasilController::class, 'storePenilaian'])
+    Route::post(
+        'berita-acara-ujian-hasil/{beritaAcara}/penilaian',
+        [\App\Http\Controllers\Dosen\DosenBeritaAcaraUjianHasilController::class, 'storePenilaian']
+    )
         ->name('berita-acara-ujian-hasil.penilaian.store');
 
-    Route::get('berita-acara-ujian-hasil/{beritaAcara}/koreksi',
-        [\App\Http\Controllers\Dosen\DosenBeritaAcaraUjianHasilController::class, 'showKoreksi'])
+    Route::get(
+        'berita-acara-ujian-hasil/{beritaAcara}/koreksi',
+        [\App\Http\Controllers\Dosen\DosenBeritaAcaraUjianHasilController::class, 'showKoreksi']
+    )
         ->name('berita-acara-ujian-hasil.koreksi');
 
-    Route::post('berita-acara-ujian-hasil/{beritaAcara}/koreksi',
-        [\App\Http\Controllers\Dosen\DosenBeritaAcaraUjianHasilController::class, 'storeKoreksi'])
+    Route::post(
+        'berita-acara-ujian-hasil/{beritaAcara}/koreksi',
+        [\App\Http\Controllers\Dosen\DosenBeritaAcaraUjianHasilController::class, 'storeKoreksi']
+    )
         ->name('berita-acara-ujian-hasil.koreksi.store');
 });
 

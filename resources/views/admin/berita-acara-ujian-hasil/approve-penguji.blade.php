@@ -458,7 +458,7 @@
                     reverseButtons: true,
                     customClass: {
                         confirmButton: 'btn btn-primary px-4',
-                        cancelButton: 'btn btn-label-secondary px-4'
+                        cancelButton: 'btn btn-secondary px-4'
                     }
                 }).then((result) => {
                     if (result.isConfirmed) {

@@ -124,6 +124,10 @@
                     ->exists();
             }
 
+            // Check apakah user adalah pembimbing (PS1/PS2)
+            $isPembimbing = $isDosen ? $beritaAcara->isPembimbing($user->id) : false;
+            $myKoreksi = $isPembimbing ? $beritaAcara->getLembarKoreksiFrom($user->id) : null;
+
             // Check apakah user adalah ketua penguji
             $isKetua = false;
             $ketuaPenguji = null;
@@ -247,6 +251,16 @@
                                     <i class="bx bx-check-circle me-1"></i> Sudah Disetujui
                                 </span>
                             @endif
+                        @endif
+
+                        {{-- TOMBOL LEMBAR KOREKSI (PS1/PS2 - OPSIONAL) --}}
+                        @if ($isPembimbing)
+                            <a href="{{ route('dosen.berita-acara-ujian-hasil.koreksi', $beritaAcara) }}"
+                                class="btn btn-outline-info fw-bold">
+                                <i
+                                    class="bx bx-edit me-1"></i>{{ $myKoreksi ? 'Ubah Lembar Koreksi' : 'Isi Lembar Koreksi' }}
+                                <span class="badge bg-label-info ms-2">Opsional</span>
+                            </a>
                         @endif
 
                         {{-- TOMBOL UNTUK KETUA PENGUJI --}}
@@ -599,7 +613,10 @@
                 @endif
 
                 {{-- Penilaian & Lembar Koreksi Card --}}
-                @if ($beritaAcara->penilaians->count() > 0 || $beritaAcara->lembarKoreksis->count() > 0)
+                @if (
+                    $beritaAcara->penilaians->count() > 0 ||
+                        $beritaAcara->lembarKoreksis->count() > 0 ||
+                        ($isDosen && $beritaAcara->isMenungguTtdPenguji()))
                     <div class="card mb-4 shadow-sm border-0 overflow-hidden">
                         <div class="card-header border-bottom p-4">
                             <h5 class="mb-0 fw-bold"><i class="bx bx-bar-chart-alt-2 me-2 text-warning"></i>Rekapitulasi
@@ -611,9 +628,9 @@
                                     <tr>
                                         <th class="ps-4 fw-bold py-3" width="5%">No</th>
                                         <th class="fw-bold py-3">Dosen Penguji</th>
-                                        <th class="fw-bold py-3 text-center" width="20%">Nilai Akhir</th>
-                                        <th class="fw-bold py-3 text-center" width="20%">Status Koreksi (PS1/PS2)</th>
-                                        <th class="pe-4 fw-bold py-3 text-center" width="15%">Detail Koreksi</th>
+                                        <th class="fw-bold py-3 text-center" width="15%">Nilai Akhir</th>
+                                        <th class="fw-bold py-3 text-center" width="15%">Status Koreksi</th>
+                                        <th class="pe-4 fw-bold py-3 text-center" width="25%">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -630,18 +647,39 @@
                                                     str_contains($penguji->pivot->posisi, 'PS1') ||
                                                     str_contains($penguji->pivot->posisi, 'PS2') ||
                                                     str_contains($penguji->pivot->posisi, 'Pembimbing');
+                                                $isCurrentDosen = $penguji->id === $user->id;
+                                                $isKetuaPenguji = $penguji->pivot->posisi === 'Ketua Penguji';
+                                                $canEditPenilaian =
+                                                    $isCurrentDosen &&
+                                                    $beritaAcara->isMenungguTtdPenguji() &&
+                                                    !$isKetuaPenguji;
                                             @endphp
-                                            <tr>
+                                            <tr class="{{ $isCurrentDosen ? 'table-warning' : '' }}">
                                                 <td class="ps-4 text-muted">{{ $index + 1 }}</td>
                                                 <td>
-                                                    <div class="fw-bold">{{ $penguji->name }}</div>
-                                                    <small class="text-muted">{{ $penguji->pivot->posisi }}</small>
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="avatar avatar-sm me-2">
+                                                            <span
+                                                                class="avatar-initial rounded-circle {{ $isCurrentDosen ? 'bg-warning' : 'bg-label-primary' }}">
+                                                                {{ strtoupper(substr($penguji->name, 0, 1)) }}
+                                                            </span>
+                                                        </div>
+                                                        <div>
+                                                            <div class="fw-bold">{{ $penguji->name }}</div>
+                                                            <small
+                                                                class="text-muted">{{ $penguji->pivot->posisi }}</small>
+                                                            @if ($isCurrentDosen)
+                                                                <span class="badge bg-warning ms-1"
+                                                                    style="font-size: 9px;">Anda</span>
+                                                            @endif
+                                                        </div>
+                                                    </div>
                                                 </td>
                                                 <td class="text-center">
                                                     @if ($penilaian)
                                                         <div class="d-flex flex-column align-items-center">
                                                             <span
-                                                                class="fw-bold text-warning fs-5">{{ $penilaian->total_nilai }}</span>
+                                                                class="fw-bold text-warning fs-5">{{ number_format($penilaian->nilai_mutu ?? 0, 2) }}</span>
                                                             <span class="badge bg-label-warning px-2 rounded"
                                                                 style="font-size: 10px;">{{ $penilaian->grade_letter }}</span>
                                                         </div>
@@ -665,14 +703,44 @@
                                                     @endif
                                                 </td>
                                                 <td class="pe-4 text-center">
-                                                    @if ($isPembimbing && $koreksi)
-                                                        <button class="btn btn-sm btn-secondary"
-                                                            onclick="showDetailModal({{ $penguji->id }}, '{{ addslashes($penguji->name) }}', '{{ $penguji->pivot->posisi }}')">
-                                                            <i class="bx bx-show"></i> Lihat
-                                                        </button>
-                                                    @else
-                                                        <span class="text-muted small">-</span>
-                                                    @endif
+                                                    <div class="d-flex justify-content-center gap-1 flex-wrap">
+                                                        {{-- Tombol Lihat Detail Penilaian --}}
+                                                        @if ($penilaian)
+                                                            <button class="btn btn-sm btn-outline-info"
+                                                                onclick="showDetailModal({{ $penguji->id }}, '{{ addslashes($penguji->name) }}', '{{ $penguji->pivot->posisi }}')"
+                                                                data-bs-toggle="tooltip" title="Lihat Detail Penilaian">
+                                                                <i class="bx bx-show"></i>
+                                                            </button>
+                                                        @endif
+
+                                                        {{-- Tombol Edit/Isi Penilaian untuk Dosen yang login --}}
+                                                        @if ($canEditPenilaian)
+                                                            <a href="{{ route('dosen.berita-acara-ujian-hasil.penilaian', $beritaAcara) }}"
+                                                                class="btn btn-sm {{ $penilaian ? 'btn-outline-warning' : 'btn-primary' }}"
+                                                                data-bs-toggle="tooltip"
+                                                                title="{{ $penilaian ? 'Edit Penilaian' : 'Isi Penilaian' }}">
+                                                                <i
+                                                                    class="bx {{ $penilaian ? 'bx-edit' : 'bx-plus' }}"></i>
+                                                                {{ $penilaian ? 'Edit' : 'Isi' }}
+                                                            </a>
+                                                        @endif
+
+                                                        {{-- Tombol Edit/Isi Lembar Koreksi untuk PS1/PS2 --}}
+                                                        @if ($isPembimbing && $isCurrentDosen && $beritaAcara->isMenungguTtdPenguji())
+                                                            <a href="{{ route('dosen.berita-acara-ujian-hasil.koreksi', $beritaAcara) }}"
+                                                                class="btn btn-sm {{ $koreksi ? 'btn-outline-secondary' : 'btn-secondary' }}"
+                                                                data-bs-toggle="tooltip"
+                                                                title="{{ $koreksi ? 'Edit Koreksi' : 'Isi Koreksi' }}">
+                                                                <i class="bx {{ $koreksi ? 'bx-edit' : 'bx-plus' }}"></i>
+                                                                Koreksi
+                                                            </a>
+                                                        @endif
+
+                                                        {{-- Jika tidak ada aksi --}}
+                                                        @if (!$penilaian && !$canEditPenilaian && !($isPembimbing && $isCurrentDosen && $beritaAcara->isMenungguTtdPenguji()))
+                                                            <span class="text-muted small">-</span>
+                                                        @endif
+                                                    </div>
                                                 </td>
                                             </tr>
                                         @endforeach
@@ -954,25 +1022,68 @@
             // Populate Penilaian
             const penilaianContent = document.getElementById('penilaianContent');
             if (penilaian) {
+                // Komponen penilaian dengan bobot
+                const komponenLabels = {
+                    nilai_kebaruan: {
+                        label: 'Kebaruan dan Signifikansi Penelitian',
+                        bobot: 1.5
+                    },
+                    nilai_kesesuaian: {
+                        label: 'Kesesuaian Judul, Masalah, Tujuan, Pembahasan, Kesimpulan, dan Saran',
+                        bobot: 1.5
+                    },
+                    nilai_metode: {
+                        label: 'Metode Penelitian dan Pemecahan Masalah',
+                        bobot: 1
+                    },
+                    nilai_kajian_teori: {
+                        label: 'Kajian Teori',
+                        bobot: 1
+                    },
+                    nilai_hasil_penelitian: {
+                        label: 'Hasil Penelitian',
+                        bobot: 3
+                    },
+                    nilai_referensi: {
+                        label: 'Referensi',
+                        bobot: 1
+                    },
+                    nilai_tata_bahasa: {
+                        label: 'Tata Bahasa',
+                        bobot: 1
+                    }
+                };
+
+                let komponenRows = '';
+                Object.entries(komponenLabels).forEach(([key, config]) => {
+                    const nilai = penilaian[key];
+                    if (nilai !== null && nilai !== undefined) {
+                        const kontribusi = ((nilai / 100) * config.bobot).toFixed(2);
+                        komponenRows += `
+                            <tr>
+                                <td>${config.label}</td>
+                                <td class="text-center fw-bold">${config.bobot}</td>
+                                <td class="text-center">${nilai}</td>
+                                <td class="text-center fw-bold text-primary">${kontribusi}</td>
+                            </tr>
+                        `;
+                    }
+                });
+
                 penilaianContent.innerHTML = `
                     <div class="row g-3">
                         <div class="col-md-6">
                             <div class="p-3 bg-white rounded border">
-                                <small class="text-muted d-block mb-1">Nilai Akhir</small>
-                                <div class="fs-3 fw-bold text-warning">${penilaian.total_nilai}</div>
+                                <small class="text-muted d-block mb-1">Nilai Mutu (Skala 4.00)</small>
+                                <div class="fs-3 fw-bold text-warning">${penilaian.nilai_mutu ? parseFloat(penilaian.nilai_mutu).toFixed(2) : '-'}</div>
                                 <span class="badge bg-label-warning">${penilaian.grade_letter || '-'}</span>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="p-3 bg-white rounded border">
-                                <small class="text-muted d-block mb-1">Waktu Input</small>
-                                <div class="fw-semibold">${penilaian.created_at ? new Date(penilaian.created_at).toLocaleDateString('id-ID', { 
-                                    day: 'numeric', 
-                                    month: 'long', 
-                                    year: 'numeric',
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                }) : '-'}</div>
+                                <small class="text-muted d-block mb-1">Total Bobot</small>
+                                <div class="fs-3 fw-bold text-info">${penilaian.total_nilai ? parseFloat(penilaian.total_nilai).toFixed(2) : '-'}</div>
+                                <small class="text-muted">dari maksimal 10.00</small>
                             </div>
                         </div>
                         <div class="col-12">
@@ -980,18 +1091,27 @@
                                 <table class="table table-sm table-bordered mb-0">
                                     <thead class="table-light">
                                         <tr>
-                                            <th class="text-center" width="50%">Aspek Penilaian</th>
-                                            <th class="text-center">Skor</th>
+                                            <th>Komponen</th>
+                                            <th class="text-center" width="12%">Bobot</th>
+                                            <th class="text-center" width="15%">Nilai</th>
+                                            <th class="text-center" width="15%">Kontribusi</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        ${penilaian.nilai_presentasi ? `<tr><td>Presentasi</td><td class="text-center fw-bold">${penilaian.nilai_presentasi}</td></tr>` : ''}
-                                        ${penilaian.nilai_penguasaan_materi ? `<tr><td>Penguasaan Materi</td><td class="text-center fw-bold">${penilaian.nilai_penguasaan_materi}</td></tr>` : ''}
-                                        ${penilaian.nilai_metodologi ? `<tr><td>Metodologi</td><td class="text-center fw-bold">${penilaian.nilai_metodologi}</td></tr>` : ''}
-                                        ${penilaian.nilai_hasil ? `<tr><td>Hasil & Analisis</td><td class="text-center fw-bold">${penilaian.nilai_hasil}</td></tr>` : ''}
-                                        ${penilaian.nilai_kemampuan_menjawab ? `<tr><td>Kemampuan Menjawab</td><td class="text-center fw-bold">${penilaian.nilai_kemampuan_menjawab}</td></tr>` : ''}
+                                        ${komponenRows}
                                     </tbody>
+                                    <tfoot class="table-primary">
+                                        <tr>
+                                            <th colspan="3" class="text-end">Total Bobot</th>
+                                            <th class="text-center">${penilaian.total_nilai ? parseFloat(penilaian.total_nilai).toFixed(2) : '-'}</th>
+                                        </tr>
+                                    </tfoot>
                                 </table>
+                            </div>
+                            <div class="mt-2 p-2 bg-light rounded border">
+                                <small class="text-muted">
+                                    <strong>Rumus:</strong> Nilai Mutu = (Total Bobot / 10) × 4 = ${penilaian.nilai_mutu ? parseFloat(penilaian.nilai_mutu).toFixed(2) : '-'}
+                                </small>
                             </div>
                         </div>
                         ${penilaian.catatan ? `
@@ -1001,7 +1121,7 @@
                                             <p class="mb-0 small text-muted">${penilaian.catatan}</p>
                                         </div>
                                     </div>
-                                    ` : ''}
+                                ` : ''}
                     </div>
                 `;
             } else {
@@ -1029,11 +1149,11 @@
                             </thead>
                             <tbody>
                                 ${koreksi.koreksi_data.map(item => `
-                                                <tr>
-                                                    <td class="text-center fw-bold">${item.halaman || '-'}</td>
-                                                    <td>${item.catatan || '-'}</td>
-                                                </tr>
-                                            `).join('')}
+                                                                        <tr>
+                                                                            <td class="text-center fw-bold">${item.halaman || '-'}</td>
+                                                                            <td>${item.catatan || '-'}</td>
+                                                                        </tr>
+                                                                    `).join('')}
                             </tbody>
                         </table>
                     </div>

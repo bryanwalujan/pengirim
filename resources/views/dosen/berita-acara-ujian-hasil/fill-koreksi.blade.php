@@ -11,7 +11,7 @@
                 </h4>
             </div>
             <div class="col-md-3 text-end">
-                <a href="{{ route('dosen.berita-acara-ujian-hasil.show', $beritaAcara) }}" class="btn btn-secondary mt-3">
+                <a href="{{ route('admin.berita-acara-ujian-hasil.show', $beritaAcara) }}" class="btn btn-secondary mt-3">
                     <i class="bx bx-arrow-back me-1"></i> Batal
                 </a>
             </div>

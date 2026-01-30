@@ -190,7 +190,7 @@
 
                     @if ($canSign && $beritaAcara->isMenungguTtdPenguji())
                         <div class="text-end">
-                            <form action="{{ route('admin.berita-acara-ujian-hasil.sign-penguji', $beritaAcara) }}"
+                            <form action="{{ route('dosen.berita-acara-ujian-hasil.sign-penguji', $beritaAcara) }}"
                                 method="POST">
                                 @csrf
                                 <input type="hidden" name="passcode" value="123456">
@@ -255,7 +255,7 @@
     <div class="modal fade" id="signModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
-                <form action="{{ route('admin.berita-acara-ujian-hasil.sign-penguji', $beritaAcara) }}" method="POST">
+                <form action="{{ route('dosen.berita-acara-ujian-hasil.sign-penguji', $beritaAcara) }}" method="POST">
                     @csrf
                     <div class="modal-header">
                         <h5 class="modal-title">Konfirmasi Tanda Tangan</h5>
