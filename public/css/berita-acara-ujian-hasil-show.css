@@ -1,0 +1,83 @@
+/**
+ * Styles for Berita Acara Ujian Hasil Detail Page
+ * File: resources/views/admin/berita-acara-ujian-hasil/show.blade.php
+ */
+
+/* Custom Utilities */
+.rounded-xl {
+    border-radius: 0.75rem !important;
+}
+
+.rounded-2xl {
+    border-radius: 1rem !important;
+}
+
+.x-small {
+    font-size: 0.7rem !important;
+}
+
+.fs-small {
+    font-size: 0.8rem !important;
+}
+
+.leading-relaxed {
+    line-height: 1.6 !important;
+}
+
+/* Workflow Timeline */
+.workflow-timeline {
+    position: relative;
+}
+
+.timeline-step {
+    position: relative;
+}
+
+.timeline-step::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 24px;
+    bottom: 0;
+    width: 2px;
+    background: #eceef1;
+    margin-left: -1px;
+}
+
+.timeline-step:last-child::before {
+    display: none;
+}
+
+.timeline-step.active::before {
+    background: #ffab00;
+}
+
+/* Card Hover Effects */
+.card {
+    transition: all 0.3s ease;
+}
+
+/* Custom Scrollbar for Table */
+.table-responsive::-webkit-scrollbar {
+    height: 6px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+    background: #f5f5f9;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+    background: #d9dee3;
+    border-radius: 3px;
+}
+
+/* Premium Swal Classes */
+.premium-swal-container .swal2-popup {
+    padding: 2rem;
+}
+
+/* Sneat specific overrides for premium feel */
+.bg-label-amber {
+    background-color: #fff2e0 !important;
+    color: #ffab00 !important;
+}
