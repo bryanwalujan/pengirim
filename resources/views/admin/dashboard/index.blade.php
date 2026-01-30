@@ -112,6 +112,33 @@
                 height: 250px;
             }
         }
+
+        /* Additional enhancements */
+        .hover-shadow-sm:hover {
+            box-shadow: 0 .125rem .25rem rgba(0, 0, 0, .075) !important;
+        }
+
+        .active-scale-down:active {
+            transform: scale(0.98);
+        }
+
+        .transition-base {
+            transition: all 0.2s ease;
+        }
+
+        .hover-bg-light-secondary:hover {
+            background-color: #e9ecef !important;
+        }
+
+        .alert-soft-warning {
+            background-color: #fff2d6;
+            color: #ffab00;
+        }
+
+        .alert-soft-success {
+            background-color: #e8fadf;
+            color: #71dd37;
+        }
     </style>
 @endpush
 
@@ -249,6 +276,281 @@
                                     <i class='bx bx-calendar me-1 text-info'></i>
                                     <span class="text-muted">hari</span>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- E-Service Features Overview -->
+        <div class="row mb-4">
+            <!-- Header Section -->
+            <div class="col-12 mb-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class='bx bx-grid-alt me-2'></i>Fitur E-Service
+                    </h5>
+                    <span class="text-muted small">Akses cepat ke layanan utama</span>
+                </div>
+            </div>
+
+            <!-- 1. Manajemen Layanan (Surat Mahasiswa) -->
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100 border-0 shadow-sm stats-card primary">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="avatar avatar-md me-3">
+                                <span class="avatar-initial rounded bg-label-primary">
+                                    <i class='bx bx-envelope'></i>
+                                </span>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">Manajemen Layanan</h6>
+                                <small class="text-muted">Administrasi Surat Mahasiswa</small>
+                            </div>
+                        </div>
+
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <a href="{{ route('admin.surat-aktif-kuliah.index') }}" class="text-decoration-none">
+                                    <div class="p-2 bg-light rounded text-center border active-scale-down">
+                                        <h6 class="mb-0 text-primary">
+                                            {{ $featureStats['surat_mahasiswa']['aktif_kuliah']['total'] }}</h6>
+                                        <small class="text-muted d-block text-truncate" style="font-size: 0.7rem;">Aktif
+                                            Kuliah</small>
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="col-6">
+                                <a href="{{ route('admin.surat-ijin-survey.index') }}" class="text-decoration-none">
+                                    <div class="p-2 bg-light rounded text-center border active-scale-down">
+                                        <h6 class="mb-0 text-info">
+                                            {{ $featureStats['surat_mahasiswa']['ijin_survey']['total'] }}</h6>
+                                        <small class="text-muted d-block text-truncate" style="font-size: 0.7rem;">Ijin
+                                            Survey</small>
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="col-6">
+                                <a href="{{ route('admin.surat-cuti-akademik.index') }}" class="text-decoration-none">
+                                    <div class="p-2 bg-light rounded text-center border active-scale-down">
+                                        <h6 class="mb-0 text-warning">
+                                            {{ $featureStats['surat_mahasiswa']['cuti_akademik']['total'] }}</h6>
+                                        <small class="text-muted d-block text-truncate" style="font-size: 0.7rem;">Cuti
+                                            Akademik</small>
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="col-6">
+                                <a href="{{ route('admin.surat-pindah.index') }}" class="text-decoration-none">
+                                    <div class="p-2 bg-light rounded text-center border active-scale-down">
+                                        <h6 class="mb-0 text-success">
+                                            {{ $featureStats['surat_mahasiswa']['pindah']['total'] }}</h6>
+                                        <small class="text-muted d-block text-truncate"
+                                            style="font-size: 0.7rem;">Pindah</small>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+
+                        @if ($featureStats['need_attention']['surat_pending'] > 0)
+                            <div class="alert alert-soft-warning py-2 mb-0 d-flex align-items-center"
+                                style="font-size: 0.8rem;">
+                                <i class='bx bx-time me-2'></i>
+                                <span><strong>{{ $featureStats['need_attention']['surat_pending'] }}</strong> pengajuan
+                                    perlu diproses</span>
+                            </div>
+                        @else
+                            <div class="alert alert-soft-success py-2 mb-0 d-flex align-items-center"
+                                style="font-size: 0.8rem;">
+                                <i class='bx bx-check-circle me-2'></i>
+                                <span>Semua pengajuan telah diproses</span>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Manajemen Skripsi -->
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100 border-0 shadow-sm stats-card success">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="avatar avatar-md me-3">
+                                <span class="avatar-initial rounded bg-label-success">
+                                    <i class='bx bxs-graduation'></i>
+                                </span>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">Manajemen Skripsi</h6>
+                                <small class="text-muted">Sempro & Ujian Hasil</small>
+                            </div>
+                        </div>
+
+                        <div class="d-flex flex-column gap-2 mb-3">
+                            <!-- Sempro -->
+                            <a href="{{ route('admin.pendaftaran-seminar-proposal.index') }}"
+                                class="text-decoration-none text-body">
+                                <div
+                                    class="d-flex justify-content-between align-items-center p-2 bg-light rounded border hover-bg-light-secondary transition-base">
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar avatar-xs me-2">
+                                            <span class="avatar-initial rounded-circle bg-label-primary"><i
+                                                    class="bx bx-book-open"></i></span>
+                                        </div>
+                                        <div>
+                                            <small class="d-block fw-semibold">Seminar Proposal</small>
+                                            <small class="text-muted"
+                                                style="font-size: 0.7rem;">{{ $featureStats['skripsi']['pendaftaran_sempro']['bulan_ini'] }}
+                                                bulan ini</small>
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <span
+                                            class="fs-6 fw-bold">{{ $featureStats['skripsi']['pendaftaran_sempro']['total'] }}</span>
+                                        @if ($featureStats['skripsi']['pendaftaran_sempro']['pending'] > 0)
+                                            <span
+                                                class="badge bg-danger rounded-pill ms-1 pt-1">{{ $featureStats['skripsi']['pendaftaran_sempro']['pending'] }}</span>
+                                        @endif
+                                    </div>
+                                </div>
+                            </a>
+
+                            <!-- Ujian Hasil -->
+                            <a href="{{ route('admin.pendaftaran-ujian-hasil.index') }}"
+                                class="text-decoration-none text-body">
+                                <div
+                                    class="d-flex justify-content-between align-items-center p-2 bg-light rounded border hover-bg-light-secondary transition-base">
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar avatar-xs me-2">
+                                            <span class="avatar-initial rounded-circle bg-label-success"><i
+                                                    class="bx bx-medal"></i></span>
+                                        </div>
+                                        <div>
+                                            <small class="d-block fw-semibold">Ujian Hasil</small>
+                                            <small class="text-muted"
+                                                style="font-size: 0.7rem;">{{ $featureStats['skripsi']['pendaftaran_ujian']['bulan_ini'] }}
+                                                bulan ini</small>
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <span
+                                            class="fs-6 fw-bold">{{ $featureStats['skripsi']['pendaftaran_ujian']['total'] }}</span>
+                                        @if ($featureStats['skripsi']['pendaftaran_ujian']['pending'] > 0)
+                                            <span
+                                                class="badge bg-danger rounded-pill ms-1 pt-1">{{ $featureStats['skripsi']['pendaftaran_ujian']['pending'] }}</span>
+                                        @endif
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <a href="{{ route('admin.pendaftaran-seminar-proposal.index') }}"
+                                class="btn btn-outline-primary btn-sm flex-fill">
+                                <i class='bx bx-list-ul me-1'></i>Sempro
+                            </a>
+                            <a href="{{ route('admin.pendaftaran-ujian-hasil.index') }}"
+                                class="btn btn-outline-success btn-sm flex-fill">
+                                <i class='bx bx-list-check me-1'></i>Ujian
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Layanan Akademik -->
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100 border-0 shadow-sm stats-card info">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="avatar avatar-md me-3">
+                                <span class="avatar-initial rounded bg-label-info">
+                                    <i class='bx bx-buildings'></i>
+                                </span>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">Layanan Akademik</h6>
+                                <small class="text-muted">Fasilitas & Data</small>
+                            </div>
+                        </div>
+
+                        <!-- Peminjaman Section -->
+                        <div class="mb-3">
+                            <small class="text-uppercase text-muted fw-bold d-block mb-2"
+                                style="font-size: 0.65rem;">Peminjaman Fasilitas</small>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <a href="{{ route('admin.peminjaman-proyektor.index') }}"
+                                        class="text-decoration-none text-body">
+                                        <div
+                                            class="p-2 border rounded d-flex justify-content-between align-items-center bg-white hover-shadow-sm">
+                                            <div>
+                                                <i class="bx bx-slideshow text-warning me-1"></i>
+                                                <small>Proyektor</small>
+                                            </div>
+                                            <div>
+                                                <span
+                                                    class="fw-bold">{{ $featureStats['peminjaman']['proyektor']['total'] }}</span>
+                                                @if ($featureStats['peminjaman']['proyektor']['pending'] > 0)
+                                                    <span class="text-danger small">•</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                                <div class="col-6">
+                                    <a href="{{ route('admin.peminjaman-laboratorium.index') }}"
+                                        class="text-decoration-none text-body">
+                                        <div
+                                            class="p-2 border rounded d-flex justify-content-between align-items-center bg-white hover-shadow-sm">
+                                            <div>
+                                                <i class="bx bx-desktop text-info me-1"></i>
+                                                <small>Lab</small>
+                                            </div>
+                                            <div>
+                                                <span
+                                                    class="fw-bold">{{ $featureStats['peminjaman']['laboratorium']['total'] }}</span>
+                                                @if ($featureStats['peminjaman']['laboratorium']['pending'] > 0)
+                                                    <span class="text-danger small">•</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Data Akademik Section -->
+                        <div>
+                            <small class="text-uppercase text-muted fw-bold d-block mb-2" style="font-size: 0.65rem;">Data
+                                Akademik</small>
+                            <div class="d-flex justify-content-between align-items-center p-2 bg-lighter rounded mb-2">
+                                <div class="d-flex align-items-center">
+                                    <i class="bx bx-calendar-event text-primary me-2"></i>
+                                    <small class="fw-semibold">Tahun Ajaran</small>
+                                </div>
+                                <span
+                                    class="badge bg-label-primary">{{ $featureStats['akademik']['tahun_ajaran_aktif'] }}</span>
+                            </div>
+
+                            <div class="d-flex gap-2 justify-content-between text-center">
+                                <div class="flex-fill p-1 bg-light rounded">
+                                    <div class="fw-bold text-dark">{{ $featureStats['akademik']['mahasiswa'] }}</div>
+                                    <small class="text-muted" style="font-size: 0.65rem;">Mhs</small>
+                                </div>
+                                <div class="flex-fill p-1 bg-light rounded">
+                                    <div class="fw-bold text-dark">{{ $featureStats['akademik']['dosen'] }}</div>
+                                    <small class="text-muted" style="font-size: 0.65rem;">Dsn</small>
+                                </div>
+                                @if ($featureStats['akademik']['ukt_belum_lunas'] > 0)
+                                    <div class="flex-fill p-1 bg-light rounded border border-danger">
+                                        <div class="fw-bold text-danger">
+                                            {{ $featureStats['akademik']['ukt_belum_lunas'] }}</div>
+                                        <small class="text-danger" style="font-size: 0.65rem;">UKT</small>
+                                    </div>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -514,6 +816,120 @@
                 </div>
             </div>
         </div>
+
+        <!-- Perlu Perhatian Section -->
+        @if (
+            $featureStats['need_attention']['surat_pending'] > 0 ||
+                $featureStats['need_attention']['sempro_pending'] > 0 ||
+                $featureStats['need_attention']['ujian_pending'] > 0 ||
+                $featureStats['need_attention']['peminjaman_pending'] > 0)
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card border-warning">
+                        <div class="card-header bg-warning text-white d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0 text-white">
+                                <i class='bx bx-error-circle me-2'></i>Perlu Perhatian
+                            </h5>
+                            <span class="badge bg-white text-warning">
+                                {{ $featureStats['need_attention']['surat_pending'] + $featureStats['need_attention']['sempro_pending'] + $featureStats['need_attention']['ujian_pending'] + $featureStats['need_attention']['peminjaman_pending'] }}
+                                Item
+                            </span>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                @if ($featureStats['need_attention']['surat_pending'] > 0)
+                                    <div class="col-md-6 col-lg-3">
+                                        <a href="{{ route('admin.surat-aktif-kuliah.index') }}"
+                                            class="text-decoration-none">
+                                            <div class="d-flex align-items-center p-3 bg-warning bg-opacity-10 rounded">
+                                                <div class="avatar avatar-sm me-3">
+                                                    <span class="avatar-initial rounded bg-warning">
+                                                        <i class='bx bx-envelope text-white'></i>
+                                                    </span>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <h6 class="mb-0">Surat Pending</h6>
+                                                    <small
+                                                        class="text-muted">{{ $featureStats['need_attention']['surat_pending'] }}
+                                                        pengajuan menunggu</small>
+                                                </div>
+                                                <i class='bx bx-chevron-right text-warning'></i>
+                                            </div>
+                                        </a>
+                                    </div>
+                                @endif
+
+                                @if ($featureStats['need_attention']['sempro_pending'] > 0)
+                                    <div class="col-md-6 col-lg-3">
+                                        <a href="{{ route('admin.pendaftaran-seminar-proposal.index') }}"
+                                            class="text-decoration-none">
+                                            <div class="d-flex align-items-center p-3 bg-warning bg-opacity-10 rounded">
+                                                <div class="avatar avatar-sm me-3">
+                                                    <span class="avatar-initial rounded bg-warning">
+                                                        <i class='bx bx-book-open text-white'></i>
+                                                    </span>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <h6 class="mb-0">Sempro Pending</h6>
+                                                    <small
+                                                        class="text-muted">{{ $featureStats['need_attention']['sempro_pending'] }}
+                                                        pendaftaran menunggu</small>
+                                                </div>
+                                                <i class='bx bx-chevron-right text-warning'></i>
+                                            </div>
+                                        </a>
+                                    </div>
+                                @endif
+
+                                @if ($featureStats['need_attention']['ujian_pending'] > 0)
+                                    <div class="col-md-6 col-lg-3">
+                                        <a href="{{ route('admin.pendaftaran-ujian-hasil.index') }}"
+                                            class="text-decoration-none">
+                                            <div class="d-flex align-items-center p-3 bg-warning bg-opacity-10 rounded">
+                                                <div class="avatar avatar-sm me-3">
+                                                    <span class="avatar-initial rounded bg-warning">
+                                                        <i class='bx bxs-graduation text-white'></i>
+                                                    </span>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <h6 class="mb-0">Ujian Pending</h6>
+                                                    <small
+                                                        class="text-muted">{{ $featureStats['need_attention']['ujian_pending'] }}
+                                                        pendaftaran menunggu</small>
+                                                </div>
+                                                <i class='bx bx-chevron-right text-warning'></i>
+                                            </div>
+                                        </a>
+                                    </div>
+                                @endif
+
+                                @if ($featureStats['need_attention']['peminjaman_pending'] > 0)
+                                    <div class="col-md-6 col-lg-3">
+                                        <a href="{{ route('admin.peminjaman-proyektor.index') }}"
+                                            class="text-decoration-none">
+                                            <div class="d-flex align-items-center p-3 bg-warning bg-opacity-10 rounded">
+                                                <div class="avatar avatar-sm me-3">
+                                                    <span class="avatar-initial rounded bg-warning">
+                                                        <i class='bx bx-calendar text-white'></i>
+                                                    </span>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <h6 class="mb-0">Peminjaman Pending</h6>
+                                                    <small
+                                                        class="text-muted">{{ $featureStats['need_attention']['peminjaman_pending'] }}
+                                                        peminjaman menunggu</small>
+                                                </div>
+                                                <i class='bx bx-chevron-right text-warning'></i>
+                                            </div>
+                                        </a>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
     </div>
 
 
