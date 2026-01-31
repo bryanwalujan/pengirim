@@ -51,21 +51,22 @@
                     {{-- Penilaian Section (Staff Override) --}}
                     <div id="penilaianSection" class="mb-4">
                         <label class="form-label fw-bold text-muted small text-uppercase mb-2">
-                            <i class="bx bx-star me-1"></i>Penilaian Atas Nama Dosen (Opsional)
+                            <i class="bx bx-star me-1 text-warning"></i>Penilaian Atas Nama Dosen <span class="text-danger">(WAJIB)</span>
                         </label>
-                        <div class="p-3 bg-light border rounded">
-                            <div class="alert alert-info border-0 py-2 px-3 mb-3">
-                                <small><i class="bx bx-info-circle me-1"></i>Masukkan nilai mutu langsung (skala 0.00 - 4.00). Nilai komponen akan dihitung otomatis.</small>
+                        <div class="p-3 bg-label-warning border-transparent rounded-3 border-start border-warning border-3">
+                            <div class="alert alert-info border-0 py-2 px-3 mb-3 shadow-none">
+                                <small class="fw-bold"><i class="bx bx-info-circle me-1"></i>Penilaian sekarang wajib diisi.</small>
+                                <div class="x-small text-muted mt-1">Masukkan nilai mutu langsung (skala 0.00 - 4.00). Nilai komponen akan dihitung otomatis oleh sistem.</div>
                             </div>
                             <div class="row g-3">
                                 <div class="col-md-6">
-                                    <label for="nilai_mutu" class="form-label small fw-bold">Nilai Mutu (0.00 - 4.00)</label>
-                                    <input type="text" class="form-control" id="nilai_mutu" name="nilai_mutu"
-                                        placeholder="Contoh: 3.50" maxlength="4"
+                                    <label for="nilai_mutu" class="form-label small fw-bold">Nilai Mutu (0.00 - 4.00) <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control fw-bold border-warning" id="nilai_mutu" name="nilai_mutu"
+                                        placeholder="Contoh: 3.50" maxlength="4" required
                                         oninput="validateAndClampNilaiMutu(this)"
                                         onblur="formatNilaiMutu(this)"
                                         onkeypress="return isValidNilaiMutuKey(event)">
-                                    <small class="text-muted">Format: X.XX (contoh: 3.50, 2.75, 4.00)</small>
+                                    <small class="text-muted" style="font-size: 0.65rem;">Format: X.XX (contoh: 3.50, 4.00)</small>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label small fw-bold">Preview Grade</label>

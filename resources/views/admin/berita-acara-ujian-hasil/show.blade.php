@@ -47,6 +47,7 @@
 
         $isPembimbing = $isDosen ? $beritaAcara->isPembimbing($user->id) : false;
         $myKoreksi = $isPembimbing ? $beritaAcara->getLembarKoreksiFrom($user->id) : null;
+        $hasPenilaian = $isDosen ? $beritaAcara->hasPenilaianFrom($user->id) : false;
     @endphp
 
     <div class="container-xxl flex-grow-1 container-p-y">
@@ -59,6 +60,27 @@
         {{-- Alert Area --}}
         @if (!$jadwal && $beritaAcara->isDitolak())
             @include('admin.berita-acara-ujian-hasil.partials.alert-rejected')
+        @endif
+
+        {{-- Warning: Penilaian Belum Diisi (For Dosen) --}}
+        @if ($isDosen && $isPenguji && !$hasPenilaian && $beritaAcara->isMenungguTtdPenguji())
+            <div class="alert alert-warning border-0 shadow-sm mb-4 d-flex align-items-center p-4">
+                <div class="avatar avatar-md me-3 flex-shrink-0">
+                    <span class="avatar-initial rounded-circle bg-warning shadow-sm">
+                        <i class="bx bx-error fs-3"></i>
+                    </span>
+                </div>
+                <div class="flex-grow-1">
+                    <h6 class="alert-heading mb-1 fw-bold text-dark">Penilaian Belum Dilengkapi!</h6>
+                    <p class="mb-0 small leading-relaxed">Anda <strong>wajib</strong> mengisi penilaian ujian sebelum dapat memberikan persetujuan pada berita acara ini. Sesuai ketentuan, penilaian tidak lagi bersifat opsional.</p>
+                </div>
+                <div class="ms-auto">
+                    <a href="{{ route('dosen.berita-acara-ujian-hasil.penilaian', $beritaAcara) }}"
+                        class="btn btn-warning fw-bold shadow-sm">
+                        <i class="bx bx-edit me-1"></i> Isi Penilaian
+                    </a>
+                </div>
+            </div>
         @endif
 
         {{-- Progress Banner --}}
@@ -111,6 +133,11 @@
                         'isDosen' => $isDosen,
                         'user' => $user,
                     ])
+                @endif
+
+                {{-- Keputusan Panitia Section (Visible when BA is Selesai) --}}
+                @if ($beritaAcara->isSelesai())
+                    @include('admin.berita-acara-ujian-hasil.partials.keputusan-panitia')
                 @endif
             </div>
 

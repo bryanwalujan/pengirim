@@ -2,20 +2,19 @@
 
 namespace App\Models;
 
-use Illuminate\Support\Str;
-use Spatie\Permission\Models\Role;
-use Illuminate\Support\Facades\Log;
-use Spatie\Permission\Traits\HasRoles;
-use Illuminate\Notifications\Notifiable;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Notifications\CustomResetPasswordNotification;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasRoles;
+    use HasFactory, HasRoles, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -28,7 +27,7 @@ class User extends Authenticatable
         'password',
         'nim',    // For mahasiswa
         'nip',   // For dosen
-        'jabatan' // For dosen
+        'jabatan', // For dosen
 
     ];
 
@@ -54,6 +53,7 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
     // Mahasiswa yang mengajukan surat aktif kuliah
     public function suratAktifKuliah()
     {
@@ -65,7 +65,6 @@ class User extends Authenticatable
     {
         return $this->hasMany(SuratAktifKuliah::class, 'penandatangan_id');
     }
-
 
     // Scope for mahasiswa
     public function scopeMahasiswa($query)
@@ -96,7 +95,6 @@ class User extends Authenticatable
             }
         });
     }
-
 
     public function pembayaranUkt()
     {
@@ -142,13 +140,12 @@ class User extends Authenticatable
         return $this->hasRole('dosen');
     }
 
-
     /**
      * Check if user is regular dosen (without approval authority)
      */
     public function isRegularDosen()
     {
-        return $this->isDosen() && !$this->isDosenWithApprovalAuthority();
+        return $this->isDosen() && ! $this->isDosenWithApprovalAuthority();
     }
 
     /**
@@ -156,7 +153,7 @@ class User extends Authenticatable
      */
     public function isKoordinatorProdi(): bool
     {
-        if (!$this->hasRole('dosen')) {
+        if (! $this->hasRole('dosen')) {
             return false;
         }
 
@@ -175,11 +172,11 @@ class User extends Authenticatable
      */
     public function isKetuaJurusan(): bool
     {
-        if (!$this->hasRole('dosen')) {
+        if (! $this->hasRole('dosen')) {
             return false;
         }
 
-        if (!$this->jabatan) {
+        if (! $this->jabatan) {
             return false;
         }
 
@@ -202,6 +199,7 @@ class User extends Authenticatable
                     'jabatan' => $this->jabatan,
                     'matched_keyword' => $keyword,
                 ]);
+
                 return true;
             }
         }
@@ -213,6 +211,7 @@ class User extends Authenticatable
 
         return false;
     }
+
     /**
      * Check if user is Dosen with Approval Authority (Kaprodi or Kajur)
      */
@@ -220,6 +219,57 @@ class User extends Authenticatable
     {
         return $this->hasRole('dosen') &&
             ($this->isKoordinatorProdi() || $this->isKetuaJurusan());
+    }
+
+    /**
+     * Check if user is Dekan Fakultas
+     */
+    public function isDekan(): bool
+    {
+        if (! $this->hasRole('dosen')) {
+            return false;
+        }
+
+        if (! $this->jabatan) {
+            return false;
+        }
+
+        $jabatanLower = strtolower($this->jabatan);
+
+        // Exclude Wakil Dekan
+        if (str_contains($jabatanLower, 'wakil')) {
+            return false;
+        }
+
+        $keywords = [
+            'dekan fakultas',
+            'dekan',
+            'pimpinan fakultas',
+        ];
+
+        foreach ($keywords as $keyword) {
+            if (str_contains($jabatanLower, $keyword)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if user can sign as Panitia Sekretaris (Korprodi)
+     */
+    public function canSignAsPanitiaSekretaris(): bool
+    {
+        return $this->isKoordinatorProdi();
+    }
+
+    /**
+     * Check if user can sign as Panitia Ketua (Dekan)
+     */
+    public function canSignAsPanitiaKetua(): bool
+    {
+        return $this->isDekan();
     }
 
     /**
@@ -235,7 +285,10 @@ class User extends Authenticatable
             return 'Ketua Jurusan';
         }
 
+        if ($this->isDekan()) {
+            return 'Dekan Fakultas';
+        }
+
         return $this->jabatan ?? 'Dosen';
     }
-
 }

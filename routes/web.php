@@ -1,53 +1,53 @@
 <?php
 
+use App\Http\Controllers\Admin\AcademicCalendarController;
+use App\Http\Controllers\Admin\ActivityController;
+use App\Http\Controllers\Admin\AdminBeritaAcaraSemproController;
+use App\Http\Controllers\Admin\AdminBeritaAcaraUjianHasilController;
+use App\Http\Controllers\Admin\AdminJadwalSeminarProposalController;
+use App\Http\Controllers\Admin\AdminJadwalUjianHasilController;
+use App\Http\Controllers\Admin\AdminKomisiHasilController;
+use App\Http\Controllers\Admin\AdminKomisiProposalController;
+use App\Http\Controllers\Admin\AdminPeminjamanLaboratoriumController;
+use App\Http\Controllers\Admin\AdminPeminjamanProyektorController;
+use App\Http\Controllers\Admin\AdminPendaftaranSeminarProposalController;
+use App\Http\Controllers\Admin\AdminPendaftaranUjianHasilController;
+use App\Http\Controllers\Admin\AdminSkPembimbingController;
+use App\Http\Controllers\Admin\AdminSuratAktifKuliahController;
+use App\Http\Controllers\Admin\AdminSuratCutiAkademikController;
+use App\Http\Controllers\Admin\AdminSuratIjinSurveyController;
+use App\Http\Controllers\Admin\AdminSuratPindahController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\KopSuratController;
+use App\Http\Controllers\Admin\LembarCatatanSemproController;
+use App\Http\Controllers\Admin\NotificationController;
+use App\Http\Controllers\Admin\PembayaranUktController;
+use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\ServiceController;
+use App\Http\Controllers\Admin\TahunAjaranController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\DocumentVerificationController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\User\BeritaAcaraSeminarProposalController;
+use App\Http\Controllers\User\HomeController;
+use App\Http\Controllers\User\JadwalSeminarProposalController;
+use App\Http\Controllers\User\JadwalUjianHasilController;
+use App\Http\Controllers\User\KomisiHasilController;
+use App\Http\Controllers\User\KomisiProposalController;
+use App\Http\Controllers\User\PeminjamanLaboratoriumController;
+use App\Http\Controllers\User\PeminjamanProyektorController;
+use App\Http\Controllers\User\PendaftaranSeminarProposalController;
+use App\Http\Controllers\User\PendaftaranUjianHasilController;
+use App\Http\Controllers\User\SkPembimbingController;
+use App\Http\Controllers\User\SuratAktifKuliahController;
+use App\Http\Controllers\User\SuratCutiAkademikController;
+use App\Http\Controllers\User\SuratIjinSurveyController;
+use App\Http\Controllers\User\SuratPindahController;
+use App\Http\Controllers\User\TrackingSuratController;
+use App\Http\Controllers\User\UserServiceController;
 use App\Models\TahunAjaran;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\User\HomeController;
-use App\Http\Controllers\Admin\RoleController;
-use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Admin\ServiceController;
-use App\Http\Controllers\Admin\ActivityController;
-use App\Http\Controllers\Admin\KopSuratController;
-use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\User\KomisiHasilController;
-use App\Http\Controllers\User\SuratPindahController;
-use App\Http\Controllers\User\UserServiceController;
-use App\Http\Controllers\Admin\TahunAjaranController;
-use App\Http\Controllers\User\SkPembimbingController;
-use App\Http\Controllers\Admin\NotificationController;
-use App\Http\Controllers\User\TrackingSuratController;
-use App\Http\Controllers\Admin\PembayaranUktController;
-use App\Http\Controllers\User\KomisiProposalController;
-use App\Http\Controllers\DocumentVerificationController;
-use App\Http\Controllers\User\SuratIjinSurveyController;
-use App\Http\Controllers\User\SuratAktifKuliahController;
-use App\Http\Controllers\Admin\AcademicCalendarController;
-use App\Http\Controllers\Admin\AdminKomisiHasilController;
-use App\Http\Controllers\Admin\AdminSuratPindahController;
-use App\Http\Controllers\User\SuratCutiAkademikController;
-use App\Http\Controllers\Admin\AdminSkPembimbingController;
-use App\Http\Controllers\User\PeminjamanProyektorController;
-use App\Http\Controllers\Admin\AdminKomisiProposalController;
-use App\Http\Controllers\Admin\LembarCatatanSemproController;
-use App\Http\Controllers\Admin\AdminSuratIjinSurveyController;
-use App\Http\Controllers\User\JadwalSeminarProposalController;
-use App\Http\Controllers\User\JadwalUjianHasilController;
-use App\Http\Controllers\User\PendaftaranUjianHasilController;
-use App\Http\Controllers\Admin\AdminSuratAktifKuliahController;
-use App\Http\Controllers\User\PeminjamanLaboratoriumController;
-use App\Http\Controllers\Admin\AdminBeritaAcaraSemproController;
-use App\Http\Controllers\Admin\AdminSuratCutiAkademikController;
-use App\Http\Controllers\Admin\AdminPeminjamanProyektorController;
-use App\Http\Controllers\User\BeritaAcaraSeminarProposalController;
-use App\Http\Controllers\User\PendaftaranSeminarProposalController;
-use App\Http\Controllers\Admin\AdminJadwalSeminarProposalController;
-use App\Http\Controllers\Admin\AdminPendaftaranUjianHasilController;
-use App\Http\Controllers\Admin\AdminJadwalUjianHasilController;
-use App\Http\Controllers\Admin\AdminBeritaAcaraUjianHasilController;
-use App\Http\Controllers\Admin\AdminPeminjamanLaboratoriumController;
-use App\Http\Controllers\Admin\AdminPendaftaranSeminarProposalController;
 
 Route::get('/preview-komisi-proposal-pdf', [AdminKomisiProposalController::class, 'previewPdf'])
     ->name('preview.komisi-proposal.pdf')
@@ -73,6 +73,9 @@ Route::get('/preview-berita-acara-ujian-hasil-pdf', [AdminBeritaAcaraUjianHasilC
     ->name('preview.berita-acara-ujian-hasil.pdf')
     ->middleware('auth');
 
+Route::get('/preview-keputusan-panitia-ujian-hasil-pdf', [AdminBeritaAcaraUjianHasilController::class, 'previewKeputusanPanitiaStaticPdf'])
+    ->name('preview.keputusan-panitia-ujian-hasil.pdf')
+    ->middleware('auth');
 
 // ========== DEVELOPMENT QUICK LOGIN (Local Only) ==========
 Route::middleware('local.only')->prefix('dev')->name('dev.')->group(function () {
@@ -90,15 +93,15 @@ Route::get('/', [HomeController::class, 'index'])->name('user.home.index');
 
 // Route untuk PDF Viewer (Tambahkan di bagian atas)
 Route::get('/storage/academic-calendars/{filename}', function ($filename) {
-    $path = storage_path('app/public/academic-calendars/' . $filename);
+    $path = storage_path('app/public/academic-calendars/'.$filename);
 
-    if (!File::exists($path)) {
+    if (! File::exists($path)) {
         abort(404);
     }
 
     return response()->file($path, [
         'Content-Type' => 'application/pdf',
-        'Content-Disposition' => 'inline; filename="' . $filename . '"'
+        'Content-Disposition' => 'inline; filename="'.$filename.'"',
     ]);
 })->name('academic-calendar.view');
 
@@ -129,7 +132,7 @@ Route::get('/verify/berita-acara-ujian-hasil/{code}/download', [AdminBeritaAcara
 // ========== USER ROUTES (Mahasiswa) ==========
 Route::middleware(['auth', 'verified', 'role:mahasiswa', 'check.ukt'])->group(function () {
 
-    // Layanan-layanan E-Service 
+    // Layanan-layanan E-Service
     Route::prefix('layanan')->name('user.services.')->group(function () {
         Route::get('/', [UserServiceController::class, 'index'])->name('index');
         Route::post('/search', [UserServiceController::class, 'search'])->name('search'); // AJAX instant search
@@ -142,7 +145,7 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa', 'check.ukt'])->group(fu
         // Route::get('/{surat}', [TrackingSuratController::class, 'show'])->name('show');
     });
 
-    // Layanan Surat Aktif Kuliah 
+    // Layanan Surat Aktif Kuliah
     Route::prefix('surat-aktif-kuliah')->name('user.surat-aktif-kuliah.')->group(function () {
         Route::get('/', [SuratAktifKuliahController::class, 'index'])->name('index');
         Route::get('/ajukan', [SuratAktifKuliahController::class, 'create'])->name('create');
@@ -231,7 +234,7 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa', 'check.ukt'])->group(fu
             ->name('download-surat');
     });
 
-    // Layanan Jadwal Seminar Proposal 
+    // Layanan Jadwal Seminar Proposal
     Route::prefix('jadwal-seminar-proposal')->name('user.jadwal-seminar-proposal.')->group(function () {
         // View jadwal
         Route::get('/', [JadwalSeminarProposalController::class, 'index'])
@@ -365,9 +368,9 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa', 'check.ukt', 'no-multi-
 // Route untuk halaman alert pembayaran
 Route::middleware(['auth', 'verified', 'role:mahasiswa'])->get('/payment-alert', function () {
     $tahunAktif = TahunAjaran::where('status_aktif', true)->first();
+
     return view('user.payment.alert', compact('tahunAktif'));
 })->name('user.payment.alert');
-
 
 // ========== ADMIN ROUTES (Staff & Dosen) ==========
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
@@ -778,7 +781,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             Route::get('/{jadwal}/create', [AdminJadwalSeminarProposalController::class, 'create'])->name('create');
             Route::post('/{jadwal}/store', [AdminJadwalSeminarProposalController::class, 'store'])->name('store');
 
-            // Edit & Update Jadwal  
+            // Edit & Update Jadwal
             Route::get('/{jadwal}/edit', [AdminJadwalSeminarProposalController::class, 'edit'])->name('edit');
             Route::put('/{jadwal}', [AdminJadwalSeminarProposalController::class, 'update'])->name('update');
 
@@ -823,7 +826,6 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             ->name('manage-pembahas');
         Route::post('/{beritaAcara}/update-pembahas', [AdminBeritaAcaraSemproController::class, 'updatePembahas'])
             ->name('update-pembahas');
-
 
         // ========== DYNAMIC ROUTES (dengan parameter {beritaAcara}) ==========
         Route::get('/{beritaAcara}', [AdminBeritaAcaraSemproController::class, 'show'])
@@ -935,7 +937,6 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::post('/create/{beritaAcara}', [LembarCatatanSemproController::class, 'store'])
             ->name('store')
             ->middleware('role:dosen');
-
 
         // ========== DYNAMIC ROUTES ==========
 
@@ -1107,7 +1108,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             Route::get('/{jadwal}/create', [AdminJadwalUjianHasilController::class, 'create'])->name('create');
             Route::post('/{jadwal}/store', [AdminJadwalUjianHasilController::class, 'store'])->name('store');
 
-            // Edit & Update Jadwal  
+            // Edit & Update Jadwal
             Route::get('/{jadwal}/edit', [AdminJadwalUjianHasilController::class, 'edit'])->name('edit');
             Route::put('/{jadwal}', [AdminJadwalUjianHasilController::class, 'update'])->name('update');
 
@@ -1185,6 +1186,20 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             ->name('store-fill-on-behalf')
             ->middleware('role:staff|admin');
 
+        // ✅ PANITIA SEKRETARIS (KORPRODI) SIGNATURE
+        Route::get('/{beritaAcara}/sign-panitia-sekretaris', [AdminBeritaAcaraUjianHasilController::class, 'showSignPanitiaSekretaris'])
+            ->name('sign-panitia-sekretaris');
+
+        Route::post('/{beritaAcara}/sign-panitia-sekretaris', [AdminBeritaAcaraUjianHasilController::class, 'signByPanitiaSekretaris'])
+            ->name('store-sign-panitia-sekretaris');
+
+        // ✅ PANITIA KETUA (DEKAN) SIGNATURE
+        Route::get('/{beritaAcara}/sign-panitia-ketua', [AdminBeritaAcaraUjianHasilController::class, 'showSignPanitiaKetua'])
+            ->name('sign-panitia-ketua');
+
+        Route::post('/{beritaAcara}/sign-panitia-ketua', [AdminBeritaAcaraUjianHasilController::class, 'signByPanitiaKetua'])
+            ->name('store-sign-panitia-ketua');
+
         // ✅ PDF OPERATIONS
         Route::get('/{beritaAcara}/download-pdf', [AdminBeritaAcaraUjianHasilController::class, 'downloadPdf'])
             ->name('download-pdf');
@@ -1195,6 +1210,13 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::post('/{beritaAcara}/generate-pdf', [AdminBeritaAcaraUjianHasilController::class, 'generatePdf'])
             ->name('generate-pdf')
             ->middleware('role:staff|admin');
+
+        // ✅ KEPUTUSAN PANITIA PDF
+        Route::get('/{beritaAcara}/keputusan-panitia/preview', [AdminBeritaAcaraUjianHasilController::class, 'previewKeputusanPdf'])
+            ->name('preview-keputusan-pdf');
+
+        Route::get('/{beritaAcara}/keputusan-panitia/download', [AdminBeritaAcaraUjianHasilController::class, 'downloadKeputusanPdf'])
+            ->name('download-keputusan-pdf');
 
         // ✅ DELETE BA (Staff only)
         Route::delete('/{beritaAcara}', [AdminBeritaAcaraUjianHasilController::class, 'destroy'])
@@ -1253,4 +1275,4 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';

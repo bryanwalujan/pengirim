@@ -40,29 +40,50 @@
                     </a>
                 @endif
 
-                {{-- TOMBOL UNTUK KETUA PENGUJI --}}
-                @if ($isKetua)
-                    @if ($beritaAcara->canBeFilledAndSignedByKetua($user->id))
-                        <a href="{{ route('admin.berita-acara-ujian-hasil.fill-by-ketua', $beritaAcara) }}"
-                            class="btn btn-warning fw-bold shadow-sm text-white">
-                            <i class="bx bx-edit me-1"></i>Isi & Tanda Tangan BA
+                {{-- TOMBOL UNTUK KETUA PENGUJI - DEPRECATED: Workflow baru tidak memerlukan persetujuan Ketua Penguji --}}
+                {{-- Step langsung dari Penguji -> Sekretaris Panitia -> Ketua Panitia --}}
+
+                {{-- STATUS SELESAI BADGE --}}
+                @if ($beritaAcara->isSelesai())
+                    <span class="badge bg-label-success p-2 px-3 fs-6">
+                        <i class="bx bx-check-circle me-1"></i> Berkas Telah Selesai
+                    </span>
+                @endif
+
+                {{-- TOMBOL SEKRETARIS PANITIA (KORPRODI) - Untuk Korprodi langsung --}}
+                @if ($beritaAcara->isMenungguTtdPanitiaSekretaris())
+                    @if ($user->canSignAsPanitiaSekretaris())
+                        <a href="{{ route('admin.berita-acara-ujian-hasil.sign-panitia-sekretaris', $beritaAcara) }}"
+                            class="btn btn-info fw-bold shadow-sm">
+                            <i class="bx bx-pen me-1"></i>TTD Sekretaris Panitia
                         </a>
-                    @elseif ($beritaAcara->hasKetuaSigned())
-                        <span class="badge bg-label-success p-2 px-3 fs-6">
-                            <i class="bx bx-check-circle me-1"></i> Berkas Telah Selesai
-                        </span>
+                    @elseif ($isStaff)
+                        {{-- Staff Override untuk Sekretaris --}}
+                        <a href="{{ route('admin.berita-acara-ujian-hasil.sign-panitia-sekretaris', $beritaAcara) }}"
+                            class="btn btn-dark fw-bold shadow-sm">
+                            <i class="bx bx-user-check me-1"></i>Override Sekretaris Panitia
+                        </a>
+                    @endif
+                @endif
+
+                {{-- TOMBOL KETUA PANITIA (DEKAN) - Untuk Dekan langsung --}}
+                @if ($beritaAcara->isMenungguTtdPanitiaKetua())
+                    @if ($user->canSignAsPanitiaKetua())
+                        <a href="{{ route('admin.berita-acara-ujian-hasil.sign-panitia-ketua', $beritaAcara) }}"
+                            class="btn btn-warning fw-bold shadow-sm text-white">
+                            <i class="bx bx-pen me-1"></i>TTD Ketua Panitia
+                        </a>
+                    @elseif ($isStaff)
+                        {{-- Staff Override untuk Ketua Panitia --}}
+                        <a href="{{ route('admin.berita-acara-ujian-hasil.sign-panitia-ketua', $beritaAcara) }}"
+                            class="btn btn-dark fw-bold shadow-sm">
+                            <i class="bx bx-user-check me-1"></i>Override Ketua Panitia
+                        </a>
                     @endif
                 @endif
 
                 {{-- TOMBOL STAFF/ADMIN --}}
                 @if ($isStaff)
-                    @if ($beritaAcara->isMenungguTtdKetua())
-                        <a href="{{ route('admin.berita-acara-ujian-hasil.fill-on-behalf', $beritaAcara) }}"
-                            class="btn btn-dark fw-bold shadow-sm">
-                            <i class="bx bx-user-check me-1"></i>Override Ketua
-                        </a>
-                    @endif
-
                     @if ($beritaAcara->isSelesai() && !$beritaAcara->file_path)
                         <form action="{{ route('admin.berita-acara-ujian-hasil.generate-pdf', $beritaAcara) }}"
                             method="POST" class="d-inline">
@@ -84,7 +105,7 @@
                 {{-- TOMBOL DOWNLOAD PDF --}}
                 @if ($beritaAcara->file_path)
                     <a href="{{ route('admin.berita-acara-ujian-hasil.view-pdf', $beritaAcara) }}"
-                        class="btn btn-label-secondary fw-bold" target="_blank">
+                        class="btn btn-secondary fw-bold" target="_blank">
                         <i class="bx bx-show me-1"></i>Lihat PDF
                     </a>
                     <a href="{{ route('admin.berita-acara-ujian-hasil.download-pdf', $beritaAcara) }}"

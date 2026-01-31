@@ -2,8 +2,8 @@
 
 namespace App\Policies;
 
-use App\Models\User;
 use App\Models\BeritaAcaraUjianHasil;
+use App\Models\User;
 
 class BeritaAcaraUjianHasilPolicy
 {
@@ -17,9 +17,24 @@ class BeritaAcaraUjianHasilPolicy
             return true;
         }
 
-        // Dosen harus terlibat dalam ujian
+        // Dosen
         if ($user->hasRole('dosen')) {
             $jadwal = $beritaAcara->jadwalUjianHasil;
+
+            // Korprodi bisa lihat berita acara yang menunggu TTD Sekretaris Panitia
+            if ($user->canSignAsPanitiaSekretaris() && $beritaAcara->isMenungguTtdPanitiaSekretaris()) {
+                return true;
+            }
+
+            // Dekan bisa lihat berita acara yang menunggu TTD Ketua Panitia
+            if ($user->canSignAsPanitiaKetua() && $beritaAcara->isMenungguTtdPanitiaKetua()) {
+                return true;
+            }
+
+            // Korprodi dan Dekan juga bisa lihat yang sudah selesai (untuk tracking)
+            if (($user->canSignAsPanitiaSekretaris() || $user->canSignAsPanitiaKetua()) && $beritaAcara->isSelesai()) {
+                return true;
+            }
 
             // Handle null jadwal (for rejected BA)
             if (!$jadwal) {
@@ -30,7 +45,7 @@ class BeritaAcaraUjianHasilPolicy
                 return false;
             }
 
-            // Penguji
+            // Penguji bisa lihat BA yang terkait ujian mereka
             return $jadwal->dosenPenguji()->where('dosen_id', $user->id)->exists();
         }
 
@@ -90,6 +105,32 @@ class BeritaAcaraUjianHasilPolicy
     public function fillAsKetua(User $user, BeritaAcaraUjianHasil $beritaAcara): bool
     {
         return $beritaAcara->canBeFilledByKetua($user->id);
+    }
+
+    /**
+     * Check if user can sign as Panitia Sekretaris (Korprodi) or override by staff
+     */
+    public function signAsPanitiaSekretaris(User $user, BeritaAcaraUjianHasil $beritaAcara): bool
+    {
+        // Staff can always override
+        if ($user->hasRole(['staff', 'admin'])) {
+            return $beritaAcara->isMenungguTtdPanitiaSekretaris();
+        }
+
+        return $beritaAcara->canBeSignedByPanitiaSekretaris($user->id);
+    }
+
+    /**
+     * Check if user can sign as Panitia Ketua (Dekan) or override by staff
+     */
+    public function signAsPanitiaKetua(User $user, BeritaAcaraUjianHasil $beritaAcara): bool
+    {
+        // Staff can always override
+        if ($user->hasRole(['staff', 'admin'])) {
+            return $beritaAcara->isMenungguTtdPanitiaKetua();
+        }
+
+        return $beritaAcara->canBeSignedByPanitiaKetua($user->id);
     }
 
     /**

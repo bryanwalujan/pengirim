@@ -143,7 +143,8 @@
                                     <i class="bx bx-time bx-sm"></i>
                                 </span>
                             </div>
-                            <h4 class="ms-1 mb-0">{{ ($stats['menunggu_ttd_penguji'] ?? 0) + ($stats['menunggu_ttd_ketua'] ?? 0) }}</h4>
+                            <h4 class="ms-1 mb-0">
+                                {{ ($stats['menunggu_ttd_penguji'] ?? 0) + ($stats['menunggu_ttd_panitia'] ?? 0) }}</h4>
                         </div>
                         <p class="mb-1 fw-semibold">Menunggu TTD</p>
                         <p class="mb-0">
@@ -211,20 +212,13 @@
                             <span class="d-none d-sm-inline">Semua</span>
                         </a>
                     </li>
-                    
-                    @if(Auth::user()->hasRole('dosen'))
+
+                    @if (Auth::user()->hasRole('dosen'))
                         <li class="nav-item">
                             <a href="{{ route('admin.berita-acara-ujian-hasil.index', ['filter' => 'penguji']) }}"
                                 class="nav-link {{ request('filter') === 'penguji' ? 'active' : '' }}">
                                 <i class="bx bx-pen bx-xs me-1"></i>
                                 <span class="d-none d-sm-inline">Menunggu TTD Saya</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{{ route('admin.berita-acara-ujian-hasil.index', ['filter' => 'ketua']) }}"
-                                class="nav-link {{ request('filter') === 'ketua' ? 'active' : '' }}">
-                                <i class="bx bx-edit bx-xs me-1"></i>
-                                <span class="d-none d-sm-inline">Perlu Saya Isi</span>
                             </a>
                         </li>
                     @else
@@ -303,7 +297,7 @@
                                     $tanggalUjian = $jadwal->tanggal_ujian;
                                     $waktuMulai = $jadwal->waktu_mulai;
                                 } else {
-                                    $mahasiswa = (object)['name' => $ba->mahasiswa_name, 'nim' => $ba->mahasiswa_nim];
+                                    $mahasiswa = (object) ['name' => $ba->mahasiswa_name, 'nim' => $ba->mahasiswa_nim];
                                     $tanggalUjian = null;
                                     $waktuMulai = null;
                                 }
@@ -356,14 +350,16 @@
                                         @php $progress = $ba->getTtdPengujiProgress(); @endphp
                                         <div class="d-flex flex-column">
                                             <div class="d-flex justify-content-between mb-1">
-                                                <small class="text-muted">{{ $progress['signed'] }}/{{ $progress['total'] }} Penguji</small>
+                                                <small
+                                                    class="text-muted">{{ $progress['signed'] }}/{{ $progress['total'] }}
+                                                    Penguji</small>
                                                 <small class="fw-semibold">{{ $progress['percentage'] }}%</small>
                                             </div>
                                             <div class="progress" style="height: 6px;">
-                                                <div class="progress-bar bg-info" role="progressbar" 
-                                                    style="width: {{ $progress['percentage'] }}%" 
-                                                    aria-valuenow="{{ $progress['percentage'] }}" 
-                                                    aria-valuemin="0" aria-valuemax="100"></div>
+                                                <div class="progress-bar bg-info" role="progressbar"
+                                                    style="width: {{ $progress['percentage'] }}%"
+                                                    aria-valuenow="{{ $progress['percentage'] }}" aria-valuemin="0"
+                                                    aria-valuemax="100"></div>
                                             </div>
                                         </div>
                                     @endif
@@ -392,13 +388,6 @@
                                                 </a>
                                             @endif
 
-                                            @can('delete', $ba)
-                                                <div class="dropdown-divider"></div>
-                                                <button type="button" class="dropdown-item text-danger"
-                                                    onclick="deleteBeritaAcara({{ $ba->id }}, '{{ addslashes($mahasiswa->name) }}')">
-                                                    <i class="bx bx-trash me-2"></i>Hapus
-                                                </button>
-                                            @endcan
                                         </div>
                                     </div>
                                 </td>
@@ -459,44 +448,5 @@
             });
         });
 
-        function deleteBeritaAcara(id, name) {
-            Swal.fire({
-                title: 'Hapus Berita Acara?',
-                html: `Apakah Anda yakin ingin menghapus berita acara milik <br><strong>${name}</strong>?`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: '<i class="bx bx-trash me-1"></i> Ya, Hapus',
-                cancelButtonText: '<i class="bx bx-x me-1"></i> Batal',
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#6c757d',
-                reverseButtons: true,
-                customClass: {
-                    confirmButton: 'btn btn-danger me-2',
-                    cancelButton: 'btn btn-secondary'
-                },
-                buttonsStyling: false
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = `/admin/berita-acara-ujian-hasil/${id}`;
-
-                    const csrfToken = document.createElement('input');
-                    csrfToken.type = 'hidden';
-                    csrfToken.name = '_token';
-                    csrfToken.value = '{{ csrf_token() }}';
-
-                    const methodField = document.createElement('input');
-                    methodField.type = 'hidden';
-                    methodField.name = '_method';
-                    methodField.value = 'DELETE';
-
-                    form.appendChild(csrfToken);
-                    form.appendChild(methodField);
-                    document.body.appendChild(form);
-                    form.submit();
-                }
-            });
-        }
     </script>
 @endpush

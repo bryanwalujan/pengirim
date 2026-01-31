@@ -5,7 +5,8 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Berita Acara Ujian Hasil Skripsi - {{ $beritaAcara->mahasiswa_name ?? ($jadwal->pendaftaranUjianHasil->user->name ?? 'Mahasiswa') }}</title>
+    <title>Berita Acara Ujian Hasil Skripsi -
+        {{ $beritaAcara->mahasiswa_name ?? ($jadwal->pendaftaranUjianHasil->user->name ?? 'Mahasiswa') }}</title>
     <style>
         @page {
             size: A4 portrait;
@@ -76,10 +77,21 @@
             font-weight: bold;
         }
 
-        .text-center { text-align: center; }
-        .text-right { text-align: right; }
-        .font-bold { font-weight: bold; }
-        .underline { text-decoration: underline; }
+        .text-center {
+            text-align: center;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .font-bold {
+            font-weight: bold;
+        }
+
+        .underline {
+            text-decoration: underline;
+        }
 
         .signature-line {
             border-bottom: 1px dotted #000;
@@ -137,7 +149,13 @@
     </div>
 
     <div class="content-text">
-        Pada hari ini {{ $jadwal->tanggal_ujian?->translatedFormat('l') ?? '..........' }}, {{ $jadwal->tanggal_ujian?->translatedFormat('d F Y') ?? '..........' }} bertempat di {{ $beritaAcara->ruangan ?? ($jadwal->ruangan ?? '..........') }}, oleh Panitia Ujian Hasil Skripsi yang dibentuk dengan surat Keputusan Dekan Fakultas Teknik UNIMA Nomor: {{ $beritaAcara->nomor_sk_dekan ?? ($jadwal->nomor_sk ?? '..........') }} Tanggal {{ $beritaAcara->tanggal_sk_dekan ? $beritaAcara->tanggal_sk_dekan->translatedFormat('d F Y') : ($jadwal->tanggal_sk ? $jadwal->tanggal_sk->translatedFormat('d F Y') : '..........') }} telah diadakan Ujian Hasil Skripsi Terhadap Mahasiswa Tersebut di bawah ini :
+        Pada hari ini {{ $jadwal->tanggal_ujian?->isoFormat('dddd') ?? '..........' }},
+        {{ $jadwal->tanggal_ujian?->isoFormat('D MMMM Y') ?? '..........' }} bertempat di
+        {{ $beritaAcara->ruangan ?? ($jadwal->ruangan ?? '..........') }}, oleh Panitia Ujian Hasil Skripsi yang
+        dibentuk dengan surat Keputusan Dekan Fakultas Teknik UNIMA Nomor:
+        {{ $beritaAcara->nomor_sk_dekan ?? ($jadwal->nomor_sk ?? '..........') }} Tanggal
+      {{ $jadwal->tanggal_ujian ? $jadwal->tanggal_ujian->isoFormat('D MMMM Y') : '..........' }}
+        telah diadakan Ujian Hasil Skripsi Terhadap Mahasiswa Tersebut di bawah ini :
     </div>
 
     <table class="info-table">
@@ -159,7 +177,9 @@
         <tr>
             <td style="padding-top: 5px;">Judul</td>
             <td style="padding-top: 5px;">:</td>
-            <td style="padding-top: 5px; line-height: 1.3;">{{ $beritaAcara->judul_skripsi ?? ($jadwal->pendaftaranUjianHasil->judul_skripsi ?? '..........') }}</td>
+            <td style="padding-top: 5px; line-height: 1.3;">
+                {{ $beritaAcara->judul_skripsi ?? ($jadwal->pendaftaranUjianHasil->judul_skripsi ?? '..........') }}
+            </td>
         </tr>
     </table>
 
@@ -174,18 +194,22 @@
         </thead>
         <tbody>
             @php
-                $pengujiList = $pengujiList ?? ($jadwal->dosenPenguji()
-                    ->orderByRaw("CASE 
-                        WHEN posisi = 'Ketua Penguji' THEN 1 
-                        WHEN posisi = 'Penguji 1' THEN 2 
-                        WHEN posisi = 'Penguji 2' THEN 3 
-                        WHEN posisi = 'Penguji 3' THEN 4 
-                        WHEN posisi LIKE '%(PS1)%' THEN 5
-                        WHEN posisi LIKE '%(PS2)%' THEN 6
-                        ELSE 7 END")
-                    ->get());
+                $pengujiList =
+                    $pengujiList ??
+                    $jadwal
+                        ->dosenPenguji()
+                        ->orderByRaw(
+                            "CASE 
+                             WHEN posisi LIKE '%(PS1)%' THEN 1
+                        WHEN posisi LIKE '%(PS2)%' THEN 2
+                        WHEN posisi = 'Penguji 3' THEN 3 
+                        WHEN posisi = 'Penguji 1' THEN 4 
+                        WHEN posisi = 'Penguji 2' THEN 5 
+                        ELSE 6 END",
+                        )
+                        ->get();
             @endphp
-            @foreach($pengujiList as $index => $penguji)
+            @foreach ($pengujiList as $index => $penguji)
                 <tr>
                     <td class="text-center">{{ $index + 1 }}.</td>
                     <td>{{ $penguji->name }}</td>
@@ -194,7 +218,7 @@
                         @php
                             $hasSigned = false;
                             $isKetua = $penguji->pivot->posisi === 'Ketua Penguji';
-                            
+
                             if ($isKetua) {
                                 $hasSigned = !is_null($beritaAcara->ttd_ketua_penguji_at);
                             } else {
@@ -210,7 +234,8 @@
                             }
                         @endphp
                         @if ($hasSigned)
-                            <span style="font-family: DejaVu Sans, sans-serif; color: #000; font-size: 11pt; font-weight: bold;">&#10003;</span>
+                            <span
+                                style="font-family: DejaVu Sans, sans-serif; color: #000; font-size: 11pt; font-weight: bold;">&#10003;</span>
                         @else
                             <span style="color: #999; font-size: 8pt;">-</span>
                         @endif
@@ -221,13 +246,15 @@
     </table>
 
     <div class="content-text">
-        Hasil Pelaksanaan ujian dituangkan dalam Keputusan Panitia ujian yang isinya seperti terlampir. Demikian Berita Acara ini dibuat dengan sebenarnya.
+        Hasil Pelaksanaan ujian dituangkan dalam Keputusan Panitia ujian yang isinya seperti terlampir. Demikian Berita
+        Acara ini dibuat dengan sebenarnya.
     </div>
 
     <div class="footer-section clearfix">
         <div class="location-date">
             Ditetapkan di : Tondano <br>
-            Pada Tanggal  : {{ $jadwal->tanggal_ujian ? $jadwal->tanggal_ujian->translatedFormat('d F Y') : '..........' }}
+            Pada Tanggal :
+            {{ $jadwal->tanggal_ujian ? $jadwal->tanggal_ujian->isoFormat('D MMMM Y') : '..........' }}
         </div>
 
         <div class="signature-grid">
@@ -235,129 +262,41 @@
             <div class="text-center" style="margin-top: 5px;">PANITIA UJIAN</div>
             <table style="vertical-align: top; width: 100%; line-height: 0.3; margin-top: 10px;">
                 <tr>
-                    {{-- KIRI: KETUA --}}
+                    {{-- KIRI: KETUA PANITIA (DEKAN) --}}
                     <td style="padding-left: 4rem;">
                         <p>KETUA,</p>
                         <div class="signature-space">
-                            @php
-                                $isSignedByKetua = ($beritaAcara->status === 'selesai' || !is_null($beritaAcara->ttd_ketua_penguji_at));
-                            @endphp
-                            @if($isSignedByKetua && isset($beritaAcara->verification_url))
-                                <img src="data:image/png;base64,{{ base64_encode(QrCode::format('png')->size(150)->errorCorrection('H')->generate($beritaAcara->verification_url)) }}" 
-                                     alt="QR Code Sign" class="signature-image">
+                            @if ($beritaAcara->hasPanitiaKetuaSigned() && $beritaAcara->qr_code_panitia_ketua)
+                                <img src="data:image/png;base64,{{ $beritaAcara->qr_code_panitia_ketua }}"
+                                    alt="QR Code Ketua Panitia" class="signature-image">
+                            @elseif($beritaAcara->isSelesai() && isset($beritaAcara->verification_url))
+                                <img src="data:image/png;base64,{{ base64_encode(QrCode::format('png')->size(150)->errorCorrection('H')->generate($beritaAcara->verification_url)) }}"
+                                    alt="QR Code Sign" class="signature-image">
                             @endif
                         </div>
-                        <p class="underline">{{ $beritaAcara->nama_kajur ?? 'Dr. Hendro M. Sumual, ST, M.Eng, M.Pd' }}</p>
-                        <p>NIP. {{ $beritaAcara->nip_kajur ?? '19840522 200501 1 005' }}</p>
+                        <p class="underline">
+                            {{ $beritaAcara->panitia_ketua_name ?? '.................................' }}</p>
+                        <p>NIP. {{ $beritaAcara->panitia_ketua_nip ?? '.................................' }}</p>
                     </td>
 
-                    {{-- KANAN: SEKRETARIS --}}
+                    {{-- KANAN: SEKRETARIS PANITIA (KORPRODI) --}}
                     <td style="padding-left: 4rem;">
                         <p>SEKRETARIS,</p>
                         <div class="signature-space">
-                            @if($isSignedByKetua && isset($beritaAcara->verification_url))
-                                <img src="data:image/png;base64,{{ base64_encode(QrCode::format('png')->size(150)->errorCorrection('H')->generate($beritaAcara->verification_url)) }}" 
-                                     alt="QR Code Sign" class="signature-image">
+                            @if ($beritaAcara->hasPanitiaSekretarisSigned() && $beritaAcara->qr_code_panitia_sekretaris)
+                                <img src="data:image/png;base64,{{ $beritaAcara->qr_code_panitia_sekretaris }}"
+                                    alt="QR Code Sekretaris Panitia" class="signature-image">
                             @endif
                         </div>
-                        <p class="underline">{{ $beritaAcara->nama_sekretaris ?? 'Kristofel Santa, S.ST., M.MT' }}</p>
-                        <p>NIP. {{ $beritaAcara->nip_sekretaris ?? '19870531 201504 1 003' }}</p>
+                        <p class="underline">
+                            {{ $beritaAcara->panitia_sekretaris_name ?? '.................................' }}</p>
+                        <p>NIP. {{ $beritaAcara->panitia_sekretaris_nip ?? '.................................' }}</p>
                     </td>
                 </tr>
             </table>
         </div>
     </div>
 
-    {{-- Lembar Koreksi Loop --}}
-    @if($beritaAcara->lembarKoreksis && $beritaAcara->lembarKoreksis->count() > 0)
-        <style>
-            .page-break {
-                page-break-before: always;
-            }
-            .koreksi-title {
-                text-align: center;
-                font-weight: bold;
-                text-decoration: underline;
-                font-size: 14pt;
-                margin-bottom: 25px;
-            }
-            .koreksi-table {
-                width: 100%;
-                border-collapse: collapse;
-                margin-top: 20px;
-            }
-            .koreksi-table th, .koreksi-table td {
-                border: 1px solid black;
-                padding: 10px;
-                vertical-align: top;
-            }
-            .koreksi-table th {
-                text-align: center;
-                background-color: #ffffff;
-                font-weight: bold;
-            }
-            .koreksi-row {
-                height: 30px; 
-            }
-        </style>
-
-        @foreach($beritaAcara->lembarKoreksis as $koreksi)
-            <div class="page-break"></div>
-
-            <div class="koreksi-title">LEMBAR KOREKSI SKRIPSI</div>
-
-            <table class="info-table">
-                <tr>
-                    <td width="15%">Nama</td>
-                    <td width="2%">:</td>
-                    <td>{{ $beritaAcara->mahasiswa_name ?? ($jadwal->pendaftaranUjianHasil->user->name ?? '..........') }}</td>
-                </tr>
-                <tr>
-                    <td>NIM</td>
-                    <td>:</td>
-                    <td>{{ $beritaAcara->mahasiswa_nim ?? ($jadwal->pendaftaranUjianHasil->user->nim ?? '..........') }}</td>
-                </tr>
-                <tr>
-                    <td>Prodi</td>
-                    <td>:</td>
-                    <td>{{ $beritaAcara->mahasiswa_prodi ?? 'Teknik Informatika' }}</td>
-                </tr>
-                <tr>
-                    <td style="padding-top: 5px;">Judul</td>
-                    <td style="padding-top: 5px;">:</td>
-                    <td style="padding-top: 5px; line-height: 1.3;">{{ $beritaAcara->judul_skripsi ?? ($jadwal->pendaftaranUjianHasil->judul_skripsi ?? '..........') }}</td>
-                </tr>
-            </table>
-
-            <table class="koreksi-table">
-                <thead>
-                    <tr>
-                        <th width="10%">NO</th>
-                        <th width="20%">HALAMAN</th>
-                        <th width="70%">CATATAN (Oleh: {{ $koreksi->dosen->name ?? 'Penguji' }})</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($koreksi->koreksi_collection as $index => $item)
-                        <tr>
-                            <td class="text-center">{{ $index + 1 }}</td>
-                            <td class="text-center">{{ $item['halaman'] ?? '' }}</td>
-                            <td>{!! nl2br(e($item['catatan'] ?? '')) !!}</td>
-                        </tr>
-                    @empty
-                        {{-- Empty rows for manual filling if needed, though usually populated via system --}}
-                        @for($i=1; $i<=5; $i++)
-                            <tr>
-                                <td class="text-center"></td>
-                                <td class="text-center"></td>
-                                <td style="height: 50px;"></td>
-                            </tr>
-                        @endfor
-                    @endforelse
-                </tbody>
-            </table>
-        @endforeach
-    @endif
-
 </body>
+
 </html>

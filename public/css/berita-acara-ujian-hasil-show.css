@@ -81,3 +81,8 @@
     background-color: #fff2e0 !important;
     color: #ffab00 !important;
 }
+
+/* Fix for SweetAlert overlapping issues */
+.swal2-top-zindex {
+    z-index: 2000 !important;
+}

@@ -17,7 +17,7 @@ class ApproveOnBehalfAction
         int $dosenId,
         ?string $alasan = null,
         array $lembarKoreksiData = [],
-        ?float $nilaiMutu = null,
+        float $nilaiMutu,
         ?string $catatanPenilaian = null
     ): array {
         try {
@@ -46,6 +46,7 @@ class ApproveOnBehalfAction
                 ];
             }
 
+
             $posisi = $pengujiData->pivot->posisi ?? 'Penguji';
 
             // Add signature on behalf
@@ -65,41 +66,39 @@ class ApproveOnBehalfAction
                 'ttd_dosen_penguji' => $signatures,
             ]);
 
-            // Save Penilaian if nilai_mutu is provided (Staff override - direct input)
-            if ($nilaiMutu !== null) {
-                // Calculate total_nilai from nilai_mutu (reverse formula)
-                // nilai_mutu = (total_nilai / 10) * 4
-                // total_nilai = (nilai_mutu / 4) * 10
-                $totalNilai = ($nilaiMutu / 4) * 10;
+            // Save Penilaian (Required - Staff must provide nilai_mutu)
+            // Calculate total_nilai from nilai_mutu (reverse formula)
+            // nilai_mutu = (total_nilai / 10) * 4
+            // total_nilai = (nilai_mutu / 4) * 10
+            $totalNilai = ($nilaiMutu / 4) * 10;
 
-                PenilaianUjianHasil::updateOrCreate(
-                    [
-                        'berita_acara_ujian_hasil_id' => $beritaAcara->id,
-                        'dosen_id' => $dosenId,
-                    ],
-                    [
-                        // Set semua komponen ke nilai rata-rata agar konsisten
-                        // Nilai rata-rata = (nilai_mutu / 4) * 100
-                        'nilai_kebaruan' => round(($nilaiMutu / 4) * 100),
-                        'nilai_kesesuaian' => round(($nilaiMutu / 4) * 100),
-                        'nilai_metode' => round(($nilaiMutu / 4) * 100),
-                        'nilai_kajian_teori' => round(($nilaiMutu / 4) * 100),
-                        'nilai_hasil_penelitian' => round(($nilaiMutu / 4) * 100),
-                        'nilai_referensi' => round(($nilaiMutu / 4) * 100),
-                        'nilai_tata_bahasa' => round(($nilaiMutu / 4) * 100),
-                        'total_nilai' => round($totalNilai, 2),
-                        'nilai_mutu' => round($nilaiMutu, 2),
-                        'catatan' => $catatanPenilaian ?? 'Penilaian diinput oleh Staff atas nama dosen.',
-                    ]
-                );
-
-                Log::info('Staff created penilaian on behalf of dosen', [
-                    'ba_id' => $beritaAcara->id,
+            PenilaianUjianHasil::updateOrCreate(
+                [
+                    'berita_acara_ujian_hasil_id' => $beritaAcara->id,
                     'dosen_id' => $dosenId,
-                    'staff_id' => $staff->id,
-                    'nilai_mutu' => $nilaiMutu,
-                ]);
-            }
+                ],
+                [
+                    // Set semua komponen ke nilai rata-rata agar konsisten
+                    // Nilai rata-rata = (nilai_mutu / 4) * 100
+                    'nilai_kebaruan' => round(($nilaiMutu / 4) * 100),
+                    'nilai_kesesuaian' => round(($nilaiMutu / 4) * 100),
+                    'nilai_metode' => round(($nilaiMutu / 4) * 100),
+                    'nilai_kajian_teori' => round(($nilaiMutu / 4) * 100),
+                    'nilai_hasil_penelitian' => round(($nilaiMutu / 4) * 100),
+                    'nilai_referensi' => round(($nilaiMutu / 4) * 100),
+                    'nilai_tata_bahasa' => round(($nilaiMutu / 4) * 100),
+                    'total_nilai' => round($totalNilai, 2),
+                    'nilai_mutu' => round($nilaiMutu, 2),
+                    'catatan' => $catatanPenilaian ?? 'Penilaian diinput oleh Staff atas nama dosen.',
+                ]
+            );
+
+            Log::info('Staff created penilaian on behalf of dosen', [
+                'ba_id' => $beritaAcara->id,
+                'dosen_id' => $dosenId,
+                'staff_id' => $staff->id,
+                'nilai_mutu' => $nilaiMutu,
+            ]);
 
             // Save Lembar Koreksi if provided
             if (!empty($lembarKoreksiData)) {
@@ -117,10 +116,10 @@ class ApproveOnBehalfAction
                 $lembarKoreksi->save();
             }
 
-            // Check if all penguji have signed
+            // Check if all penguji have signed - transisi ke Sekretaris Panitia
             if ($beritaAcara->fresh()->allPengujiHaveSigned()) {
                 $beritaAcara->update([
-                    'status' => 'menunggu_ttd_ketua',
+                    'status' => 'menunggu_ttd_panitia_sekretaris',
                 ]);
             }
 

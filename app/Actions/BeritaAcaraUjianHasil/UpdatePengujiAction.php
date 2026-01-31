@@ -55,9 +55,9 @@ class UpdatePengujiAction
                 'ttd_dosen_penguji' => $currentSignatures,
             ]);
 
-            // Check status after update
+            // Check status after update - transisi ke Sekretaris Panitia setelah semua penguji TTD
             if ($beritaAcara->fresh()->allPengujiHaveSigned() && $beritaAcara->isMenungguTtdPenguji()) {
-                $beritaAcara->update(['status' => 'menunggu_ttd_ketua']);
+                $beritaAcara->update(['status' => 'menunggu_ttd_panitia_sekretaris']);
             }
 
             DB::commit();

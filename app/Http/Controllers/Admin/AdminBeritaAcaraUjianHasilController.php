@@ -2,29 +2,30 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Actions\BeritaAcaraUjianHasil\{
-    CreateBeritaAcaraAction,
-    SignByPengujiAction,
-    ApproveOnBehalfAction,
-    FillByKetuaAction,
-    FillOnBehalfAction,
-    DeleteBeritaAcaraAction
-};
+use App\Actions\BeritaAcaraUjianHasil\ApproveOnBehalfAction;
+use App\Actions\BeritaAcaraUjianHasil\CreateBeritaAcaraAction;
+use App\Actions\BeritaAcaraUjianHasil\DeleteBeritaAcaraAction;
+use App\Actions\BeritaAcaraUjianHasil\FillByKetuaAction;
+use App\Actions\BeritaAcaraUjianHasil\FillOnBehalfAction;
+use App\Actions\BeritaAcaraUjianHasil\SignByPanitiaKetuaAction;
+use App\Actions\BeritaAcaraUjianHasil\SignByPanitiaSekretarisAction;
+use App\Actions\BeritaAcaraUjianHasil\SignByPengujiAction;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\BeritaAcaraUjianHasil\{
-    StoreBeritaAcaraRequest,
-    SignPengujiRequest,
-    ApproveOnBehalfRequest,
-    FillByKetuaRequest,
-    FillOnBehalfRequest
-};
-use App\Models\{BeritaAcaraUjianHasil, JadwalUjianHasil, User};
+use App\Http\Requests\BeritaAcaraUjianHasil\ApproveOnBehalfRequest;
+use App\Http\Requests\BeritaAcaraUjianHasil\FillByKetuaRequest;
+use App\Http\Requests\BeritaAcaraUjianHasil\FillOnBehalfRequest;
+use App\Http\Requests\BeritaAcaraUjianHasil\SignPengujiRequest;
+use App\Http\Requests\BeritaAcaraUjianHasil\StoreBeritaAcaraRequest;
+use App\Models\BeritaAcaraUjianHasil;
+use App\Models\JadwalUjianHasil;
+use App\Models\User;
 use App\Services\PelaksanaanUjianHasilService;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\{Auth, Log, Storage};
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Barryvdh\DomPDF\Facade\Pdf;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class AdminBeritaAcaraUjianHasilController extends Controller
 {
@@ -37,7 +38,9 @@ class AdminBeritaAcaraUjianHasilController extends Controller
         private readonly ApproveOnBehalfAction $approveAction,
         private readonly FillByKetuaAction $fillAction,
         private readonly FillOnBehalfAction $fillOnBehalfAction,
-        private readonly DeleteBeritaAcaraAction $deleteAction
+        private readonly DeleteBeritaAcaraAction $deleteAction,
+        private readonly SignByPanitiaSekretarisAction $signPanitiaSekretarisAction,
+        private readonly SignByPanitiaKetuaAction $signPanitiaKetuaAction
     ) {
     }
 
@@ -118,21 +121,29 @@ class AdminBeritaAcaraUjianHasilController extends Controller
                         $q->whereNull('ttd_dosen_penguji')
                             ->orWhereRaw("NOT JSON_CONTAINS(ttd_dosen_penguji, JSON_OBJECT('dosen_id', ?), '$')", [$user->id]);
                     });
-            } elseif ($filter === 'ketua') {
-                $query->where('status', 'menunggu_ttd_ketua')
-                    ->whereHas('jadwalUjianHasil.dosenPenguji', fn($q) => $q->where('dosen_id', $user->id)->where('posisi', 'Ketua Penguji'));
+            } elseif ($filter === 'sekretaris' && $user->canSignAsPanitiaSekretaris()) {
+                // Filter untuk Sekretaris Panitia (Korprodi)
+                $query->where('status', 'menunggu_ttd_panitia_sekretaris');
+            } elseif ($filter === 'ketua_panitia' && $user->canSignAsPanitiaKetua()) {
+                // Filter untuk Ketua Panitia (Dekan)
+                $query->where('status', 'menunggu_ttd_panitia_ketua');
             } elseif ($filter === 'ditolak') {
-                $query->where('status', 'ditolak')
-                    ->where('diisi_oleh_ketua_id', $user->id);
+                $query->where('status', 'ditolak');
             } else {
-                $query->where(function ($q) use ($user) {
-                    $q->where('status', 'selesai')
-                        ->whereHas('jadwalUjianHasil.dosenPenguji', fn($s) => $s->where('dosen_id', $user->id))
-                        ->orWhere(function ($sub) use ($user) {
-                            $sub->where('status', 'ditolak')
-                                ->where('diisi_oleh_ketua_id', $user->id);
-                        });
-                });
+                // Jika Korprodi/Dekan, tampilkan semua (tanpa filter khusus)
+                if ($user->canSignAsPanitiaSekretaris() || $user->canSignAsPanitiaKetua()) {
+                    // Korprodi/Dekan bisa melihat semua berita acara
+                    // Query tidak dibatasi - tampilkan semuanya
+                } else {
+                    // Dosen biasa hanya lihat yang selesai/ditolak terkait mereka
+                    $query->where(function ($q) use ($user) {
+                        $q->where('status', 'selesai')
+                            ->whereHas('jadwalUjianHasil.dosenPenguji', fn($s) => $s->where('dosen_id', $user->id))
+                            ->orWhere(function ($sub) {
+                                $sub->where('status', 'ditolak');
+                            });
+                    });
+                }
             }
         }
 
@@ -141,7 +152,12 @@ class AdminBeritaAcaraUjianHasilController extends Controller
             if ($request->filled('status')) {
                 $status = $request->status;
                 if ($status === 'menunggu_ttd') {
-                    $query->whereIn('status', ['menunggu_ttd_penguji', 'menunggu_ttd_ketua']);
+                    // Semua status menunggu: penguji, panitia sekretaris, panitia ketua
+                    $query->whereIn('status', [
+                        'menunggu_ttd_penguji',
+                        'menunggu_ttd_panitia_sekretaris',
+                        'menunggu_ttd_panitia_ketua',
+                    ]);
                 } else {
                     $query->where('status', $status);
                 }
@@ -173,19 +189,22 @@ class AdminBeritaAcaraUjianHasilController extends Controller
                         $q->whereNull('ttd_dosen_penguji')
                             ->orWhereRaw("NOT JSON_CONTAINS(ttd_dosen_penguji, JSON_OBJECT('dosen_id', ?), '$')", [$user->id]);
                     })->count(),
-                'menunggu_ttd_ketua' => BeritaAcaraUjianHasil::where('status', 'menunggu_ttd_ketua')
-                    ->whereHas('jadwalUjianHasil.dosenPenguji', fn($q) => $q->where('dosen_id', $user->id)->where('posisi', 'Ketua Penguji'))->count(),
+                'menunggu_ttd_sekretaris' => $user->canSignAsPanitiaSekretaris()
+                    ? BeritaAcaraUjianHasil::where('status', 'menunggu_ttd_panitia_sekretaris')->count()
+                    : 0,
+                'menunggu_ttd_ketua_panitia' => $user->canSignAsPanitiaKetua()
+                    ? BeritaAcaraUjianHasil::where('status', 'menunggu_ttd_panitia_ketua')->count()
+                    : 0,
                 'selesai' => BeritaAcaraUjianHasil::where('status', 'selesai')
                     ->whereHas('jadwalUjianHasil.dosenPenguji', fn($q) => $q->where('dosen_id', $user->id))->count(),
-                'ditolak' => BeritaAcaraUjianHasil::where('status', 'ditolak')
-                    ->where('diisi_oleh_ketua_id', $user->id)->count(),
+                'ditolak' => BeritaAcaraUjianHasil::where('status', 'ditolak')->count(),
             ];
         } else {
             $stats = [
                 'total' => BeritaAcaraUjianHasil::count(),
                 'draft' => BeritaAcaraUjianHasil::where('status', 'draft')->count(),
                 'menunggu_ttd_penguji' => BeritaAcaraUjianHasil::where('status', 'menunggu_ttd_penguji')->count(),
-                'menunggu_ttd_ketua' => BeritaAcaraUjianHasil::where('status', 'menunggu_ttd_ketua')->count(),
+                'menunggu_ttd_panitia' => BeritaAcaraUjianHasil::whereIn('status', ['menunggu_ttd_panitia_sekretaris', 'menunggu_ttd_panitia_ketua'])->count(),
                 'selesai' => BeritaAcaraUjianHasil::where('status', 'selesai')->count(),
                 'ditolak' => BeritaAcaraUjianHasil::where('status', 'ditolak')->count(),
             ];
@@ -349,7 +368,7 @@ class AdminBeritaAcaraUjianHasilController extends Controller
             $validated['dosen_id'],
             $validated['alasan'] ?? null,
             $validated['lembar_koreksi'] ?? [],
-            isset($validated['nilai_mutu']) ? (float) $validated['nilai_mutu'] : null,
+            (float) $validated['nilai_mutu'],
             $validated['catatan_penilaian'] ?? null
         );
 
@@ -362,7 +381,12 @@ class AdminBeritaAcaraUjianHasilController extends Controller
             ->with('success', $result['message']);
     }
 
-    // ==================== FILL BY KETUA ====================
+    // ==================== FILL BY KETUA (DEPRECATED) ====================
+    /**
+     * @deprecated Tidak digunakan dalam workflow baru.
+     * Dipertahankan untuk backward compatibility dengan data existing.
+     * Workflow baru: Penguji → Panitia Sekretaris → Panitia Ketua → Selesai
+     */
     public function fillByKetua(BeritaAcaraUjianHasil $beritaAcara)
     {
         $this->authorize('fillAsKetua', $beritaAcara);
@@ -396,7 +420,11 @@ class AdminBeritaAcaraUjianHasilController extends Controller
             ->with($messageType, $result['message']);
     }
 
-    // ==================== FILL ON BEHALF OF KETUA (STAFF OVERRIDE) ====================
+    // ==================== FILL ON BEHALF OF KETUA (DEPRECATED) ====================
+    /**
+     * @deprecated Tidak digunakan dalam workflow baru.
+     * Dipertahankan untuk backward compatibility dengan data existing.
+     */
     public function showFillOnBehalfForm(BeritaAcaraUjianHasil $beritaAcara)
     {
         $this->authorize('fillOnBehalf', BeritaAcaraUjianHasil::class);
@@ -484,6 +512,128 @@ class AdminBeritaAcaraUjianHasilController extends Controller
         );
     }
 
+    // ==================== KEPUTUSAN PANITIA PDF ====================
+    public function previewKeputusanPdf(BeritaAcaraUjianHasil $beritaAcara)
+    {
+        $this->authorize('view', $beritaAcara);
+
+        if (!$beritaAcara->isSelesai()) {
+            return back()->with('error', 'Keputusan Panitia hanya tersedia setelah berita acara selesai.');
+        }
+
+        $jadwal = $beritaAcara->jadwalUjianHasil;
+
+        $pdf = Pdf::loadView('admin.keputusan-panitia-ujian-hasil.pdf', [
+            'beritaAcara' => $beritaAcara,
+            'jadwal' => $jadwal,
+        ]);
+
+        return $pdf->stream('Keputusan_Panitia_Ujian_Hasil.pdf');
+    }
+
+    public function downloadKeputusanPdf(BeritaAcaraUjianHasil $beritaAcara)
+    {
+        $this->authorize('view', $beritaAcara);
+
+        if (!$beritaAcara->isSelesai()) {
+            return back()->with('error', 'Keputusan Panitia hanya tersedia setelah berita acara selesai.');
+        }
+
+        $jadwal = $beritaAcara->jadwalUjianHasil;
+        $mahasiswa = $jadwal?->pendaftaranUjianHasil?->user;
+        $nim = $mahasiswa?->nim ?? $beritaAcara->mahasiswa_nim ?? 'unknown';
+        $name = str_replace(' ', '_', $mahasiswa?->name ?? $beritaAcara->mahasiswa_name ?? 'unknown');
+
+        $pdf = Pdf::loadView('admin.keputusan-panitia-ujian-hasil.pdf', [
+            'beritaAcara' => $beritaAcara,
+            'jadwal' => $jadwal,
+        ]);
+
+        return $pdf->download("Keputusan_Panitia_{$nim}_{$name}.pdf");
+    }
+
+    public function previewKeputusanPanitiaStaticPdf()
+    {
+        // Data dummy untuk preview template Keputusan Panitia
+        $jadwal = (object) [
+            'tanggal_ujian' => now(),
+            'nomor_sk' => '479/UN41.2.1/PS/2025',
+            'pendaftaranUjianHasil' => (object) [
+                'user' => (object) [
+                    'name' => 'Anastasio B. K. Satu',
+                    'nim' => '20.210.141',
+                ],
+                'pembimbing_1_id' => 1,
+                'pembimbing_2_id' => 2,
+            ],
+        ];
+
+        // Mock penilaians collection
+        $penilaians = collect([
+            (object) [
+                'dosen_id' => 1,
+                'nilai_mutu' => 3.75,
+                'dosen' => (object) [
+                    'id' => 1,
+                    'name' => 'Alfransyah Hasiolan, S.Kom, M.Kom',
+                ],
+            ],
+            (object) [
+                'dosen_id' => 2,
+                'nilai_mutu' => 3.80,
+                'dosen' => (object) [
+                    'id' => 2,
+                    'name' => 'Sonde C. Kaunang, S.T., M.T',
+                ],
+            ],
+            (object) [
+                'dosen_id' => 3,
+                'nilai_mutu' => 3.65,
+                'dosen' => (object) [
+                    'id' => 3,
+                    'name' => 'Dosen Penguji Pimpinan Fakultas, S.T., M.Eng',
+                ],
+            ],
+            (object) [
+                'dosen_id' => 4,
+                'nilai_mutu' => 3.70,
+                'dosen' => (object) [
+                    'id' => 4,
+                    'name' => 'Dosen Penguji Prodi 1, S.Kom., M.Cs',
+                ],
+            ],
+            (object) [
+                'dosen_id' => 5,
+                'nilai_mutu' => 3.72,
+                'dosen' => (object) [
+                    'id' => 5,
+                    'name' => 'Dosen Penguji Prodi 2, S.Pd., M.Pd',
+                ],
+            ],
+        ]);
+
+        $beritaAcara = (object) [
+            'mahasiswa_name' => 'Anastasio B. K. Satu',
+            'mahasiswa_nim' => '20.210.141',
+            'nomor_sk_dekan' => '479/UN41.2.1/PS/2025',
+            'panitia_ketua_name' => 'Dr. Hendro M. Sumual, ST, M.Eng, M.Pd',
+            'panitia_ketua_nip' => '198405222006041001',
+            'panitia_sekretaris_name' => 'Kristofel Saria, S.ST, M.MT',
+            'panitia_sekretaris_nip' => '198705312012121003',
+            'qr_code_panitia_ketua' => null,
+            'qr_code_panitia_sekretaris' => null,
+            'verification_url' => 'https://example.com/verify/KP-MOCK123456',
+        ];
+
+        $pdf = Pdf::loadView('admin.keputusan-panitia-ujian-hasil.pdf', [
+            'jadwal' => $jadwal,
+            'beritaAcara' => $beritaAcara,
+            'penilaians' => $penilaians, // Pass directly as variable
+        ])->setPaper('a4', 'portrait');
+
+        return $pdf->stream('preview-keputusan-panitia.pdf');
+    }
+
     // ==================== DELETE ====================
     public function destroy(BeritaAcaraUjianHasil $beritaAcara)
     {
@@ -522,30 +672,30 @@ class AdminBeritaAcaraUjianHasilController extends Controller
                     (object) [
                         'id' => 1,
                         'name' => 'Cindy Pamela Cornelia Munaiseche, S.T., M.Eng',
-                        'pivot' => (object) ['posisi' => 'Ketua Penguji']
+                        'pivot' => (object) ['posisi' => 'Ketua Penguji'],
                     ],
                     (object) [
                         'id' => 2,
                         'name' => 'Dosen Sekretaris, S.Kom., M.Cs.',
-                        'pivot' => (object) ['posisi' => 'Penguji 1']
+                        'pivot' => (object) ['posisi' => 'Penguji 1'],
                     ],
                     (object) [
                         'id' => 3,
                         'name' => 'Dosen Anggota 1, S.T., M.Eng.',
-                        'pivot' => (object) ['posisi' => 'Penguji 2']
+                        'pivot' => (object) ['posisi' => 'Penguji 2'],
                     ],
                     (object) [
                         'id' => 4,
                         'name' => 'Dosen Anggota 2, S.Pd., M.Pd.',
-                        'pivot' => (object) ['posisi' => 'Penguji 3']
+                        'pivot' => (object) ['posisi' => 'Penguji 3'],
                     ],
                     (object) [
                         'id' => 5,
                         'name' => 'Dosen Pembimbing 1, S.T., M.T.',
-                        'pivot' => (object) ['posisi' => 'Penguji 4 (PS1)']
+                        'pivot' => (object) ['posisi' => 'Penguji 4 (PS1)'],
                     ],
                 ]);
-            }
+            },
         ];
 
         // Karena template memanggil $jadwal->dosenPenguji()->orderByRaw(...)->get()
@@ -585,7 +735,7 @@ class AdminBeritaAcaraUjianHasilController extends Controller
                 ['dosen_id' => 2, 'signed_at' => now()->toDateTimeString()],
                 ['dosen_id' => 3, 'signed_at' => now()->toDateTimeString()],
                 ['dosen_id' => 4, 'signed_at' => now()->toDateTimeString()],
-            ]
+            ],
         ];
 
         // We need to handle the $jadwal->dosenPenguji() call in the template.
@@ -594,10 +744,150 @@ class AdminBeritaAcaraUjianHasilController extends Controller
         $pdf = Pdf::loadView('admin.berita-acara-ujian-hasil.pdf', [
             'jadwal' => $jadwal,
             'beritaAcara' => $beritaAcara,
-            'pengujiList' => $mockPenguji // Tambahkan ini agar bisa diprioritaskan di template
+            'pengujiList' => $mockPenguji, // Tambahkan ini agar bisa diprioritaskan di template
         ])->setPaper('a4', 'portrait');
 
         return $pdf->stream('preview-berita-acara-ujian-hasil.pdf');
+    }
+
+    // ==================== SIGN BY PANITIA SEKRETARIS (KORPRODI) ====================
+
+    public function showSignPanitiaSekretaris(BeritaAcaraUjianHasil $beritaAcara)
+    {
+        $user = User::find(Auth::id());
+
+        if (!$beritaAcara->isMenungguTtdPanitiaSekretaris()) {
+            return redirect()
+                ->route('admin.berita-acara-ujian-hasil.show', $beritaAcara)
+                ->with('error', 'Berita acara tidak dalam status menunggu TTD Sekretaris Panitia.');
+        }
+
+        $canSign = $user->canSignAsPanitiaSekretaris() || $user->hasRole('staff');
+
+        if (!$canSign) {
+            return redirect()
+                ->route('admin.berita-acara-ujian-hasil.show', $beritaAcara)
+                ->with('error', 'Anda tidak memiliki wewenang untuk menandatangani.');
+        }
+
+        $beritaAcara->load([
+            'jadwalUjianHasil.pendaftaranUjianHasil.user',
+            'jadwalUjianHasil.dosenPenguji',
+            'ketuaPenguji',
+        ]);
+
+        // Get list of Korprodi for staff override
+        $korprodiList = User::whereHas('roles', fn($q) => $q->where('name', 'dosen'))
+            ->where(function ($q) {
+                $q->where('jabatan', 'LIKE', '%koordinator%')
+                    ->orWhere('jabatan', 'LIKE', '%korprodi%')
+                    ->orWhere('jabatan', 'LIKE', '%kaprodi%');
+            })
+            ->get();
+
+        $isStaff = $user->hasRole('staff') && !$user->canSignAsPanitiaSekretaris();
+
+        return view('admin.berita-acara-ujian-hasil.sign-panitia-sekretaris', compact(
+            'beritaAcara',
+            'korprodiList',
+            'isStaff'
+        ));
+    }
+
+    public function signByPanitiaSekretaris(Request $request, BeritaAcaraUjianHasil $beritaAcara)
+    {
+        $user = User::find(Auth::id());
+
+        $isStaffOverride = $user->hasRole('staff') && !$user->canSignAsPanitiaSekretaris();
+
+        $validated = $request->validate([
+            'override_korprodi_id' => $isStaffOverride ? 'required|exists:users,id' : 'nullable',
+            'override_reason' => $isStaffOverride ? 'required|string|max:500' : 'nullable',
+        ]);
+
+        $result = $this->signPanitiaSekretarisAction->execute(
+            $user,
+            $beritaAcara,
+            $validated['override_korprodi_id'] ?? null,
+            $validated['override_reason'] ?? null
+        );
+
+        if (!$result['success']) {
+            return back()->with('error', $result['message']);
+        }
+
+        return redirect()
+            ->route('admin.berita-acara-ujian-hasil.show', $beritaAcara)
+            ->with('success', $result['message']);
+    }
+
+    // ==================== SIGN BY PANITIA KETUA (DEKAN) ====================
+
+    public function showSignPanitiaKetua(BeritaAcaraUjianHasil $beritaAcara)
+    {
+        $user = User::find(Auth::id());
+
+        if (!$beritaAcara->isMenungguTtdPanitiaKetua()) {
+            return redirect()
+                ->route('admin.berita-acara-ujian-hasil.show', $beritaAcara)
+                ->with('error', 'Berita acara tidak dalam status menunggu TTD Ketua Panitia.');
+        }
+
+        $canSign = $user->canSignAsPanitiaKetua() || $user->hasRole('staff');
+
+        if (!$canSign) {
+            return redirect()
+                ->route('admin.berita-acara-ujian-hasil.show', $beritaAcara)
+                ->with('error', 'Anda tidak memiliki wewenang untuk menandatangani.');
+        }
+
+        $beritaAcara->load([
+            'jadwalUjianHasil.pendaftaranUjianHasil.user',
+            'jadwalUjianHasil.dosenPenguji',
+            'ketuaPenguji',
+            'panitiaSekretaris',
+        ]);
+
+        // Get list of Dekan for staff override
+        $dekanList = User::whereHas('roles', fn($q) => $q->where('name', 'dosen'))
+            ->where('jabatan', 'LIKE', '%dekan%')
+            ->where('jabatan', 'NOT LIKE', '%wakil%')
+            ->get();
+
+        $isStaff = $user->hasRole('staff') && !$user->canSignAsPanitiaKetua();
+
+        return view('admin.berita-acara-ujian-hasil.sign-panitia-ketua', compact(
+            'beritaAcara',
+            'dekanList',
+            'isStaff'
+        ));
+    }
+
+    public function signByPanitiaKetua(Request $request, BeritaAcaraUjianHasil $beritaAcara)
+    {
+        $user = User::find(Auth::id());
+
+        $isStaffOverride = $user->hasRole('staff') && !$user->canSignAsPanitiaKetua();
+
+        $validated = $request->validate([
+            'override_dekan_id' => $isStaffOverride ? 'required|exists:users,id' : 'nullable',
+            'override_reason' => $isStaffOverride ? 'required|string|max:500' : 'nullable',
+        ]);
+
+        $result = $this->signPanitiaKetuaAction->execute(
+            $user,
+            $beritaAcara,
+            $validated['override_dekan_id'] ?? null,
+            $validated['override_reason'] ?? null
+        );
+
+        if (!$result['success']) {
+            return back()->with('error', $result['message']);
+        }
+
+        return redirect()
+            ->route('admin.berita-acara-ujian-hasil.show', $beritaAcara)
+            ->with('success', $result['message']);
     }
 
     // ==================== PUBLIC VERIFICATION ====================

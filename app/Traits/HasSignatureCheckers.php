@@ -9,7 +9,7 @@ trait HasSignatureCheckers
      */
     public function hasKetuaSigned(): bool
     {
-        return !is_null($this->ttd_ketua_penguji_at);
+        return ! is_null($this->ttd_ketua_penguji_at);
     }
 
     /**
@@ -30,33 +30,27 @@ trait HasSignatureCheckers
 
     /**
      * Check if specific penguji has signed
-     *
-     * @param int $dosenId
-     * @return bool
      */
     public function hasSignedByPenguji(int $dosenId): bool
     {
         $signatures = $this->ttd_dosen_penguji ?? [];
 
-        return collect($signatures)->contains(fn($sig) => $sig['dosen_id'] === $dosenId);
+        return collect($signatures)->contains(fn ($sig) => (int) ($sig['dosen_id'] ?? 0) === $dosenId);
     }
 
     /**
      * Get list of dosen IDs that have signed
-     *
-     * @return array
      */
     public function getSignedPengujiIds(): array
     {
         return collect($this->ttd_dosen_penguji ?? [])
             ->pluck('dosen_id')
+            ->map(fn ($id) => (int) $id)
             ->toArray();
     }
 
     /**
      * Get count of signed penguji
-     *
-     * @return int
      */
     public function getSignedPengujiCount(): int
     {

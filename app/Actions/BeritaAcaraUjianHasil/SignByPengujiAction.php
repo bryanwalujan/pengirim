@@ -55,12 +55,13 @@ class SignByPengujiAction
             ]);
 
             // Check if all penguji have signed
+            // Setelah semua penguji TTD, langsung ke Sekretaris Panitia (skip Ketua Penguji)
             if ($beritaAcara->fresh()->allPengujiHaveSigned()) {
                 $beritaAcara->update([
-                    'status' => 'menunggu_ttd_ketua',
+                    'status' => 'menunggu_ttd_panitia_sekretaris',
                 ]);
 
-                Log::info('All penguji have signed, status changed to menunggu_ttd_ketua', [
+                Log::info('All penguji have signed, status changed to menunggu_ttd_panitia_sekretaris', [
                     'ba_id' => $beritaAcara->id,
                 ]);
             }

@@ -10,8 +10,8 @@ use Illuminate\Support\Str;
 
 class BeritaAcaraUjianHasil extends Model
 {
-    use HasSignatureCheckers;
     use HasPengujiProgress;
+    use HasSignatureCheckers;
 
     protected $fillable = [
         'jadwal_ujian_hasil_id',
@@ -38,6 +38,24 @@ class BeritaAcaraUjianHasil extends Model
         'override_ketua_by',
         'override_ketua_at',
         'override_ketua_reason',
+        // Panitia Sekretaris (Korprodi)
+        'ttd_panitia_sekretaris_by',
+        'ttd_panitia_sekretaris_at',
+        'panitia_sekretaris_name',
+        'panitia_sekretaris_nip',
+        'override_panitia_sekretaris_by',
+        'override_panitia_sekretaris_at',
+        'override_panitia_sekretaris_reason',
+        'qr_code_panitia_sekretaris',
+        // Panitia Ketua (Dekan)
+        'ttd_panitia_ketua_by',
+        'ttd_panitia_ketua_at',
+        'panitia_ketua_name',
+        'panitia_ketua_nip',
+        'override_panitia_ketua_by',
+        'override_panitia_ketua_at',
+        'override_panitia_ketua_reason',
+        'qr_code_panitia_ketua',
     ];
 
     protected $casts = [
@@ -47,6 +65,10 @@ class BeritaAcaraUjianHasil extends Model
         'ttd_dosen_penguji' => 'array',
         'ditolak_at' => 'datetime',
         'override_ketua_at' => 'datetime',
+        'ttd_panitia_sekretaris_at' => 'datetime',
+        'override_panitia_sekretaris_at' => 'datetime',
+        'ttd_panitia_ketua_at' => 'datetime',
+        'override_panitia_ketua_at' => 'datetime',
     ];
 
     // ========================================
@@ -88,6 +110,27 @@ class BeritaAcaraUjianHasil extends Model
         return $this->hasMany(LembarKoreksiSkripsi::class);
     }
 
+    // Panitia Relationships
+    public function panitiaSekretaris(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(User::class, 'ttd_panitia_sekretaris_by');
+    }
+
+    public function panitiaKetua(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(User::class, 'ttd_panitia_ketua_by');
+    }
+
+    public function overridePanitiaSekretarisUser(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(User::class, 'override_panitia_sekretaris_by');
+    }
+
+    public function overridePanitiaKetuaUser(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(User::class, 'override_panitia_ketua_by');
+    }
+
     // ========================================
     // STATUS CHECKERS (using Enum)
     // ========================================
@@ -110,6 +153,16 @@ class BeritaAcaraUjianHasil extends Model
     public function isMenungguTtdKetua(): bool
     {
         return $this->status === BeritaAcaraStatus::MENUNGGU_TTD_KETUA->value;
+    }
+
+    public function isMenungguTtdPanitiaSekretaris(): bool
+    {
+        return $this->status === BeritaAcaraStatus::MENUNGGU_TTD_PANITIA_SEKRETARIS->value;
+    }
+
+    public function isMenungguTtdPanitiaKetua(): bool
+    {
+        return $this->status === BeritaAcaraStatus::MENUNGGU_TTD_PANITIA_KETUA->value;
     }
 
     public function isSelesai(): bool
@@ -192,6 +245,85 @@ class BeritaAcaraUjianHasil extends Model
     public function canBeFilledByKetua(int $dosenId): bool
     {
         return $this->canBeFilledAndSignedByKetua($dosenId);
+    }
+
+    public function canBeSignedByPanitiaSekretaris(int $userId): bool
+    {
+        if (!$this->isMenungguTtdPanitiaSekretaris()) {
+            return false;
+        }
+
+        // Prerequisite: Semua penguji harus sudah TTD (tidak perlu Ketua Penguji lagi)
+        if (!$this->allPengujiHaveSigned()) {
+            return false;
+        }
+
+        $user = User::find($userId);
+        if (!$user || !$user->canSignAsPanitiaSekretaris()) {
+            return false;
+        }
+
+        return !$this->hasPanitiaSekretarisSigned();
+    }
+
+    public function canBeSignedByPanitiaKetua(int $userId): bool
+    {
+        if (!$this->isMenungguTtdPanitiaKetua()) {
+            return false;
+        }
+
+        if (!$this->hasPanitiaSekretarisSigned()) {
+            return false;
+        }
+
+        $user = User::find($userId);
+        if (!$user || !$user->canSignAsPanitiaKetua()) {
+            return false;
+        }
+
+        return !$this->hasPanitiaKetuaSigned();
+    }
+
+    // ========================================
+    // PANITIA SIGNATURE CHECKERS
+    // ========================================
+
+    public function hasPanitiaSekretarisSigned(): bool
+    {
+        return !is_null($this->ttd_panitia_sekretaris_at);
+    }
+
+    public function hasPanitiaKetuaSigned(): bool
+    {
+        return !is_null($this->ttd_panitia_ketua_at);
+    }
+
+    public function isPanitiaSekretarisOverridden(): bool
+    {
+        return !is_null($this->override_panitia_sekretaris_by);
+    }
+
+    public function isPanitiaKetuaOverridden(): bool
+    {
+        return !is_null($this->override_panitia_ketua_by);
+    }
+
+    public function isFilledByKetua(): bool
+    {
+        return !is_null($this->diisi_oleh_ketua_id) && !is_null($this->diisi_ketua_at);
+    }
+
+    public function hasKetuaSigned(): bool
+    {
+        return !is_null($this->ttd_ketua_penguji_at);
+    }
+
+    public function isFullySigned(): bool
+    {
+        // Workflow baru: Penguji -> Sekretaris Panitia -> Ketua Panitia (tanpa Ketua Penguji)
+        return $this->allPengujiHaveSigned()
+            && $this->hasPanitiaSekretarisSigned()
+            && $this->hasPanitiaKetuaSigned();
     }
 
     // ========================================
