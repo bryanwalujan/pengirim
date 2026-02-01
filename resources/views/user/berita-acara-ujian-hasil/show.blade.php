@@ -360,7 +360,7 @@
                                 <div class="text-3xl font-bold text-emerald-600">
                                     {{ $penilaianSummary['average_mutu'] ? number_format($penilaianSummary['average_mutu'], 2) : '-' }}
                                 </div>
-                                <p class="text-sm text-gray-600 font-medium mt-1">Rata-rata Nilai Mutu</p>
+                                <p class="text-sm text-gray-600 font-medium mt-1">Nilai Akhir</p>
                             </div>
                             <div class="text-center p-4 bg-white rounded-xl shadow-sm">
                                 <div class="text-3xl font-bold text-blue-600">
