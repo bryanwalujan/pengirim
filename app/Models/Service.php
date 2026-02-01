@@ -47,6 +47,7 @@ class Service extends Model
             'jadwal-ujian-hasil' => 'user.jadwal-ujian-hasil.index',
             'komisi-proposal' => 'user.komisi-proposal.index',
             'komisi-hasil' => 'user.komisi-hasil.index',
+            'berita-acara-ujian-hasil' => 'user.berita-acara-ujian-hasil.index',
         ];
 
         // Jika ada custom route index, gunakan route khusus

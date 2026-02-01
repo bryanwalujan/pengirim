@@ -338,6 +338,22 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa', 'check.ukt'])->group(fu
             ->name('index');
         Route::get('/{beritaAcara}', [\App\Http\Controllers\User\UserBeritaAcaraUjianHasilController::class, 'show'])
             ->name('show');
+        
+        // Download PDF berita acara
+        Route::get('/{beritaAcara}/download-pdf', [\App\Http\Controllers\User\UserBeritaAcaraUjianHasilController::class, 'downloadPdf'])
+            ->name('download');
+        
+        // View PDF inline
+        Route::get('/{beritaAcara}/view-pdf', [\App\Http\Controllers\User\UserBeritaAcaraUjianHasilController::class, 'viewPdf'])
+            ->name('view-pdf');
+        
+        // Download Keputusan Panitia PDF
+        Route::get('/{beritaAcara}/keputusan-panitia/download', [\App\Http\Controllers\User\UserBeritaAcaraUjianHasilController::class, 'downloadKeputusanPdf'])
+            ->name('keputusan-panitia.download');
+        
+        // View Keputusan Panitia PDF inline
+        Route::get('/{beritaAcara}/keputusan-panitia/view', [\App\Http\Controllers\User\UserBeritaAcaraUjianHasilController::class, 'viewKeputusanPdf'])
+            ->name('keputusan-panitia.view');
     });
 });
 
