@@ -15,7 +15,6 @@ use App\Actions\BeritaAcaraSempro\{
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BeritaAcaraSempro\{
     StoreBeritaAcaraRequest,
-    UpdateBeritaAcaraRequest,
     SignPembahasRequest,
     ApproveOnBehalfRequest,
     FillByPembimbingRequest,

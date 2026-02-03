@@ -974,7 +974,7 @@
                     'admin.berita-acara-sempro.index',
                     'admin.berita-acara-sempro.show',
                     'admin.berita-acara-sempro.create',
-                    'admin.berita-acara-sempro.edit',
+
                     'admin.berita-acara-sempro.fill-by-pembimbing',
                     'admin.berita-acara-sempro.manage-pembahas',
                     'admin.berita-acara-sempro.approve-pembahas',

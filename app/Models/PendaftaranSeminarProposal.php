@@ -228,7 +228,8 @@ class PendaftaranSeminarProposal extends Model
         $statistics = [];
 
         foreach ($dosenList as $dosen) {
-            $totalBeban = ProposalPembahas::where('dosen_id', $dosen->id)
+            // Count as Pembahas (Examiner)
+            $bebanPembahas = ProposalPembahas::where('dosen_id', $dosen->id)
                 ->whereHas('pendaftaranSeminarProposal', function ($query) {
                     $query->whereIn('status', [
                         'pembahas_ditentukan',
@@ -239,6 +240,21 @@ class PendaftaranSeminarProposal extends Model
                     ]);
                 })
                 ->count();
+
+            // Count as Pembimbing (Supervisor)
+            $bebanPembimbing = self::where('dosen_pembimbing_id', $dosen->id)
+                ->whereIn('status', [
+                    'pending',
+                    'pembahas_ditentukan',
+                    'surat_diproses',
+                    'menunggu_ttd_kaprodi',
+                    'menunggu_ttd_kajur',
+                    'selesai'
+                ])
+                ->count();
+
+            // Total beban = Pembahas + Pembimbing (combined into one count)
+            $totalBeban = $bebanPembahas + $bebanPembimbing;
 
             $statistics[$dosen->id] = [
                 'dosen' => $dosen,

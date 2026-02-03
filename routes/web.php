@@ -833,9 +833,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             ->name('store')
             ->middleware('role:staff|admin');
 
-        // Edit BA (Staff only - before TTD)
-        Route::get('/{beritaAcara}/edit', [AdminBeritaAcaraSemproController::class, 'edit'])->name('edit');
-        Route::put('/{beritaAcara}', [AdminBeritaAcaraSemproController::class, 'update'])->name('update');
+
 
         // ✅ MANAGE PEMBAHAS - PASTIKAN METHOD POST
         Route::get('/{beritaAcara}/manage-pembahas', [AdminBeritaAcaraSemproController::class, 'managePembahas'])
@@ -847,13 +845,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::get('/{beritaAcara}', [AdminBeritaAcaraSemproController::class, 'show'])
             ->name('show');
 
-        Route::get('/{beritaAcara}/edit', [AdminBeritaAcaraSemproController::class, 'edit'])
-            ->name('edit')
-            ->middleware('role:staff|admin');
 
-        Route::put('/{beritaAcara}', [AdminBeritaAcaraSemproController::class, 'update'])
-            ->name('update')
-            ->middleware('role:staff|admin');
 
         // ✅ APPROVE BY PEMBAHAS - Dosen Only
         Route::get('/{beritaAcara}/approve-pembahas', [AdminBeritaAcaraSemproController::class, 'showApprovePembahas'])
@@ -908,10 +900,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             ->name('generate-pdf')
             ->middleware('role:staff|admin');
 
-        // ✅ RESET BA (Staff only)
-        Route::post('/{beritaAcara}/reset', [AdminBeritaAcaraSemproController::class, 'resetBeritaAcara'])
-            ->name('reset')
-            ->middleware('role:staff|admin');
+
 
         // ✅ DELETE BA (Staff only)
         Route::delete('/{beritaAcara}', [AdminBeritaAcaraSemproController::class, 'destroy'])

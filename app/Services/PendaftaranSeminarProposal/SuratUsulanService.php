@@ -56,18 +56,24 @@ class SuratUsulanService
                 $nomorSurat = $this->generateNomorSuratUniversal($this->getNomorSuratPrefix());
             }
 
-            // ✅ Verification code akan di-generate otomatis oleh model boot
-            $verificationCode = SuratUsulanProposal::generateVerificationCode();
+            // ✅ Verification code: gunakan yang lama jika ada, atau generate baru
+            $existingSurat = SuratUsulanProposal::where('pendaftaran_seminar_proposal_id', $pendaftaran->id)->first();
+            $verificationCode = $existingSurat 
+                ? $existingSurat->verification_code 
+                : SuratUsulanProposal::generateVerificationCode();
 
-            // Create surat record
-            $surat = SuratUsulanProposal::create([
-                'pendaftaran_seminar_proposal_id' => $pendaftaran->id,
-                'nomor_surat' => $nomorSurat,
-                'file_surat' => '', // Temporary, akan diupdate setelah PDF dibuat
-                'tanggal_surat' => now(),
-                'verification_code' => $verificationCode,
-                'status' => 'menunggu_ttd_kaprodi',
-            ]);
+            // Create or Update surat record
+            // Menggunakan updateOrCreate untuk menghindari Duplicate Entry error
+            $surat = SuratUsulanProposal::updateOrCreate(
+                ['pendaftaran_seminar_proposal_id' => $pendaftaran->id],
+                [
+                    'nomor_surat' => $nomorSurat,
+                    'file_surat' => '', // Temporary, akan diupdate setelah PDF dibuat
+                    'tanggal_surat' => now(),
+                    'verification_code' => $verificationCode,
+                    'status' => 'menunggu_ttd_kaprodi',
+                ]
+            );
 
             // ✅ Generate initial PDF (tanpa signature)
             $filePath = $this->generateInitialPdf($pendaftaran, $surat);

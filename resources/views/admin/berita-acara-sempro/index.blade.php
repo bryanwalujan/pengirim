@@ -435,10 +435,7 @@
                                             @if(Auth::user()->hasRole('staff') || Auth::user()->hasRole('admin'))
                                                 @if (!$ba->isSigned())
                                                     <div class="dropdown-divider"></div>
-                                                    <a class="dropdown-item"
-                                                        href="{{ route('admin.berita-acara-sempro.edit', $ba) }}">
-                                                        <i class="bx bx-edit me-2"></i>Edit
-                                                    </a>
+
                                                     <button type="button" class="dropdown-item text-danger"
                                                         onclick="deleteBeritaAcara({{ $ba->id }})">
                                                         <i class="bx bx-trash me-2"></i>Hapus

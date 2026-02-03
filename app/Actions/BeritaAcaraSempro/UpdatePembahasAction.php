@@ -75,6 +75,45 @@ class UpdatePembahasAction
                 ]);
             }
 
+            // ✅ SINKRONISASI: Update tabel proposal_pembahas untuk pendaftaran seminar proposal
+            // Ini memastikan count beban dosen di Pendaftaran Seminar Proposal tetap akurat
+            $pendaftaran = $jadwal->pendaftaranSeminarProposal;
+            
+            if ($pendaftaran) {
+                // Mapping posisi: "Anggota Pembahas 1", "Anggota Pembahas 2", "Anggota Pembahas 3" -> 1, 2, 3
+                $posisiMapping = [
+                    'Anggota Pembahas 1' => 1,
+                    'Anggota Pembahas 2' => 2,
+                    'Anggota Pembahas 3' => 3,
+                ];
+
+                foreach ($newPembahasData as $posisi => $newDosenId) {
+                    // Hanya update non-Ketua (Ketua Pembahas tidak ada di proposal_pembahas)
+                    if (isset($posisiMapping[$posisi])) {
+                        $posisiNumeric = $posisiMapping[$posisi];
+
+                        // Update atau create proposal_pembahas
+                        DB::table('proposal_pembahas')
+                            ->updateOrInsert(
+                                [
+                                    'pendaftaran_seminar_proposal_id' => $pendaftaran->id,
+                                    'posisi' => $posisiNumeric,
+                                ],
+                                [
+                                    'dosen_id' => $newDosenId,
+                                    'updated_at' => now(),
+                                ]
+                            );
+
+                        Log::info('✅ Proposal pembahas synchronized', [
+                            'pendaftaran_id' => $pendaftaran->id,
+                            'posisi' => $posisiNumeric,
+                            'dosen_id' => $newDosenId,
+                        ]);
+                    }
+                }
+            }
+
             // Update signatures - remove signatures from replaced dosen
             $newSignatures = [];
             $newDosenIds = array_values($newPembahasData);
@@ -91,7 +130,7 @@ class UpdatePembahasAction
 
             $message = 'Daftar pembahas berhasil diperbarui.';
             if (count($replacements) > 0) {
-                $message .= ' ' . count($replacements) . ' dosen telah diganti.';
+                $message .= ' ' . count($replacements) . ' dosen telah diganti. Status beban dosen telah disinkronkan.';
             }
 
             return [

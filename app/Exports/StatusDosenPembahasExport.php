@@ -35,7 +35,7 @@ class StatusDosenPembahasExport implements FromCollection, WithHeadings, WithMap
             'Nama Dosen',
             'NIP',
             'Email',
-            'Total Beban Pembahas',
+            'Total Beban',
         ];
     }
 

@@ -209,19 +209,9 @@
 
                         {{-- ✅ TOMBOL STAFF/ADMIN --}}
                         @if ($isStaff)
-                            @if ($beritaAcara->isDraft() || $beritaAcara->isMenungguTtdPembahas())
-                                <a href="{{ route('admin.berita-acara-sempro.edit', $beritaAcara) }}"
-                                    class="btn btn-warning btn-sm">
-                                    <i class="bx bx-edit me-1"></i> Edit Draft
-                                </a>
-                            @endif
 
-                            @if (!$beritaAcara->isSelesai())
-                                <button type="button" class="btn btn-outline-danger btn-sm"
-                                    onclick="resetBeritaAcara({{ $beritaAcara->id }})">
-                                    <i class="bx bx-reset me-1"></i> Reset
-                                </button>
-                            @endif
+
+
 
                             {{-- Tombol Hapus - Bisa hapus semua status --}}
                             <button type="button" class="btn btn-outline-danger btn-sm"
@@ -753,33 +743,7 @@
             modal.show();
         }
 
-        function resetBeritaAcara(id) {
-            Swal.fire({
-                title: 'Reset Berita Acara?',
-                text: 'Berita acara akan dikembalikan ke status DRAFT. Semua TTD akan dihapus dan harus diisi ulang.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Ya, Reset',
-                cancelButtonText: 'Batal',
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#6c757d'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = `/admin/berita-acara-sempro/${id}/reset`;
 
-                    const csrfToken = document.createElement('input');
-                    csrfToken.type = 'hidden';
-                    csrfToken.name = '_token';
-                    csrfToken.value = '{{ csrf_token() }}';
-
-                    form.appendChild(csrfToken);
-                    document.body.appendChild(form);
-                    form.submit();
-                }
-            });
-        }
 
         function deleteBeritaAcara(id, mahasiswaName, status) {
             // Mapping status ke bahasa Indonesia

@@ -245,7 +245,7 @@
                                     </button>
                                 @endif
 
-                                @if ($pendaftaran->isPembahasDitentukan() && !$pendaftaran->isKajurSigned())
+                                @if ($pendaftaran->isPembahasDitentukan() && !$pendaftaran->suratUsulan)
                                     <button type="button" class="btn btn-warning w-100 mb-2" data-bs-toggle="modal"
                                         data-bs-target="#resetPembahasModal">
                                         <i class="bx bx-reset me-1"></i> Reset Pembahas

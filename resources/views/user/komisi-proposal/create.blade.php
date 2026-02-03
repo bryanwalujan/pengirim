@@ -5,9 +5,9 @@
 @push('styles')
     <style>
         :root {
-            --primary-color: #4361ee;
-            --secondary-color: #3f37c9;
-            --accent-color: #4895ef;
+            --primary-color: #f97316;
+            --secondary-color: #ea580c;
+            --accent-color: #fb923c;
             --light-gray: #f8f9fa;
             --dark-gray: #343a40;
             --border-radius: 15px;
@@ -92,8 +92,8 @@
 
         .form-control:focus,
         .form-select:focus {
-            border-color: var(--accent-color);
-            box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.2);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.25rem rgba(249, 115, 22, 0.2);
         }
 
         .form-floating>label {
@@ -127,7 +127,7 @@
 
         .btn-back:hover {
             background: var(--light-gray);
-            border-color: var(--accent-color);
+            border-color: var(--primary-color);
             color: var(--dark-gray);
             transform: translateY(-3px);
         }
@@ -181,9 +181,9 @@
         }
 
         .alert-info {
-            background-color: #e7f5ff;
-            border-color: #d0ebff;
-            color: #1864ab;
+            background-color: #fff7ed;
+            border-color: #ffedd5;
+            color: #9a3412;
             border-radius: 10px;
             padding: 1rem 1.5rem;
         }
@@ -229,7 +229,7 @@
         }
 
         .btn-select-dosen {
-            background: rgba(67, 97, 238, 0.1);
+            background: rgba(249, 115, 22, 0.1);
             color: var(--primary-color);
             border: none;
             padding: 0.5rem 1rem;
@@ -583,11 +583,8 @@
                 showCancelButton: true,
                 confirmButtonText: '<i class="bi bi-send me-1"></i>Ya, Kirim',
                 cancelButtonText: '<i class="bi bi-x me-1"></i>Batal',
-                customClass: {
-                    confirmButton: 'btn btn-primary',
-                    cancelButton: 'btn btn-secondary me-2'
-                },
-                buttonsStyling: false,
+                confirmButtonColor: '#f97316',
+                cancelButtonColor: '#94a3b8',
                 reverseButtons: true
             }).then((result) => {
                 if (result.isConfirmed) {
