@@ -10,6 +10,8 @@ return new class extends Migration {
      */
     public function up(): void
     {
+        Schema::disableForeignKeyConstraints();
+        Schema::dropIfExists('pendaftaran_seminar_proposals');
         Schema::create('pendaftaran_seminar_proposals', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
@@ -56,6 +58,8 @@ return new class extends Migration {
             $table->index('ditentukan_oleh_id');
 
         });
+
+        Schema::enableForeignKeyConstraints();
     }
 
     /**
