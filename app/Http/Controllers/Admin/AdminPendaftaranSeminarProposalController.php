@@ -270,6 +270,17 @@ class AdminPendaftaranSeminarProposalController extends Controller
     }
 
     /**
+     * Display dedicated Status Dosen Pembahas page.
+     */
+    public function statusDosenPembahas()
+    {
+        // Get pembahas statistics
+        $pembahasStatistics = $this->pembahasService->getPembahasStatistics();
+
+        return view('admin.status-dosen-pembahas.index', compact('pembahasStatistics'));
+    }
+
+    /**
      * ========================================
      * PEMBAHAS OPERATIONS
      * ========================================

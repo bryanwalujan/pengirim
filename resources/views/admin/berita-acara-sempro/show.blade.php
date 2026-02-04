@@ -432,6 +432,67 @@
                     </div>
                 </div>
 
+                {{-- ✅ NEW: Riwayat Pembahas (Dosen yang digantikan) --}}
+                @if ($jadwal && $jadwal->dosenPengujiHistory->count() > 0)
+                    <div class="card mb-4 border-danger border-1">
+                        <div class="card-header bg-label-danger mb-2">
+                            <h5 class="mb-0 text-danger">
+                                <i class="bx bx-history me-2"></i>Riwayat Pembahas (Digantikan)
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-danger d-flex align-items-center mb-3" role="alert">
+                                <i class="bx bx-info-circle me-2"></i>
+                                <div>
+                                    Dosen berikut digantikan dan <strong>tidak hadir</strong> saat ujian seminar proposal.
+                                </div>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th width="5%">No</th>
+                                            <th>Nama Dosen</th>
+                                            <th>Posisi Awal</th>
+                                            <th>Digantikan Oleh</th>
+                                            <th>Tanggal Diganti</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($jadwal->dosenPengujiHistory as $index => $dosen)
+                                            <tr>
+                                                <td class="text-center">{{ $index + 1 }}</td>
+                                                <td>
+                                                    <div class="fw-bold">{{ $dosen->name }}</div>
+                                                    <small class="text-muted">NIP: {{ $dosen->nip }}</small>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-label-secondary">
+                                                        {{ ucfirst($dosen->pivot->posisi) }}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    @php
+                                                        $replacedBy = \App\Models\User::find($dosen->pivot->replaced_by_id);
+                                                    @endphp
+                                                    @if ($replacedBy)
+                                                        <div>{{ $replacedBy->name }}</div>
+                                                    @else
+                                                        <span class="text-muted">-</span>
+                                                    @endif
+                                                </td>
+                                                <td>
+                                                    {{ \Carbon\Carbon::parse($dosen->pivot->updated_at)->isoFormat('D MMM Y, HH:mm') }}
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
                 {{-- Isi Berita Acara (dari Pembimbing) --}}
                 @if ($beritaAcara->isFilledByPembimbing())
                     <div class="card mb-4">

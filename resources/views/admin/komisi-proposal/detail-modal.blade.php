@@ -119,7 +119,11 @@
 
                     <form id="formApprovePA_{{ $komisi->id }}"
                         action="{{ route('admin.komisi-proposal.approve-pa', $komisi->id) }}" method="POST"
-                        class="mb-3" @submit.prevent="handleApprovePA">
+                        class="mb-3" @submit.prevent="handleApprovePA"
+                        data-mahasiswa="{{ $komisi->user->name }}"
+                        data-nim="{{ $komisi->user->nim }}"
+                        data-pa-name="{{ $komisi->pembimbing->name }}"
+                        data-is-override="true">
                         @csrf
                         <input type="hidden" name="action" value="approve">
 
@@ -140,7 +144,10 @@
 
                     <form id="formApprovePA_{{ $komisi->id }}"
                         action="{{ route('admin.komisi-proposal.approve-pa', $komisi->id) }}" method="POST"
-                        class="mb-3" @submit.prevent="handleApprovePA">
+                        class="mb-3" @submit.prevent="handleApprovePA"
+                        data-mahasiswa="{{ $komisi->user->name }}"
+                        data-nim="{{ $komisi->user->nim }}"
+                        data-is-override="false">
                         @csrf
                         <input type="hidden" name="action" value="approve">
 
@@ -159,7 +166,9 @@
 
                         <form id="formRejectPA_{{ $komisi->id }}"
                             action="{{ route('admin.komisi-proposal.approve-pa', $komisi->id) }}" method="POST"
-                            @submit.prevent="handleRejectPA">
+                            @submit.prevent="handleRejectPA"
+                            data-mahasiswa="{{ $komisi->user->name }}"
+                            data-nim="{{ $komisi->user->nim }}">
                             @csrf
                             <input type="hidden" name="action" value="reject">
 
@@ -188,7 +197,10 @@
 
                     <form id="formApproveKorprodi_{{ $komisi->id }}"
                         action="{{ route('admin.komisi-proposal.approve-korprodi', $komisi->id) }}" method="POST"
-                        class="mb-3" @submit.prevent="handleApproveKorprodi">
+                        class="mb-3" @submit.prevent="handleApproveKorprodi"
+                        data-mahasiswa="{{ $komisi->user->name }}"
+                        data-nim="{{ $komisi->user->nim }}"
+                        data-is-override="true">
                         @csrf
                         <input type="hidden" name="action" value="approve">
 
@@ -204,7 +216,10 @@
 
                     <form id="formApproveKorprodi_{{ $komisi->id }}"
                         action="{{ route('admin.komisi-proposal.approve-korprodi', $komisi->id) }}" method="POST"
-                        class="mb-3" @submit.prevent="handleApproveKorprodi">
+                        class="mb-3" @submit.prevent="handleApproveKorprodi"
+                        data-mahasiswa="{{ $komisi->user->name }}"
+                        data-nim="{{ $komisi->user->nim }}"
+                        data-is-override="false">
                         @csrf
                         <input type="hidden" name="action" value="approve">
 
@@ -223,7 +238,9 @@
 
                         <form id="formRejectKorprodi_{{ $komisi->id }}"
                             action="{{ route('admin.komisi-proposal.approve-korprodi', $komisi->id) }}" method="POST"
-                            @submit.prevent="handleRejectKorprodi">
+                            @submit.prevent="handleRejectKorprodi"
+                            data-mahasiswa="{{ $komisi->user->name }}"
+                            data-nim="{{ $komisi->user->nim }}">
                             @csrf
                             <input type="hidden" name="action" value="reject">
 

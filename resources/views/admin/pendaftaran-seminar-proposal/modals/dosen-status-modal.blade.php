@@ -75,6 +75,13 @@
                                         <h5 class="mb-0">
                                             <span class="badge bg-label-dark">{{ $totalBeban }}</span>
                                         </h5>
+                                        @if (isset($stat['beban_replaced']) && $stat['beban_replaced'] > 0)
+                                            <div class="mt-1">
+                                                <span class="badge bg-label-danger">
+                                                    <i class="bx bx-history me-1"></i>{{ $stat['beban_replaced'] }} Digantikan
+                                                </span>
+                                            </div>
+                                        @endif
                                     </td>
                                     <td class="text-center">
                                         <span class="badge {{ $badgeClass }}">

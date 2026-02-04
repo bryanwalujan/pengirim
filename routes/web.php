@@ -701,6 +701,10 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             Route::get('/export-status-dosen', [AdminPendaftaranSeminarProposalController::class, 'exportStatusDosen'])
                 ->name('export-status-dosen');
 
+            // Status Dosen Page (MUST be before dynamic route)
+            Route::get('/status-dosen', [AdminPendaftaranSeminarProposalController::class, 'statusDosenPembahas'])
+                ->name('status-dosen');
+
             Route::get('/{pendaftaranSeminarProposal}', [AdminPendaftaranSeminarProposalController::class, 'show'])
                 ->name('show');
 

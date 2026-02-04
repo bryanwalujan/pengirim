@@ -405,6 +405,15 @@
                                             <h5 class="mb-0">
                                                 <span class="badge bg-label-dark">{{ $totalBeban }}</span>
                                             </h5>
+                                            @if (isset($stat['beban_replaced']) && $stat['beban_replaced'] > 0)
+                                                <div class="mt-1">
+                                                    <small class="text-danger fw-semibold" style="font-size: 0.7rem;"
+                                                        data-bs-toggle="tooltip"
+                                                        title="{{ $stat['beban_replaced'] }} sesi digantikan/tidak hadir (Tetap dihitung dalam beban total)">
+                                                        <i class="bx bx-history me-1"></i>{{ $stat['beban_replaced'] }} Digantikan
+                                                    </small>
+                                                </div>
+                                            @endif
                                         </td>
                                         <td class="text-center">
                                             <span class="badge {{ $badgeClass }}">

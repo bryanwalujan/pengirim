@@ -22,20 +22,22 @@ return new class extends Migration {
             // Posisi: Pembimbing, Penguji 1, Penguji 2, Penguji 3
             $table->string('posisi');
 
-            // Dosen Pengganti (jika berhalangan)
-            $table->foreignId('dosen_pengganti_id')->nullable()
-                ->constrained('users')
-                ->onDelete('set null');
+            // ✅ MODIFIED: Additional columns for replacement logic
+            $table->string('status')->default('active'); // active, replaced
+            $table->foreignId('replaced_by_id')->nullable()->constrained('users')->onDelete('set null');
+
+            // Removed original dosen_pengganti_id as replaced_by_id takes its place
+            // $table->foreignId('dosen_pengganti_id')->nullable()->constrained('users')->onDelete('set null');
 
             $table->text('keterangan')->nullable();
 
             $table->timestamps();
 
-            // Composite unique
-            $table->unique([
-                'jadwal_seminar_proposal_id',
-                'posisi'
-            ], 'unique_posisi_dosen');
+            // ✅ MODIFIED: Removed Unique Constraint on [jadwal, posisi] to allow history
+            // $table->unique(['jadwal_seminar_proposal_id', 'posisi'], 'unique_posisi_dosen');
+            
+            // Added index for performance
+            $table->index(['jadwal_seminar_proposal_id', 'status'], 'idx_jadwal_status');
         });
     }
 

@@ -73,7 +73,7 @@ class AdminBeritaAcaraSemproController extends Controller
                 $query->where(function ($q) use ($user) {
                     $q->where('status', 'selesai')
                         ->where(function ($sub) use ($user) {
-                            $sub->whereHas('jadwalSeminarProposal.dosenPenguji', fn($s) => $s->where('dosen_id', $user->id))
+                            $sub->whereHas('jadwalSeminarProposal.allDosenPenguji', fn($s) => $s->where('dosen_id', $user->id))
                                 ->orWhereHas('jadwalSeminarProposal.pendaftaranSeminarProposal', fn($s) => $s->where('dosen_pembimbing_id', $user->id));
                         })
                         ->orWhere(function ($sub) use ($user) {
@@ -152,6 +152,7 @@ class AdminBeritaAcaraSemproController extends Controller
             'jadwalSeminarProposal.pendaftaranSeminarProposal.user',
             'jadwalSeminarProposal.pendaftaranSeminarProposal.dosenPembimbing',
             'jadwalSeminarProposal.dosenPenguji',
+            'jadwalSeminarProposal.dosenPengujiHistory',
             'lembarCatatan.dosen',
         ]);
 

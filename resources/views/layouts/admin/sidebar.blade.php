@@ -894,7 +894,17 @@
             @endif
         @endif
 
-        {{-- ✅ TAMBAHAN BARU: 2.1 Jadwal Seminar Proposal --}}
+        {{-- 2.1 Status Dosen Pembahas - Staff Only --}}
+        @can('manage pendaftaran sempro')
+            <li class="menu-item {{ request()->routeIs('admin.pendaftaran-seminar-proposal.status-dosen') ? 'active' : '' }}">
+                <a href="{{ route('admin.pendaftaran-seminar-proposal.status-dosen') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-user-check"></i>
+                    <div>Status Dosen Pembahas</div>
+                </a>
+            </li>
+        @endcan
+
+        {{-- ✅ TAMBAHAN BARU: 2.2 Jadwal Seminar Proposal --}}
         @if (auth()->user()->can('manage jadwal sempro') || auth()->user()->can('view jadwal sempro'))
             @php
                 $jadwalSemproActiveStates = [

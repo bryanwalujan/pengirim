@@ -20,59 +20,81 @@ class UpdatePembahasAction
             $signedDosenIds = collect($existingSignatures)->pluck('dosen_id')->toArray();
 
             $replacements = [];
-            $newPembahasData = [];
-
-            // Validate & collect changes
+            
+            // Loop through input data (new assignments)
             foreach ($pembahasData as $data) {
                 $posisi = $data['posisi'];
                 $newDosenId = (int) $data['dosen_id'];
 
-                $oldPivot = DB::table('dosen_penguji_jadwal_sempro')
+                // Find currently ACTIVE pembahas for this position
+                $currentActive = DB::table('dosen_penguji_jadwal_sempro')
                     ->where('jadwal_seminar_proposal_id', $jadwal->id)
                     ->where('posisi', $posisi)
+                    ->where('status', 'active')
                     ->first();
 
-                if ($oldPivot && $oldPivot->dosen_id != $newDosenId) {
-                    // Check if old dosen already signed
-                    if (in_array($oldPivot->dosen_id, $signedDosenIds)) {
-                        $oldDosen = User::find($oldPivot->dosen_id);
+                if ($currentActive) {
+                    // Use loose comparison to handle string/int differences
+                    if ($currentActive->dosen_id != $newDosenId) {
+                        // Check if old dosen already signed
+                        if (in_array($currentActive->dosen_id, $signedDosenIds)) {
+                            $oldDosen = User::find($currentActive->dosen_id);
+                            DB::rollBack();
+                            return [
+                                'success' => false,
+                                'message' => "Dosen {$oldDosen->name} di posisi {$posisi} sudah memberikan persetujuan (TTD), tidak dapat diganti.",
+                            ];
+                        }
 
-                        DB::rollBack();
+                        // Log replacement info
+                        $oldDosen = User::find($currentActive->dosen_id);
+                        $newDosen = User::find($newDosenId);
 
-                        return [
-                            'success' => false,
-                            'message' => "Dosen {$oldDosen->name} di posisi {$posisi} sudah memberikan persetujuan (TTD), tidak dapat diganti.",
+                        $replacements[] = [
+                            'posisi' => $posisi,
+                            'old_dosen' => $oldDosen->name,
+                            'new_dosen' => $newDosen->name,
                         ];
+
+                        // 1. Mark old record as replaced
+                        DB::table('dosen_penguji_jadwal_sempro')
+                            ->where('id', $currentActive->id)
+                            ->update([
+                                'status' => 'replaced',
+                                'replaced_by_id' => $newDosenId,
+                                'updated_at' => now(),
+                            ]);
+
+                        // 2. Create NEW active record
+                        DB::table('dosen_penguji_jadwal_sempro')->insert([
+                            'jadwal_seminar_proposal_id' => $jadwal->id,
+                            'dosen_id' => $newDosenId,
+                            'posisi' => $posisi,
+                            'status' => 'active',
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+
+                        Log::info('Lecturer replaced', [
+                            'posisi' => $posisi,
+                            'old_id' => $currentActive->dosen_id,
+                            'new_id' => $newDosenId
+                        ]);
+
+                    } else {
+                        // Sameosen, do nothing (or update timestamps if needed)
                     }
-
-                    $oldDosen = User::find($oldPivot->dosen_id);
-                    $newDosen = User::find($newDosenId);
-
-                    $replacements[] = [
-                        'posisi' => $posisi,
-                        'old_dosen' => $oldDosen->name,
-                        'new_dosen' => $newDosen->name,
-                    ];
-                }
-
-                $newPembahasData[$posisi] = $newDosenId;
-            }
-
-            // Update pivot table
-            foreach ($newPembahasData as $posisi => $newDosenId) {
-                $affected = DB::table('dosen_penguji_jadwal_sempro')
-                    ->where('jadwal_seminar_proposal_id', $jadwal->id)
-                    ->where('posisi', $posisi)
-                    ->update([
+                } else {
+                    // No active record for this position (new assignment)
+                    DB::table('dosen_penguji_jadwal_sempro')->insert([
+                        'jadwal_seminar_proposal_id' => $jadwal->id,
                         'dosen_id' => $newDosenId,
+                        'posisi' => $posisi,
+                        'status' => 'active',
+                        'created_at' => now(),
                         'updated_at' => now(),
                     ]);
-
-                Log::info('Pivot updated', [
-                    'posisi' => $posisi,
-                    'new_dosen_id' => $newDosenId,
-                    'rows_affected' => $affected,
-                ]);
+                }
             }
 
             // ✅ SINKRONISASI: Update tabel proposal_pembahas untuk pendaftaran seminar proposal
@@ -87,7 +109,10 @@ class UpdatePembahasAction
                     'Anggota Pembahas 3' => 3,
                 ];
 
-                foreach ($newPembahasData as $posisi => $newDosenId) {
+                foreach ($pembahasData as $data) {
+                    $posisi = $data['posisi'];
+                    $newDosenId = (int) $data['dosen_id'];
+
                     // Hanya update non-Ketua (Ketua Pembahas tidak ada di proposal_pembahas)
                     if (isset($posisiMapping[$posisi])) {
                         $posisiNumeric = $posisiMapping[$posisi];
@@ -114,17 +139,24 @@ class UpdatePembahasAction
                 }
             }
 
-            // Update signatures - remove signatures from replaced dosen
+            // Update signatures - remove signatures from replaced dosen if any (redundant check but safe)
+            // Note: We already blocked replacement if signed, so technically no signatures to remove.
+            // But we keep this just in case logic changes.
+            
             $newSignatures = [];
-            $newDosenIds = array_values($newPembahasData);
+            // Get IDs from input data
+            $activeDosenIds = array_map(fn($d) => (int)$d['dosen_id'], $pembahasData);
 
             foreach ($existingSignatures as $signature) {
-                if (in_array($signature['dosen_id'], $newDosenIds)) {
+                if (in_array($signature['dosen_id'], $activeDosenIds)) {
                     $newSignatures[] = $signature;
                 }
             }
-
-            $beritaAcara->update(['ttd_dosen_pembahas' => $newSignatures]);
+            
+            // Only update if changes
+            if (count($existingSignatures) !== count($newSignatures)) {
+                 $beritaAcara->update(['ttd_dosen_pembahas' => $newSignatures]);
+            }
 
             DB::commit();
 

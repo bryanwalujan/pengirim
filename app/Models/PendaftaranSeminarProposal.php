@@ -253,12 +253,38 @@ class PendaftaranSeminarProposal extends Model
                 ])
                 ->count();
 
-            // Total beban = Pembahas + Pembimbing (combined into one count)
-            $totalBeban = $bebanPembahas + $bebanPembimbing;
+            // Count as Replaced/Absent (History)
+            $bebanDigantikan = \Illuminate\Support\Facades\DB::table('dosen_penguji_jadwal_sempro')
+                ->where('dosen_id', $dosen->id)
+                ->where('status', 'replaced')
+                ->count();
+            
+            // Get Detailed History for Replaced Sessions
+            $historyReplaced = \Illuminate\Support\Facades\DB::table('dosen_penguji_jadwal_sempro')
+                ->join('jadwal_seminar_proposals', 'dosen_penguji_jadwal_sempro.jadwal_seminar_proposal_id', '=', 'jadwal_seminar_proposals.id')
+                ->join('pendaftaran_seminar_proposals', 'jadwal_seminar_proposals.pendaftaran_seminar_proposal_id', '=', 'pendaftaran_seminar_proposals.id')
+                ->join('users', 'pendaftaran_seminar_proposals.user_id', '=', 'users.id')
+                ->where('dosen_penguji_jadwal_sempro.dosen_id', $dosen->id)
+                ->where('dosen_penguji_jadwal_sempro.status', 'replaced')
+                ->select(
+                    'users.name as mahasiswa_name',
+                    'jadwal_seminar_proposals.tanggal_ujian as tanggal',
+                    'jadwal_seminar_proposals.waktu_mulai as jam_mulai',
+                    'jadwal_seminar_proposals.ruangan'
+                )
+                ->orderBy('jadwal_seminar_proposals.tanggal_ujian', 'desc')
+                ->get();
+
+            // Total beban = Pembahas (Active) + Pembimbing + Replaced
+            // User requested to "still count" the replaced ones.
+            $totalBeban = $bebanPembahas + $bebanPembimbing + $bebanDigantikan;
 
             $statistics[$dosen->id] = [
                 'dosen' => $dosen,
                 'total_beban' => $totalBeban,
+                'beban_active' => $bebanPembahas + $bebanPembimbing,
+                'beban_replaced' => $bebanDigantikan,
+                'history_replaced' => $historyReplaced, // Added history
             ];
         }
 

@@ -40,8 +40,8 @@ class BeritaAcaraSeminarProposalPolicy
                 return true;
             }
 
-            // Penguji
-            return $jadwal->dosenPenguji()->where('dosen_id', $user->id)->exists();
+            // Penguji (termasuk yang digantikan untuk melihat riwayat/status tidak hadir)
+            return $jadwal->allDosenPenguji()->where('dosen_id', $user->id)->exists();
         }
 
         return false;
