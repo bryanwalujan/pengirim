@@ -10,6 +10,13 @@ return new class extends Migration {
      */
     public function up(): void
     {
+        // Disable foreign key constraints to allow dropping the table with dependencies
+        Schema::disableForeignKeyConstraints();
+
+        // Drop existing table if exists (user confirmed they don't care about the data)
+        Schema::dropIfExists('pendaftaran_seminar_proposals');
+
+        // Recreate the table with the structure used in local
         Schema::create('pendaftaran_seminar_proposals', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
@@ -54,8 +61,10 @@ return new class extends Migration {
             $table->index('status');
             $table->index('angkatan');
             $table->index('ditentukan_oleh_id');
-
         });
+
+        // Re-enable foreign key constraints
+        Schema::enableForeignKeyConstraints();
     }
 
     /**
@@ -63,6 +72,8 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('pendaftaran_seminar_proposals');
+        // Since this is a synchronization migration, the down() method might not be perfectly reversible 
+        // without knowing the exact state before. However, the original migration file handles 
+        // the base drop which is standard.
     }
 };
