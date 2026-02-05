@@ -193,36 +193,79 @@ class PendaftaranUjianHasil extends Model
     }
 
     // ========== STATISTICS ==========
-    /**
-     * Get penguji statistics for all dosen
-     * Returns array of dosen with their current workload as penguji (not pembimbing)
-     */
     public static function getPengujiStatistics(): array
     {
-        $dosenList = User::role('dosen')->get();
-        
-        // Get counts for all dosen in one query
-        $counts = PengujiUjianHasil::select('dosen_id', DB::raw('count(*) as total'))
-            ->whereHas('pendaftaranUjianHasil', function($q) {
-                $q->where('status', '!=', 'ditolak');
-            })
-            ->groupBy('dosen_id')
-            ->pluck('total', 'dosen_id')
-            ->all();
-
+        $dosenList = User::role('dosen')->orderBy('name')->get();
         $statistics = [];
+
         foreach ($dosenList as $dosen) {
+            // 1. Beban sebagai Penguji (melalui PengujiUjianHasil)
+            // Hanya hitung yang bukan ditolak
+            $bebanPenguji = PengujiUjianHasil::where('dosen_id', $dosen->id)
+                ->whereHas('pendaftaranUjianHasil', function ($query) {
+                    $query->whereIn('status', [
+                        'penguji_ditentukan',
+                        'surat_diproses',
+                        'menunggu_ttd_kaprodi',
+                        'menunggu_ttd_kajur',
+                        'selesai'
+                    ]);
+                })
+                ->count();
+
+            // 2. Beban sebagai Pembimbing (PS1 atau PS2)
+            // PS1/PS2 di Ujian Hasil juga bertindak sebagai penguji (Penguji 4/5)
+            $bebanPembimbing = self::where(function($q) use ($dosen) {
+                    $q->where('dosen_pembimbing1_id', $dosen->id)
+                      ->orWhere('dosen_pembimbing2_id', $dosen->id);
+                })
+                ->whereIn('status', [
+                    'pending',
+                    'penguji_ditentukan',
+                    'surat_diproses',
+                    'menunggu_ttd_kaprodi',
+                    'menunggu_ttd_kajur',
+                    'selesai'
+                ])
+                ->count();
+
+            // 3. Beban Digantikan (Riwayat)
+            $bebanDigantikan = DB::table('dosen_penguji_jadwal_ujian_hasil')
+                ->where('dosen_id', $dosen->id)
+                ->where('status', 'replaced')
+                ->count();
+            
+            // Get Detailed History for Replaced Sessions
+            $historyReplaced = DB::table('dosen_penguji_jadwal_ujian_hasil')
+                ->join('jadwal_ujian_hasils', 'dosen_penguji_jadwal_ujian_hasil.jadwal_ujian_hasil_id', '=', 'jadwal_ujian_hasils.id')
+                ->join('pendaftaran_ujian_hasils', 'jadwal_ujian_hasils.pendaftaran_ujian_hasil_id', '=', 'pendaftaran_ujian_hasils.id')
+                ->join('users', 'pendaftaran_ujian_hasils.user_id', '=', 'users.id')
+                ->where('dosen_penguji_jadwal_ujian_hasil.dosen_id', $dosen->id)
+                ->where('dosen_penguji_jadwal_ujian_hasil.status', 'replaced')
+                ->select(
+                    'users.name as mahasiswa_name',
+                    'jadwal_ujian_hasils.tanggal_ujian as tanggal',
+                    'jadwal_ujian_hasils.waktu_mulai as jam_mulai',
+                    'jadwal_ujian_hasils.ruangan'
+                )
+                ->orderBy('jadwal_ujian_hasils.tanggal_ujian', 'desc')
+                ->get();
+
+            // Total beban = Penguji + Pembimbing + Digantikan
+            $totalBeban = $bebanPenguji + $bebanPembimbing + $bebanDigantikan;
+
             $statistics[$dosen->id] = [
                 'dosen' => $dosen,
-                'total_beban' => $counts[$dosen->id] ?? 0,
+                'total_beban' => $totalBeban,
+                'beban_active' => $bebanPenguji + $bebanPembimbing,
+                'beban_replaced' => $bebanDigantikan,
+                'history_replaced' => $historyReplaced,
             ];
         }
-        
+
         // Sort by total_beban ascending (lowest workload first)
-        uasort($statistics, function($a, $b) {
-            return $a['total_beban'] <=> $b['total_beban'];
-        });
-        
+        uasort($statistics, fn($a, $b) => $a['total_beban'] <=> $b['total_beban']);
+
         return $statistics;
     }
 

@@ -539,6 +539,17 @@ class AdminPendaftaranUjianHasilController extends Controller
         );
     }
 
+    /**
+     * Display a dedicated page for examiner statistics (workload and replacements).
+     */
+    public function statusDosenPenguji()
+    {
+        // Use model method to get detailed statistics
+        $pengujiStatistics = PendaftaranUjianHasil::getPengujiStatistics();
+
+        return view('admin.status-dosen-penguji.index', compact('pengujiStatistics'));
+    }
+
     // ========== VIEW FILES ==========
 
     public function viewTranskrip(PendaftaranUjianHasil $pendaftaranUjianHasil)

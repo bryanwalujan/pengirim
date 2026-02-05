@@ -10,6 +10,7 @@ use App\Actions\BeritaAcaraUjianHasil\FillOnBehalfAction;
 use App\Actions\BeritaAcaraUjianHasil\SignByPanitiaKetuaAction;
 use App\Actions\BeritaAcaraUjianHasil\SignByPanitiaSekretarisAction;
 use App\Actions\BeritaAcaraUjianHasil\SignByPengujiAction;
+use App\Actions\BeritaAcaraUjianHasil\UpdatePengujiAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BeritaAcaraUjianHasil\ApproveOnBehalfRequest;
 use App\Http\Requests\BeritaAcaraUjianHasil\FillByKetuaRequest;
@@ -40,7 +41,8 @@ class AdminBeritaAcaraUjianHasilController extends Controller
         private readonly FillOnBehalfAction $fillOnBehalfAction,
         private readonly DeleteBeritaAcaraAction $deleteAction,
         private readonly SignByPanitiaSekretarisAction $signPanitiaSekretarisAction,
-        private readonly SignByPanitiaKetuaAction $signPanitiaKetuaAction
+        private readonly SignByPanitiaKetuaAction $signPanitiaKetuaAction,
+        private readonly UpdatePengujiAction $updatePengujiAction
     ) {
     }
 
@@ -525,37 +527,15 @@ class AdminBeritaAcaraUjianHasilController extends Controller
             'penguji.*.posisi' => 'required|string',
         ]);
 
-        $jadwal = $beritaAcara->jadwalUjianHasil;
+        $result = $this->updatePengujiAction->execute($beritaAcara, $request->penguji);
 
-        foreach ($request->penguji as $data) {
-            $newDosenId = $data['dosen_id']; // This is actually the NEW dosen ID (or old if unchanged)
-            $posisi = $data['posisi'];
-
-            // Find current record for this position
-            $currentRecord = $jadwal->dosenPenguji()->wherePivot('posisi', $posisi)->first();
-
-            if ($currentRecord) {
-                // If ID changed
-                if ($currentRecord->id != $newDosenId) {
-                    // Start transaction
-                    \DB::transaction(function () use ($jadwal, $currentRecord, $newDosenId, $posisi) {
-                        // Detach old
-                        $jadwal->dosenPenguji()->wherePivot('posisi', $posisi)->detach($currentRecord->id);
-                        
-                        // Attach new
-                        $jadwal->dosenPenguji()->attach($newDosenId, ['posisi' => $posisi]);
-                    });
-                     
-                    Log::info("Penguji changed for BA ID {$beritaAcara->id}: {$posisi} changed from {$currentRecord->name} ({$currentRecord->id}) to User ID {$newDosenId}");
-                }
-            } else {
-                 // Should not happen usually if form corresponds to DB, but safe to ignore or handle
-            }
+        if (!$result['success']) {
+            return back()->withInput()->with('error', $result['message']);
         }
 
         return redirect()
             ->route('admin.berita-acara-ujian-hasil.show', $beritaAcara)
-            ->with('success', 'Susunan penguji berhasil diperbarui.');
+            ->with('success', $result['message']);
     }
 
     // ==================== PDF OPERATIONS ====================

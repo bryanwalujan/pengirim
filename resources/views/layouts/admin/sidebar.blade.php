@@ -1289,7 +1289,7 @@
                     }
                 }
 
-                $isPendaftaranHasilActive = request()->routeIs('admin.pendaftaran-ujian-hasil.*');
+                $isPendaftaranHasilActive = request()->routeIs('admin.pendaftaran-ujian-hasil.*') && !request()->routeIs('admin.pendaftaran-ujian-hasil.status-dosen');
             @endphp
 
             @if (auth()->user()->isDosenWithApprovalAuthority())
@@ -1356,6 +1356,16 @@
                     </a>
                 </li>
             @endif
+        @endcan
+
+        {{-- 4.0.1 Status Dosen Penguji - Staff Only --}}
+        @can('manage pendaftaran ujian hasil')
+            <li class="menu-item {{ request()->routeIs('admin.pendaftaran-ujian-hasil.status-dosen') ? 'active' : '' }}">
+                <a href="{{ route('admin.pendaftaran-ujian-hasil.status-dosen') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-user-check"></i>
+                    <div>Status Dosen Penguji</div>
+                </a>
+            </li>
         @endcan
 
         {{-- 4.1 Jadwal Ujian Hasil --}}

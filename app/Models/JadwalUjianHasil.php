@@ -30,11 +30,34 @@ class JadwalUjianHasil extends Model
 
     /**
      * Relasi ke dosen penguji (Many-to-Many via pivot)
+     * Hanya mengambil yang statusnya 'active'
      */
     public function dosenPenguji()
     {
         return $this->belongsToMany(User::class, 'dosen_penguji_jadwal_ujian_hasil', 'jadwal_ujian_hasil_id', 'dosen_id')
-            ->withPivot('posisi', 'keterangan')
+            ->withPivot('posisi', 'keterangan', 'status', 'replaced_by_id')
+            ->wherePivot('status', 'active')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get ALL dosen penguji including history (replaced)
+     */
+    public function allDosenPenguji()
+    {
+        return $this->belongsToMany(User::class, 'dosen_penguji_jadwal_ujian_hasil', 'jadwal_ujian_hasil_id', 'dosen_id')
+            ->withPivot('posisi', 'keterangan', 'status', 'replaced_by_id')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get history of replaced lecturers
+     */
+    public function dosenPengujiHistory()
+    {
+        return $this->belongsToMany(User::class, 'dosen_penguji_jadwal_ujian_hasil', 'jadwal_ujian_hasil_id', 'dosen_id')
+            ->withPivot('posisi', 'keterangan', 'status', 'replaced_by_id')
+            ->wherePivot('status', 'replaced')
             ->withTimestamps();
     }
 

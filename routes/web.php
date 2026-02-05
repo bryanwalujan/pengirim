@@ -1042,6 +1042,10 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             Route::get('/export-status-dosen', [AdminPendaftaranUjianHasilController::class, 'exportStatusDosen'])
                 ->name('export-status-dosen');
 
+            // Status Dosen Penguji (Dashboard)
+            Route::get('/status-dosen', [AdminPendaftaranUjianHasilController::class, 'statusDosenPenguji'])
+                ->name('status-dosen');
+
             Route::get('/{pendaftaranUjianHasil}', [AdminPendaftaranUjianHasilController::class, 'show'])->name('show');
 
             // View Files (Inline Preview)
