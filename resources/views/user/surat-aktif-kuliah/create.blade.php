@@ -230,15 +230,6 @@
             border-radius: 5px;
         }
 
-        /* Untuk contoh tujuan pengajuan */
-        #contohTujuan ul {
-            padding-left: 20px;
-            margin-bottom: 0;
-        }
-
-        #contohTujuan li {
-            margin-bottom: 5px;
-        }
 
         .alert-info {
             background-color: #e7f5ff;
@@ -326,31 +317,25 @@
                         <i class="bi bi-card-text"></i>
                         Tujuan Pengajuan
                     </h5>
-
-                    <div class="mb-4">
+                    <div>
                         <label for="tujuan_pengajuan" class="form-label">Tujuan Pengajuan Surat <span
                                 class="text-danger">*</span></label>
                         <textarea class="form-control @error('tujuan_pengajuan') is-invalid @enderror" id="tujuan_pengajuan"
-                            name="tujuan_pengajuan" rows="4" required>{{ old('tujuan_pengajuan') }}</textarea>
+                            name="tujuan_pengajuan" rows="4" placeholder="Contoh: melengkapi berkas beasiswa PPA / pengurusan BPJS" required>{{ old('tujuan_pengajuan') }}</textarea>
 
-                        <div class="form-text mt-2">
-                            <button type="button" class="btn btn-sm btn-outline-primary mb-2" data-bs-toggle="collapse"
-                                data-bs-target="#contohTujuan">
-                                <i class="bi bi-lightbulb me-1"></i> Lihat Contoh
-                            </button>
-                            <div id="contohTujuan" class="collapse">
-                                <div class="card card-body mb-3">
-                                    <strong>Contoh Tujuan Pengajuan:</strong>
-                                    <ul class="mb-0">
-                                        <li>Untuk keperluan pengajuan beasiswa KIP-Kuliah tahun 2024</li>
-                                        <li>Sebagai persyaratan magang di PT. Teknologi Maju Indonesia</li>
-                                        <li>Untuk melengkapi dokumen pendaftaran lomba Hackathon Nasional 2024</li>
-                                        <li>Sebagai lampiran aplikasi Beyond Borders Scholarship Award 2025</li>
-                                    </ul>
-                                </div>
+                        <div class="alert alert-info py-2 px-3 mt-3 mb-0" style="font-size: 0.85rem; border-left: 5px solid var(--accent-color); background-color: rgba(72, 149, 239, 0.1);">
+                            <div class="d-flex align-items-center mb-1">
+                                <i class="bi bi-info-circle-fill me-2" style="color: var(--accent-color);"></i>
+                                <strong style="color: var(--secondary-color);">Informasi Pengisian:</strong>
                             </div>
-                            Tujuan pengajuan akan muncul di bagian bawah surat seperti contoh di samping.
+                            <p class="mb-0 text-muted">Teks yang Anda masukkan akan otomatis melengkapi kalimat pada surat: <br>
+                                <span class="bg-white px-2 py-1 rounded mt-1 d-inline-block border">"Adapun surat keterangan aktif kuliah ini akan digunakan untuk <strong>[Tujuan Anda]</strong>"</span>
+                            </p>
+                            <div class="mt-2" style="font-style: italic; font-size: 0.8rem;">
+                                *Gunakan huruf kecil di awal kalimat jika kalimatnya menyambung dengan baik.
+                            </div>
                         </div>
+
                         @error('tujuan_pengajuan')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -370,88 +355,122 @@
                         </div>
                         <div class="card-body p-0">
                             <div class="surat-preview p-4"
-                                style="font-family: 'Times New Roman', serif; font-size: 14px; line-height: 1.5;">
-                                <div class="text-center mb-4">
-                                    <h5 style="font-weight: bold; margin-bottom: 5px;">KEMENTERIAN PENDIDIKAN TINGGI, SAINS,
-                                        DAN TEKNOLOGI</h5>
-                                    <h5 style="font-weight: bold; margin-bottom: 5px;">UNIVERSITAS NEGERI MANADO</h5>
-                                    <h6 style="font-weight: bold; margin-bottom: 5px;">FAKULTAS TEKNIK</h6>
-                                    <h6 style="font-weight: bold; margin-bottom: 5px;">PROGRAM STUDI S1 TEKNIK INFORMATIKA
-                                    </h6>
-                                    <p style="margin-bottom: 0; font-size: 12px;">
-                                        Alamat : Kampus UNIMA Tondano 95618, Telp.(0431)7233580<br>
-                                        Website : tt.unima.ac.id, Email : teknikinformatika@unima.ac.id
-                                    </p>
-                                </div>
-
-                                <hr style="border-top: 2px solid #000; margin: 10px 0;">
-
-                                <div class="d-flex justify-content-between mb-4">
-                                    <div style="width: 30%;">
-                                        <p style="margin-bottom: 5px;">No &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:
-                                            3108/UN41.2/TI/2024</p>
-                                        <p style="margin-bottom: 5px;">Lampiran : 1 Berkas</p>
-                                        <p style="margin-bottom: 0;">Perihal &nbsp;: Permohonan Aktif Kuliah</p>
-                                    </div>
-                                    <div style="width: 30%; text-align: right;">
-                                        <p style="margin-bottom: 0;">Tondano, 10 Desember 2024</p>
+                                style="font-family: 'Times New Roman', serif; font-size: 12pt; line-height: 1.5; color: #000;">
+                                
+                                <!-- Kop Surat -->
+                                <div class="kop-surat-preview mb-4">
+                                    <div style="display: flex; align-items: center; border-bottom: 3px double #000; padding-bottom: 10px; margin-bottom: 20px;">
+                                        @if ($kopSurat && $kopSurat->logo)
+                                            <div style="padding-right: 15px;">
+                                                <img src="{{ asset('storage/' . $kopSurat->logo) }}" alt="Logo" style="height: 100px;">
+                                            </div>
+                                        @endif
+                                        <div style="flex: 1; text-align: center;">
+                                            <div style="font-size: 14pt; line-height: 1.2;">{{ $kopSurat->kementerian ?? 'KEMENTERIAN PENDIDIKAN TINGGI, SAINS, DAN TEKNOLOGI' }}</div>
+                                            <div style="font-size: 13pt; line-height: 1.2;">{{ $kopSurat->universitas ?? 'UNIVERSITAS NEGERI MANADO' }}</div>
+                                            <div style="font-size: 13pt; line-height: 1.2; font-weight: bold;">{{ $kopSurat->fakultas ?? 'FAKULTAS TEKNIK' }}</div>
+                                            <div style="font-size: 12pt; font-weight: bold;">{{ $kopSurat->prodi ?? 'PROGRAM STUDI S1 TEKNIK INFORMATIKA' }}</div>
+                                            <div style="font-size: 10pt;">
+                                                {{ $kopSurat->alamat ?? 'Alamat : Kampus UNIMA Tondano 95618, Telp.(0431)7233580' }}<br>
+                                                {{ $kopSurat->kontak ?? 'Website : tt.unima.ac.id, Email : teknikinformatika@unima.ac.id' }}
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div class="mb-4">
-                                    <p style="margin-bottom: 5px;">Kepada Yth;</p>
-                                    <p style="margin-bottom: 5px;">Dekan Fakultas Teknik</p>
-                                    <p style="margin-bottom: 0;">Universitas Negeri Manado</p>
+                                <!-- Informasi Surat -->
+                                <div class="d-flex justify-content-between mb-2">
+                                    <div style="width: 60%;">
+                                        <table style="width: 100%; border-collapse: collapse;">
+                                            <tr>
+                                                <td width="80">Nomor</td>
+                                                <td width="10">:</td>
+                                                <td>[Nomor Surat]</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Lampiran</td>
+                                                <td>:</td>
+                                                <td>1 berkas</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Perihal</td>
+                                                <td>:</td>
+                                                <td>Permohonan Aktif Kuliah</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                    <div style="width: 40%; text-align: right;">
+                                        Tondano, {{ now()->format('d F Y') }}
+                                    </div>
                                 </div>
 
-                                <div class="mb-4">
-                                    <p style="text-align: justify; text-indent: 50px; margin-bottom: 15px;">
+                                <!-- Tujuan Surat -->
+                                <div class="mb-3">
+                                    <p style="margin-bottom: 0;">Kepada Yth.</p>
+                                    <p style="margin-bottom: 0;">Dekan Fakultas Teknik Universitas Negeri Manado di Tondano</p>
+                                </div>
+
+                                <!-- Isi Surat -->
+                                <div class="content mb-4">
+                                    <p style="margin-bottom: 5px; text-align: justify;">
                                         Pimpinan Program Studi S1 Teknik Informatika menerangkan bahwa:
                                     </p>
 
-                                    <table style="margin-left: 50px; margin-bottom: 15px;">
+                                    <table style="margin-left: 40px; margin-bottom: 15px;">
                                         <tr>
-                                            <td style="width: 120px; vertical-align: top;">Nama</td>
-                                            <td style="vertical-align: top;">: {{ Auth::user()->name }}</td>
+                                            <td width="120">Nama</td>
+                                            <td width="10">:</td>
+                                            <td>{{ Auth::user()->name }}</td>
                                         </tr>
                                         <tr>
-                                            <td style="vertical-align: top;">NIM</td>
-                                            <td style="vertical-align: top;">: {{ Auth::user()->nim }}</td>
+                                            <td>NIM</td>
+                                            <td>:</td>
+                                            <td>{{ Auth::user()->nim }}</td>
                                         </tr>
                                         <tr>
-                                            <td style="vertical-align: top;">Semester</td>
-                                            <td style="vertical-align: top;">: V (Lima)</td>
+                                            <td>Semester</td>
+                                            <td>:</td>
+                                            <td>{{ $semesterRoman ?? 'I (Satu)' }}</td>
                                         </tr>
                                         <tr>
-                                            <td style="vertical-align: top;">Jurusan/Prodi</td>
-                                            <td style="vertical-align: top;">: Teknik Informatika</td>
+                                            <td>Jurusan/Prodi</td>
+                                            <td>:</td>
+                                            <td>Teknik Informatika</td>
                                         </tr>
                                     </table>
 
-                                    <p style="text-align: justify; text-indent: 50px; margin-bottom: 15px;">
-                                        Adalah benar mahasiswa Program Studi S1 Teknik Informatika Fakultas Teknik yang
-                                        aktif dalam mengikuti perkuliahan dan kegiatan lainnya pada tahun ajaran 2024/2025.
-                                        Untuk itu dimohon kiranya Dekan berkenan menerbitkan surat keterangan aktif kuliah
-                                        untuk mahasiswa tersebut.
+                                    <p style="text-align: justify; text-indent: 2.5rem; margin-bottom: 10px;">
+                                        Adalah benar mahasiswa Program Studi S1 Teknik Informatika Fakultas Teknik yang aktif dalam mengikuti
+                                        perkuliahan dan kegiatan lainnya pada tahun ajaran {{ $tahunAjaranAktif->tahun ?? now()->year . '/' . (now()->year + 1) }}. Untuk itu dimohon kiranya
+                                        Dekan berkenan menerbitkan surat keterangan aktif kuliah untuk mahasiswa tersebut.
                                     </p>
 
-                                    <p style="text-align: justify; text-indent: 50px; margin-bottom: 15px;"
-                                        id="preview-tujuan">
-                                        Adapun surat keterangan aktif kuliah itu akan digunakan untuk <span
-                                            class="highlight-text">melengkapi berkas Besiswa Beyond Borders Scholarship
-                                            Award 2025</span>
+                                    <p style="text-align: justify; text-indent: 2.5rem; margin-bottom: 10px;" id="preview-tujuan">
+                                        Adapun surat keterangan aktif kuliah ini akan digunakan untuk <span
+                                            class="highlight-text">melengkapi berkas...</span>
                                     </p>
 
-                                    <p style="text-align: justify; text-indent: 50px; margin-bottom: 0;">
-                                        Demikian permohonan ini, atasnya diucapkan terima kasih.
+                                    <p style="text-align: justify; margin-top: 0;">
+                                        Demikian permohonan ini, atas perhatiannya diucapkan terima kasih.
                                     </p>
                                 </div>
 
-                                <div class="d-flex justify-content-end mt-5">
-                                    <div style="text-align: center; width: 250px;">
-                                        <p style="margin-bottom: 50px;">Koordinator Program Studi</p>
-                                        <p style="margin-bottom: 5px; font-weight: bold;">Dr. John Doe, M.Kom.</p>
-                                        <p style="margin-bottom: 0;">NIP. 197001011995121001</p>
+                                <!-- Tanda Tangan -->
+                                <div class="row mt-5">
+                                    <div class="col-6">
+                                        <p class="mb-0">Mengetahui,</p>
+                                        <p class="mb-5">[Jabatan Pimpinan],</p>
+                                        <p class="mt-5 mb-0" style="text-decoration: underline; font-weight: bold;">[Nama Pimpinan]</p>
+                                        <p>NIP. [NIP Pimpinan]</p>
+                                    </div>
+                                    <div class="col-6 text-end">
+                                        {{-- Style aligned to right but text-align left for the block --}}
+                                        <div style="display: inline-block; text-align: left;">
+                                            <p class="mb-0">Koordinator Program Studi</p>
+                                            <p class="mb-5">Teknik Informatika,</p>
+                                            <p class="mt-5 mb-0" style="text-decoration: underline; font-weight: bold;">[Nama Kaprodi]</p>
+                                            <p>NIP. [NIP Kaprodi]</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -657,10 +676,10 @@
             tujuanInput.addEventListener('input', function() {
                 if (this.value.trim() === '') {
                     previewTujuan.innerHTML =
-                        'Adapun surat keterangan aktif kuliah itu akan digunakan untuk melengkapi berkas <span class="highlight-text">Besiswa Beyond Borders Scholarship Award 2025</span>';
+                        'Adapun surat keterangan aktif kuliah ini akan digunakan untuk <span class="highlight-text">melengkapi berkas...</span>';
                 } else {
                     previewTujuan.innerHTML =
-                        'Adapun surat keterangan aktif kuliah itu akan digunakan untuk melengkapi berkas <span class="highlight-text">' +
+                        'Adapun surat keterangan aktif kuliah ini akan digunakan untuk <span class="highlight-text">' +
                         this.value + '</span>';
                 }
             });

@@ -431,32 +431,40 @@
 
                     <div class="card border-primary">
                         <div class="card-header bg-primary text-white">
-                            <h6 class="mb-0">Contoh Surat Pindah</h6>
+                            <h6 class="mb-0">Pratinjau Surat Pindah</h6>
                         </div>
                         <div class="card-body p-0">
-                            <div class="preview-content p-4">
+                            <div class="surat-preview p-5"
+                                style="font-family: 'Times New Roman', Times, serif; font-size: 12pt; color: #000; line-height: 1.5; background: white;">
                                 <!-- Kop Surat -->
-                                <div class="preview-header">
-                                    <h5>KEMENTERIAN PENDIDIKAN TINGGI, SAINS, DAN TEKNOLOGI</h5>
-                                    <h5>UNIVERSITAS NEGERI MANADO</h5>
-                                    <h6>FAKULTAS TEKNIK</h6>
-                                    <h6>PROGRAM STUDI S1 TEKNIK INFORMATIKA</h6>
-                                    <p>
-                                        Alamat : Kampus UNIMA Tondano 95618, Telp.(0431)7233580<br>
-                                        Website : tt.unima.ac.id, Email : teknikinformatika@unima.ac.id
-                                    </p>
+                                <div class="kop-surat-preview mb-4">
+                                    <div style="display: flex; align-items: center; border-bottom: 3px double #000; padding-bottom: 10px; margin-bottom: 20px;">
+                                        @if ($kopSurat && $kopSurat->logo)
+                                            <div style="padding-right: 15px;">
+                                                <img src="{{ asset('storage/' . $kopSurat->logo) }}" alt="Logo" style="height: 100px;">
+                                            </div>
+                                        @endif
+                                        <div style="flex: 1; text-align: center;">
+                                            <div style="font-size: 14pt; line-height: 1.2;">{{ $kopSurat->kementerian ?? 'KEMENTERIAN PENDIDIKAN TINGGI, SAINS, DAN TEKNOLOGI' }}</div>
+                                            <div style="font-size: 13pt; line-height: 1.2;">{{ $kopSurat->universitas ?? 'UNIVERSITAS NEGERI MANADO' }}</div>
+                                            <div style="font-size: 13pt; line-height: 1.2; font-weight: bold;">{{ $kopSurat->fakultas ?? 'FAKULTAS TEKNIK' }}</div>
+                                            <div style="font-size: 12pt; font-weight: bold;">{{ $kopSurat->prodi ?? 'PROGRAM STUDI S1 TEKNIK INFORMATIKA' }}</div>
+                                            <div style="font-size: 10pt;">
+                                                {{ $kopSurat->alamat ?? 'Alamat : Kampus UNIMA Tondano 95618, Telp.(0431)7233580' }}<br>
+                                                {{ $kopSurat->kontak ?? 'Website : tt.unima.ac.id, Email : teknikinformatika@unima.ac.id' }}
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
 
-                                <div class="preview-divider"></div>
-
                                 <!-- Informasi Surat -->
-                                <div style="margin-bottom: 30px;">
-                                    <table>
+                                <div class="mb-4">
+                                    <table style="width: 100%; border-collapse: collapse;">
                                         <tr>
                                             <td width="80">Nomor</td>
                                             <td width="10">:</td>
-                                            <td>3108/UN41.2/TI/2024</td>
-                                            <td width="150" style="text-align: right;">Tondano, 10 Desember 2024</td>
+                                            <td>[Nomor Surat]</td>
+                                            <td width="200" style="text-align: right;">Tondano, {{ date('d F Y') }}</td>
                                         </tr>
                                         <tr>
                                             <td>Lampiran</td>
@@ -480,7 +488,7 @@
                                 </p>
 
                                 <!-- Isi Surat -->
-                                <div style="margin-bottom: 20px;">
+                                <div style="text-align: justify; margin-bottom: 20px;">
                                     <p style="margin-bottom: 2px">
                                         Pimpinan Program Studi S1 Teknik Informatika menerangkan bahwa:
                                     </p>
@@ -498,7 +506,7 @@
                                         <tr>
                                             <td>Semester</td>
                                             <td>:</td>
-                                            <td>V (Lima)</td>
+                                            <td>{{ $semesterRoman ?? 'I (Satu)' }}</td>
                                         </tr>
                                         <tr>
                                             <td>Jurusan/Prodi</td>
@@ -506,39 +514,38 @@
                                             <td>S1 Teknik Informatika</td>
                                         </tr>
                                     </table>
-                                    <p id="preview-alasan">
-                                        Mahasiswa tersebut bermaksud akan pindah dari Universitas Negeri Manado ke <span
-                                            class="highlight-text">{{ old('universitas_tujuan', '[Universitas Tujuan]') }}</span>
-                                        dengan alasan <span
-                                            class="highlight-text">{{ old('alasan_pengajuan', '[Alasan Pengajuan]') }}</span>.<br>
+                                    <p>
+                                        Mahasiswa tersebut bermaksud akan pindah dari Universitas Negeri Manado ke 
+                                        <span id="preview-tujuan" class="highlight-text">{{ old('universitas_tujuan') ? old('universitas_tujuan') : '[Masukkan universitas tujuan]' }}</span>
+                                        dengan alasan <span id="preview-alasan" class="highlight-text">{{ old('alasan_pengajuan') ? old('alasan_pengajuan') : '[Masukkan alasan pindah]' }}</span>. <br>
                                         Kiranya Dekan berkenan menerbitkan surat keterangan pindah untuk mahasiswa tersebut.
                                     </p>
 
-                                    <p style="margin-top: -10px;">
+                                    <p>
                                         Demikian permohonan ini, atasnya disampaikan terima kasih.
                                     </p>
                                 </div>
 
                                 <!-- Tanda Tangan -->
-                                <table style="vertical-align: top; width: 100%; line-height: 0.8;">
+                                <table style="vertical-align: top; width: 100%; line-height: 1.2; margin-top: 40px;">
                                     <tr>
-                                        <td>
+                                        <td style="width: 50%;">
                                             <p>Mengetahui,</p>
-                                            <p>Pimpinan Jurusan PTIK,</p>
-                                            <div style="height: 100px;"></div>
-                                            <p class="underline">
-                                                <strong>[Nama Penandatangan]</strong>
+                                            <p>Ketua Jurusan PTIK,</p>
+                                            <div style="height: 80px;"></div>
+                                            <p style="text-decoration: underline; font-weight: bold; margin-bottom: 0;">
+                                                [Nama Ketua Jurusan]
                                             </p>
-                                            <p>NIP. [NIP]</p>
+                                            <p>NIP. [NIP Ketua Jurusan]</p>
                                         </td>
-                                        <td style="padding-left: 8rem;">
+                                        <td style="width: 50%; padding-left: 5rem;">
                                             <p>Koordinator Program Studi</p>
                                             <p>Teknik Informatika,</p>
-                                            <div style="height: 100px;"></div>
-                                            <p class="underline">
-                                                <strong>[Nama Penandatangan]</strong>
+                                            <div style="height: 80px;"></div>
+                                            <p style="text-decoration: underline; font-weight: bold; margin-bottom: 0;">
+                                                [Nama Koordinator]
                                             </p>
-                                            <p>NIP. [NIP]</p>
+                                            <p>NIP. [NIP Koordinator]</p>
                                         </td>
                                     </tr>
                                 </table>
@@ -653,7 +660,6 @@
                 previewAlasan.innerHTML = `
                     Mahasiswa tersebut bermaksud akan pindah dari Universitas Negeri Manado ke <span class="highlight-text">${universitas}</span>
                     dengan alasan <span class="highlight-text">${alasan}</span>.<br>
-                    Kiranya Dekan berkenan menerbitkan surat keterangan pindah untuk mahasiswa tersebut.
                 `;
             }
 
@@ -758,6 +764,22 @@
             btn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i> Mengirim...';
 
             this.submit();
+        });
+
+        // Preview universitas_tujuan and alasan_pengajuan
+        document.addEventListener('DOMContentLoaded', function() {
+            const tujuanInput = document.getElementById('universitas_tujuan');
+            const alasanInput = document.getElementById('alasan_pengajuan');
+            const previewTujuan = document.getElementById('preview-tujuan');
+            const previewAlasan = document.getElementById('preview-alasan');
+
+            tujuanInput.addEventListener('input', function() {
+                previewTujuan.textContent = this.value.trim() || '[Masukkan universitas tujuan]';
+            });
+
+            alasanInput.addEventListener('input', function() {
+                previewAlasan.textContent = this.value.trim() || '[Masukkan alasan pindah]';
+            });
         });
     </script>
 @endpush

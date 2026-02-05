@@ -340,35 +340,40 @@
 
                     <div class="card border-primary">
                         <div class="card-header bg-primary text-white">
-                            <h6 class="mb-0">Contoh Surat Cuti Akademik</h6>
+                            <h6 class="mb-0">Pratinjau Surat Cuti Akademik</h6>
                         </div>
                         <div class="card-body p-0">
-                            <div class="surat-preview p-4"
-                                style="font-family: 'Times New Roman', serif; font-size: 12pt; line-height: 1.5;">
+                            <div class="surat-preview p-5"
+                                style="font-family: 'Times New Roman', Times, serif; font-size: 12pt; color: #000; line-height: 1.5; background: white;">
                                 <!-- Kop Surat -->
-                                <div class="text-center mb-4">
-                                    <h5 style="font-weight: bold; margin-bottom: 5px;">KEMENTERIAN PENDIDIKAN TINGGI, SAINS,
-                                        DAN TEKNOLOGI</h5>
-                                    <h5 style="font-weight: bold; margin-bottom: 5px;">UNIVERSITAS NEGERI MANADO</h5>
-                                    <h6 style="font-weight: bold; margin-bottom: 5px;">FAKULTAS TEKNIK</h6>
-                                    <h6 style="font-weight: bold; margin-bottom: 5px;">PROGRAM STUDI S1 TEKNIK INFORMATIKA
-                                    </h6>
-                                    <p style="margin-bottom: 0; font-size: 11pt;">
-                                        Alamat : Kampus UNIMA Tondano 95618, Telp.(0431)7235580<br>
-                                        Website : tl.unima.ac.id, Email : teknikinformatika@unima.ac.id
-                                    </p>
+                                <div class="kop-surat-preview mb-4">
+                                    <div style="display: flex; align-items: center; border-bottom: 3px double #000; padding-bottom: 10px; margin-bottom: 20px;">
+                                        @if ($kopSurat && $kopSurat->logo)
+                                            <div style="padding-right: 15px;">
+                                                <img src="{{ asset('storage/' . $kopSurat->logo) }}" alt="Logo" style="height: 100px;">
+                                            </div>
+                                        @endif
+                                        <div style="flex: 1; text-align: center;">
+                                            <div style="font-size: 14pt; line-height: 1.2;">{{ $kopSurat->kementerian ?? 'KEMENTERIAN PENDIDIKAN TINGGI, SAINS, DAN TEKNOLOGI' }}</div>
+                                            <div style="font-size: 13pt; line-height: 1.2;">{{ $kopSurat->universitas ?? 'UNIVERSITAS NEGERI MANADO' }}</div>
+                                            <div style="font-size: 13pt; line-height: 1.2; font-weight: bold;">{{ $kopSurat->fakultas ?? 'FAKULTAS TEKNIK' }}</div>
+                                            <div style="font-size: 12pt; font-weight: bold;">{{ $kopSurat->prodi ?? 'PROGRAM STUDI S1 TEKNIK INFORMATIKA' }}</div>
+                                            <div style="font-size: 10pt;">
+                                                {{ $kopSurat->alamat ?? 'Alamat : Kampus UNIMA Tondano 95618, Telp.(0431)7233580' }}<br>
+                                                {{ $kopSurat->kontak ?? 'Website : tt.unima.ac.id, Email : teknikinformatika@unima.ac.id' }}
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-
-                                <hr style="border-top: 2px solid #000; margin: 10px 0;">
 
                                 <!-- Informasi Surat -->
                                 <div class="mb-4">
-                                    <table style="width: 100%; font-size: 12pt; border-collapse: collapse;">
+                                    <table style="width: 100%; border-collapse: collapse;">
                                         <tr>
                                             <td width="80">Nomor</td>
                                             <td width="10">:</td>
-                                            <td>0449/UN41.2/TI/2025</td>
-                                            <td width="200" style="text-align: right;">Tondano, 27 Februari 2025</td>
+                                            <td>[Nomor Surat]</td>
+                                            <td width="200" style="text-align: right;">Tondano, {{ date('d F Y') }}</td>
                                         </tr>
                                         <tr>
                                             <td>Lampiran</td>
@@ -386,7 +391,7 @@
                                 </div>
 
                                 <!-- Tujuan Surat -->
-                                <p style="margin-bottom: 15px;">
+                                <p style="margin-bottom: 10px;">
                                     Kepada Yth.<br>
                                     Dekan Fakultas Teknik Universitas Negeri Manado di Tondano
                                 </p>
@@ -410,7 +415,7 @@
                                         <tr>
                                             <td>Semester</td>
                                             <td>:</td>
-                                            <td>Delapan (VIII)</td>
+                                            <td>{{ $semesterRoman ?? 'I (Satu)' }}</td>
                                         </tr>
                                         <tr>
                                             <td>Prodi</td>
@@ -419,47 +424,37 @@
                                         </tr>
                                     </table>
                                     <p>
-                                        Mahasiswa tersebut bermaksud untuk cuti akademik dalam semester yang sedang berjalan
-                                        ini, semester
-                                        VIII tahun ajaran {{ $tahunAjaranAktif->tahun ?? '' }} dengan alasan
-                                        <span id="preview-alasan"
-                                            class="highlight-text">{{ old('alasan_pengajuan') ? old('alasan_pengajuan') : '[Masukkan alasan pengajuan cuti akademik]' }}</span>.
-                                        <br>
-                                        Kiranya Dekan berkenan menerbitkan surat keterangan cuti akademik untuk mahasiswa
-                                        tersebut.
+                                        Mahasiswa tersebut bermaksud untuk cuti akademik dalam semester yang sedang berjalan ini,
+                                        semester {{ $tahunAjaranAktif->semester ?? '[Semester]' }} tahun ajaran {{ $tahunAjaranAktif->tahun ?? '[Tahun Ajaran]' }} dengan alasan,
+                                        <span id="preview-alasan" class="highlight-text">{{ old('alasan_pengajuan') ? old('alasan_pengajuan') : '[Masukkan alasan pengajuan]' }}</span>. <br>
+                                        Kiranya Dekan berkenan menerbitkan surat keterangan cuti akademik untuk mahasiswa tersebut.
                                     </p>
 
-                                    <p style="margin-top: 10px;">
+                                    <p>
                                         Demikian permohonan ini, atasnya disampaikan terima kasih.
                                     </p>
                                 </div>
 
                                 <!-- Tanda Tangan -->
-                                <table style="vertical-align: top; width: 100%; line-height: 0.8; margin-top: 30px;">
+                                <table style="vertical-align: top; width: 100%; line-height: 1.2; margin-top: 40px;">
                                     <tr>
                                         <td style="width: 50%;">
                                             <p>Mengetahui,</p>
-                                            <p>Pimpinan Jurusan PTIK,</p>
-                                            <div
-                                                style="height: 100px; display: flex; align-items: center; justify-content: center;">
-                                                <!-- Space for signature -->
-                                            </div>
-                                            <p style="text-decoration: underline;">
-                                                <strong>Arje C. Djamen, ST, MT</strong>
+                                            <p>[Jabatan Pimpinan],</p>
+                                            <div style="height: 80px;"></div>
+                                            <p style="text-decoration: underline; font-weight: bold; margin-bottom: 0;">
+                                                [Nama Pimpinan]
                                             </p>
-                                            <p>NIP. 19870712 201012 1 006</p>
+                                            <p>NIP. [NIP Pimpinan]</p>
                                         </td>
                                         <td style="width: 50%; padding-left: 5rem;">
                                             <p>Koordinator Program Studi</p>
                                             <p>Teknik Informatika,</p>
-                                            <div
-                                                style="height: 100px; display: flex; align-items: center; justify-content: center;">
-                                                <!-- Space for signature -->
-                                            </div>
-                                            <p style="text-decoration: underline;">
-                                                <strong>Kristofel Santa, S,ST, M.MT</strong>
+                                            <div style="height: 80px;"></div>
+                                            <p style="text-decoration: underline; font-weight: bold; margin-bottom: 0;">
+                                                [Nama Koordinator]
                                             </p>
-                                            <p>NIP. 19870531 201504 1 003</p>
+                                            <p>NIP. [NIP Koordinator]</p>
                                         </td>
                                     </tr>
                                 </table>
@@ -666,7 +661,7 @@
             alasanInput.addEventListener('input', function() {
                 if (this.value.trim() === '') {
                     previewAlasan.innerHTML =
-                        '<span class="highlight-text">Masukkan alasan pengajuan cuti akademik di form di atas</span>';
+                        '<span class="highlight-text">[Masukkan alasan pengajuan]</span>';
                 } else {
                     previewAlasan.innerHTML = '<span class="highlight-text">' + this.value + '</span>';
                 }

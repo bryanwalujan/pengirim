@@ -64,8 +64,27 @@ class SuratCutiAkademikController extends Controller
         $this->authorize('create', SuratCutiAkademik::class);
         $service = Service::where('slug', 'surat-cuti-akademik')->firstOrFail();
         $tahunAjaranAktif = TahunAjaran::where('status_aktif', true)->first();
+        $kopSurat = \App\Models\KopSurat::first();
 
-        return view('user.surat-cuti-akademik.create', compact('service', 'tahunAjaranAktif'));
+        // Hitung semester untuk preview (Logika sama dengan SuratAktifKuliahController)
+        $semesterRoman = 'I (Satu)';
+        if ($tahunAjaranAktif && Auth::user()->nim) {
+            $tahunMasuk = 2000 + (int) substr(Auth::user()->nim, 0, 2);
+            $tahunParts = explode('/', $tahunAjaranAktif->tahun);
+            $tahunMulai = (int) $tahunParts[0];
+            $semesterNumber = ($tahunMulai - $tahunMasuk) * 2 + ($tahunAjaranAktif->semester === 'ganjil' ? 1 : 2);
+            $semesterNumber = min(max($semesterNumber, 1), 14);
+
+            $map = [
+                1 => 'I (Satu)', 2 => 'II (Dua)', 3 => 'III (Tiga)', 4 => 'IV (Empat)',
+                5 => 'V (Lima)', 6 => 'VI (Enam)', 7 => 'VII (Tujuh)', 8 => 'VIII (Delapan)',
+                9 => 'IX (Sembilan)', 10 => 'X (Sepuluh)', 11 => 'XI (Sebelas)',
+                12 => 'XII (Dua Belas)', 13 => 'XIII (Tiga Belas)', 14 => 'XIV (Empat Belas)'
+            ];
+            $semesterRoman = $map[$semesterNumber] ?? 'I (Satu)';
+        }
+
+        return view('user.surat-cuti-akademik.create', compact('service', 'tahunAjaranAktif', 'kopSurat', 'semesterRoman'));
     }
 
     public function store(SuratCutiAkademikRequest $request)

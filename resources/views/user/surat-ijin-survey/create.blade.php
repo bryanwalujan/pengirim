@@ -394,28 +394,34 @@
                         <i class="bi bi-eye"></i>
                         Preview Surat
                     </h5>
+
                     <div class="card border-primary">
                         <div class="card-header bg-primary text-white">
-                            <h6 class="mb-0">Contoh Surat Ijin Survey</h6>
+                            <h6 class="mb-0">Pratinjau Surat Ijin Survey</h6>
                         </div>
                         <div class="card-body p-0">
-                            <div class="surat-preview p-4"
-                                style="font-family: 'Times New Roman', serif; font-size: 14px; line-height: 1.5;">
+                            <div class="surat-preview p-5"
+                                style="font-family: 'Times New Roman', Times, serif; font-size: 12pt; color: #000; line-height: 1.5; background: white;">
                                 <!-- Kop Surat -->
-                                <div class="text-center mb-4">
-                                    <h5 style="font-weight: bold; margin-bottom: 5px;">KEMENTERIAN PENDIDIKAN TINGGI, SAINS,
-                                        DAN TEKNOLOGI</h5>
-                                    <h5 style="font-weight: bold; margin-bottom: 5px;">UNIVERSITAS NEGERI MANADO</h5>
-                                    <h6 style="font-weight: bold; margin-bottom: 5px;">FAKULTAS TEKNIK</h6>
-                                    <h6 style="font-weight: bold; margin-bottom: 5px;">PROGRAM STUDI S1 TEKNIK INFORMATIKA
-                                    </h6>
-                                    <p style="margin-bottom: 0; font-size: 12px;">
-                                        Alamat : Kampus UNIMA Tondano 95618, Telp.(0431)7233580<br>
-                                        Website : tt.unima.ac.id, Email : teknikinformatika@unima.ac.id
-                                    </p>
+                                <div class="kop-surat-preview mb-4">
+                                    <div style="display: flex; align-items: center; border-bottom: 3px double #000; padding-bottom: 10px; margin-bottom: 20px;">
+                                        @if ($kopSurat && $kopSurat->logo)
+                                            <div style="padding-right: 15px;">
+                                                <img src="{{ asset('storage/' . $kopSurat->logo) }}" alt="Logo" style="height: 100px;">
+                                            </div>
+                                        @endif
+                                        <div style="flex: 1; text-align: center;">
+                                            <div style="font-size: 14pt; line-height: 1.2;">{{ $kopSurat->kementerian ?? 'KEMENTERIAN PENDIDIKAN TINGGI, SAINS, DAN TEKNOLOGI' }}</div>
+                                            <div style="font-size: 13pt; line-height: 1.2;">{{ $kopSurat->universitas ?? 'UNIVERSITAS NEGERI MANADO' }}</div>
+                                            <div style="font-size: 13pt; line-height: 1.2; font-weight: bold;">{{ $kopSurat->fakultas ?? 'FAKULTAS TEKNIK' }}</div>
+                                            <div style="font-size: 12pt; font-weight: bold;">{{ $kopSurat->prodi ?? 'PROGRAM STUDI S1 TEKNIK INFORMATIKA' }}</div>
+                                            <div style="font-size: 10pt;">
+                                                {{ $kopSurat->alamat ?? 'Alamat : Kampus UNIMA Tondano 95618, Telp.(0431)7233580' }}<br>
+                                                {{ $kopSurat->kontak ?? 'Website : tt.unima.ac.id, Email : teknikinformatika@unima.ac.id' }}
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-
-                                <hr style="border-top: 2px solid #000; margin: 10px 0;">
 
                                 <!-- Informasi Surat -->
                                 <div class="mb-4">
@@ -423,8 +429,8 @@
                                         <tr>
                                             <td width="80">Nomor</td>
                                             <td width="10">:</td>
-                                            <td>3108/UN41.2/TI/2024</td>
-                                            <td width="150" style="text-align: right;">Tondano, 10 Desember 2024</td>
+                                            <td>[Nomor Surat]</td>
+                                            <td width="200" style="text-align: right;">Tondano, {{ date('d F Y') }}</td>
                                         </tr>
                                         <tr>
                                             <td>Lampiran</td>
@@ -448,12 +454,12 @@
                                 </p>
 
                                 <!-- Isi Surat -->
-                                <div class="mb-4">
+                                <div style="text-align: justify; margin-bottom: 20px;">
                                     <p style="margin-bottom: 2px">
-                                        Dengan Hormat,<br>
+                                        Dengan hormat,<br>
                                         Pimpinan Program Studi S1 Teknik Informatika menerangkan bahwa:
                                     </p>
-                                    <table style="margin-left: 40px; margin-bottom: 10px; border-collapse: collapse;">
+                                    <table style="margin-left: 40px; margin-bottom: 15px; border-collapse: collapse;">
                                         <tr>
                                             <td width="110">Nama</td>
                                             <td width="10">:</td>
@@ -467,54 +473,50 @@
                                         <tr>
                                             <td>Semester</td>
                                             <td>:</td>
-                                            <td>V (Lima)</td>
+                                            <td>{{ $semesterRoman ?? 'I (Satu)' }}</td>
                                         </tr>
                                         <tr>
-                                            <td style="vertical-align: top">Judul Survey</td>
+                                            <td style="vertical-align: top">Judul Skripsi</td>
                                             <td style="vertical-align: top">:</td>
-                                            <td style="vertical-align: top"><span id="preview-judul"
-                                                    class="highlight-text">Pengembangan Sistem E-Learning di Smk N 1
-                                                    Amurang</span></td>
+                                            <td style="vertical-align: top">
+                                                <span id="preview-judul" class="highlight-text">{{ old('judul') ? old('judul') : '[Masukkan judul survey / skripsi]' }}</span>
+                                            </td>
                                         </tr>
                                     </table>
-                                    <p style="text-indent: 2.5rem">
-                                        Bermaksud mengadakan survey di <span id="preview-tempat"
-                                            class="highlight-text">Smk N 1 Amurang</span>.
-                                        Dalam Rangka Penyelesaian Hasil Penelitian (Skripsi)
-                                        Dekan berkenan menerbitkan surat keterangan aktif kuliah untuk mahasiswa tersebut.
+                                    <p>
+                                        Bermaksud mengadakan survey di <span id="preview-tempat" class="highlight-text">{{ old('tempat_survey') ? old('tempat_survey') : '[Masukkan tempat survey]' }}</span>. 
+                                        Dalam Rangka Penyelesaian Hasil Penelitian (Skripsi).
                                     </p>
 
-                                    <p style="text-indent: 2.5rem">
-                                        Melalui surat ini kami mohon kepada Bapak Dekan kiranya berkenan menerbitkan Surat
-                                        Ijin Survey untuk
-                                        kegiatan yang dimaksud.
+                                    <p>
+                                        Melalui surat ini kami mohon kepada Bapak Dekan kiranya berkenan menerbitkan Surat Ijin Survey untuk kegiatan yang dimaksud.
                                     </p>
 
-                                    <p style="margin-top: -10px;">
+                                    <p>
                                         Demikian permohonan ini, atas perhatiannya diucapkan terima kasih.
                                     </p>
                                 </div>
 
                                 <!-- Tanda Tangan -->
-                                <table style="vertical-align: top; width: 100%; line-height: 0.8;">
+                                <table style="vertical-align: top; width: 100%; line-height: 1.2; margin-top: 40px;">
                                     <tr>
-                                        <td>
+                                        <td style="width: 50%;">
                                             <p>Mengetahui,</p>
-                                            <p>Dekan Fakultas Teknik,</p>
+                                            <p>[Jabatan Pimpinan],</p>
                                             <div style="height: 100px;"></div>
-                                            <p class="underline">
-                                                <strong>Dr. John Doe, M.Kom.</strong>
+                                            <p style="text-decoration: underline; font-weight: bold; margin-bottom: 0;">
+                                                [Nama Pimpinan]
                                             </p>
-                                            <p>NIP. 197001011995121001</p>
+                                            <p>NIP. [NIP Pimpinan]</p>
                                         </td>
-                                        <td style="padding-left: 8rem;">
+                                        <td style="width: 50%; padding-left: 5rem;">
                                             <p>Koordinator Program Studi</p>
                                             <p>Teknik Informatika,</p>
                                             <div style="height: 100px;"></div>
-                                            <p class="underline">
-                                                <strong>Dr. Jane Smith, M.Kom.</strong>
+                                            <p style="text-decoration: underline; font-weight: bold; margin-bottom: 0;">
+                                                [Nama Koordinator]
                                             </p>
-                                            <p>NIP. 197512122000032001</p>
+                                            <p>NIP. [NIP Koordinator]</p>
                                         </td>
                                     </tr>
                                 </table>
@@ -693,11 +695,11 @@
 
             judulInput.addEventListener('input', function() {
                 previewJudul.textContent = this.value.trim() ||
-                    'Pengembangan Sistem E-Learning di Smk N 1 Amurang';
+                    '[Masukkan judul survey / skripsi]';
             });
 
             tempatInput.addEventListener('input', function() {
-                previewTempat.textContent = this.value.trim() || 'Smk N 1 Amurang';
+                previewTempat.textContent = this.value.trim() || '[Masukkan tempat survey]';
             });
 
             judulInput.dispatchEvent(new Event('input'));
