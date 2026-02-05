@@ -177,11 +177,19 @@
                         <h5 class="mb-0"><i class="bx bx-bar-chart me-2"></i>Statistik Bimbingan</h5>
                     </div>
                     <div class="card-body">
-                        <div class="alert alert-primary mb-3">
-                            <i class="bx bx-info-circle me-2"></i>
-                            <small><strong>Dosen yang Ditampilkan:</strong><br>
-                            Hanya dosen dari berita acara seminar proposal mahasiswa ini yang dapat dipilih (pembimbing awal + dosen penguji).</small>
-                        </div>
+                        @if($hasBeritaAcara)
+                            <div class="alert alert-primary mb-3">
+                                <i class="bx bx-info-circle me-2"></i>
+                                <small><strong>Dosen yang Ditampilkan:</strong><br>
+                                Hanya dosen dari berita acara seminar proposal mahasiswa ini yang dapat dipilih (pembimbing awal + dosen penguji).</small>
+                            </div>
+                        @else
+                            <div class="alert alert-warning mb-3">
+                                <i class="bx bx-info-circle me-2"></i>
+                                <small><strong>Mode Manual:</strong><br>
+                                Mahasiswa ini tidak memiliki berita acara seminar proposal di sistem. Anda dapat memilih pembimbing dari semua dosen yang tersedia.</small>
+                            </div>
+                        @endif
                         <div class="alert alert-info mb-0">
                             <i class="bx bx-info-circle me-2"></i>
                             <small>Angka di dropdown menunjukkan jumlah mahasiswa yang dibimbing oleh dosen tersebut pada tahun ajaran aktif.</small>

@@ -35,11 +35,17 @@ class SkPembimbingController extends Controller
             ->with([
                 'dosenPembimbing1:id,name',
                 'dosenPembimbing2:id,name',
-                'beritaAcara:id,status,keputusan'
             ])
             ->select('id', 'berita_acara_id', 'dosen_pembimbing_1_id', 'dosen_pembimbing_2_id', 'judul_skripsi', 'status', 'created_at')
             ->latest()
             ->paginate(10);
+
+        // Explicitly load berita acara only for records that have it
+        $pengajuans->getCollection()->each(function ($pengajuan) {
+            if ($pengajuan->berita_acara_id) {
+                $pengajuan->load('beritaAcara:id,status,keputusan');
+            }
+        });
 
         // Check if user can create new pengajuan
         $pendingPengajuan = PengajuanSkPembimbing::query()
@@ -77,10 +83,7 @@ class SkPembimbingController extends Controller
             ])
             ->get();
 
-        if ($beritaAcaras->isEmpty()) {
-            return back()->with('error', 'Tidak ada seminar proposal yang memenuhi syarat untuk pengajuan SK Pembimbing.');
-        }
-
+        // Allow submission even if no berita acara (for students who did sempro outside e-service)
         return view('user.sk-pembimbing.create', compact('beritaAcaras'));
     }
 
@@ -121,11 +124,15 @@ class SkPembimbingController extends Controller
         $this->authorize('view', $pengajuan);
 
         $pengajuan->load([
-            'beritaAcara.jadwalSeminarProposal.pendaftaranSeminarProposal',
             'dosenPembimbing1:id,name,nip',
             'dosenPembimbing2:id,name,nip',
             'verifiedByUser:id,name',
         ]);
+
+        // Only load berita acara if it exists
+        if ($pengajuan->berita_acara_id) {
+            $pengajuan->load('beritaAcara.jadwalSeminarProposal.pendaftaranSeminarProposal');
+        }
 
         return view('user.sk-pembimbing.show', compact('pengajuan'));
     }

@@ -20,7 +20,7 @@ class CreatePengajuanAction
         try {
             return DB::transaction(function () use ($mahasiswa, $data) {
                 $pengajuan = PengajuanSkPembimbing::create([
-                    'berita_acara_id' => $data['berita_acara_id'],
+                    'berita_acara_id' => !empty($data['berita_acara_id']) ? $data['berita_acara_id'] : null,
                     'mahasiswa_id' => $mahasiswa->id,
                     'judul_skripsi' => $data['judul_skripsi'],
                     'file_surat_permohonan' => $this->storeFile(

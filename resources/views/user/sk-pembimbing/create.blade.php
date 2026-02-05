@@ -75,39 +75,87 @@
                                 </h3>
                             </div>
                             <div class="p-6">
-                                @if($beritaAcaras->count() > 1)
-                                    <p class="text-gray-500 text-sm mb-4">Pilih salah satu seminar proposal yang memenuhi syarat.</p>
-                                @endif
+                                @if($beritaAcaras->count() > 0)
+                                    <div class="mb-4 bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+                                        <div class="flex">
+                                            <i class="bx bx-info-circle text-blue-500 text-xl mr-2"></i>
+                                            <div class="text-sm text-blue-700">
+                                                <p class="font-semibold mb-1">Untuk mahasiswa yang sudah melakukan seminar proposal di e-service:</p>
+                                                <p>Pilih salah satu hasil seminar proposal di bawah ini.</p>
+                                            </div>
+                                        </div>
+                                    </div>
 
-                                <div class="grid grid-cols-1 gap-4">
-                                    @foreach($beritaAcaras as $ba)
-                                        @php
-                                            $jadwal = $ba->jadwalSeminarProposal;
-                                            $pendaftaran = $jadwal?->pendaftaranSeminarProposal;
-                                            $checked = $beritaAcaras->count() === 1 || old('berita_acara_id') == $ba->id ? 'checked' : '';
-                                        @endphp
-                                        <label class="relative flex cursor-pointer rounded-xl border p-4 shadow-sm focus:outline-none transition-all hover:border-orange-500 hover:ring-1 hover:ring-orange-500 {{ $checked ? 'border-orange-500 ring-1 ring-orange-500 bg-orange-50' : 'border-gray-200' }}">
-                                            <input type="radio" name="berita_acara_id" value="{{ $ba->id }}" class="sr-only" {{ $checked }} onchange="updateSelection(this, {{ $ba->id }})">
-                                            <span class="flex flex-1">
-                                                <span class="flex flex-col">
-                                                    <span class="block text-sm font-medium text-gray-900 mb-1">
-                                                        {{ Str::limit($pendaftaran?->judul_skripsi ?? 'Judul tidak tersedia', 100) }}
-                                                    </span>
-                                                    <span class="flex items-center text-xs text-gray-500 space-x-4">
-                                                        <span class="flex items-center">
-                                                            <i class="bx bx-calendar mr-1"></i> {{ $jadwal?->tanggal_ujian?->format('d M Y') ?? '-' }}
+                                    <div class="grid grid-cols-1 gap-4 mb-4">
+                                        @foreach($beritaAcaras as $ba)
+                                            @php
+                                                $jadwal = $ba->jadwalSeminarProposal;
+                                                $pendaftaran = $jadwal?->pendaftaranSeminarProposal;
+                                                $checked = old('berita_acara_id') == $ba->id ? 'checked' : '';
+                                            @endphp
+                                            <label class="relative flex cursor-pointer rounded-xl border p-4 shadow-sm focus:outline-none transition-all hover:border-orange-500 hover:ring-1 hover:ring-orange-500 {{ $checked ? 'border-orange-500 ring-1 ring-orange-500 bg-orange-50' : 'border-gray-200' }}">
+                                                <input type="radio" name="berita_acara_id" value="{{ $ba->id }}" class="sr-only" {{ $checked }} onchange="updateSelection(this, {{ $ba->id }})">
+                                                <span class="flex flex-1">
+                                                    <span class="flex flex-col">
+                                                        <span class="block text-sm font-medium text-gray-900 mb-1">
+                                                            {{ Str::limit($pendaftaran?->judul_skripsi ?? 'Judul tidak tersedia', 100) }}
                                                         </span>
-                                                        <span class="flex items-center">
-                                                            <i class="bx bx-check-circle mr-1"></i> {{ $ba->keputusan ?? '-' }}
+                                                        <span class="flex items-center text-xs text-gray-500 space-x-4">
+                                                            <span class="flex items-center">
+                                                                <i class="bx bx-calendar mr-1"></i> {{ $jadwal?->tanggal_ujian?->format('d M Y') ?? '-' }}
+                                                            </span>
+                                                            <span class="flex items-center">
+                                                                <i class="bx bx-check-circle mr-1"></i> {{ $ba->keputusan ?? '-' }}
+                                                            </span>
                                                         </span>
                                                     </span>
                                                 </span>
+                                                <span class="flex items-center ml-4 {{ $checked ? 'text-orange-600' : 'text-gray-300' }}" id="check-icon-{{ $ba->id }}">
+                                                    <i class="bx bxs-check-circle text-2xl"></i>
+                                                </span>
+                                            </label>
+                                        @endforeach
+                                    </div>
+
+                                    <div class="relative">
+                                        <div class="absolute inset-0 flex items-center" aria-hidden="true">
+                                            <div class="w-full border-t border-gray-300"></div>
+                                        </div>
+                                        <div class="relative flex justify-center text-sm">
+                                            <span class="px-2 bg-white text-gray-500">ATAU</span>
+                                        </div>
+                                    </div>
+                                @endif
+
+                                <div class="mt-4">
+                                    <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded">
+                                        <div class="flex">
+                                            <i class="bx bx-info-circle text-amber-600 text-xl mr-2"></i>
+                                            <div class="text-sm text-amber-800">
+                                                <p class="font-semibold mb-1">Untuk mahasiswa yang sudah melakukan seminar proposal di luar e-service:</p>
+                                                <p>Anda dapat langsung melanjutkan pengajuan tanpa memilih berita acara di atas. Staff akan memverifikasi kelengkapan dokumen Anda.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    @if($beritaAcaras->count() > 0)
+                                        <label class="relative flex cursor-pointer rounded-xl border p-4 shadow-sm mt-4 transition-all hover:border-orange-500 hover:ring-1 hover:ring-orange-500 {{ old('berita_acara_id') === null || old('berita_acara_id') === '' ? 'border-orange-500 ring-1 ring-orange-500 bg-orange-50' : 'border-gray-200' }}">
+                                            <input type="radio" name="berita_acara_id" value="" class="sr-only" {{ old('berita_acara_id') === null || old('berita_acara_id') === '' ? 'checked' : '' }} onchange="clearSelection(this)">
+                                            <span class="flex flex-1">
+                                                <span class="flex flex-col">
+                                                    <span class="block text-sm font-medium text-gray-900 mb-1">
+                                                        <i class="bx bx-file-blank mr-1"></i> Lanjutkan tanpa berita acara
+                                                    </span>
+                                                    <span class="text-xs text-gray-500">
+                                                        Saya sudah melakukan seminar proposal di luar sistem e-service
+                                                    </span>
+                                                </span>
                                             </span>
-                                            <span class="flex items-center ml-4 {{ $checked ? 'text-orange-600' : 'text-gray-300' }}" id="check-icon-{{ $ba->id }}">
+                                            <span class="flex items-center ml-4 {{ old('berita_acara_id') === null || old('berita_acara_id') === '' ? 'text-orange-600' : 'text-gray-300' }}" id="check-icon-manual">
                                                 <i class="bx bxs-check-circle text-2xl"></i>
                                             </span>
                                         </label>
-                                    @endforeach
+                                    @endif
                                 </div>
                                 @error('berita_acara_id') <p class="text-red-500 text-xs mt-2">{{ $message }}</p> @enderror
                             </div>
@@ -281,6 +329,37 @@
                 judulInput.value = beritaAcaraData[id];
                 // Trigger input event to check for caps on newly filled title
                 judulInput.dispatchEvent(new Event('input'));
+            }
+        }
+
+        // Clear selection for manual submission (without berita acara)
+        function clearSelection(radio) {
+            // Reset all selections
+            document.querySelectorAll('label').forEach(lbl => {
+                if (lbl.querySelector('input[type="radio"]')) {
+                    lbl.classList.remove('border-orange-500', 'ring-1', 'ring-orange-500', 'bg-orange-50');
+                    lbl.classList.add('border-gray-200');
+                }
+            });
+            document.querySelectorAll('[id^="check-icon-"]').forEach(icon => {
+                icon.classList.remove('text-orange-600');
+                icon.classList.add('text-gray-300');
+            });
+
+            // Apply active style to manual option
+            const label = radio.parentElement;
+            label.classList.remove('border-gray-200');
+            label.classList.add('border-orange-500', 'ring-1', 'ring-orange-500', 'bg-orange-50');
+            
+            const icon = document.getElementById('check-icon-manual');
+            if(icon) {
+                icon.classList.remove('text-gray-300');
+                icon.classList.add('text-orange-600');
+            }
+
+            // Clear judul input (user will manually enter)
+            if (!judulInput.value.trim()) {
+                judulInput.value = '';
             }
         }
 

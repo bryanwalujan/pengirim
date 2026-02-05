@@ -17,7 +17,7 @@ class StoreSkPembimbingRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'berita_acara_id' => ['required', 'exists:berita_acara_seminar_proposals,id'],
+            'berita_acara_id' => ['nullable', 'exists:berita_acara_seminar_proposals,id'],
             'judul_skripsi' => ['required', 'string', 'max:500'],
             'file_surat_permohonan' => [
                 'required',
@@ -48,7 +48,6 @@ class StoreSkPembimbingRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'berita_acara_id.required' => 'Silakan pilih Berita Acara Seminar Proposal.',
             'berita_acara_id.exists' => 'Berita Acara yang dipilih tidak valid.',
             'judul_skripsi.required' => 'Judul skripsi wajib diisi.',
             'judul_skripsi.max' => 'Judul skripsi maksimal 500 karakter.',

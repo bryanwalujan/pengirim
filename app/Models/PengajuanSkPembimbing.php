@@ -382,6 +382,11 @@ class PengajuanSkPembimbing extends Model
      */
     public function getDataFromBeritaAcara(): array
     {
+        // If no berita acara linked (for students who did sempro outside e-service)
+        if (!$this->berita_acara_id) {
+            return [];
+        }
+
         $beritaAcara = $this->beritaAcara()->with([
             'jadwalSeminarProposal.pendaftaranSeminarProposal.dosenPembimbing'
         ])->first();
