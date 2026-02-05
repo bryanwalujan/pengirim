@@ -148,4 +148,15 @@ class BeritaAcaraUjianHasilPolicy
     {
         return $user->hasRole(['staff', 'admin']);
     }
+    /**
+     * Check if user can manage penguji (staff only)
+     */
+    public function managePenguji(User $user, BeritaAcaraUjianHasil $beritaAcara): bool
+    {
+        if ($beritaAcara->isSelesai()) {
+            return false;
+        }
+
+        return $user->hasRole(['staff', 'admin']);
+    }
 }

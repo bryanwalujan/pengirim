@@ -2,8 +2,13 @@
 @props(['jadwal', 'user', 'isStaff'])
 
 <div class="card mb-4 shadow-sm border-0">
-    <div class="card-header border-bottom p-4">
+    <div class="card-header border-bottom p-4 d-flex justify-content-between align-items-center">
         <h5 class="mb-0 fw-bold"><i class="bx bx-group me-2 text-warning"></i>Status Persetujuan Dewan Penguji</h5>
+        @if ($isStaff)
+            <a href="{{ route('admin.berita-acara-ujian-hasil.manage-penguji', $beritaAcara) }}" class="btn btn-sm btn-outline-primary">
+                <i class="bx bx-edit me-1"></i>Kelola Penguji
+            </a>
+        @endif
     </div>
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">

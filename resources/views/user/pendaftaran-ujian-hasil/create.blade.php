@@ -239,7 +239,7 @@
                             <h5 class="text-lg font-bold text-slate-800">Upload Dokumen</h5>
                         </div>
 
-                        {{-- Info Box --}}
+                            {{-- Info Box --}}
                         <div class="bg-orange-50 border border-orange-100 rounded-xl p-4 mb-6">
                             <h6 class="text-orange-800 font-bold text-sm mb-2 flex items-center">
                                 <i class="bi bi-info-circle-fill mr-2"></i> Persyaratan Dokumen
@@ -249,6 +249,7 @@
                                 <li>File Skripsi Lengkap (PDF, maks. 10MB)</li>
                                 <li>Surat Permohonan Ujian Hasil (PDF, maks. 2MB)</li>
                                 <li>Slip Pembayaran UKT (PDF/JPG/PNG, maks. 2MB)</li>
+                                <li>SK Pembimbing Skripsi (PDF, maks. 2MB)</li>
                             </ol>
                         </div>
 
@@ -309,6 +310,21 @@
                                 <p class="mt-1 text-xs text-slate-500">Format: PDF, JPG, JPEG, PNG | Ukuran maksimal: 2MB
                                 </p>
                                 @error('file_slip_ukt')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            {{-- File SK Pembimbing --}}
+                            <div class="relative">
+                                <label for="file_sk_pembimbing" class="block text-sm font-semibold text-slate-700 mb-2">
+                                    5. SK Pembimbing Skripsi <span class="text-red-500">*</span>
+                                </label>
+                                <input
+                                    class="w-full px-4 py-3 rounded-xl border border-slate-200 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gradient-to-r file:from-orange-50 file:to-amber-50 file:text-orange-700 hover:file:bg-gradient-to-r hover:file:from-orange-100 hover:file:to-amber-100 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all @error('file_sk_pembimbing') border-red-500 ring-1 ring-red-500 @enderror"
+                                    type="file" id="file_sk_pembimbing" name="file_sk_pembimbing" accept=".pdf"
+                                    required>
+                                <p class="mt-1 text-xs text-slate-500">Format: PDF | Ukuran maksimal: 2MB</p>
+                                @error('file_sk_pembimbing')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
@@ -398,7 +414,8 @@
                 'file_transkrip_nilai',
                 'file_skripsi',
                 'file_surat_permohonan',
-                'file_slip_ukt'
+                'file_slip_ukt',
+                'file_sk_pembimbing'
             ];
 
             let allFilesUploaded = true;

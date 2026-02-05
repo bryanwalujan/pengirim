@@ -462,6 +462,102 @@ class AdminBeritaAcaraUjianHasilController extends Controller
             ->with($messageType, $result['message']);
     }
 
+    // ==================== MANAGE PENGUJI ====================
+    public function managePenguji(BeritaAcaraUjianHasil $beritaAcara)
+    {
+        $this->authorize('managePenguji', $beritaAcara);
+
+        $jadwal = $beritaAcara->jadwalUjianHasil;
+        $pendaftaran = $jadwal->pendaftaranUjianHasil;
+
+        // Ensure PS included
+        $this->ensurePembimbingIncludedInPenguji($jadwal);
+
+        $currentPenguji = $jadwal->dosenPenguji()
+            ->withPivot('posisi', 'dosen_id')
+            ->orderByRaw("CASE 
+                WHEN posisi = 'Ketua Penguji' THEN 1 
+                WHEN posisi = 'Penguji 1' THEN 2 
+                WHEN posisi = 'Penguji 2' THEN 3 
+                WHEN posisi = 'Penguji 3' THEN 4 
+                WHEN posisi LIKE '%(PS1)%' THEN 5
+                WHEN posisi LIKE '%(PS2)%' THEN 6
+                ELSE 7 END")
+            ->get();
+
+        $ketuaPengujiData = $currentPenguji->firstWhere('pivot.posisi', 'Ketua Penguji');
+        
+        // Filter out PS1 and PS2 from allowed changes if required, or just pass them to view to be locked
+        // But the user said: "dosen ps1 dan ps2 itu tidak usah ada opsi untuk dilakukannya perubahan"
+        // So we might filter them out of the "manageable" list or handle it in the view.
+        // Let's pass all but mark PS1/PS2 as special in the view logic.
+        
+        $anggotaPenguji = $currentPenguji->filter(function ($d) {
+            return $d->pivot->posisi !== 'Ketua Penguji';
+        })->values();
+
+        $availableDosen = User::role('dosen')
+            ->orderBy('name')
+            ->get();
+
+        // Already signed dosen IDs (cannot be changed)
+        $signedDosenIds = collect($beritaAcara->ttd_dosen_penguji ?? [])->pluck('dosen_id')->toArray();
+
+        return view('admin.berita-acara-ujian-hasil.manage-penguji', compact(
+            'beritaAcara',
+            'jadwal',
+            'pendaftaran',
+            'currentPenguji',
+            'ketuaPengujiData',
+            'anggotaPenguji',
+            'availableDosen',
+            'signedDosenIds'
+        ));
+    }
+
+    public function updatePenguji(Request $request, BeritaAcaraUjianHasil $beritaAcara)
+    {
+        $this->authorize('managePenguji', $beritaAcara);
+
+        $request->validate([
+            'penguji' => 'required|array',
+            'penguji.*.dosen_id' => 'required|exists:users,id',
+            'penguji.*.posisi' => 'required|string',
+        ]);
+
+        $jadwal = $beritaAcara->jadwalUjianHasil;
+
+        foreach ($request->penguji as $data) {
+            $newDosenId = $data['dosen_id']; // This is actually the NEW dosen ID (or old if unchanged)
+            $posisi = $data['posisi'];
+
+            // Find current record for this position
+            $currentRecord = $jadwal->dosenPenguji()->wherePivot('posisi', $posisi)->first();
+
+            if ($currentRecord) {
+                // If ID changed
+                if ($currentRecord->id != $newDosenId) {
+                    // Start transaction
+                    \DB::transaction(function () use ($jadwal, $currentRecord, $newDosenId, $posisi) {
+                        // Detach old
+                        $jadwal->dosenPenguji()->wherePivot('posisi', $posisi)->detach($currentRecord->id);
+                        
+                        // Attach new
+                        $jadwal->dosenPenguji()->attach($newDosenId, ['posisi' => $posisi]);
+                    });
+                     
+                    Log::info("Penguji changed for BA ID {$beritaAcara->id}: {$posisi} changed from {$currentRecord->name} ({$currentRecord->id}) to User ID {$newDosenId}");
+                }
+            } else {
+                 // Should not happen usually if form corresponds to DB, but safe to ignore or handle
+            }
+        }
+
+        return redirect()
+            ->route('admin.berita-acara-ujian-hasil.show', $beritaAcara)
+            ->with('success', 'Susunan penguji berhasil diperbarui.');
+    }
+
     // ==================== PDF OPERATIONS ====================
     public function generatePdf(BeritaAcaraUjianHasil $beritaAcara)
     {

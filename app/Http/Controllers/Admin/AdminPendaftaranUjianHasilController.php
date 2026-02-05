@@ -669,6 +669,37 @@ class AdminPendaftaranUjianHasilController extends Controller
         );
     }
 
+    public function viewSkPembimbing(PendaftaranUjianHasil $pendaftaranUjianHasil)
+    {
+        $this->authorizeAccess($pendaftaranUjianHasil);
+        if (
+            !$pendaftaranUjianHasil->file_sk_pembimbing ||
+            !Storage::disk('local')->exists($pendaftaranUjianHasil->file_sk_pembimbing)
+        ) {
+            abort(404, 'File tidak ditemukan.');
+        }
+
+        return response()->file(
+            Storage::disk('local')->path($pendaftaranUjianHasil->file_sk_pembimbing),
+            ['Content-Type' => 'application/pdf']
+        );
+    }
+
+    public function downloadSkPembimbing(PendaftaranUjianHasil $pendaftaranUjianHasil)
+    {
+        if (
+            !$pendaftaranUjianHasil->file_sk_pembimbing ||
+            !Storage::disk('local')->exists($pendaftaranUjianHasil->file_sk_pembimbing)
+        ) {
+            abort(404, 'File tidak ditemukan.');
+        }
+
+        return response()->download(
+            Storage::disk('local')->path($pendaftaranUjianHasil->file_sk_pembimbing),
+            'SK_Pembimbing_' . $pendaftaranUjianHasil->user->nim . '.pdf'
+        );
+    }
+
     /**
      * Preview PDF dengan data dummy untuk testing template
      */

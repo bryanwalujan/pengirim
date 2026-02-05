@@ -421,31 +421,6 @@
                                     </div>
                                 </div>
 
-                                {{-- Surat Komisi Hasil --}}
-                                <div class="col-md-6 col-lg-3">
-                                    <div class="document-item {{ $pendaftaranUjianHasil->file_komisi_hasil ? 'has-file' : 'no-file' }}"
-                                        data-document-type="komisi_hasil"
-                                        data-document-url="{{ $pendaftaranUjianHasil->file_komisi_hasil ? Storage::url($pendaftaranUjianHasil->file_komisi_hasil) : '' }}"
-                                        data-document-name="Surat Komisi Hasil">
-                                        <div class="document-icon">
-                                            <i class="bx bx-envelope text-warning"></i>
-                                        </div>
-                                        <div class="document-info">
-                                            <span class="document-title">Surat Komisi Hasil</span>
-                                            @if ($pendaftaranUjianHasil->file_komisi_hasil)
-                                                <span class="document-status text-success"><i class="bx bx-check-circle"></i> Tersedia</span>
-                                            @else
-                                                <span class="document-status text-muted"><i class="bx bx-x-circle"></i> Tidak ada</span>
-                                            @endif
-                                        </div>
-                                        @if ($pendaftaranUjianHasil->file_komisi_hasil)
-                                            <div class="document-actions">
-                                                <button type="button" class="btn btn-sm btn-icon btn-preview" title="Preview"><i class="bx bx-show"></i></button>
-                                            </div>
-                                        @endif
-                                    </div>
-                                </div>
-
                                 {{-- Surat Permohonan --}}
                                 <div class="col-md-6 col-lg-3">
                                     <div class="document-item {{ $pendaftaranUjianHasil->file_surat_permohonan ? 'has-file' : 'no-file' }}"
@@ -464,6 +439,56 @@
                                             @endif
                                         </div>
                                         @if ($pendaftaranUjianHasil->file_surat_permohonan)
+                                            <div class="document-actions">
+                                                <button type="button" class="btn btn-sm btn-icon btn-preview" title="Preview"><i class="bx bx-show"></i></button>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                {{-- SK Pembimbing --}}
+                                <div class="col-md-6 col-lg-3">
+                                    <div class="document-item {{ $pendaftaranUjianHasil->file_sk_pembimbing ? 'has-file' : 'no-file' }}"
+                                        data-document-type="sk_pembimbing"
+                                        data-document-url="{{ $pendaftaranUjianHasil->file_sk_pembimbing ? route('admin.pendaftaran-ujian-hasil.view.sk-pembimbing', $pendaftaranUjianHasil) : '' }}"
+                                        data-document-name="SK Pembimbing">
+                                        <div class="document-icon">
+                                            <i class="bx bx-certification text-secondary"></i>
+                                        </div>
+                                        <div class="document-info">
+                                            <span class="document-title">SK Pembimbing</span>
+                                            @if ($pendaftaranUjianHasil->file_sk_pembimbing)
+                                                <span class="document-status text-success"><i class="bx bx-check-circle"></i> Tersedia</span>
+                                            @else
+                                                <span class="document-status text-muted"><i class="bx bx-x-circle"></i> Tidak ada</span>
+                                            @endif
+                                        </div>
+                                        @if ($pendaftaranUjianHasil->file_sk_pembimbing)
+                                            <div class="document-actions">
+                                                <button type="button" class="btn btn-sm btn-icon btn-preview" title="Preview"><i class="bx bx-show"></i></button>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                {{-- Slip UKT --}}
+                                <div class="col-md-6 col-lg-3">
+                                    <div class="document-item {{ $pendaftaranUjianHasil->file_slip_ukt ? 'has-file' : 'no-file' }}"
+                                        data-document-type="slip_ukt"
+                                        data-document-url="{{ $pendaftaranUjianHasil->file_slip_ukt ? route('admin.pendaftaran-ujian-hasil.view.slip-ukt', $pendaftaranUjianHasil) : '' }}"
+                                        data-document-name="Slip UKT">
+                                        <div class="document-icon">
+                                            <i class="bx bx-credit-card text-success"></i>
+                                        </div>
+                                        <div class="document-info">
+                                            <span class="document-title">Slip UKT</span>
+                                            @if ($pendaftaranUjianHasil->file_slip_ukt)
+                                                <span class="document-status text-success"><i class="bx bx-check-circle"></i> Tersedia</span>
+                                            @else
+                                                <span class="document-status text-muted"><i class="bx bx-x-circle"></i> Tidak ada</span>
+                                            @endif
+                                        </div>
+                                        @if ($pendaftaranUjianHasil->file_slip_ukt)
                                             <div class="document-actions">
                                                 <button type="button" class="btn btn-sm btn-icon btn-preview" title="Preview"><i class="bx bx-show"></i></button>
                                             </div>
@@ -849,7 +874,7 @@
                 previewInfo.textContent = 'Memuat dokumen...';
 
                 // Set download and new tab URLs
-                previewDownloadBtn.href = url.replace('/view-', '/download-');
+                previewDownloadBtn.href = url.replace('/view/', '/download/');
                 // For direct storage URLs, the replace might not work as expected but they often support download attributes or just open
                 // If the URL is a storage URL, we might need a different strategy for "download" button if we want to force download, 
                 // but standard link is usually fine.

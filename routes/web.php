@@ -313,6 +313,8 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa', 'check.ukt'])->group(fu
             ->name('download.permohonan');
         Route::get('/{pendaftaran_ujian_hasil}/download/slip-ukt', [PendaftaranUjianHasilController::class, 'downloadSlipUkt'])
             ->name('download.slip-ukt');
+        Route::get('/{pendaftaran_ujian_hasil}/download/sk-pembimbing', [PendaftaranUjianHasilController::class, 'downloadSkPembimbing'])
+            ->name('download.sk-pembimbing');
 
         // Download Surat Usulan (jika sudah digenerate)
         Route::get('/{pendaftaran_ujian_hasil}/download-surat', [PendaftaranUjianHasilController::class, 'downloadSuratUsulan'])
@@ -1051,6 +1053,8 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
                 ->name('view.permohonan');
             Route::get('/{pendaftaranUjianHasil}/view/slip-ukt', [AdminPendaftaranUjianHasilController::class, 'viewSlipUkt'])
                 ->name('view.slip-ukt');
+            Route::get('/{pendaftaranUjianHasil}/view/sk-pembimbing', [AdminPendaftaranUjianHasilController::class, 'viewSkPembimbing'])
+                ->name('view.sk-pembimbing');
 
             // Download Files
             Route::get('/{pendaftaranUjianHasil}/download/transkrip', [AdminPendaftaranUjianHasilController::class, 'downloadTranskrip'])
@@ -1061,6 +1065,8 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
                 ->name('download.permohonan');
             Route::get('/{pendaftaranUjianHasil}/download/slip-ukt', [AdminPendaftaranUjianHasilController::class, 'downloadSlipUkt'])
                 ->name('download.slip-ukt');
+            Route::get('/{pendaftaranUjianHasil}/download/sk-pembimbing', [AdminPendaftaranUjianHasilController::class, 'downloadSkPembimbing'])
+                ->name('download.sk-pembimbing');
 
             // Download Surat Usulan
             Route::get('/{pendaftaranUjianHasil}/download-surat', [AdminPendaftaranUjianHasilController::class, 'downloadSuratUsulan'])
@@ -1160,6 +1166,15 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             ->middleware('role:staff|admin');
 
         // ========== DYNAMIC ROUTES ==========
+        // ✅ MANAGE PENGUJI (Staff)
+        Route::get('/{beritaAcara}/manage-penguji', [AdminBeritaAcaraUjianHasilController::class, 'managePenguji'])
+            ->name('manage-penguji')
+            ->middleware('role:staff|admin');
+
+        Route::post('/{beritaAcara}/update-penguji', [AdminBeritaAcaraUjianHasilController::class, 'updatePenguji'])
+            ->name('update-penguji')
+            ->middleware('role:staff|admin');
+
         Route::get('/{beritaAcara}', [AdminBeritaAcaraUjianHasilController::class, 'show'])
             ->name('show');
 

@@ -79,6 +79,7 @@ class PendaftaranUjianHasilController extends Controller
             'file_skripsi' => 'required|file|mimes:pdf|max:10240', // 10MB for thesis
             'file_surat_permohonan' => 'required|file|mimes:pdf|max:2048',
             'file_slip_ukt' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'file_sk_pembimbing' => 'required|file|mimes:pdf|max:2048',
         ], [
             'ipk.required' => 'IPK wajib diisi.',
             'ipk.numeric' => 'IPK harus berupa angka.',
@@ -95,6 +96,9 @@ class PendaftaranUjianHasilController extends Controller
             'file_slip_ukt.required' => 'Slip UKT wajib diupload.',
             'file_slip_ukt.mimes' => 'Slip UKT harus berformat PDF, JPG, JPEG, atau PNG.',
             'file_slip_ukt.max' => 'Ukuran slip UKT maksimal 2MB.',
+            'file_sk_pembimbing.required' => 'File SK Pembimbing wajib diupload.',
+            'file_sk_pembimbing.mimes' => 'File SK Pembimbing harus berformat PDF.',
+            'file_sk_pembimbing.max' => 'Ukuran file SK Pembimbing maksimal 2MB.',
         ]);
 
         // Prepare NIM-based folder structure
@@ -106,6 +110,7 @@ class PendaftaranUjianHasilController extends Controller
         $fileSkripsiPath = $request->file('file_skripsi')->store("{$basePath}/skripsi", 'local');
         $filePermohonanPath = $request->file('file_surat_permohonan')->store("{$basePath}/permohonan", 'local');
         $fileSlipUktPath = $request->file('file_slip_ukt')->store("{$basePath}/slip-ukt", 'local');
+        $fileSkPembimbingPath = $request->file('file_sk_pembimbing')->store("{$basePath}/sk-pembimbing", 'local');
 
         // Create registration with data from KomisiHasil
         $pendaftaran = PendaftaranUjianHasil::create([
@@ -118,6 +123,7 @@ class PendaftaranUjianHasilController extends Controller
             'file_skripsi' => $fileSkripsiPath,
             'file_surat_permohonan' => $filePermohonanPath,
             'file_slip_ukt' => $fileSlipUktPath,
+            'file_sk_pembimbing' => $fileSkPembimbingPath,
             'dosen_pembimbing1_id' => $komisiHasil->dosen_pembimbing1_id,
             'dosen_pembimbing2_id' => $komisiHasil->dosen_pembimbing2_id,
             'status' => 'pending',
@@ -251,6 +257,21 @@ class PendaftaranUjianHasilController extends Controller
         return $this->downloadFile(
             $pendaftaran_ujian_hasil->file_slip_ukt,
             'Slip_UKT_' . $pendaftaran_ujian_hasil->user->nim . '.' . $extension
+        );
+    }
+
+    /**
+     * Download SK Pembimbing file.
+     */
+    public function downloadSkPembimbing(PendaftaranUjianHasil $pendaftaran_ujian_hasil)
+    {
+        if ($pendaftaran_ujian_hasil->user_id !== Auth::id()) {
+            abort(403, 'Anda tidak memiliki akses.');
+        }
+
+        return $this->downloadFile(
+            $pendaftaran_ujian_hasil->file_sk_pembimbing,
+            'SK_Pembimbing_' . $pendaftaran_ujian_hasil->user->nim . '.pdf'
         );
     }
 

@@ -114,6 +114,7 @@
                     'jadwal' => $jadwal,
                     'user' => $user,
                     'isStaff' => $isStaff,
+                    'beritaAcara' => $beritaAcara,
                 ])
 
                 {{-- Final Content Card (Filled by Ketua) --}}

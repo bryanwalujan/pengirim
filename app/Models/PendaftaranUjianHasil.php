@@ -20,6 +20,7 @@ class PendaftaranUjianHasil extends Model
         'file_skripsi',
         'file_surat_permohonan',
         'file_slip_ukt',
+        'file_sk_pembimbing',
         'dosen_pembimbing1_id',
         'dosen_pembimbing2_id',
         'tanggal_penentuan_penguji',
@@ -302,6 +303,11 @@ class PendaftaranUjianHasil extends Model
         return $this->file_slip_ukt ? route('user.pendaftaran-ujian-hasil.download-slip-ukt', $this) : null;
     }
 
+    public function getFileSkPembimbingUrlAttribute()
+    {
+        return $this->file_sk_pembimbing ? route('user.pendaftaran-ujian-hasil.download-sk-pembimbing', $this) : null;
+    }
+
     // ========== STATUS BADGE ==========
     public function getStatusBadgeAttribute(): string
     {
@@ -388,6 +394,7 @@ class PendaftaranUjianHasil extends Model
                 $model->file_skripsi,
                 $model->file_surat_permohonan,
                 $model->file_slip_ukt,
+                $model->file_sk_pembimbing,
             ];
 
             foreach ($files as $file) {
