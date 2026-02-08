@@ -28,7 +28,7 @@ class User extends Authenticatable
         'nim',    // For mahasiswa
         'nip',   // For dosen
         'jabatan', // For dosen
-
+        'status_aktif', // For mahasiswa (From TI Unima API)
     ];
 
     /**
@@ -290,5 +290,29 @@ class User extends Authenticatable
         }
 
         return $this->jabatan ?? 'Dosen';
+    }
+
+    public function getStatusAktifTextAttribute()
+    {
+        return match($this->status_aktif) {
+            'A' => 'Aktif',
+            'L' => 'Lulus',
+            'C' => 'Cuti',
+            'N' => 'Non-Aktif',
+            'K' => 'Keluar',
+            default => '-',
+        };
+    }
+
+    public function getStatusAktifBadgeColorAttribute()
+    {
+        return match($this->status_aktif) {
+            'A' => 'success', // Hijau
+            'L' => 'info',    // Biru Muda
+            'C' => 'warning', // Kuning
+            'N' => 'danger',  // Merah
+            'K' => 'dark',    // Hitam/Abu Gelap
+            default => 'secondary',
+        };
     }
 }

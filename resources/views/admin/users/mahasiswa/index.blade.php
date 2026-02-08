@@ -75,6 +75,7 @@
                             <th width="5%">No</th>
                             <th>NIM</th>
                             <th>Nama</th>
+                            <th>Status Aktif</th>
                             <th>Email</th>
                             <th>
                                 Status UKT
@@ -92,6 +93,11 @@
                                 <td>{{ $loop->iteration + ($users->currentPage() - 1) * $users->perPage() }}</td>
                                 <td>{{ $user->nim }}</td>
                                 <td>{{ $user->name }}</td>
+                                <td>
+                                    <span class="badge bg-label-{{ $user->status_aktif_badge_color }}">
+                                        {{ $user->status_aktif_text }}
+                                    </span>
+                                </td>
                                 <td>{{ $user->email }}</td>
                                 <td>
                                     @php
