@@ -327,10 +327,22 @@ class AdminSkPembimbingController extends Controller
 
         $tahunAjaranId = $request->tahun_ajaran_id ?? TahunAjaran::where('status_aktif', true)->value('id');
 
-        $statistik = StatistikPembimbingSkripsi::with('dosen:id,name,nip')
-            ->forTahunAjaran($tahunAjaranId)
-            ->orderByRaw('(jumlah_ps1 + jumlah_ps2) DESC')
-            ->paginate(20);
+        // Get statistics using new method that excludes graduated students
+        $allStatistik = StatistikPembimbingSkripsi::getDosenStatistics($tahunAjaranId);
+        
+        // Sort by total bimbingan descending
+        $sortedStatistik = $allStatistik->sortByDesc('total_bimbingan');
+        
+        // Paginate manually
+        $page = $request->get('page', 1);
+        $perPage = 20;
+        $statistik = new \Illuminate\Pagination\LengthAwarePaginator(
+            $sortedStatistik->forPage($page, $perPage),
+            $sortedStatistik->count(),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
 
         $summary = StatistikPembimbingSkripsi::getDashboardStats($tahunAjaranId);
         $tahunAjarans = TahunAjaran::orderByDesc('id')->get();

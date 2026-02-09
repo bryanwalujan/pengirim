@@ -201,6 +201,7 @@ class PendaftaranUjianHasil extends Model
         foreach ($dosenList as $dosen) {
             // 1. Beban sebagai Penguji (melalui PengujiUjianHasil)
             // Hanya hitung yang bukan ditolak
+            // Exclude students who have graduated (status_aktif = 'L')
             $bebanPenguji = PengujiUjianHasil::where('dosen_id', $dosen->id)
                 ->whereHas('pendaftaranUjianHasil', function ($query) {
                     $query->whereIn('status', [
@@ -209,12 +210,17 @@ class PendaftaranUjianHasil extends Model
                         'menunggu_ttd_kaprodi',
                         'menunggu_ttd_kajur',
                         'selesai'
-                    ]);
+                    ])
+                    // Exclude graduated students
+                    ->whereHas('user', function ($userQuery) {
+                        $userQuery->where('status_aktif', '!=', 'L');
+                    });
                 })
                 ->count();
 
             // 2. Beban sebagai Pembimbing (PS1 atau PS2)
             // PS1/PS2 di Ujian Hasil juga bertindak sebagai penguji (Penguji 4/5)
+            // Exclude students who have graduated (status_aktif = 'L')
             $bebanPembimbing = self::where(function($q) use ($dosen) {
                     $q->where('dosen_pembimbing1_id', $dosen->id)
                       ->orWhere('dosen_pembimbing2_id', $dosen->id);
@@ -227,6 +233,10 @@ class PendaftaranUjianHasil extends Model
                     'menunggu_ttd_kajur',
                     'selesai'
                 ])
+                // Exclude graduated students
+                ->whereHas('user', function ($userQuery) {
+                    $userQuery->where('status_aktif', '!=', 'L');
+                })
                 ->count();
 
             // 3. Beban Digantikan (Riwayat)

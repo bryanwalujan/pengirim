@@ -229,6 +229,7 @@ class PendaftaranSeminarProposal extends Model
 
         foreach ($dosenList as $dosen) {
             // Count as Pembahas (Examiner)
+            // Exclude students who have graduated (status_aktif = 'L')
             $bebanPembahas = ProposalPembahas::where('dosen_id', $dosen->id)
                 ->whereHas('pendaftaranSeminarProposal', function ($query) {
                     $query->whereIn('status', [
@@ -237,11 +238,16 @@ class PendaftaranSeminarProposal extends Model
                         'menunggu_ttd_kaprodi',
                         'menunggu_ttd_kajur',
                         'selesai'
-                    ]);
+                    ])
+                    // Exclude graduated students
+                    ->whereHas('user', function ($userQuery) {
+                        $userQuery->where('status_aktif', '!=', 'L');
+                    });
                 })
                 ->count();
 
             // Count as Pembimbing (Supervisor)
+            // Exclude students who have graduated (status_aktif = 'L')
             $bebanPembimbing = self::where('dosen_pembimbing_id', $dosen->id)
                 ->whereIn('status', [
                     'pending',
@@ -251,6 +257,10 @@ class PendaftaranSeminarProposal extends Model
                     'menunggu_ttd_kajur',
                     'selesai'
                 ])
+                // Exclude graduated students
+                ->whereHas('user', function ($userQuery) {
+                    $userQuery->where('status_aktif', '!=', 'L');
+                })
                 ->count();
 
             // Count as Replaced/Absent (History)

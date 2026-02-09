@@ -175,6 +175,7 @@ class StatistikPembimbingSkripsi extends Model
 
     /**
      * Get dashboard statistics
+     * Calculate real-time from PengajuanSkPembimbing excluding graduated students
      */
     public static function getDashboardStats(?int $tahunAjaranId = null): array
     {
@@ -184,24 +185,45 @@ class StatistikPembimbingSkripsi extends Model
             return self::emptyStats();
         }
 
-        $result = self::where('tahun_ajaran_id', $tahunAjaranId)
-            ->selectRaw('
-                COALESCE(SUM(jumlah_ps1), 0) as total_ps1,
-                COALESCE(SUM(jumlah_ps2), 0) as total_ps2,
-                COUNT(DISTINCT dosen_id) as dosen_count
-            ')
-            ->first();
+        // Count PS1 - exclude graduated students
+        $totalPs1 = PengajuanSkPembimbing::where('status', PengajuanSkPembimbing::STATUS_SELESAI)
+            ->whereNotNull('dosen_pembimbing_1_id')
+            ->whereHas('mahasiswa', function ($query) {
+                $query->where('status_aktif', '!=', 'L');
+            })
+            ->count();
+
+        // Count PS2 - exclude graduated students
+        $totalPs2 = PengajuanSkPembimbing::where('status', PengajuanSkPembimbing::STATUS_SELESAI)
+            ->whereNotNull('dosen_pembimbing_2_id')
+            ->whereHas('mahasiswa', function ($query) {
+                $query->where('status_aktif', '!=', 'L');
+            })
+            ->count();
+
+        // Count distinct dosen - exclude graduated students
+        $dosenCount = PengajuanSkPembimbing::where('status', PengajuanSkPembimbing::STATUS_SELESAI)
+            ->whereHas('mahasiswa', function ($query) {
+                $query->where('status_aktif', '!=', 'L');
+            })
+            ->where(function($q) {
+                $q->whereNotNull('dosen_pembimbing_1_id')
+                  ->orWhereNotNull('dosen_pembimbing_2_id');
+            })
+            ->selectRaw('COUNT(DISTINCT dosen_pembimbing_1_id) + COUNT(DISTINCT dosen_pembimbing_2_id) as total')
+            ->value('total');
 
         return [
-            'total_ps1' => (int) $result->total_ps1,
-            'total_ps2' => (int) $result->total_ps2,
-            'total_bimbingan' => (int) $result->total_ps1 + (int) $result->total_ps2,
-            'dosen_count' => (int) $result->dosen_count,
+            'total_ps1' => (int) $totalPs1,
+            'total_ps2' => (int) $totalPs2,
+            'total_bimbingan' => (int) $totalPs1 + (int) $totalPs2,
+            'dosen_count' => (int) $dosenCount,
         ];
     }
 
     /**
      * Get ranking dosen by total bimbingan
+     * Calculate real-time from PengajuanSkPembimbing excluding graduated students
      */
     public static function getRankingDosen(?int $tahunAjaranId = null, int $limit = 10): \Illuminate\Database\Eloquent\Collection
     {
@@ -211,11 +233,55 @@ class StatistikPembimbingSkripsi extends Model
             return collect();
         }
 
-        return self::with('dosen:id,name,nip')
-            ->where('tahun_ajaran_id', $tahunAjaranId)
-            ->orderByRaw('(jumlah_ps1 + jumlah_ps2) DESC')
-            ->limit($limit)
-            ->get();
+        // Get statistics for all dosen
+        $statistics = self::getDosenStatistics($tahunAjaranId);
+
+        // Sort by total bimbingan descending and take limit
+        return collect($statistics)
+            ->sortByDesc('total_bimbingan')
+            ->take($limit)
+            ->values();
+    }
+
+    /**
+     * Get per-dosen statistics excluding graduated students
+     * Returns collection of statistics per dosen
+     */
+    public static function getDosenStatistics(?int $tahunAjaranId = null): \Illuminate\Support\Collection
+    {
+        $dosenList = User::role('dosen')->orderBy('name')->get();
+        $statistics = [];
+
+        foreach ($dosenList as $dosen) {
+            // Count as PS1 - exclude graduated students
+            $jumlahPs1 = PengajuanSkPembimbing::where('dosen_pembimbing_1_id', $dosen->id)
+                ->where('status', PengajuanSkPembimbing::STATUS_SELESAI)
+                ->whereHas('mahasiswa', function ($query) {
+                    $query->where('status_aktif', '!=', 'L');
+                })
+                ->count();
+
+            // Count as PS2 - exclude graduated students
+            $jumlahPs2 = PengajuanSkPembimbing::where('dosen_pembimbing_2_id', $dosen->id)
+                ->where('status', PengajuanSkPembimbing::STATUS_SELESAI)
+                ->whereHas('mahasiswa', function ($query) {
+                    $query->where('status_aktif', '!=', 'L');
+                })
+                ->count();
+
+            // Only include dosen with at least one bimbingan
+            if ($jumlahPs1 > 0 || $jumlahPs2 > 0) {
+                $statistics[] = (object) [
+                    'dosen' => $dosen,
+                    'dosen_id' => $dosen->id,
+                    'jumlah_ps1' => $jumlahPs1,
+                    'jumlah_ps2' => $jumlahPs2,
+                    'total_bimbingan' => $jumlahPs1 + $jumlahPs2,
+                ];
+            }
+        }
+
+        return collect($statistics);
     }
 
     /**
