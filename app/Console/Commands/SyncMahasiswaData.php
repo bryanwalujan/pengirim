@@ -31,6 +31,91 @@ class SyncMahasiswaData extends Command
      */
     public function handle()
     {
+        // Cek apakah menggunakan mode API atau Database
+        $useDatabase = env('TI_UNIMA_USE_DATABASE', false);
+        
+        if ($useDatabase) {
+            return $this->syncViaDatabase();
+        } else {
+            return $this->syncViaAPI();
+        }
+    }
+
+    /**
+     * Sync via Direct Database Access (Recommended for same-server setup)
+     */
+    private function syncViaDatabase()
+    {
+        $this->info("Syncing via Direct Database Access...");
+        
+        // Ambil opsi dari command
+        $requestedStatuses = $this->option('status');
+        $statuses = !empty($requestedStatuses) ? $requestedStatuses : ['A', 'L', 'C', 'N', 'K'];
+        
+        $updatedCount = 0;
+        $skippedCount = 0;
+        
+        try {
+            // Test koneksi database
+            \DB::connection('ti_unima')->getPdo();
+        } catch (\Exception $e) {
+            $this->error("Database connection failed: " . $e->getMessage());
+            $this->warn("Check your TI_UNIMA_DB_* settings in .env");
+            return 1;
+        }
+
+        foreach ($statuses as $statusKode) {
+            $this->info("Syncing status: $statusKode");
+            
+            // Query langsung ke database TI Unima
+            $students = \DB::connection('ti_unima')
+                ->table('users')
+                ->where('status_aktif', $statusKode)
+                ->whereNotNull('nim')
+                ->select('nim', 'status_aktif')
+                ->get();
+
+            $this->info("Found " . $students->count() . " students with status $statusKode");
+
+            foreach ($students as $studentData) {
+                $nim = $studentData->nim;
+                $rawStatus = $studentData->status_aktif;
+                
+                // Normalisasi status
+                $statusTerbaru = $this->normalizeStatus($rawStatus);
+
+                $user = User::where('nim', $nim)->first();
+
+                if ($user) {
+                    if ($statusTerbaru && $user->status_aktif !== $statusTerbaru) {
+                        $oldStatus = $user->status_aktif;
+                        
+                        $user->status_aktif = $statusTerbaru;
+                        $user->save();
+
+                        $this->info("Updated NIM $nim: $oldStatus -> $statusTerbaru");
+                        $updatedCount++;
+                    } else {
+                        $skippedCount++;
+                    }
+                } else {
+                    $skippedCount++;
+                }
+            }
+        }
+
+        $this->info("Sync completed.");
+        $this->info("Updated: $updatedCount");
+        $this->info("Skipped: $skippedCount");
+        
+        return 0;
+    }
+
+    /**
+     * Sync via HTTP API (Fallback untuk cross-server)
+     */
+    private function syncViaAPI()
+    {
         $apiUrl = env('TI_UNIMA_API_URL');
         $apiToken = env('TI_UNIMA_API_TOKEN');
         $apiHost = env('TI_UNIMA_API_HOST'); // Header Host untuk bypass DNS/Firewall

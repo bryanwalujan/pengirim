@@ -112,6 +112,26 @@ return [
             // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
         ],
 
+        'ti_unima' => [
+            'driver' => 'mysql',
+            'url' => env('TI_UNIMA_DB_URL'),
+            'host' => env('TI_UNIMA_DB_HOST', '127.0.0.1'),
+            'port' => env('TI_UNIMA_DB_PORT', '3306'),
+            'database' => env('TI_UNIMA_DB_DATABASE'),
+            'username' => env('TI_UNIMA_DB_USERNAME'),
+            'password' => env('TI_UNIMA_DB_PASSWORD'),
+            'unix_socket' => env('TI_UNIMA_DB_SOCKET', ''),
+            'charset' => env('TI_UNIMA_DB_CHARSET', 'utf8mb4'),
+            'collation' => env('TI_UNIMA_DB_COLLATION', 'utf8mb4_unicode_ci'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+            ]) : [],
+        ],
+
     ],
 
     /*
