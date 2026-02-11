@@ -33,6 +33,7 @@ class SyncMahasiswaData extends Command
     {
         $apiUrl = env('TI_UNIMA_API_URL');
         $apiToken = env('TI_UNIMA_API_TOKEN');
+        $apiHost = env('TI_UNIMA_API_HOST'); // Header Host untuk bypass DNS/Firewall
         
         if (!$apiUrl) {
             $this->error('TI_UNIMA_API_URL not set in .env');
@@ -76,11 +77,17 @@ class SyncMahasiswaData extends Command
                 $this->info("Fetching page $page for status $statusKode...");
                 
                 try {
-                    $response = Http::withToken($apiToken)
-                        ->connectTimeout(10) // Waktu maksimal untuk mencoba menyambung ke server
-                        ->timeout(120)       // Waktu maksimal untuk menunggu respon (120 detik)
-                        ->retry(3, 100)      // Coba lagi 3 kali jika gagal, dengan jeda 100ms
-                        ->get($apiUrl, [
+                    $request = Http::withToken($apiToken)
+                        ->connectTimeout(10)
+                        ->timeout(120)
+                        ->retry(3, 100);
+
+                    // Jika ada konfigurasi API_HOST (untuk bypass DNS/Local Loopback)
+                    if ($apiHost) {
+                        $request->withHeaders(['Host' => $apiHost]);
+                    }
+
+                    $response = $request->get($apiUrl, [
                             'page' => $page,
                             'per_page' => $batchSize,
                             'status_aktif' => $statusKode,
