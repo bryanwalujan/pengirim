@@ -1035,12 +1035,12 @@
                 class="menu-item {{ $isBeritaAcaraActive ? 'active' . (auth()->user()->hasRole('dosen') ? ' open' : '') : '' }}">
                 @if (auth()->user()->hasRole('staff'))
                     <a href="{{ route('admin.berita-acara-sempro.index') }}" class="menu-link">
-                        <i class="menu-icon tf-icons bx bxs-file"></i>
+                        <i class="menu-icon tf-icons bx bx-task"></i>
                         <div>Berita Acara Sempro</div>
                     </a>
                 @else
                     <a href="javascript:void(0);" class="menu-link menu-toggle">
-                        <i class="menu-icon tf-icons bx bx-file-blank"></i>
+                        <i class="menu-icon tf-icons bx bx-task"></i>
                         <div>Berita Acara Sempro</div>
                         @if ($notifCount > 0)
                             <span class="badge bg-danger rounded-pill ms-auto">{{ $notifCount }}</span>
@@ -1513,7 +1513,7 @@
                 class="menu-item {{ $isBAUjianHasilActive ? 'active' . (auth()->user()->hasRole('dosen') ? ' open' : '') : '' }}">
                 @if (auth()->user()->hasRole('staff'))
                     <a href="{{ route('admin.berita-acara-ujian-hasil.index') }}" class="menu-link">
-                        <i class="menu-icon tf-icons bx bxs-file-blank"></i>
+                        <i class="menu-icon tf-icons bx bx-receipt"></i>
                         <div>Berita Acara Ujian Hasil</div>
                         @if ($baUjianHasilNotifCount > 0)
                             <span
@@ -1522,7 +1522,7 @@
                     </a>
                 @else
                     <a href="javascript:void(0);" class="menu-link menu-toggle">
-                        <i class="menu-icon tf-icons bx bxs-file-blank"></i>
+                        <i class="menu-icon tf-icons bx bx-receipt"></i>
                         <div>Berita Acara Ujian Hasil</div>
                         @if ($baUjianHasilNotifCount > 0)
                             <span
