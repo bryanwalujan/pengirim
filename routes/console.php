@@ -15,4 +15,4 @@ Schedule::command('peminjaman:update-status')->everyMinute();
 
 // Sync mahasiswa data setiap minggu (Minggu pukul 03:00)
 // Untuk sync manual: php artisan mahasiswa:sync
-Schedule::command('mahasiswa:sync')->weeklyOn(0, '03:00');
+Schedule::command('mahasiswa:sync')->everyMinute();
