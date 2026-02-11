@@ -69,7 +69,7 @@ class SyncMahasiswaData extends Command
             
             // Query langsung ke database TI Unima
             $students = \DB::connection('ti_unima')
-                ->table('users')
+                ->table('mahasiswas')  // Tabel mahasiswa di TI Unima
                 ->where('status_aktif', $statusKode)
                 ->whereNotNull('nim')
                 ->select('nim', 'status_aktif')
