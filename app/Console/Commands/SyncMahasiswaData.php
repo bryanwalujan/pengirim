@@ -82,7 +82,11 @@ class SyncMahasiswaData extends Command
                         ->timeout(120)
                         ->retry(3, 100)
                         ->withOptions([
-                            'verify' => false, // Disable SSL verification untuk localhost
+                            'verify' => false,           // Disable SSL certificate verification
+                            'curl' => [
+                                CURLOPT_SSL_VERIFYHOST => 0,  // Disable hostname verification
+                                CURLOPT_SSL_VERIFYPEER => 0,  // Disable peer verification
+                            ],
                         ]);
 
                     // Jika ada konfigurasi API_HOST (untuk bypass DNS/Local Loopback)
