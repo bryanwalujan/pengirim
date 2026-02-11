@@ -80,7 +80,10 @@ class SyncMahasiswaData extends Command
                     $request = Http::withToken($apiToken)
                         ->connectTimeout(10)
                         ->timeout(120)
-                        ->retry(3, 100);
+                        ->retry(3, 100)
+                        ->withOptions([
+                            'verify' => false, // Disable SSL verification untuk localhost
+                        ]);
 
                     // Jika ada konfigurasi API_HOST (untuk bypass DNS/Local Loopback)
                     if ($apiHost) {
