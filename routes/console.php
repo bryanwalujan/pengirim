@@ -13,6 +13,6 @@ Artisan::command('inspire', function () {
 // Penjadwalan command diletakkan di sini
 Schedule::command('peminjaman:update-status')->everyMinute();
 
-// Sync mahasiswa data setiap minggu (Minggu pukul 03:00)
-// Untuk sync manual: php artisan mahasiswa:sync
-Schedule::command('mahasiswa:sync')->everyMinute();
+// Sync mahasiswa data setiap hari (Pukul 02:00)
+// Gunakan withoutOverlapping agar proses tidak tumpang tindih jika lambat
+Schedule::command('mahasiswa:sync')->dailyAt('02:00')->withoutOverlapping();

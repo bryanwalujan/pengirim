@@ -77,7 +77,9 @@ class SyncMahasiswaData extends Command
                 
                 try {
                     $response = Http::withToken($apiToken)
-                        ->timeout(30)
+                        ->connectTimeout(10) // Waktu maksimal untuk mencoba menyambung ke server
+                        ->timeout(120)       // Waktu maksimal untuk menunggu respon (120 detik)
+                        ->retry(3, 100)      // Coba lagi 3 kali jika gagal, dengan jeda 100ms
                         ->get($apiUrl, [
                             'page' => $page,
                             'per_page' => $batchSize,
