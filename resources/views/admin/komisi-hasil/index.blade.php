@@ -191,8 +191,7 @@
                         <thead>
                             <tr>
                                 <th width="50">No</th>
-                                <th>Nama Mahasiswa</th>
-                                <th>NIM</th>
+                                <th>Mahasiswa</th>
                                 <th>Pembimbing</th>
                                 <th>Tgl. Pengajuan</th>
                                 <th>Status</th>
@@ -204,10 +203,8 @@
                                 <tr>
                                     <td>{{ $loop->iteration + $komisiHasils->firstItem() - 1 }}</td>
                                     <td>
-                                        <strong>{{ $hasil->user->name }}</strong>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-label-primary">{{ $hasil->user->nim }}</span>
+                                        <strong>{{ $hasil->user->name }}</strong><br>
+                                        <span class="badge bg-label-primary mt-1">{{ $hasil->user->nim }}</span>
                                     </td>
                                     <td>
                                         <small>
