@@ -47,11 +47,11 @@ class UndanganSeminarProposal extends Notification implements ShouldQueue
         $mahasiswa = $pendaftaran->user;
 
         Carbon::setLocale('id');
-        $tanggal = $this->jadwal->tanggal;
+        $tanggal = $this->jadwal->tanggal_ujian;
         $hariTanggal = $tanggal->translatedFormat('l, d F Y');
 
-        $jamMulai = Carbon::parse($this->jadwal->jam_mulai)->format('H:i');
-        $jamSelesai = Carbon::parse($this->jadwal->jam_selesai)->format('H:i');
+        $jamMulai = Carbon::parse($this->jadwal->waktu_mulai)->format('H:i');
+        $jamSelesai = Carbon::parse($this->jadwal->waktu_selesai)->format('H:i');
 
         $subject = sprintf(
             'Undangan Ujian Seminar Proposal Skripsi Prodi S1 Teknik Informatika Hari %s, a.n %s Secara Luring',
@@ -81,7 +81,7 @@ class UndanganSeminarProposal extends Notification implements ShouldQueue
         $mahasiswa = $pendaftaran->user;
 
         Carbon::setLocale('id');
-        $hariTanggal = $this->jadwal->tanggal->translatedFormat('l, d F Y');
+        $hariTanggal = $this->jadwal->tanggal_ujian->translatedFormat('l, d F Y');
 
         return [
             'type' => 'undangan_sempro',
@@ -92,10 +92,10 @@ class UndanganSeminarProposal extends Notification implements ShouldQueue
             'mahasiswa_nama' => $mahasiswa->name,
             'mahasiswa_nim' => $mahasiswa->nim,
             'judul_skripsi' => $pendaftaran->judul_skripsi,
-            'tanggal' => $this->jadwal->tanggal->format('Y-m-d'),
+            'tanggal' => $this->jadwal->tanggal_ujian->format('Y-m-d'),
             'hari_tanggal' => $hariTanggal,
-            'jam_mulai' => $this->jadwal->jam_mulai,
-            'jam_selesai' => $this->jadwal->jam_selesai,
+            'jam_mulai' => Carbon::parse($this->jadwal->waktu_mulai)->format('H:i:s'),
+            'jam_selesai' => Carbon::parse($this->jadwal->waktu_selesai)->format('H:i:s'),
             'ruangan' => $this->jadwal->ruangan,
             'action_url' => route('admin.pendaftaran-seminar-proposal.show', $pendaftaran->id),
         ];

@@ -43,6 +43,8 @@ class AdminKomisiProposalController extends Controller
             'lektor kepala',
             'asisten ahli',
             'tenaga pengajar',
+            'profesor',
+            'professor',
         ];
 
         foreach ($paKeywords as $keyword) {
