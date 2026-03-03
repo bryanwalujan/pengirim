@@ -189,7 +189,6 @@
                                 <th>Nama Mahasiswa</th>
                                 <th>NIM</th>
                                 <th>Pembimbing Akademik</th>
-                                <th>Judul Proposal</th>
                                 <th>Tgl. Pengajuan</th>
                                 <th>Status</th>
                                 <th width="100">Aksi</th>
@@ -210,9 +209,6 @@
                                             {{ $proposal->pembimbing->name ?? '-' }}<br>
                                             <span class="text-muted">{{ $proposal->pembimbing->jabatan ?? '-' }}</span>
                                         </small>
-                                    </td>
-                                    <td>
-                                        <small>{!! Str::limit($proposal->judul_skripsi, 50, '...') !!}</small>
                                     </td>
                                     <td>
                                         <small>{{ $proposal->created_at->translatedFormat('d M Y') }}<br>
