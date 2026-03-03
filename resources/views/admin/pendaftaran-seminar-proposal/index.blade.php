@@ -279,12 +279,11 @@
                         <thead class="table-light">
                             <tr>
                                 <th width="5%">No</th>
-                                <th width="20%">Mahasiswa</th>
-                                <th width="10%">Angkatan</th>
-                                <th width="25%">Judul Skripsi</th>
-                                <th width="15%">Status</th>
+                                <th width="30%">Mahasiswa</th>
+                                <th width="15%">Angkatan</th>
+                                <th width="20%">Status</th>
                                 <th width="15%">Tanggal Pengajuan</th>
-                                <th width="10%" class="text-center">Aksi</th>
+                                <th width="15%" class="text-center">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -300,12 +299,7 @@
                                     <td>
                                         <span class="badge bg-label-primary">{{ $item->angkatan }}</span>
                                     </td>
-                                    <td>
-                                        <span class="text-truncate d-inline-block" style="max-width: 300px;"
-                                            data-bs-toggle="tooltip" title="{{ strip_tags($item->judul_skripsi) }}">
-                                            {!! Str::limit($item->judul_skripsi, 50, '...') !!}
-                                        </span>
-                                    </td>
+
                                     <td>{!! $item->status_badge !!}</td>
                                     <td>
                                         <small>{{ $item->created_at->format('d M Y') }}</small><br>
@@ -320,7 +314,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="text-center py-5">
+                                    <td colspan="6" class="text-center py-5">
                                         <div class="mb-3">
                                             <i class="bx bx-search-alt" style="font-size: 3rem; opacity: 0.3;"></i>
                                         </div>

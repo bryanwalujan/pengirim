@@ -175,10 +175,15 @@
                             {{-- Mode Legacy: Editable --}}
                             <textarea id="judul_skripsi" name="judul_skripsi" rows="4"
                                 class="w-full px-4 py-3 rounded-xl border-slate-200 focus:border-orange-500 focus:ring focus:ring-orange-200 transition-all duration-200 @error('judul_skripsi') border-red-500 ring-1 ring-red-500 @enderror"
-                                placeholder="Masukkan judul skripsi Anda di sini...">{{ old('judul_skripsi') }}</textarea>
-                            <p class="mt-2 text-xs text-slate-500 flex items-center">
+                                placeholder="Masukkan judul skripsi Anda di sini..." required>{{ old('judul_skripsi') }}</textarea>
+                            <div class="mt-2 text-xs text-slate-500">
                                 <i class="bi bi-info-circle mr-1"></i> Pastikan judul sesuai dengan yang disetujui pembimbing.
-                            </p>
+                                <strong class="text-red-500 ml-1">Tidak boleh menggunakan huruf kapital semua (ALL CAPS)</strong>.
+                            </div>
+                            <div id="caps-warning" class="mt-2 text-sm text-red-600 border border-red-200 bg-red-50 p-3 rounded-lg" style="display: none;">
+                                <i class="bi bi-exclamation-triangle-fill mr-1"></i>
+                                <strong>Peringatan:</strong> Judul tidak boleh ditulis dengan huruf kapital semua. Gunakan huruf kapital hanya di awal kata yang sesuai.
+                            </div>
                         @endif
                         
                         @error('judul_skripsi')
@@ -343,6 +348,31 @@
         // Form Submission Logic
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.getElementById('hasil-form');
+            const judulInput = document.getElementById('judul_skripsi');
+            const capsWarning = document.getElementById('caps-warning');
+            
+            if (judulInput && !judulInput.readOnly) {
+                judulInput.addEventListener('input', function() {
+                    const value = this.value.trim();
+                    if (value.length >= 10) {
+                        const uppercaseCount = (value.match(/[A-Z]/g) || []).length;
+                        const lowercaseCount = (value.match(/[a-z]/g) || []).length;
+                        const totalLetters = uppercaseCount + lowercaseCount;
+                        
+                        if (totalLetters > 0 && (uppercaseCount / totalLetters) > 0.8) {
+                            if (capsWarning) capsWarning.style.display = 'block';
+                            this.classList.add('border-red-500', 'ring-1', 'ring-red-500');
+                        } else {
+                            if (capsWarning) capsWarning.style.display = 'none';
+                            this.classList.remove('border-red-500', 'ring-1', 'ring-red-500');
+                        }
+                    } else {
+                        if (capsWarning) capsWarning.style.display = 'none';
+                        this.classList.remove('border-red-500', 'ring-1', 'ring-red-500');
+                    }
+                });
+            }
+
             if (form) {
                 form.addEventListener('submit', function(e) {
                     e.preventDefault();
@@ -351,6 +381,35 @@
                     const p1Element = document.getElementById('dosen_pembimbing1_id');
                     const p2Element = document.getElementById('dosen_pembimbing2_id');
                     const isSystemMode = !p1Element || p1Element.readOnly || p1Element.tagName === 'INPUT';
+
+                    // Validasi ALL CAPS sebelum submit (hanya jika editable)
+                    if (judulInput && !judulInput.readOnly) {
+                        const judulValue = judulInput.value.trim();
+                        if (judulValue.length >= 10) {
+                            const uppercaseCount = (judulValue.match(/[A-Z]/g) || []).length;
+                            const lowercaseCount = (judulValue.match(/[a-z]/g) || []).length;
+                            const totalLetters = uppercaseCount + lowercaseCount;
+                            
+                            if (totalLetters > 0 && (uppercaseCount / totalLetters) > 0.8) {
+                                Swal.fire({
+                                    title: 'Judul Tidak Valid',
+                                    html: `
+                                        <div class="text-left mt-2">
+                                            <p class="mb-3 text-slate-700 text-sm">Judul skripsi tidak boleh ditulis dengan huruf kapital semua (ALL CAPS).</p>
+                                            <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                                                <i class="bi bi-exclamation-triangle-fill mr-1"></i>
+                                                <strong>Saran:</strong> Gunakan huruf kapital hanya di awal kata yang sesuai dengan aturan penulisan judul ilmiah.
+                                            </div>
+                                        </div>
+                                    `,
+                                    icon: 'error',
+                                    confirmButtonText: '<i class="bi bi-check mr-1"></i> Mengerti',
+                                    confirmButtonColor: '#ef4444'
+                                });
+                                return;
+                            }
+                        }
+                    }
 
                     // Only validate dropdowns in legacy mode
                     if (!isSystemMode) {
