@@ -1,6 +1,6 @@
 @extends('layouts.verification')
 
-@section('title', 'Verifikasi SK Pembimbing Skripsi')
+@section('title', 'Verifikasi Pendaftaran SK Pembimbing Skripsi')
 
 @section('content')
     <div class="verification-container">
@@ -277,9 +277,9 @@
                             Dokumen ini merupakan hasil verifikasi otomatis sistem E-Service Program Studi Teknik
                             Informatika UNIMA.
                             @if ($pengajuan->isSelesai())
-                                SK Pembimbing Skripsi ini telah ditandatangani oleh Koordinator Program Studi dan Ketua Jurusan serta sah digunakan.
+                                Pendaftaran SK Pembimbing Skripsi ini telah ditandatangani oleh Koordinator Program Studi dan Ketua Jurusan serta sah digunakan.
                             @else
-                                SK Pembimbing Skripsi ini sedang dalam proses persetujuan bertingkat.
+                                Pendaftaran SK Pembimbing Skripsi ini sedang dalam proses persetujuan bertingkat.
                             @endif
                         </p>
                     </div>

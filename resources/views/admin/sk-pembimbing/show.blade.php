@@ -1,7 +1,7 @@
 {{-- filepath: resources/views/admin/sk-pembimbing/show.blade.php --}}
 @extends('layouts.admin.app')
 
-@section('title', 'Detail Pengajuan SK Pembimbing')
+@section('title', 'Detail Pendaftaran SK Pembimbing')
 
 @section('content')
     <div class="container-xxl flex-grow-1 container-p-y">
@@ -13,7 +13,7 @@
                     <i class="breadcrumb-icon icon-base bx bx-chevron-right align-middle"></i>
                 </li>
                 <li class="breadcrumb-item">
-                    <a href="{{ route('admin.sk-pembimbing.index') }}">SK Pembimbing</a>
+                    <a href="{{ route('admin.sk-pembimbing.index') }}">Pendaftaran SK Pembimbing</a>
                     <i class="breadcrumb-icon icon-base bx bx-chevron-right align-middle"></i>
                 </li>
                 <li class="breadcrumb-item active" aria-current="page">Detail</li>
@@ -23,7 +23,7 @@
         {{-- Header Section --}}
         <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
             <div class="me-3">
-                <h4 class="fw-bold mb-1">Detail Pengajuan SK Pembimbing</h4>
+                <h4 class="fw-bold mb-1">Detail Pendaftaran SK Pembimbing</h4>
                 <p class="text-muted mb-0">
                     <i class="bx bx-calendar me-1"></i>
                     Diajukan pada {{ $pengajuan->created_at->format('d F Y, H:i') }} WIB
@@ -108,7 +108,7 @@
                                         <small
                                             class="text-muted">{{ $pengajuan->created_at->format('d M Y, H:i') }}</small>
                                     </div>
-                                    <p class="mb-0 small">Mahasiswa mengajukan SK Pembimbing</p>
+                                    <p class="mb-0 small">Mahasiswa melakukan pendaftaran Pendaftaran SK Pembimbing</p>
                                 </div>
                             </li>
 
@@ -159,7 +159,7 @@
                                         <div class="timeline-header mb-1">
                                             <h6 class="mb-0">Proses Selesai</h6>
                                         </div>
-                                        <p class="mb-0 small">SK Pembimbing telah diterbitkan</p>
+                                        <p class="mb-0 small">Pendaftaran SK Pembimbing telah diterbitkan</p>
                                     </div>
                                 </li>
                             @endif
@@ -613,12 +613,12 @@
                             </div>
                         </div>
 
-                        {{-- SK Pembimbing (Final) - Separate section --}}
+                        {{-- Pendaftaran SK Pembimbing (Final) - Separate section --}}
                         @if ($pengajuan->file_surat_sk)
                             <div class="mt-3 pt-3 border-top">
                                 <a href="{{ route('admin.sk-pembimbing.download-sk', $pengajuan) }}"
                                     class="btn btn-success w-100">
-                                    <i class="bx bx-download me-1"></i> Download Surat Permohonan Penerbitan SK Pembimbing Skripsi (Final)
+                                    <i class="bx bx-download me-1"></i> Download Surat Permohonan Penerbitan Pendaftaran SK Pembimbing Skripsi (Final)
                                 </a>
                             </div>
                         @endif
@@ -695,7 +695,7 @@
                     <div class="modal-body">
                         <div class="alert alert-info">
                             <i class="bx bx-info-circle me-2"></i>
-                            Dengan menandatangani, Anda menyetujui pengajuan SK Pembimbing ini sebagai Ketua Jurusan.
+                            Dengan menandatangani, Anda menyetujui pendaftaran Pendaftaran SK Pembimbing ini sebagai Ketua Jurusan.
                             SK akan langsung diterbitkan setelah Anda menandatangani.
                         </div>
                         <p><strong>Mahasiswa:</strong> {{ $pengajuan->mahasiswa->name ?? '-' }}</p>
@@ -779,7 +779,7 @@
                     <div class="modal-body">
                         <div class="alert alert-success">
                             <i class="bx bx-check-circle me-2"></i>
-                            Koordinator Prodi sudah menandatangani. Dengan menandatangani, SK Pembimbing akan diterbitkan.
+                            Koordinator Prodi sudah menandatangani. Dengan menandatangani, Pendaftaran SK Pembimbing akan diterbitkan.
                         </div>
 
                         <div class="mb-3">

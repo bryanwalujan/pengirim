@@ -1,7 +1,7 @@
 {{-- filepath: resources/views/admin/sk-pembimbing/statistik-pembimbing.blade.php --}}
 @extends('layouts.admin.app')
 
-@section('title', 'Statistik Pembimbing Skripsi')
+@section('title', 'Statistik Pendaftaran SK Pembimbing')
 
 @section('content')
     <div class="container-xxl flex-grow-1 container-p-y">
@@ -10,7 +10,7 @@
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb breadcrumb-style1">
                 <li class="breadcrumb-item"><a href="{{ route('admin.dashboard.index') }}">Dashboard</a></li>
-                <li class="breadcrumb-item"><a href="{{ route('admin.sk-pembimbing.index') }}">SK Pembimbing</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('admin.sk-pembimbing.index') }}">Pendaftaran SK Pembimbing</a></li>
                 <li class="breadcrumb-item active">Statistik Pembimbing</li>
             </ol>
         </nav>
@@ -19,7 +19,7 @@
         <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
             <div>
                 <h4 class="fw-bold mb-1">
-                    <i class="bx bx-bar-chart-alt-2 me-2 text-primary"></i>Statistik Pembimbing Skripsi
+                    <i class="bx bx-bar-chart-alt-2 me-2 text-primary"></i>Statistik Pendaftaran SK Pembimbing
                 </h4>
                 <p class="text-muted mb-0">Monitoring beban bimbingan dosen per tahun ajaran</p>
             </div>

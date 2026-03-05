@@ -1188,7 +1188,7 @@
             <li class="menu-item {{ $isSkPembimbingActive ? 'active open' : '' }}">
                 <a href="javascript:void(0);" class="menu-link menu-toggle">
                     <i class="menu-icon tf-icons bx bx-file"></i>
-                    <div>SK Pembimbing Skripsi</div>
+                    <div>Pendaftaran SK Pembimbing Skripsi</div>
                     @if ($skPembimbingPendingCount > 0)
                         <span class="badge bg-danger rounded-pill ms-auto">{{ $skPembimbingPendingCount }}</span>
                     @endif

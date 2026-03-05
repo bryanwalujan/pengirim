@@ -1,7 +1,7 @@
 {{-- filepath: resources/views/admin/sk-pembimbing/index.blade.php --}}
 @extends('layouts.admin.app')
 
-@section('title', 'SK Pembimbing Skripsi')
+@section('title', 'Pendaftaran SK Pembimbing Skripsi')
 
 @push('styles')
     <style>
@@ -28,7 +28,7 @@
             <ol class="breadcrumb breadcrumb-style1">
                 <li class="breadcrumb-item"><a href="{{ route('admin.dashboard.index') }}">Dashboard</a></li>
                 <li class="breadcrumb-item">Manajemen Skripsi</li>
-                <li class="breadcrumb-item active">SK Pembimbing</li>
+                <li class="breadcrumb-item active">Pendaftaran SK Pembimbing</li>
             </ol>
         </nav>
 
@@ -36,9 +36,9 @@
         <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
             <div class="me-3">
                 <h4 class="fw-bold mb-1">
-                    <i class="bx bx-file me-2 text-primary"></i>SK Pembimbing Skripsi
+                    <i class="bx bx-file me-2 text-primary"></i>Pendaftaran SK Pembimbing Skripsi
                 </h4>
-                <p class="text-muted mb-0">Kelola pengajuan SK Pembimbing Skripsi mahasiswa</p>
+                <p class="text-muted mb-0">Kelola pendaftaran SK Pembimbing Skripsi mahasiswa</p>
             </div>
             @if(auth()->user()->hasRole('staff'))
                 <a href="{{ route('admin.sk-pembimbing.statistik-pembimbing') }}" class="btn btn-outline-primary">
@@ -265,7 +265,7 @@
                                     <div class="d-flex flex-column align-items-center">
                                         <i class="bx bxs-file display-4 text-muted mb-3"></i>
                                         <h5 class="text-muted">Tidak ada data pengajuan</h5>
-                                        <p class="text-muted mb-0">Belum ada pengajuan SK Pembimbing</p>
+                                        <p class="text-muted mb-0">Belum ada pendaftaran SK Pembimbing</p>
                                     </div>
                                 </td>
                             </tr>

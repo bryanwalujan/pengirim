@@ -13,7 +13,10 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 
-class StatusDosenPembahasExport implements FromCollection, WithHeadings, WithMapping, WithStyles, WithTitle
+use Maatwebsite\Excel\Concerns\WithColumnFormatting;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
+
+class StatusDosenPembahasExport implements FromCollection, WithHeadings, WithMapping, WithStyles, WithTitle, WithColumnFormatting
 {
     protected $statistics;
     protected $rowNumber = 0;
@@ -49,7 +52,7 @@ class StatusDosenPembahasExport implements FromCollection, WithHeadings, WithMap
         return [
             $this->rowNumber,
             $dosen->name,
-            $dosen->nip ?? '-',
+            (string) ($dosen->nip ?? '-'),
             $dosen->email,
             $statistic['total_beban'],
             $statistic['beban_active'] ?? $statistic['total_beban'],
@@ -96,7 +99,7 @@ class StatusDosenPembahasExport implements FromCollection, WithHeadings, WithMap
 
         // Style all data rows
         if ($lastRow > 1) {
-            $sheet->getStyle("A2:E{$lastRow}")->applyFromArray([
+            $sheet->getStyle("A2:G{$lastRow}")->applyFromArray([
                 'borders' => [
                     'allBorders' => [
                         'borderStyle' => Border::BORDER_THIN,
@@ -110,7 +113,7 @@ class StatusDosenPembahasExport implements FromCollection, WithHeadings, WithMap
 
             // Center align for No and Total Beban columns
             $sheet->getStyle("A2:A{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("E2:E{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("E2:G{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         }
 
         return [];
@@ -119,5 +122,12 @@ class StatusDosenPembahasExport implements FromCollection, WithHeadings, WithMap
     public function title(): string
     {
         return 'Status Dosen Pembahas';
+    }
+
+    public function columnFormats(): array
+    {
+        return [
+            'C' => NumberFormat::FORMAT_TEXT,
+        ];
     }
 }

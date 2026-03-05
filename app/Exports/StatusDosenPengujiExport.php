@@ -13,7 +13,10 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 
-class StatusDosenPengujiExport implements FromCollection, WithHeadings, WithMapping, WithStyles, WithTitle
+use Maatwebsite\Excel\Concerns\WithColumnFormatting;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
+
+class StatusDosenPengujiExport implements FromCollection, WithHeadings, WithMapping, WithStyles, WithTitle, WithColumnFormatting
 {
     protected $statistics;
     protected $rowNumber = 0;
@@ -49,7 +52,7 @@ class StatusDosenPengujiExport implements FromCollection, WithHeadings, WithMapp
         return [
             $this->rowNumber,
             $dosen->name,
-            $dosen->nip ?? '-',
+            (string) ($dosen->nip ?? '-'),
             $dosen->email,
             $statistic['beban_active'],
             $statistic['beban_replaced'],
@@ -119,5 +122,12 @@ class StatusDosenPengujiExport implements FromCollection, WithHeadings, WithMapp
     public function title(): string
     {
         return 'Status Dosen Penguji';
+    }
+
+    public function columnFormats(): array
+    {
+        return [
+            'C' => NumberFormat::FORMAT_TEXT,
+        ];
     }
 }
