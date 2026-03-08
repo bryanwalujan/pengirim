@@ -151,6 +151,14 @@
                                             <p class="text-green-800 font-bold text-lg mb-2">
                                                 SK Proposal Sudah Diupload
                                             </p>
+
+                                            @if ($jadwal->nomor_sk_proposal)
+                                                <div class="mb-3 pb-3 border-b border-green-200">
+                                                    <span class="text-sm text-gray-600 font-medium">Nomor SK:</span>
+                                                    <p class="text-base text-gray-800 font-semibold mt-1">{{ $jadwal->nomor_sk_proposal }}</p>
+                                                </div>
+                                            @endif
+
                                             <div class="flex items-center gap-2">
                                                 <span class="text-sm text-gray-700 font-medium">Status:</span>
                                                 @if ($jadwal->status === 'menunggu_sk')
@@ -226,6 +234,25 @@
                                     enctype="multipart/form-data" id="uploadSkForm">
                                     @csrf
                                     <input type="hidden" name="pendaftaran_id" value="{{ $pendaftaran->id }}">
+
+                                    <div class="mb-5">
+                                        <label class="block text-sm font-bold text-gray-700 mb-3">
+                                            Nomor SK Proposal <span class="text-red-500">*</span>
+                                        </label>
+                                        <input type="text" name="nomor_sk_proposal" value="{{ old('nomor_sk_proposal') }}" required
+                                            maxlength="100" placeholder="Contoh: 3714/UN41.2/PS/2025"
+                                            class="block w-full px-4 py-3 text-gray-900 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all duration-300">
+                                        @error('nomor_sk_proposal')
+                                            <p class="mt-2 text-sm text-red-600 flex items-center">
+                                                <i class="bx bx-error-circle mr-1"></i>
+                                                {{ $message }}
+                                            </p>
+                                        @enderror
+                                        <p class="mt-2 text-xs text-gray-500">
+                                            <i class="bx bx-info-circle mr-1"></i>
+                                            Masukkan nomor SK sesuai dengan yang tertera pada dokumen
+                                        </p>
+                                    </div>
 
                                     <div class="mb-6">
                                         <label class="block text-sm font-bold text-gray-700 mb-3">

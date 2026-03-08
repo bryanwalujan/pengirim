@@ -249,7 +249,7 @@
                                 <li>File Skripsi Lengkap (PDF, maks. 10MB)</li>
                                 <li>Surat Permohonan Ujian Hasil (PDF, maks. 2MB)</li>
                                 <li>Slip Pembayaran UKT (PDF/JPG/PNG, maks. 2MB)</li>
-                                <li>SK Pembimbing Skripsi (PDF, maks. 2MB)</li>
+                                <li>Nomor &amp; File SK Pembimbing Skripsi (PDF, maks. 2MB)</li>
                             </ol>
                         </div>
 
@@ -314,10 +314,28 @@
                                 @enderror
                             </div>
 
+                            {{-- Nomor SK Pembimbing --}}
+                            <div class="relative">
+                                <label for="nomor_sk_pembimbing" class="block text-sm font-semibold text-slate-700 mb-2">
+                                    5. Nomor SK Pembimbing Skripsi <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" id="nomor_sk_pembimbing" name="nomor_sk_pembimbing"
+                                    value="{{ old('nomor_sk_pembimbing') }}"
+                                    maxlength="100" placeholder="Contoh: 3714/UN41.2/PS/2025" required
+                                    class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all @error('nomor_sk_pembimbing') border-red-500 ring-1 ring-red-500 @enderror">
+                                @error('nomor_sk_pembimbing')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                                <p class="mt-1 text-xs text-slate-500">
+                                    <i class="bi bi-info-circle mr-1"></i>
+                                    Masukkan nomor SK sesuai dengan yang tertera pada dokumen
+                                </p>
+                            </div>
+
                             {{-- File SK Pembimbing --}}
                             <div class="relative">
                                 <label for="file_sk_pembimbing" class="block text-sm font-semibold text-slate-700 mb-2">
-                                    5. SK Pembimbing Skripsi <span class="text-red-500">*</span>
+                                    6. File SK Pembimbing Skripsi <span class="text-red-500">*</span>
                                 </label>
                                 <input
                                     class="w-full px-4 py-3 rounded-xl border border-slate-200 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gradient-to-r file:from-orange-50 file:to-amber-50 file:text-orange-700 hover:file:bg-gradient-to-r hover:file:from-orange-100 hover:file:to-amber-100 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all @error('file_sk_pembimbing') border-red-500 ring-1 ring-red-500 @enderror"
@@ -417,6 +435,21 @@
                 'file_slip_ukt',
                 'file_sk_pembimbing'
             ];
+
+            // Check nomor SK pembimbing
+            const nomorSkInput = document.getElementById('nomor_sk_pembimbing');
+            if (nomorSkInput && !nomorSkInput.value.trim()) {
+                nomorSkInput.classList.add('border-red-500', 'ring-1', 'ring-red-500');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Nomor SK Belum Diisi',
+                    text: 'Harap isi Nomor SK Pembimbing Skripsi terlebih dahulu.',
+                    confirmButtonColor: '#f97316',
+                    confirmButtonText: 'OK, Saya Mengerti'
+                });
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                return;
+            }
 
             let allFilesUploaded = true;
             let missingFiles = [];

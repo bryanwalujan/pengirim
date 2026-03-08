@@ -547,6 +547,7 @@ class AdminJadwalSeminarProposalController extends Controller
 
             $jadwal->update([
                 'file_sk_proposal' => null,
+                'nomor_sk_proposal' => null,
                 'tanggal_ujian' => null,
                 'waktu_mulai' => null,
                 'waktu_selesai' => null,
@@ -636,6 +637,7 @@ class AdminJadwalSeminarProposalController extends Controller
 
                     $jadwal->update([
                         'file_sk_proposal' => null,
+                        'nomor_sk_proposal' => null,
                         'tanggal_ujian' => null,
                         'waktu_mulai' => null,
                         'waktu_selesai' => null,

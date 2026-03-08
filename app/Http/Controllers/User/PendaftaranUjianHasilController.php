@@ -75,6 +75,7 @@ class PendaftaranUjianHasilController extends Controller
         // Validate request
         $request->validate([
             'ipk' => 'required|numeric|between:0,4.00',
+            'nomor_sk_pembimbing' => 'required|string|max:100',
             'file_transkrip_nilai' => 'required|file|mimes:pdf|max:2048',
             'file_skripsi' => 'required|file|mimes:pdf|max:10240', // 10MB for thesis
             'file_surat_permohonan' => 'required|file|mimes:pdf|max:2048',
@@ -84,6 +85,9 @@ class PendaftaranUjianHasilController extends Controller
             'ipk.required' => 'IPK wajib diisi.',
             'ipk.numeric' => 'IPK harus berupa angka.',
             'ipk.between' => 'IPK harus antara 0 sampai 4.00.',
+            'nomor_sk_pembimbing.required' => 'Nomor SK Pembimbing wajib diisi.',
+            'nomor_sk_pembimbing.string' => 'Nomor SK Pembimbing harus berupa teks.',
+            'nomor_sk_pembimbing.max' => 'Nomor SK Pembimbing maksimal 100 karakter.',
             'file_transkrip_nilai.required' => 'Transkrip nilai wajib diupload.',
             'file_transkrip_nilai.mimes' => 'Transkrip nilai harus berformat PDF.',
             'file_transkrip_nilai.max' => 'Ukuran transkrip nilai maksimal 2MB.',
@@ -124,6 +128,7 @@ class PendaftaranUjianHasilController extends Controller
             'file_surat_permohonan' => $filePermohonanPath,
             'file_slip_ukt' => $fileSlipUktPath,
             'file_sk_pembimbing' => $fileSkPembimbingPath,
+            'nomor_sk_pembimbing' => $request->nomor_sk_pembimbing,
             'dosen_pembimbing1_id' => $komisiHasil->dosen_pembimbing1_id,
             'dosen_pembimbing2_id' => $komisiHasil->dosen_pembimbing2_id,
             'status' => 'pending',
@@ -134,6 +139,7 @@ class PendaftaranUjianHasilController extends Controller
             'user_id' => $user->id,
             'nim' => $nim,
             'komisi_hasil_id' => $komisiHasil->id,
+            'nomor_sk_pembimbing' => $request->nomor_sk_pembimbing,
         ]);
 
         return redirect()

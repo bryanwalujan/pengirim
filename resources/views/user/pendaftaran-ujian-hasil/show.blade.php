@@ -474,6 +474,24 @@
                                 </div>
                             </div>
 
+                            {{-- Nomor SK Pembimbing --}}
+                            @if($pendaftaran->nomor_sk_pembimbing)
+                            <div class="mb-6">
+                                <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Nomor SK Pembimbing</label>
+                                <div class="flex items-center gap-3 p-3 bg-gradient-to-r from-purple-50 to-violet-50 border border-purple-100 rounded-xl">
+                                    <div class="w-9 h-9 bg-white rounded-lg flex items-center justify-center text-purple-600 shadow-sm flex-shrink-0">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-500 mb-0.5">Nomor SK</p>
+                                        <p class="font-bold text-gray-900 text-sm">{{ $pendaftaran->nomor_sk_pembimbing }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            @endif
+
                             <!-- Supervisor -->
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>

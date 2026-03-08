@@ -323,6 +323,17 @@
                                 </div>
                             </div>
 
+                            @if($pendaftaranUjianHasil->nomor_sk_pembimbing)
+                            <div class="col-12">
+                                <label class="form-label text-muted mb-1">
+                                    <i class="bx bx-hash me-1"></i>Nomor SK Pembimbing
+                                </label>
+                                <div class="p-3 bg-lighter rounded d-flex align-items-center">
+                                    <span class="fw-semibold">{{ $pendaftaranUjianHasil->nomor_sk_pembimbing }}</span>
+                                </div>
+                            </div>
+                            @endif
+
                             <div class="col-md-6">
                                 <label class="form-label text-muted mb-1">
                                     <i class="bx bx-user-pin me-1"></i>Pembimbing 1

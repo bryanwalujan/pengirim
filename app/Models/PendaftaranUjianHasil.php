@@ -21,6 +21,7 @@ class PendaftaranUjianHasil extends Model
         'file_surat_permohonan',
         'file_slip_ukt',
         'file_sk_pembimbing',
+        'nomor_sk_pembimbing',
         'dosen_pembimbing1_id',
         'dosen_pembimbing2_id',
         'tanggal_penentuan_penguji',

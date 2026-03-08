@@ -599,9 +599,16 @@
                             <div class="alert alert-success border-0 mb-3">
                                 <div class="d-flex align-items-center">
                                     <i class="bx bx-check-circle fs-4 me-2"></i>
-                                    <div>
+                                    <div class="flex-grow-1">
                                         <strong>SK Proposal Tersedia</strong>
                                         <p class="mb-0 small">File SK Proposal sudah diupload oleh mahasiswa</p>
+
+                                        @if($jadwal->nomor_sk_proposal)
+                                            <div class="mt-2 pt-2 border-top border-success">
+                                                <small class="text-muted d-block">Nomor SK:</small>
+                                                <strong class="text-dark">{{ $jadwal->nomor_sk_proposal }}</strong>
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
                             </div>

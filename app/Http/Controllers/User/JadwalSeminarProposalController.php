@@ -50,10 +50,14 @@ class JadwalSeminarProposalController extends Controller
         // STEP 1: Validasi request
         $validated = $request->validate([
             'pendaftaran_id' => 'required|exists:pendaftaran_seminar_proposals,id',
+            'nomor_sk_proposal' => 'required|string|max:100',
             'file_sk' => 'required|file|mimes:pdf|max:2048', // Max 2MB
         ], [
             'pendaftaran_id.required' => 'Data pendaftaran tidak ditemukan.',
             'pendaftaran_id.exists' => 'Data pendaftaran tidak valid.',
+            'nomor_sk_proposal.required' => 'Nomor SK Proposal wajib diisi.',
+            'nomor_sk_proposal.string' => 'Nomor SK Proposal harus berupa text.',
+            'nomor_sk_proposal.max' => 'Nomor SK Proposal maksimal 100 karakter.',
             'file_sk.required' => 'File SK Proposal wajib diupload.',
             'file_sk.file' => 'File yang diupload harus berupa file.',
             'file_sk.mimes' => 'File SK Proposal harus berformat PDF.',
@@ -106,6 +110,7 @@ class JadwalSeminarProposalController extends Controller
 
             // STEP 8: Update atau create jadwal dengan file baru
             $jadwal->pendaftaran_seminar_proposal_id = $pendaftaran->id;
+            $jadwal->nomor_sk_proposal = $validated['nomor_sk_proposal'];
             $jadwal->file_sk_proposal = $filePath;
             $jadwal->status = 'menunggu_jadwal'; // Auto-update status via model boot method
             $jadwal->save();
@@ -116,6 +121,7 @@ class JadwalSeminarProposalController extends Controller
                 'user_id' => Auth::id(),
                 'pendaftaran_id' => $pendaftaran->id,
                 'jadwal_id' => $jadwal->id,
+                'nomor_sk_proposal' => $validated['nomor_sk_proposal'],
                 'file_path' => $filePath,
             ]);
 
@@ -222,6 +228,7 @@ class JadwalSeminarProposalController extends Controller
 
             // Update jadwal
             $jadwal->file_sk_proposal = null;
+            $jadwal->nomor_sk_proposal = null;
             $jadwal->status = 'menunggu_sk';
             $jadwal->save();
 

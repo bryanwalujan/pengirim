@@ -1,0 +1,895 @@
+// ============================================================
+// E-SERVICE APPLICATION - Entity Relationship Diagram (ERD)
+// Format: DBML (Database Markup Language) for dbdiagram.io
+// Generated from Laravel Migrations
+// ============================================================
+
+// ============================================================
+// CORE TABLES
+// ============================================================
+
+Table users {
+  id bigint [pk, increment]
+  name varchar
+  email varchar [unique]
+  nim varchar [unique, null, note: 'Untuk mahasiswa']
+  status_aktif varchar [default: 'A', note: 'A=Aktif, L=Lulus, C=Cuti, N=Non-Aktif, K=Keluar']
+  nip varchar [unique, null, note: 'Untuk dosen']
+  jabatan varchar [null]
+  email_verified_at timestamp [null]
+  password varchar
+  remember_token varchar [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+
+  Note: 'Tabel utama pengguna (Mahasiswa, Dosen, Staff, Admin)'
+}
+
+
+
+// ============================================================
+// RBAC (Spatie Permission)
+// ============================================================
+
+Table roles {
+  id bigint [pk, increment]
+  name varchar
+  guard_name varchar
+  created_at timestamp [null]
+  updated_at timestamp [null]
+
+  Note: 'Spatie Permission - Roles'
+}
+
+Table permissions {
+  id bigint [pk, increment]
+  name varchar
+  guard_name varchar
+  created_at timestamp [null]
+  updated_at timestamp [null]
+
+  Note: 'Spatie Permission - Permissions'
+}
+
+Table model_has_roles {
+  role_id bigint [ref: > roles.id]
+  model_type varchar
+  model_id bigint
+
+  Note: 'Pivot: Assigns roles to models (users)'
+}
+
+Table model_has_permissions {
+  permission_id bigint [ref: > permissions.id]
+  model_type varchar
+  model_id bigint
+
+  Note: 'Pivot: Assigns permissions to models (users)'
+}
+
+Table role_has_permissions {
+  permission_id bigint [ref: > permissions.id]
+  role_id bigint [ref: > roles.id]
+
+  Note: 'Pivot: Assigns permissions to roles'
+}
+
+// ============================================================
+// GENERAL APPLICATION TABLES
+// ============================================================
+
+Table services {
+  id bigint [pk, increment]
+  name varchar [note: 'e.g. Surat Aktif Kuliah']
+  slug varchar [unique, note: 'e.g. surat-aktif-kuliah']
+  description text [null]
+  icon varchar [default: 'bi-file-earmark-text']
+  is_active boolean [default: true]
+  "order" int [default: 0]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+
+  Note: 'Daftar layanan yang tersedia di e-service'
+}
+
+Table kop_surats {
+  id bigint [pk, increment]
+  logo varchar [null]
+  kementerian varchar
+  universitas varchar
+  fakultas varchar
+  prodi varchar
+  alamat varchar
+  kontak varchar
+  created_at timestamp [null]
+  updated_at timestamp [null]
+
+  Note: 'Template kop surat resmi'
+}
+
+Table academic_calendars {
+  id bigint [pk, increment]
+  title varchar
+  file_path varchar
+  academic_year varchar
+  is_active boolean [default: false]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+
+  Note: 'Kalender akademik'
+}
+
+Table tahun_ajarans {
+  id bigint [pk, increment]
+  tahun varchar(9) [note: 'Format: 2023/2024']
+  semester enum_semester [note: 'ganjil | genap']
+  status_aktif boolean [default: false]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  deleted_at timestamp [null]
+
+  Note: 'Data tahun ajaran'
+}
+
+// ============================================================
+// POLYMORPHIC TABLES (Status, Tracking, Dokumen)
+// ============================================================
+
+Table status_surats {
+  id bigint [pk, increment]
+  surat_type varchar [note: 'Polymorphic: e.g. App\\Models\\SuratAktifKuliah']
+  surat_id bigint [note: 'ID dari surat terkait']
+  status varchar
+  catatan_admin text [null, note: 'Catatan resmi dari admin']
+  catatan_internal text [null, note: 'Catatan untuk internal staff']
+  updated_by bigint [ref: > users.id]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+
+  Note: 'Status surat (polymorphic untuk semua jenis surat)'
+}
+
+Table tracking_surats {
+  id bigint [pk, increment]
+  surat_type varchar [note: 'Polymorphic: e.g. App\\Models\\SuratAktifKuliah']
+  surat_id bigint [note: 'ID dari surat terkait']
+  aksi varchar [note: 'diajukan, diproses, disetujui, dll.']
+  keterangan text [null]
+  mahasiswa_id bigint [null, ref: > users.id]
+  confirmed_at timestamp [null, note: 'Waktu konfirmasi pengambilan surat']
+  created_at timestamp [null]
+  updated_at timestamp [null]
+
+  Note: 'Tracking histori perubahan status surat (polymorphic)'
+}
+
+Table dokumen_pendukungs {
+  id bigint [pk, increment]
+  model_type varchar [note: 'Polymorphic: e.g. App\\Models\\SuratAktifKuliah']
+  model_id bigint [note: 'ID dari model terkait']
+  path varchar
+  nama_asli varchar
+  mime_type varchar
+  size bigint
+  created_at timestamp [null]
+  updated_at timestamp [null]
+
+  Note: 'Dokumen pendukung (polymorphic untuk semua model)'
+}
+
+// ============================================================
+// SURAT (LETTER) MODULES
+// ============================================================
+
+Table surat_aktif_kuliahs {
+  id bigint [pk, increment]
+  tracking_code varchar(12) [unique, null]
+  mahasiswa_id bigint [ref: > users.id, note: 'FK ke users']
+  tujuan_pengajuan text
+  keterangan_tambahan text [null]
+  file_pendukung_path varchar [null]
+  file_surat_path varchar [null]
+  // Sistem Persetujuan
+  signature_path varchar [null, note: 'Path QR code tanda tangan']
+  approved_at timestamp [null]
+  approved_by bigint [null, ref: > users.id, note: 'Kaprodi yang menyetujui']
+  verification_code varchar [null]
+  verification_code_kaprodi varchar [null]
+  verification_code_pimpinan varchar [null]
+  // Informasi Surat
+  nomor_surat varchar [null]
+  tanggal_surat date [null]
+  tahun_ajaran varchar
+  semester varchar
+  // Penandatangan
+  penandatangan_id bigint [null, ref: > users.id]
+  jabatan_penandatangan varchar [null]
+  penandatangan_kaprodi_id bigint [null, ref: > users.id]
+  jabatan_penandatangan_kaprodi varchar [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  deleted_at timestamp [null]
+
+  Note: 'Pengajuan Surat Aktif Kuliah'
+}
+
+Table surat_ijin_surveys {
+  id bigint [pk, increment]
+  tracking_code varchar(12) [unique, null]
+  mahasiswa_id bigint [ref: > users.id]
+  judul varchar
+  tempat_survey varchar
+  keterangan_tambahan text [null]
+  file_pendukung_path varchar [null]
+  file_surat_path varchar [null]
+  // Sistem Persetujuan
+  signature_path varchar [null]
+  approved_at timestamp [null]
+  approved_by bigint [null, ref: > users.id]
+  verification_code varchar [null]
+  verification_code_kaprodi varchar [null]
+  verification_code_pimpinan varchar [null]
+  // Informasi Surat
+  nomor_surat varchar [null]
+  tanggal_surat date [null]
+  semester varchar
+  // Penandatangan
+  penandatangan_id bigint [null, ref: > users.id]
+  jabatan_penandatangan varchar [null]
+  penandatangan_kaprodi_id bigint [null, ref: > users.id]
+  jabatan_penandatangan_kaprodi varchar [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  deleted_at timestamp [null]
+
+  Note: 'Pengajuan Surat Ijin Survey'
+}
+
+Table surat_cuti_akademiks {
+  id bigint [pk, increment]
+  tracking_code varchar(12) [unique, null]
+  mahasiswa_id bigint [ref: > users.id]
+  alasan_pengajuan text
+  keterangan_tambahan text [null]
+  file_pendukung_path varchar [null]
+  file_surat_path varchar [null]
+  // Sistem Persetujuan
+  signature_path varchar [null]
+  approved_at timestamp [null]
+  approved_by bigint [null, ref: > users.id]
+  verification_code varchar [null]
+  verification_code_kaprodi varchar [null]
+  verification_code_pimpinan varchar [null]
+  // Informasi Surat
+  nomor_surat varchar [null]
+  tanggal_surat date [null]
+  tahun_ajaran varchar
+  semester varchar
+  // Penandatangan
+  penandatangan_id bigint [null, ref: > users.id]
+  jabatan_penandatangan varchar [null]
+  penandatangan_kaprodi_id bigint [null, ref: > users.id]
+  jabatan_penandatangan_kaprodi varchar [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  deleted_at timestamp [null]
+
+  Note: 'Pengajuan Surat Cuti Akademik'
+}
+
+Table surat_pindahs {
+  id bigint [pk, increment]
+  tracking_code varchar(12) [unique, null]
+  mahasiswa_id bigint [ref: > users.id]
+  universitas_tujuan varchar
+  alasan_pengajuan text
+  keterangan_tambahan text [null]
+  file_pendukung_path varchar [null]
+  file_surat_path varchar [null]
+  // Sistem Persetujuan
+  signature_path varchar [null]
+  approved_at timestamp [null]
+  approved_by bigint [null, ref: > users.id]
+  verification_code varchar [null]
+  verification_code_kaprodi varchar [null]
+  verification_code_pimpinan varchar [null]
+  // Informasi Surat
+  nomor_surat varchar [null]
+  tanggal_surat date [null]
+  semester varchar
+  // Penandatangan
+  penandatangan_id bigint [null, ref: > users.id]
+  jabatan_penandatangan varchar [null]
+  penandatangan_kaprodi_id bigint [null, ref: > users.id]
+  jabatan_penandatangan_kaprodi varchar [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  deleted_at timestamp [null]
+
+  Note: 'Pengajuan Surat Pindah'
+}
+
+// ============================================================
+// PEMBAYARAN UKT MODULE
+// ============================================================
+
+Table pembayaran_ukts {
+  id bigint [pk, increment]
+  mahasiswa_id bigint [ref: > users.id]
+  tahun_ajaran_id bigint [ref: > tahun_ajarans.id]
+  updated_by bigint [null, ref: > users.id]
+  status enum_bayar [default: 'belum_bayar', note: 'bayar | belum_bayar']
+  created_at timestamp [null]
+  updated_at timestamp [null]
+
+  Note: 'Status pembayaran UKT mahasiswa (unique per mahasiswa per tahun ajaran)'
+}
+
+// ============================================================
+// PEMINJAMAN (BORROWING) MODULES
+// ============================================================
+
+Table peminjaman_proyektors {
+  id bigint [pk, increment]
+  user_id bigint [ref: > users.id]
+  proyektor_code varchar(50) [null]
+  keperluan varchar [null]
+  tanggal_pinjam datetime
+  tanggal_kembali datetime [null]
+  status enum_pinjam [default: 'dipinjam', note: 'dipinjam | dikembalikan']
+  keterangan text [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+
+  Note: 'Peminjaman proyektor'
+}
+
+Table peminjaman_laboratoria {
+  id bigint [pk, increment]
+  user_id bigint [ref: > users.id]
+  tanggal_peminjaman date
+  jam_mulai time
+  jam_selesai time
+  keperluan text
+  status enum_lab [default: 'diajukan', note: 'diajukan | selesai']
+  created_at timestamp [null]
+  updated_at timestamp [null]
+
+  Note: 'Peminjaman laboratorium'
+}
+
+// ============================================================
+// KOMISI PROPOSAL MODULE
+// ============================================================
+
+Table komisi_proposals {
+  id bigint [pk, increment]
+  user_id bigint [ref: > users.id, note: 'Mahasiswa']
+  judul_skripsi text
+  dosen_pembimbing_id varchar [note: 'ID Dosen Pembimbing (ref: users)']
+  status enum_komisi_proposal [default: 'pending', note: 'pending | approved_pa | approved | rejected']
+  // Approval Workflow - PA
+  penandatangan_pa_id bigint [null, ref: > users.id]
+  tanggal_persetujuan_pa timestamp [null]
+  // Approval Workflow - Korprodi
+  penandatangan_korprodi_id bigint [null, ref: > users.id]
+  tanggal_persetujuan_korprodi timestamp [null]
+  // Files & Verification
+  file_komisi_pa varchar [null, note: 'PDF dengan QR code PA']
+  verification_code varchar(50) [unique, null, note: 'Kode verifikasi untuk QR']
+  keterangan text [null]
+  file_komisi varchar [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+
+  Note: 'Komisi Proposal - Persetujuan judul skripsi & dosen pembimbing'
+}
+
+// ============================================================
+// KOMISI HASIL MODULE
+// ============================================================
+
+Table komisi_hasils {
+  id bigint [pk, increment]
+  user_id bigint [ref: > users.id, note: 'Mahasiswa']
+  judul_skripsi text
+  dosen_pembimbing1_id varchar [note: 'ID Dosen Pembimbing 1 (ref: users)']
+  dosen_pembimbing2_id varchar [note: 'ID Dosen Pembimbing 2 (ref: users)']
+  // Reference ke SK Pembimbing
+  pengajuan_sk_id bigint [null, ref: > pengajuan_sk_pembimbing.id]
+  is_manual_input boolean [default: false, note: 'True jika input manual (tidak melalui SK Pembimbing)']
+  // Approval Workflow - Pembimbing 1
+  penandatangan_pembimbing1_id bigint [null, ref: > users.id]
+  tanggal_persetujuan_pembimbing1 timestamp [null]
+  // Approval Workflow - Pembimbing 2
+  penandatangan_pembimbing2_id bigint [null, ref: > users.id]
+  tanggal_persetujuan_pembimbing2 timestamp [null]
+  // Approval Workflow - Korprodi
+  penandatangan_korprodi_id bigint [null, ref: > users.id]
+  tanggal_persetujuan_korprodi timestamp [null]
+  // Status & Files
+  status enum_komisi_hasil [default: 'pending', note: 'pending | approved_pembimbing1 | approved_pembimbing2 | approved | rejected']
+  keterangan text [null]
+  file_komisi_hasil varchar [null]
+  verification_code varchar(50) [unique, null]
+  file_komisi_pembimbing1 varchar [null, note: 'PDF setelah Pembimbing 1 approve']
+  file_komisi_pembimbing2 varchar [null, note: 'PDF setelah Pembimbing 2 approve']
+  created_at timestamp [null]
+  updated_at timestamp [null]
+
+  Note: 'Komisi Hasil - Persetujuan ujian hasil skripsi'
+}
+
+// ============================================================
+// PENDAFTARAN SEMINAR PROPOSAL MODULE
+// ============================================================
+
+Table pendaftaran_seminar_proposals {
+  id bigint [pk, increment]
+  user_id bigint [ref: > users.id, note: 'Mahasiswa']
+  komisi_proposal_id bigint [null, ref: > komisi_proposals.id]
+  // Data mahasiswa
+  angkatan varchar
+  judul_skripsi text
+  ipk decimal(3,2)
+  // Files
+  file_transkrip_nilai varchar
+  file_proposal_penelitian varchar
+  file_surat_permohonan varchar
+  file_slip_ukt varchar
+  // Pembimbing
+  dosen_pembimbing_id bigint [null, ref: > users.id]
+  // Metadata penentuan pembahas
+  tanggal_penentuan_pembahas timestamp [null]
+  ditentukan_oleh_id bigint [null, ref: > users.id]
+  // Status workflow
+  status enum_sempro [default: 'pending', note: 'pending | pembahas_ditentukan | surat_diproses | menunggu_ttd_kaprodi | menunggu_ttd_kajur | selesai | ditolak']
+  // Catatan
+  catatan text [null]
+  alasan_penolakan text [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+
+  Note: 'Pendaftaran Seminar Proposal'
+}
+
+Table proposal_pembahas {
+  id bigint [pk, increment]
+  pendaftaran_seminar_proposal_id bigint [ref: > pendaftaran_seminar_proposals.id]
+  dosen_id bigint [ref: > users.id, note: 'Dosen Pembahas']
+  posisi tinyint [note: '1=Pembahas 1, 2=Pembahas 2, 3=Pembahas 3']
+  created_at timestamp [null]
+  updated_at timestamp [null]
+
+  Note: 'Dosen Pembahas Seminar Proposal (pivot)'
+}
+
+Table surat_usulan_proposals {
+  id bigint [pk, increment]
+  pendaftaran_seminar_proposal_id bigint [unique, ref: - pendaftaran_seminar_proposals.id, note: 'One-to-One']
+  // Data surat
+  nomor_surat varchar [unique]
+  file_surat varchar
+  tanggal_surat timestamp
+  // Verification & QR
+  verification_code varchar [unique, null]
+  qr_code_kaprodi text [null]
+  qr_code_kajur text [null]
+  // TTD Kaprodi
+  ttd_kaprodi_at timestamp [null]
+  ttd_kaprodi_by bigint [null, ref: > users.id]
+  // TTD Kajur
+  ttd_kajur_at timestamp [null]
+  ttd_kajur_by bigint [null, ref: > users.id]
+  // Override
+  override_info text [null, note: 'JSON: info override approval']
+  // Status
+  status enum_surat_usulan [default: 'draft', note: 'draft | menunggu_ttd_kaprodi | menunggu_ttd_kajur | selesai']
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  deleted_at timestamp [null]
+
+  Note: 'Surat Usulan Seminar Proposal (One-to-One dengan pendaftaran)'
+}
+
+Table jadwal_seminar_proposals {
+  id bigint [pk, increment]
+  pendaftaran_seminar_proposal_id bigint [ref: > pendaftaran_seminar_proposals.id]
+  // File SK
+  file_sk_proposal varchar [null]
+  // Data Jadwal
+  tanggal_ujian date [null]
+  waktu_mulai time [null]
+  waktu_selesai time [null]
+  ruangan varchar [null]
+  // Status
+  status enum_jadwal [default: 'menunggu_sk', note: 'menunggu_sk | menunggu_jadwal | dijadwalkan | selesai']
+  created_at timestamp [null]
+  updated_at timestamp [null]
+
+  Note: 'Jadwal Seminar Proposal'
+}
+
+Table dosen_penguji_jadwal_sempro {
+  id bigint [pk, increment]
+  jadwal_seminar_proposal_id bigint [ref: > jadwal_seminar_proposals.id]
+  dosen_id bigint [ref: > users.id]
+  posisi varchar [note: 'Pembimbing, Penguji 1, Penguji 2, Penguji 3']
+  status varchar [default: 'active', note: 'active | replaced']
+  replaced_by_id bigint [null, ref: > users.id, note: 'Dosen pengganti']
+  keterangan text [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+
+  Note: 'Dosen Penguji/Pembimbing pada Jadwal Seminar Proposal (pivot)'
+}
+
+Table berita_acara_seminar_proposals {
+  id bigint [pk, increment]
+  jadwal_seminar_proposal_id bigint [ref: > jadwal_seminar_proposals.id]
+  // Konten BA
+  catatan_kejadian enum_catatan [null, note: 'Lancar | Ada beberapa perbaikan yang harus diubah']
+  keputusan enum_keputusan_sempro [null, note: 'Ya | Ya, dengan perbaikan | Tidak']
+  catatan_tambahan text [null]
+  alasan_ditolak text [null]
+  ditolak_at timestamp [null]
+  // Validasi & File
+  verification_code varchar [unique]
+  file_path varchar [null]
+  // Workflow Status
+  status enum_ba_sempro [default: 'draft', note: 'draft | menunggu_ttd_pembahas | menunggu_ttd_pembimbing | selesai | ditolak']
+  // TTD Dosen Pembahas (JSON)
+  ttd_dosen_pembahas json [null, note: 'Array of {dosen_id, dosen_name, signed_at}']
+  // Pengisian oleh Pembimbing
+  diisi_oleh_pembimbing_id bigint [null, ref: > users.id]
+  diisi_pembimbing_at timestamp [null]
+  // TTD Pembimbing/Ketua
+  ttd_pembimbing_at timestamp [null]
+  ttd_pembimbing_by bigint [null, ref: > users.id]
+  ttd_ketua_penguji_at timestamp [null]
+  ttd_ketua_penguji_by bigint [null, ref: > users.id]
+  // Override Pembimbing (Staff)
+  override_pembimbing_by bigint [null, ref: > users.id]
+  override_pembimbing_at timestamp [null]
+  override_pembimbing_reason varchar(500) [null]
+  // Metadata
+  dibuat_oleh_id bigint [ref: > users.id, note: 'Staff yang membuat draft']
+  created_at timestamp [null]
+  updated_at timestamp [null]
+
+  Note: 'Berita Acara Seminar Proposal'
+}
+
+Table lembar_catatan_seminar_proposals {
+  id bigint [pk, increment]
+  berita_acara_seminar_proposal_id bigint [ref: > berita_acara_seminar_proposals.id]
+  dosen_id bigint [ref: > users.id]
+  // Penilaian Deskriptif
+  catatan_kebaruan text [null]
+  catatan_metode text [null]
+  catatan_ketersediaan_data text [null]
+  // Catatan Per Bab
+  catatan_bab1 text [null]
+  catatan_bab2 text [null]
+  catatan_bab3 text [null]
+  // Catatan Lainnya
+  catatan_jadwal text [null]
+  catatan_referensi text [null]
+  catatan_umum text [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+
+  Note: 'Lembar Catatan Dosen pada Seminar Proposal (unique: 1 dosen per BA)'
+}
+
+// ============================================================
+// PENGAJUAN SK PEMBIMBING MODULE
+// ============================================================
+
+Table pengajuan_sk_pembimbing {
+  id bigint [pk, increment]
+  // Core Relations
+  berita_acara_id bigint [ref: > berita_acara_seminar_proposals.id]
+  mahasiswa_id bigint [ref: > users.id]
+  // Dosen Pembimbing
+  dosen_pembimbing_1_id bigint [null, ref: > users.id, note: 'PS1 wajib']
+  dosen_pembimbing_2_id bigint [null, ref: > users.id, note: 'PS2 opsional']
+  // Data Skripsi
+  judul_skripsi text
+  // File Uploads
+  file_surat_permohonan varchar
+  file_slip_ukt varchar
+  file_proposal_revisi varchar
+  file_surat_sk varchar [null]
+  // Status & Surat
+  status varchar(30) [default: 'draft']
+  nomor_surat varchar(100) [null]
+  tanggal_surat date [null]
+  verification_code varchar(50) [unique, null]
+  // Notes
+  catatan_staff text [null]
+  alasan_ditolak text [null]
+  // Audit Trail - Verifikasi
+  verified_by bigint [null, ref: > users.id]
+  verified_at timestamp [null]
+  // Audit Trail - Penentuan PS
+  ps_assigned_by bigint [null, ref: > users.id]
+  ps_assigned_at timestamp [null]
+  // Audit Trail - TTD Kajur
+  ttd_kajur_by bigint [null, ref: > users.id]
+  ttd_kajur_at timestamp [null]
+  qr_code_kajur text [null]
+  // Audit Trail - TTD Korprodi
+  ttd_korprodi_by bigint [null, ref: > users.id]
+  ttd_korprodi_at timestamp [null]
+  qr_code_korprodi text [null]
+  // Override Info
+  override_info json [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  deleted_at timestamp [null]
+
+  Note: 'Pengajuan SK Pembimbing Skripsi'
+}
+
+Table statistik_pembimbing_skripsi {
+  id bigint [pk, increment]
+  dosen_id bigint [ref: > users.id, note: 'Dosen Pembimbing']
+  tahun_ajaran_id bigint [ref: > tahun_ajarans.id]
+  jumlah_ps1 smallint [default: 0]
+  jumlah_ps2 smallint [default: 0]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+
+  Note: 'Statistik Beban Pembimbing per Dosen per Tahun Ajaran (unique per dosen per tahun ajaran)'
+}
+
+// ============================================================
+// PENDAFTARAN UJIAN HASIL MODULE
+// ============================================================
+
+Table pendaftaran_ujian_hasils {
+  id bigint [pk, increment]
+  user_id bigint [ref: > users.id, note: 'Mahasiswa']
+  komisi_hasil_id bigint [null, ref: > komisi_hasils.id]
+  // Data mahasiswa
+  angkatan varchar
+  judul_skripsi text
+  ipk decimal(3,2)
+  // Files
+  file_transkrip_nilai varchar
+  file_skripsi varchar
+  file_surat_permohonan varchar
+  file_slip_ukt varchar
+  // Pembimbing
+  dosen_pembimbing1_id bigint [null, ref: > users.id]
+  dosen_pembimbing2_id bigint [null, ref: > users.id]
+  // Metadata penentuan penguji
+  tanggal_penentuan_penguji timestamp [null]
+  ditentukan_oleh_id bigint [null, ref: > users.id]
+  // Status workflow
+  status enum_ujian_hasil [default: 'pending', note: 'pending | penguji_ditentukan | surat_diproses | menunggu_ttd_kaprodi | menunggu_ttd_kajur | selesai | ditolak']
+  // Catatan
+  catatan text [null]
+  alasan_penolakan text [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+
+  Note: 'Pendaftaran Ujian Hasil Skripsi'
+}
+
+Table penguji_ujian_hasils {
+  id bigint [pk, increment]
+  pendaftaran_ujian_hasil_id bigint [ref: > pendaftaran_ujian_hasils.id]
+  dosen_id bigint [ref: > users.id, note: 'Dosen Penguji']
+  posisi varchar [note: 'Penguji 1, Penguji 2, Penguji 3, Penguji Tambahan']
+  keterangan text [null]
+  sumber varchar [default: 'manual', note: 'berita_acara | manual']
+  created_at timestamp [null]
+  updated_at timestamp [null]
+
+  Note: 'Dosen Penguji Ujian Hasil (pivot, unique: posisi per pendaftaran)'
+}
+
+Table surat_usulan_skripsis {
+  id bigint [pk, increment]
+  pendaftaran_ujian_hasil_id bigint [ref: > pendaftaran_ujian_hasils.id]
+  // Data surat
+  nomor_surat varchar
+  tanggal_surat date
+  file_surat varchar [null]
+  // Verification & QR
+  verification_code varchar [unique]
+  qr_code_kaprodi text [null]
+  qr_code_kajur text [null]
+  // TTD Kaprodi
+  ttd_kaprodi_by bigint [null, ref: > users.id]
+  ttd_kaprodi_at timestamp [null]
+  // TTD Kajur
+  ttd_kajur_by bigint [null, ref: > users.id]
+  ttd_kajur_at timestamp [null]
+  // Override
+  override_info json [null]
+  // Status
+  status enum_surat_usulan_skripsi [default: 'draft', note: 'draft | menunggu_ttd_kaprodi | menunggu_ttd_kajur | selesai']
+  created_at timestamp [null]
+  updated_at timestamp [null]
+
+  Note: 'Surat Usulan Ujian Hasil (One-to-One dengan pendaftaran)'
+}
+
+Table jadwal_ujian_hasils {
+  id bigint [pk, increment]
+  pendaftaran_ujian_hasil_id bigint [ref: > pendaftaran_ujian_hasils.id]
+  // File SK
+  file_sk_ujian_hasil varchar [null]
+  // Data Jadwal
+  tanggal_ujian date [null]
+  waktu_mulai time [null]
+  waktu_selesai time [null]
+  ruangan varchar [null]
+  // Status
+  status enum_jadwal_ujian [default: 'menunggu_sk', note: 'menunggu_sk | menunggu_jadwal | dijadwalkan | selesai']
+  created_at timestamp [null]
+  updated_at timestamp [null]
+
+  Note: 'Jadwal Ujian Hasil Skripsi'
+}
+
+Table dosen_penguji_jadwal_ujian_hasil {
+  id bigint [pk, increment]
+  jadwal_ujian_hasil_id bigint [ref: > jadwal_ujian_hasils.id]
+  dosen_id bigint [ref: > users.id]
+  posisi varchar [note: 'Ketua Penguji, Penguji 1, Penguji 2, Penguji 3, dll']
+  keterangan text [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+
+  Note: 'Dosen Penguji pada Jadwal Ujian Hasil (pivot)'
+}
+
+Table berita_acara_ujian_hasils {
+  id bigint [pk, increment]
+  jadwal_ujian_hasil_id bigint [null, ref: > jadwal_ujian_hasils.id]
+  // Mahasiswa Info (audit trail)
+  mahasiswa_id bigint [null, ref: > users.id]
+  mahasiswa_name varchar [null]
+  mahasiswa_nim varchar [null]
+  judul_skripsi text [null]
+  // SK Dekan Info
+  nomor_sk_dekan varchar [null]
+  tanggal_sk_dekan date [null]
+  ruangan varchar [default: 'Ruangan Ujian Teknik Informatika']
+  // Keputusan & Catatan
+  keputusan enum_keputusan_uh [null, note: 'Lulus | Lulus dengan Perbaikan | Tidak Lulus']
+  catatan_tambahan text [null]
+  alasan_ditolak text [null]
+  ditolak_at timestamp [null]
+  // Validasi & File
+  verification_code varchar [unique]
+  file_path varchar [null]
+  // Workflow Status
+  status enum_ba_uh [default: 'draft', note: 'draft | menunggu_ttd_penguji | menunggu_ttd_ketua | selesai | ditolak']
+  // TTD Dosen Penguji (JSON)
+  ttd_dosen_penguji json [null, note: 'Array of {dosen_id, dosen_name, posisi, signed_at}']
+  // Pengisian oleh Ketua
+  diisi_oleh_ketua_id bigint [null, ref: > users.id]
+  diisi_ketua_at timestamp [null]
+  // TTD Ketua Penguji
+  ttd_ketua_penguji_at timestamp [null]
+  ttd_ketua_penguji_by bigint [null, ref: > users.id]
+  // Override Ketua (Staff)
+  override_ketua_by bigint [null, ref: > users.id]
+  override_ketua_at timestamp [null]
+  override_ketua_reason text [null]
+  // Metadata
+  dibuat_oleh_id bigint [ref: > users.id, note: 'Staff yang membuat draft']
+  created_at timestamp [null]
+  updated_at timestamp [null]
+
+  Note: 'Berita Acara Ujian Hasil Skripsi'
+}
+
+Table penilaian_ujian_hasils {
+  id bigint [pk, increment]
+  berita_acara_ujian_hasil_id bigint [ref: > berita_acara_ujian_hasils.id]
+  dosen_id bigint [ref: > users.id, note: 'Dosen Penguji']
+  // Kriteria Penilaian (7-component system)
+  nilai_kebaruan int [null, note: 'Kebaruan & signifikansi (bobot 1.5)']
+  nilai_kesesuaian int [null, note: 'Kesesuaian Judul-Kesimpulan (bobot 1.5)']
+  nilai_metode int [null, note: 'Metode Penelitian (bobot 1)']
+  nilai_kajian_teori int [null, note: 'Kajian Teori (bobot 1)']
+  nilai_hasil_penelitian int [null, note: 'Hasil Penelitian (bobot 3)']
+  nilai_referensi int [null, note: 'Referensi (bobot 1)']
+  nilai_tata_bahasa int [null, note: 'Tata Bahasa (bobot 1)']
+  // Calculated Fields
+  total_nilai float [null]
+  nilai_mutu decimal(3,2) [null, note: 'Nilai mutu 4.0 scale']
+  catatan text [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+
+  Note: 'Penilaian Ujian Hasil per Dosen Penguji (unique: 1 dosen per BA)'
+}
+
+Table lembar_koreksi_skripsis {
+  id bigint [pk, increment]
+  berita_acara_ujian_hasil_id bigint [ref: > berita_acara_ujian_hasils.id]
+  dosen_id bigint [ref: > users.id, note: 'Dosen PS1/PS2']
+  // Koreksi Data (JSON)
+  koreksi_data json [null, note: 'Array of {no, halaman, catatan}']
+  created_at timestamp [null]
+  updated_at timestamp [null]
+
+  Note: 'Lembar Koreksi Skripsi per Dosen Pembimbing (unique: 1 dosen per BA)'
+}
+
+
+
+// ============================================================
+// TABLE GROUPS (for visual organization in dbdiagram.io)
+// ============================================================
+
+TableGroup core_system {
+  users
+  roles
+  permissions
+  model_has_roles
+  model_has_permissions
+  role_has_permissions
+}
+
+TableGroup layanan_umum {
+  services
+  kop_surats
+  academic_calendars
+  tahun_ajarans
+}
+
+TableGroup surat_modules {
+  surat_aktif_kuliahs
+  surat_ijin_surveys
+  surat_cuti_akademiks
+  surat_pindahs
+  status_surats
+  tracking_surats
+  dokumen_pendukungs
+}
+
+TableGroup keuangan {
+  pembayaran_ukts
+}
+
+TableGroup peminjaman {
+  peminjaman_proyektors
+  peminjaman_laboratoria
+}
+
+TableGroup seminar_proposal {
+  komisi_proposals
+  pendaftaran_seminar_proposals
+  proposal_pembahas
+  surat_usulan_proposals
+  jadwal_seminar_proposals
+  dosen_penguji_jadwal_sempro
+  berita_acara_seminar_proposals
+  lembar_catatan_seminar_proposals
+}
+
+TableGroup sk_pembimbing {
+  pengajuan_sk_pembimbing
+  statistik_pembimbing_skripsi
+}
+
+TableGroup ujian_hasil {
+  komisi_hasils
+  pendaftaran_ujian_hasils
+  penguji_ujian_hasils
+  surat_usulan_skripsis
+  jadwal_ujian_hasils
+  dosen_penguji_jadwal_ujian_hasil
+  berita_acara_ujian_hasils
+  penilaian_ujian_hasils
+  lembar_koreksi_skripsis
+}
+
