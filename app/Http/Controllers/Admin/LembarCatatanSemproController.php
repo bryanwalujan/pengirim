@@ -31,13 +31,18 @@ class LembarCatatanSemproController extends Controller
     {
         $user = Auth::user();
 
-        // Check if user is one of the penguji
+        // Check if user is one of the penguji (pembahas)
         $isPenguji = $beritaAcara->jadwalSeminarProposal
             ->dosenPenguji()
             ->where('users.id', $user->id)
             ->exists();
 
-        if (!$isPenguji) {
+        // Check if user is dosen pembimbing
+        $isPembimbing = $beritaAcara->jadwalSeminarProposal
+            ->pendaftaranSeminarProposal
+            ->dosen_pembimbing_id === $user->id;
+
+        if (!$isPenguji && !$isPembimbing) {
             return redirect()
                 ->route('admin.berita-acara-sempro.show', $beritaAcara)
                 ->with('error', 'Anda tidak memiliki akses untuk mengisi lembar catatan.');
@@ -64,13 +69,17 @@ class LembarCatatanSemproController extends Controller
     {
         $user = Auth::user();
 
-        // Validate access
+        // Validate access - penguji (pembahas) OR pembimbing
         $isPenguji = $beritaAcara->jadwalSeminarProposal
             ->dosenPenguji()
             ->where('users.id', $user->id)
             ->exists();
 
-        if (!$isPenguji) {
+        $isPembimbing = $beritaAcara->jadwalSeminarProposal
+            ->pendaftaranSeminarProposal
+            ->dosen_pembimbing_id === $user->id;
+
+        if (!$isPenguji && !$isPembimbing) {
             return back()->with('error', 'Anda tidak memiliki akses.');
         }
 
@@ -143,11 +152,6 @@ class LembarCatatanSemproController extends Controller
                 ->with('error', 'Anda tidak memiliki akses untuk mengedit catatan ini.');
         }
 
-        // Check if berita acara already signed
-        if ($lembarCatatan->beritaAcara->isSigned()) {
-            return back()->with('error', 'Catatan tidak dapat diedit setelah Berita Acara ditandatangani.');
-        }
-
         $beritaAcara = $lembarCatatan->beritaAcara;
         $catatan = $lembarCatatan;
 
@@ -168,10 +172,6 @@ class LembarCatatanSemproController extends Controller
 
         if ($lembarCatatan->dosen_id !== $user->id) {
             return back()->with('error', 'Anda tidak memiliki akses.');
-        }
-
-        if ($lembarCatatan->beritaAcara->isSigned()) {
-            return back()->with('error', 'Catatan tidak dapat diedit setelah ditandatangani.');
         }
 
         $validated = $request->validate([
@@ -210,10 +210,6 @@ class LembarCatatanSemproController extends Controller
         // Only owner or admin can delete
         if ($lembarCatatan->dosen_id !== $user->id && !$user->hasRole('super-admin')) {
             return back()->with('error', 'Anda tidak memiliki akses.');
-        }
-
-        if ($lembarCatatan->beritaAcara->isSigned()) {
-            return back()->with('error', 'Catatan tidak dapat dihapus setelah ditandatangani.');
         }
 
         try {

@@ -38,7 +38,7 @@
                 $isPembahas = $jadwal
                     ->dosenPenguji()
                     ->where('users.id', $user->id) // ← PERBAIKAN: gunakan users.id
-                    ->where('posisi', '!=', 'Ketua Penguji') // ← PERBAIKAN: exclude ketua
+                    ->where('posisi', '!=', 'Ketua Pembahas') // ← PERBAIKAN: exclude ketua
                     ->exists();
             }
 
@@ -48,7 +48,7 @@
             if ($isDosen && $jadwal) {
                 $ketuaPenguji = $jadwal
                     ->dosenPenguji()
-                    ->wherePivot('posisi', 'Ketua Penguji') // ← Pastikan konsisten dengan DB
+                    ->wherePivot('posisi', 'Ketua Pembahas') // ← Pastikan konsisten dengan DB
                     ->first();
 
                 if ($ketuaPenguji) {
@@ -56,9 +56,9 @@
                 }
             }
 
-            // ✅ PERBAIKAN: Get pembahas yang hadir (exclude ketua)
+            // ✅ PERBAIKAN: Get pembahas yang hadir (include semua)
             $pembahasHadir = $jadwal
-                ? $jadwal->dosenPenguji()->wherePivot('posisi', '!=', 'Ketua Penguji')->get()
+                ? $jadwal->dosenPenguji()->get()
                 : collect(); // Empty collection if no jadwal
         @endphp
 
@@ -204,6 +204,26 @@
                                     <i class="bx bx-time me-1"></i>
                                     <small>Menunggu persetujuan pembahas</small>
                                 </div>
+                            @endif
+
+                            {{-- ✅ Link ke Lembar Catatan untuk Pembimbing --}}
+                            @if (!$isPembahas)
+                                @php
+                                    $lembarCatatanPembimbing = $beritaAcara->lembarCatatan()->where('dosen_id', $user->id)->first();
+                                @endphp
+                                @if (!$lembarCatatanPembimbing)
+                                    <a href="{{ route('admin.lembar-catatan-sempro.create', $beritaAcara) }}"
+                                        class="btn btn-outline-primary">
+                                        <i class="bx bx-edit me-1"></i>
+                                        Isi Lembar Catatan
+                                    </a>
+                                @else
+                                    <a href="{{ route('admin.lembar-catatan-sempro.show', $lembarCatatanPembimbing) }}"
+                                        class="btn btn-outline-info">
+                                        <i class="bx bx-show me-1"></i>
+                                        Lihat Lembar Catatan
+                                    </a>
+                                @endif
                             @endif
                         @endif
 
@@ -554,11 +574,11 @@
                     </div>
                 @endif
 
-                {{-- Lembar Catatan Penguji --}}
+                {{-- Lembar Catatan Seminar Proposal --}}
                 <div class="card">
                     <div class="card-header">
                         <h5 class="mb-0">
-                            <i class="bx bx-notepad me-2"></i>Lembar Catatan Penguji
+                            <i class="bx bx-notepad me-2"></i>Lembar Catatan Seminar Proposal
                         </h5>
                     </div>
                     <div class="card-body">
@@ -568,7 +588,7 @@
                                     <thead class="table-light">
                                         <tr>
                                             <th width="5%">No</th>
-                                            <th>Dosen Penguji</th>
+                                            <th>Nama Dosen</th>
                                             <th width="20%">Status</th>
                                             <th width="15%">Aksi</th>
                                         </tr>
@@ -600,7 +620,7 @@
                         @else
                             <div class="text-center py-4">
                                 <i class="bx bx-notepad display-4 text-muted mb-3"></i>
-                                <p class="text-muted mb-0">Belum ada lembar catatan yang diisi oleh penguji.</p>
+                                <p class="text-muted mb-0">Belum ada lembar catatan yang diisi oleh pembahas maupun pembimbing.</p>
                             </div>
                         @endif
                     </div>
