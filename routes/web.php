@@ -394,11 +394,6 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa'])->get('/payment-alert',
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
 
-    Route::post(
-    'pendaftaran-ujian-hasil/{pendaftaranUjianHasil}/sync-repodosen',
-    [AdminPendaftaranUjianHasilController::class, 'syncToRepodosen']
-)->name('admin.pendaftaran-ujian-hasil.sync-repodosen');
-
     // Notification Routes - PERBAIKAN ROUTE NAMES
     Route::prefix('notifications')->name('notifications.')->group(function () {
         // Display notifications
@@ -1080,7 +1075,12 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             // Download Surat Usulan
             Route::get('/{pendaftaranUjianHasil}/download-surat', [AdminPendaftaranUjianHasilController::class, 'downloadSuratUsulan'])
                 ->name('download-surat');
-        });
+
+            Route::post(
+                'pendaftaran-ujian-hasil/{pendaftaranUjianHasil}/sync-repodosen',
+                [AdminPendaftaranUjianHasilController::class, 'syncToRepodosen']
+                )->name('admin.pendaftaran-ujian-hasil.sync-repodosen');
+                });
 
         // Staff only routes
         Route::middleware(['role:staff'])->group(function () {

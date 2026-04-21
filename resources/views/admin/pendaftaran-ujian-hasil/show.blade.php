@@ -246,30 +246,19 @@
                             @endif
 
                             @if ($pendaftaranUjianHasil->isSelesai())
-    @can('hasAnyRole', ['staff', 'admin'])
-    <div class="card mt-3">
-        <div class="card-header d-flex align-items-center gap-2">
-            <i class="bx bx-transfer-alt text-primary"></i>
-            <strong>Sync ke Repodosen</strong>
-        </div>
-        <div class="card-body">
-            <p class="text-muted small mb-3">
-                Kirim data dosen pembimbing (PS1 &amp; PS2) ke sistem Repodosen.
-                Data akan di-<em>upsert</em> — dibuat baru jika belum ada, atau diperbarui jika sudah ada.
-            </p>
- 
-            {{-- Tombol Sync --}}
-            <form action="{{ route('admin.pendaftaran-ujian-hasil.sync-repodosen', $pendaftaranUjianHasil) }}"
-                  method="POST"
-                  id="form-sync-repodosen">
-                @csrf
-                <button type="button"
-                        class="btn btn-primary"
-                        onclick="confirmSync()">
-                    <i class="bx bx-cloud-upload me-1"></i>
-                    Sync Dosen Pembimbing ke Repodosen
-                </button>
-            </form>
+    <hr class="my-2">
+    <form action="{{ route('admin.pendaftaran-ujian-hasil.sync-repodosen', $pendaftaranUjianHasil) }}"
+          method="POST"
+          id="form-sync-repodosen">
+        @csrf
+        <button type="button"
+                class="btn btn-primary w-100 mb-2"
+                onclick="confirmSync()">
+            <i class="bx bx-cloud-upload me-1"></i>
+            Sync Dosen ke Repodosen
+        </button>
+    </form>
+@endif
  
             {{-- Info dosen yang akan disync --}}
             <div class="mt-3">
