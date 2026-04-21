@@ -245,50 +245,6 @@
                                 </form>
                             @endif
 
-                            @if ($pendaftaranUjianHasil->isSelesai())
-        <hr class="my-2">
-        <form action="{{ route('admin.pendaftaran-ujian-hasil.sync-repodosen', $pendaftaranUjianHasil) }}"
-              method="POST"
-              id="form-sync-repodosen">
-            @csrf
-            <button type="button"
-                    class="btn btn-primary w-100 mb-2"
-                    onclick="confirmSync()">
-                <i class="bx bx-cloud-upload me-1"></i>
-                Sync Dosen ke Repodosen
-            </button>
-        </form>
-    @endif
- 
-            {{-- Info dosen yang akan disync --}}
-            <div class="mt-3">
-                <small class="text-muted">Dosen yang akan disync:</small>
-                <ul class="list-unstyled mb-0 mt-1">
-                    @if ($pendaftaranUjianHasil->dosenPembimbing1)
-                        <li>
-                            <span class="badge bg-label-primary me-1">PS1</span>
-                            {{ $pendaftaranUjianHasil->dosenPembimbing1->name }}
-                            @if ($pendaftaranUjianHasil->dosenPembimbing1->nip)
-                                <small class="text-muted">({{ $pendaftaranUjianHasil->dosenPembimbing1->nip }})</small>
-                            @endif
-                        </li>
-                    @endif
-                    @if ($pendaftaranUjianHasil->dosenPembimbing2)
-                        <li class="mt-1">
-                            <span class="badge bg-label-secondary me-1">PS2</span>
-                            {{ $pendaftaranUjianHasil->dosenPembimbing2->name }}
-                            @if ($pendaftaranUjianHasil->dosenPembimbing2->nip)
-                                <small class="text-muted">({{ $pendaftaranUjianHasil->dosenPembimbing2->nip }})</small>
-                            @endif
-                        </li>
-                    @endif
-                </ul>
-            </div>
-        </div>
-    </div>
-    @endcan
-@endif
-
                             {{-- Tombol Reject --}}
                             @if ($pendaftaranUjianHasil->status === 'pending')
                                 <button type="button" class="btn btn-danger w-100 mb-2" data-bs-toggle="modal" data-bs-target="#rejectModal">
@@ -306,6 +262,21 @@
                                 </button>
                             </form>
                         @endif
+                         {{-- Sync ke Repodosen --}}
+    @if ($pendaftaranUjianHasil->isSelesai())
+        <hr class="my-2">
+        <form action="{{ route('admin.pendaftaran-ujian-hasil.sync-repodosen', $pendaftaranUjianHasil) }}"
+              method="POST"
+              id="form-sync-repodosen">
+            @csrf
+            <button type="button"
+                    class="btn btn-primary w-100 mb-2"
+                    onclick="confirmSync()">
+                <i class="bx bx-cloud-upload me-1"></i>
+                Sync Dosen ke Repodosen
+            </button>
+        </form>
+    @endif
 
                         {{-- Download Surat --}}
                         @if ($pendaftaranUjianHasil->suratUsulanSkripsi && $pendaftaranUjianHasil->suratUsulanSkripsi->isFullySigned())
