@@ -1076,11 +1076,9 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             Route::get('/{pendaftaranUjianHasil}/download-surat', [AdminPendaftaranUjianHasilController::class, 'downloadSuratUsulan'])
                 ->name('download-surat');
 
-            Route::post(
-                'pendaftaran-ujian-hasil/{pendaftaranUjianHasil}/sync-repodosen',
+            Route::post('/{pendaftaranUjianHasil}/sync-repodosen',
                 [AdminPendaftaranUjianHasilController::class, 'syncToRepodosen']
-                )->name('admin.pendaftaran-ujian-hasil.sync-repodosen');
-                });
+                )->name('sync-repodosen');
 
         // Staff only routes
         Route::middleware(['role:staff'])->group(function () {

@@ -246,19 +246,19 @@
                             @endif
 
                             @if ($pendaftaranUjianHasil->isSelesai())
-    <hr class="my-2">
-    <form action="{{ route('admin.pendaftaran-ujian-hasil.sync-repodosen', $pendaftaranUjianHasil) }}"
-          method="POST"
-          id="form-sync-repodosen">
-        @csrf
-        <button type="button"
-                class="btn btn-primary w-100 mb-2"
-                onclick="confirmSync()">
-            <i class="bx bx-cloud-upload me-1"></i>
-            Sync Dosen ke Repodosen
-        </button>
-    </form>
-@endif
+        <hr class="my-2">
+        <form action="{{ route('admin.pendaftaran-ujian-hasil.sync-repodosen', $pendaftaranUjianHasil) }}"
+              method="POST"
+              id="form-sync-repodosen">
+            @csrf
+            <button type="button"
+                    class="btn btn-primary w-100 mb-2"
+                    onclick="confirmSync()">
+                <i class="bx bx-cloud-upload me-1"></i>
+                Sync Dosen ke Repodosen
+            </button>
+        </form>
+    @endif
  
             {{-- Info dosen yang akan disync --}}
             <div class="mt-3">
