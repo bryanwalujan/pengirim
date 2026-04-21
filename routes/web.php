@@ -1079,6 +1079,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             Route::post('/{pendaftaranUjianHasil}/sync-repodosen',
                 [AdminPendaftaranUjianHasilController::class, 'syncToRepodosen']
                 )->name('sync-repodosen');
+        });
 
         // Staff only routes
         Route::middleware(['role:staff'])->group(function () {
