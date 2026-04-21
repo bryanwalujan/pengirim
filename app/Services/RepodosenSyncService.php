@@ -6,16 +6,6 @@ use App\Models\PendaftaranUjianHasil;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-/**
- * RepodosenSyncService — Web Pengirim (presma)
- *
- * Mengirim data dosen pembimbing dari PendaftaranUjianHasil
- * ke endpoint API repodosen via HTTP (dengan token autentikasi).
- *
- * Konfigurasi di .env presma:
- *   REPODOSEN_SYNC_URL=https://repodosen.ti.unima.ac.id/api/sync/dosen-pembimbing
- *   REPODOSEN_SYNC_TOKEN=isi_dengan_token_rahasia_yang_sama
- */
 class RepodosenSyncService
 {
     private string $url;

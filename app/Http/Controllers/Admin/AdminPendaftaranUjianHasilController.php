@@ -8,6 +8,7 @@ use App\Models\PendaftaranUjianHasil;
 use App\Models\User;
 use App\Services\PendaftaranUjianHasil\PengujiService;
 use App\Services\PendaftaranUjianHasil\SuratService;
+use App\Services\RepodosenSyncService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -16,7 +17,6 @@ use Illuminate\Support\Facades\Storage;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\StatusDosenPengujiExport;
-use App\Services\RepodosenSyncService;
 
 class AdminPendaftaranUjianHasilController extends Controller
 {
