@@ -245,6 +245,61 @@
                                 </form>
                             @endif
 
+                            @if ($pendaftaranUjianHasil->isSelesai())
+    @can('hasAnyRole', ['staff', 'admin'])
+    <div class="card mt-3">
+        <div class="card-header d-flex align-items-center gap-2">
+            <i class="bx bx-transfer-alt text-primary"></i>
+            <strong>Sync ke Repodosen</strong>
+        </div>
+        <div class="card-body">
+            <p class="text-muted small mb-3">
+                Kirim data dosen pembimbing (PS1 &amp; PS2) ke sistem Repodosen.
+                Data akan di-<em>upsert</em> — dibuat baru jika belum ada, atau diperbarui jika sudah ada.
+            </p>
+ 
+            {{-- Tombol Sync --}}
+            <form action="{{ route('admin.pendaftaran-ujian-hasil.sync-repodosen', $pendaftaranUjianHasil) }}"
+                  method="POST"
+                  id="form-sync-repodosen">
+                @csrf
+                <button type="button"
+                        class="btn btn-primary"
+                        onclick="confirmSync()">
+                    <i class="bx bx-cloud-upload me-1"></i>
+                    Sync Dosen Pembimbing ke Repodosen
+                </button>
+            </form>
+ 
+            {{-- Info dosen yang akan disync --}}
+            <div class="mt-3">
+                <small class="text-muted">Dosen yang akan disync:</small>
+                <ul class="list-unstyled mb-0 mt-1">
+                    @if ($pendaftaranUjianHasil->dosenPembimbing1)
+                        <li>
+                            <span class="badge bg-label-primary me-1">PS1</span>
+                            {{ $pendaftaranUjianHasil->dosenPembimbing1->name }}
+                            @if ($pendaftaranUjianHasil->dosenPembimbing1->nip)
+                                <small class="text-muted">({{ $pendaftaranUjianHasil->dosenPembimbing1->nip }})</small>
+                            @endif
+                        </li>
+                    @endif
+                    @if ($pendaftaranUjianHasil->dosenPembimbing2)
+                        <li class="mt-1">
+                            <span class="badge bg-label-secondary me-1">PS2</span>
+                            {{ $pendaftaranUjianHasil->dosenPembimbing2->name }}
+                            @if ($pendaftaranUjianHasil->dosenPembimbing2->nip)
+                                <small class="text-muted">({{ $pendaftaranUjianHasil->dosenPembimbing2->nip }})</small>
+                            @endif
+                        </li>
+                    @endif
+                </ul>
+            </div>
+        </div>
+    </div>
+    @endcan
+@endif
+
                             {{-- Tombol Reject --}}
                             @if ($pendaftaranUjianHasil->status === 'pending')
                                 <button type="button" class="btn btn-danger w-100 mb-2" data-bs-toggle="modal" data-bs-target="#rejectModal">
@@ -1268,6 +1323,22 @@
                 });
             }
         });
+
+        function confirmSync() {
+    const ps1 = @json($pendaftaranUjianHasil->dosenPembimbing1?->name ?? '-');
+    const ps2 = @json($pendaftaranUjianHasil->dosenPembimbing2?->name ?? '-');
+ 
+    const confirmed = confirm(
+        `Sync dosen pembimbing ke Repodosen?\n\n` +
+        `PS1: ${ps1}\n` +
+        `PS2: ${ps2}\n\n` +
+        `Data akan di-update jika sudah ada di Repodosen.`
+    );
+ 
+    if (confirmed) {
+        document.getElementById('form-sync-repodosen').submit();
+    }
+}
     </script>
 @endpush
 

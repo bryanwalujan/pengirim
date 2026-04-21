@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'repodosen_sync' => [
+        'url'   => env('REPODOSEN_SYNC_URL'),
+        'token' => env('REPODOSEN_SYNC_TOKEN'),
+    ],
+
 ];

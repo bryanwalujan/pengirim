@@ -16,16 +16,19 @@ use Illuminate\Support\Facades\Storage;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\StatusDosenPengujiExport;
+use App\Services\RepodosenSyncService;
 
 class AdminPendaftaranUjianHasilController extends Controller
 {
     protected PengujiService $pengujiService;
     protected SuratService $suratService;
+    protected RepodosenSyncService $repodosenSync;
 
-    public function __construct(PengujiService $pengujiService, SuratService $suratService)
+    public function __construct(PengujiService $pengujiService, SuratService $suratService, RepodosenSyncService $repodosenSync)
     {
         $this->pengujiService = $pengujiService;
         $this->suratService = $suratService;
+        $this->repodosenSync = $repodosenSync;
     }
 
     /**
@@ -826,6 +829,34 @@ class AdminPendaftaranUjianHasilController extends Controller
             ->setOption('margin-right', '1in');
 
         return $pdf->stream('preview-surat-usulan-ujian-hasil.pdf');
+    }
+
+     public function syncToRepodosen(PendaftaranUjianHasil $pendaftaranUjianHasil)
+    {
+        $this->authorizeStaffOrAdmin();
+ 
+        // Guard: hanya sync jika pendaftaran sudah selesai
+        if (!$pendaftaranUjianHasil->isSelesai()) {
+            return back()->with(
+                'error',
+                'Sync hanya dapat dilakukan untuk pendaftaran dengan status Selesai.'
+            );
+        }
+ 
+        $result = $this->repodosenSync->syncDosenPembimbing($pendaftaranUjianHasil);
+ 
+        if ($result['success']) {
+            $synced = count(array_filter($result['results'], fn($r) => $r['action'] !== 'error'));
+            return back()->with(
+                'success',
+                "Sync berhasil. {$synced} data dosen pembimbing telah diperbarui di Repodosen."
+            );
+        }
+ 
+        return back()->with(
+            'error',
+            'Sync gagal: ' . $result['message']
+        );
     }
 
     /**
