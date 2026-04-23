@@ -842,8 +842,8 @@ class AdminPendaftaranUjianHasilController extends Controller
         );
     }
  
-    // Pilih mode sync: 'dosen' (default) atau 'skripsi' (lengkap dengan file)
-    $mode = $request->input('mode', 'skripsi'); // UBAH DEFAULT JADI SKRIPSI
+    // Pilih mode sync: 'dosen' atau 'skripsi'
+    $mode = $request->input('mode', 'skripsi');
  
     // Tambahkan validasi file untuk mode skripsi
     if ($mode === 'skripsi') {
@@ -857,14 +857,11 @@ class AdminPendaftaranUjianHasilController extends Controller
                 'mode' => $mode
             ]);
             
-            if (!$request->input('force_sync')) {
-                return back()->with(
-                    'warning',
-                    'Tidak ada file yang tersedia untuk disync. <br> ' .
-                    'Pastikan file skripsi, SK pembimbing, atau proposal sudah diupload.<br>' .
-                    '<a href="' . route('admin.pendaftaran-ujian-hasil.edit', $pendaftaranUjianHasil) . '">Upload file disini</a>'
-                );
-            }
+            return back()->with(
+                'warning',
+                '⚠️ Tidak ada file yang tersedia untuk disync. ' .
+                'Pastikan file skripsi, SK pembimbing, atau proposal sudah diupload.'
+            );
         }
     }
  
@@ -877,7 +874,33 @@ class AdminPendaftaranUjianHasilController extends Controller
     }
  
     if ($result['success']) {
-        $synced = count(array_filter($result['results'], fn($r) => $r['action'] !== 'error'));
+        // PERBAIKAN: Handle berbagai format response
+        $synced = 0;
+        
+        if (isset($result['results']) && is_array($result['results'])) {
+            if (!empty($result['results'])) {
+                // Cek apakah results adalah array asosiatif dengan key 'synced' atau array of objects
+                if (isset($result['results']['synced'])) {
+                    // Format: ['results' => ['synced' => 2, 'failed' => 0]]
+                    $synced = $result['results']['synced'] ?? 0;
+                } else {
+                    // Format: ['results' => [['action' => 'updated'], ...]]
+                    $synced = count(array_filter($result['results'], function($r) {
+                        return is_array($r) && isset($r['action']) && $r['action'] !== 'error';
+                    }));
+                    
+                    // Jika tidak ada action key, hitung jumlah items
+                    if ($synced === 0 && count($result['results']) > 0) {
+                        $synced = count($result['results']);
+                    }
+                }
+            }
+        }
+        
+        // Jika synced masih 0 tapi response sukses, gunakan nilai dari response
+        if ($synced === 0 && isset($result['synced'])) {
+            $synced = $result['synced'];
+        }
         
         // Tambahkan informasi file yang disync
         $fileInfo = '';
@@ -891,15 +914,17 @@ class AdminPendaftaranUjianHasilController extends Controller
             }
         }
         
+        $message = $result['message'] ?? "Sync {$label} berhasil!";
+        
         return back()->with(
             'success',
-            "✅ Sync {$label} berhasil! {$synced} data telah diperbarui di Repodosen.{$fileInfo}"
+            "✅ {$message} ({$synced} data diperbarui di Repodosen){$fileInfo}"
         );
     }
  
     return back()->with(
         'error',
-        '❌ Sync gagal: ' . $result['message']
+        '❌ Sync gagal: ' . ($result['message'] ?? 'Unknown error')
     );
 }
 

@@ -118,7 +118,7 @@ class RepodosenSyncService
     // PRIVATE HELPERS
     // ──────────────────────────────────────────────────────────────────────────
 
-   private function post(string $endpoint, array $payload, $pendaftaranId): array
+  private function post(string $endpoint, array $payload, $pendaftaranId): array
 {
     if (empty($this->token)) {
         Log::error('[RepodosenSync] Token tidak dikonfigurasi di .env');
@@ -126,7 +126,7 @@ class RepodosenSyncService
     }
 
     try {
-        $response = Http::timeout(120) // Increase timeout for large files
+        $response = Http::timeout(120)
             ->withHeaders([
                 'X-Sync-Token' => $this->token,
                 'Accept'       => 'application/json',
@@ -135,44 +135,67 @@ class RepodosenSyncService
 
         $body = $response->json() ?? [];
 
-        // Detailed logging
+        // Log response untuk debugging
         Log::info('[RepodosenSync] Response details', [
             'pendaftaran_id' => $pendaftaranId,
-            'http_status'    => $response->status(),
-            'response_body'  => $body,
+            'endpoint' => $endpoint,
+            'http_status' => $response->status(),
+            'response_keys' => array_keys($body),
+            'has_results' => isset($body['results']),
+            'results_type' => isset($body['results']) ? gettype($body['results']) : 'null',
         ]);
 
         if ($response->successful()) {
             Log::info('[RepodosenSync] Berhasil', [
                 'pendaftaran_id' => $pendaftaranId,
-                'synced'         => $body['synced'] ?? 0,
-                'failed'         => $body['failed'] ?? 0,
+                'synced' => $body['synced'] ?? $body['results']['synced'] ?? 0,
+                'failed' => $body['failed'] ?? $body['results']['failed'] ?? 0,
             ]);
+            
+            // Standardisasi response
+            return [
+                'success' => true,
+                'message' => $body['message'] ?? 'Sync berhasil',
+                'synced' => $body['synced'] ?? $body['results']['synced'] ?? 0,
+                'failed' => $body['failed'] ?? $body['results']['failed'] ?? 0,
+                'results' => $body['results'] ?? [],
+            ];
         } else {
             Log::error('[RepodosenSync] HTTP ' . $response->status(), [
                 'pendaftaran_id' => $pendaftaranId,
-                'endpoint'       => $endpoint,
-                'response_body'  => $body,
-                'error_detail'   => $response->body(),
+                'endpoint' => $endpoint,
+                'response_body' => $body,
+                'error_detail' => $response->body(),
             ]);
+            
+            return [
+                'success' => false,
+                'message' => $body['message'] ?? 'HTTP Error ' . $response->status(),
+                'results' => [],
+            ];
         }
-
-        return [
-            'success' => $response->successful(),
-            'message' => $body['message'] ?? 'Tidak ada pesan dari server.',
-            'results' => $body['results'] ?? [],
-        ];
 
     } catch (\Illuminate\Http\Client\ConnectionException $e) {
         Log::error('[RepodosenSync] Koneksi gagal', [
             'endpoint' => $endpoint,
-            'error'    => $e->getMessage(),
+            'error' => $e->getMessage(),
         ]);
-        return ['success' => false, 'message' => 'Koneksi gagal: ' . $e->getMessage(), 'results' => []];
+        return [
+            'success' => false, 
+            'message' => 'Koneksi gagal: ' . $e->getMessage(), 
+            'results' => []
+        ];
 
     } catch (\Exception $e) {
-        Log::error('[RepodosenSync] Error tidak terduga', ['error' => $e->getMessage()]);
-        return ['success' => false, 'message' => 'Terjadi kesalahan: ' . $e->getMessage(), 'results' => []];
+        Log::error('[RepodosenSync] Error tidak terduga', [
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ]);
+        return [
+            'success' => false, 
+            'message' => 'Terjadi kesalahan: ' . $e->getMessage(), 
+            'results' => []
+        ];
     }
 }
 
