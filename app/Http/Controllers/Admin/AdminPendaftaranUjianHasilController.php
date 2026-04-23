@@ -831,33 +831,41 @@ class AdminPendaftaranUjianHasilController extends Controller
         return $pdf->stream('preview-surat-usulan-ujian-hasil.pdf');
     }
 
-     public function syncToRepodosen(PendaftaranUjianHasil $pendaftaranUjianHasil)
-    {
-        $this->authorizeStaffOrAdmin();
+     public function syncToRepodosen(Request $request, PendaftaranUjianHasil $pendaftaranUjianHasil)
+{
+    $this->authorizeStaffOrAdmin();
  
-        // Guard: hanya sync jika pendaftaran sudah selesai
-        if (!$pendaftaranUjianHasil->isSelesai()) {
-            return back()->with(
-                'error',
-                'Sync hanya dapat dilakukan untuk pendaftaran dengan status Selesai.'
-            );
-        }
- 
-        $result = $this->repodosenSync->syncDosenPembimbing($pendaftaranUjianHasil);
- 
-        if ($result['success']) {
-            $synced = count(array_filter($result['results'], fn($r) => $r['action'] !== 'error'));
-            return back()->with(
-                'success',
-                "Sync berhasil. {$synced} data dosen pembimbing telah diperbarui di Repodosen."
-            );
-        }
- 
+    if (!$pendaftaranUjianHasil->isSelesai()) {
         return back()->with(
             'error',
-            'Sync gagal: ' . $result['message']
+            'Sync hanya dapat dilakukan untuk pendaftaran dengan status Selesai.'
         );
     }
+ 
+    // Pilih mode sync: 'dosen' (default) atau 'skripsi' (lengkap dengan file)
+    $mode = $request->input('mode', 'dosen');
+ 
+    if ($mode === 'skripsi') {
+        $result = $this->repodosenSync->syncSkripsi($pendaftaranUjianHasil);
+        $label  = 'skripsi lengkap';
+    } else {
+        $result = $this->repodosenSync->syncDosenPembimbing($pendaftaranUjianHasil);
+        $label  = 'dosen pembimbing';
+    }
+ 
+    if ($result['success']) {
+        $synced = count(array_filter($result['results'], fn($r) => $r['action'] !== 'error'));
+        return back()->with(
+            'success',
+            "Sync {$label} berhasil. {$synced} data telah diperbarui di Repodosen."
+        );
+    }
+ 
+    return back()->with(
+        'error',
+        'Sync gagal: ' . $result['message']
+    );
+}
 
     /**
      * Helper to authorize staff or admin access.
