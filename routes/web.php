@@ -49,6 +49,50 @@ use App\Models\TahunAjaran;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/debug/sync-files/{id}', function ($id) {
+    $pendaftaran = App\Models\PendaftaranUjianHasil::find($id);
+    if (!$pendaftaran) {
+        return 'Pendaftaran tidak ditemukan';
+    }
+    
+    $result = [];
+    
+    // Cek file_skripsi
+    $result['file_skripsi'] = [
+        'path' => $pendaftaran->file_skripsi,
+        'exists_local' => $pendaftaran->file_skripsi ? Storage::disk('local')->exists($pendaftaran->file_skripsi) : false,
+        'exists_public' => $pendaftaran->file_skripsi ? Storage::disk('public')->exists($pendaftaran->file_skripsi) : false,
+        'full_path_local' => $pendaftaran->file_skripsi ? Storage::disk('local')->path($pendaftaran->file_skripsi) : null,
+        'full_path_public' => $pendaftaran->file_skripsi ? Storage::disk('public')->path($pendaftaran->file_skripsi) : null,
+        'file_size' => $pendaftaran->file_skripsi && Storage::disk('local')->exists($pendaftaran->file_skripsi) ? Storage::disk('local')->size($pendaftaran->file_skripsi) : 0,
+    ];
+    
+    // Cek file_sk_pembimbing
+    $result['file_sk_pembimbing'] = [
+        'path' => $pendaftaran->file_sk_pembimbing,
+        'exists_local' => $pendaftaran->file_sk_pembimbing ? Storage::disk('local')->exists($pendaftaran->file_sk_pembimbing) : false,
+        'exists_public' => $pendaftaran->file_sk_pembimbing ? Storage::disk('public')->exists($pendaftaran->file_sk_pembimbing) : false,
+    ];
+    
+    // Cek file_proposal
+    $result['file_proposal'] = [
+        'path' => $pendaftaran->file_proposal,
+        'exists_local' => $pendaftaran->file_proposal ? Storage::disk('local')->exists($pendaftaran->file_proposal) : false,
+        'exists_public' => $pendaftaran->file_proposal ? Storage::disk('public')->exists($pendaftaran->file_proposal) : false,
+    ];
+    
+    // Cek konfigurasi storage
+    $result['storage_disks'] = [
+        'default' => config('filesystems.default'),
+        'disks' => [
+            'local' => config('filesystems.disks.local'),
+            'public' => config('filesystems.disks.public'),
+        ]
+    ];
+    
+    return response()->json($result);
+});
+
 Route::get('/preview-komisi-proposal-pdf', [AdminKomisiProposalController::class, 'previewPdf'])
     ->name('preview.komisi-proposal.pdf')
     ->middleware('auth');
