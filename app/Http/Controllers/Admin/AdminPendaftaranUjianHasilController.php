@@ -831,7 +831,7 @@ class AdminPendaftaranUjianHasilController extends Controller
         return $pdf->stream('preview-surat-usulan-ujian-hasil.pdf');
     }
 
-     public function syncToRepodosen(Request $request, PendaftaranUjianHasil $pendaftaranUjianHasil)
+    public function syncToRepodosen(Request $request, PendaftaranUjianHasil $pendaftaranUjianHasil)
 {
     $this->authorizeStaffOrAdmin();
  
@@ -843,7 +843,30 @@ class AdminPendaftaranUjianHasilController extends Controller
     }
  
     // Pilih mode sync: 'dosen' (default) atau 'skripsi' (lengkap dengan file)
-    $mode = $request->input('mode', 'dosen');
+    $mode = $request->input('mode', 'skripsi'); // UBAH DEFAULT JADI SKRIPSI
+ 
+    // Tambahkan validasi file untuk mode skripsi
+    if ($mode === 'skripsi') {
+        $hasAnyFile = $pendaftaranUjianHasil->file_skripsi || 
+                      $pendaftaranUjianHasil->file_sk_pembimbing || 
+                      $pendaftaranUjianHasil->file_proposal;
+        
+        if (!$hasAnyFile) {
+            Log::warning('[Sync] Tidak ada file untuk disync', [
+                'pendaftaran_id' => $pendaftaranUjianHasil->id,
+                'mode' => $mode
+            ]);
+            
+            if (!$request->input('force_sync')) {
+                return back()->with(
+                    'warning',
+                    'Tidak ada file yang tersedia untuk disync. <br> ' .
+                    'Pastikan file skripsi, SK pembimbing, atau proposal sudah diupload.<br>' .
+                    '<a href="' . route('admin.pendaftaran-ujian-hasil.edit', $pendaftaranUjianHasil) . '">Upload file disini</a>'
+                );
+            }
+        }
+    }
  
     if ($mode === 'skripsi') {
         $result = $this->repodosenSync->syncSkripsi($pendaftaranUjianHasil);
@@ -855,15 +878,28 @@ class AdminPendaftaranUjianHasilController extends Controller
  
     if ($result['success']) {
         $synced = count(array_filter($result['results'], fn($r) => $r['action'] !== 'error'));
+        
+        // Tambahkan informasi file yang disync
+        $fileInfo = '';
+        if ($mode === 'skripsi') {
+            $syncedFiles = [];
+            if ($pendaftaranUjianHasil->file_skripsi) $syncedFiles[] = 'Skripsi';
+            if ($pendaftaranUjianHasil->file_sk_pembimbing) $syncedFiles[] = 'SK Pembimbing';
+            if ($pendaftaranUjianHasil->file_proposal) $syncedFiles[] = 'Proposal';
+            if (!empty($syncedFiles)) {
+                $fileInfo = ' File yang disync: ' . implode(', ', $syncedFiles) . '.';
+            }
+        }
+        
         return back()->with(
             'success',
-            "Sync {$label} berhasil. {$synced} data telah diperbarui di Repodosen."
+            "✅ Sync {$label} berhasil! {$synced} data telah diperbarui di Repodosen.{$fileInfo}"
         );
     }
  
     return back()->with(
         'error',
-        'Sync gagal: ' . $result['message']
+        '❌ Sync gagal: ' . $result['message']
     );
 }
 

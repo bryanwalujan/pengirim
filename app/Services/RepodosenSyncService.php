@@ -74,13 +74,17 @@ class RepodosenSyncService
         ];
     }
 
+    // Cek file terlebih dahulu
     $files = $this->encodeFiles($pendaftaran);
-
-    // DEBUG: Log file sizes
-    foreach ($files as $key => $base64Content) {
-        $originalSize = strlen(base64_decode($base64Content));
-        $base64Size = strlen($base64Content);
-        Log::info("[RepodosenSync] File {$key} - Original size: {$originalSize} bytes, Base64 size: {$base64Size} bytes");
+    $hasFiles = !empty(array_filter($files));
+    
+    if (!$hasFiles) {
+        Log::warning('[RepodosenSync] Tidak ada file yang berhasil diencode', [
+            'pendaftaran_id' => $pendaftaran->id,
+            'file_skripsi_exists' => !empty($pendaftaran->file_skripsi),
+            'file_sk_pembimbing_exists' => !empty($pendaftaran->file_sk_pembimbing),
+            'file_proposal_exists' => !empty($pendaftaran->file_proposal),
+        ]);
     }
 
     $payload = [
@@ -96,11 +100,13 @@ class RepodosenSyncService
         'files'         => $files,
     ];
 
-    // Log payload size (not the full payload karena bisa besar)
+    // Log ukuran payload
     $payloadSize = strlen(json_encode($payload));
-    Log::info('[RepodosenSync] Sync skripsi lengkap - Payload size: ' . round($payloadSize / 1024, 2) . ' KB', [
+    Log::info('[RepodosenSync] Sync skripsi lengkap', [
         'pendaftaran_id' => $pendaftaran->id,
         'files_included' => array_keys(array_filter($files)),
+        'payload_size_kb' => round($payloadSize / 1024, 2),
+        'has_files' => $hasFiles,
     ]);
 
     $endpoint = $this->baseUrl . '/api/sync/skripsi';
@@ -207,22 +213,30 @@ private function encodeFiles(PendaftaranUjianHasil $pendaftaran): array
 
     foreach ($fileMap as $key => $path) {
         if (!$path) {
-            Log::info("[RepodosenSync] File {$key} - Path kosong");
+            Log::info("[RepodosenSync] File {$key} - Path kosong untuk pendaftaran_id: {$pendaftaran->id}");
             continue;
         }
 
         $content = $this->readFile($path, $key);
         if ($content !== null) {
             $originalSize = strlen($content);
-            $maxSize = 10 * 1024 * 1024; // 10MB max
+            $maxSize = 15 * 1024 * 1024; // 15MB max
             
             if ($originalSize > $maxSize) {
-                Log::warning("[RepodosenSync] File {$key} terlalu besar ({$originalSize} bytes), melebihi batas {$maxSize} bytes");
+                Log::warning("[RepodosenSync] File {$key} terlalu besar ({$originalSize} bytes / " . round($originalSize/1024/1024, 2) . "MB), melebihi batas {$maxSize} bytes");
                 continue;
             }
             
             $files[$key] = base64_encode($content);
-            Log::info("[RepodosenSync] File {$key} berhasil diencode - Size: " . round($originalSize / 1024, 2) . " KB");
+            Log::info("[RepodosenSync] File {$key} berhasil diencode", [
+                'size_kb' => round($originalSize / 1024, 2),
+                'base64_size_kb' => round(strlen($files[$key]) / 1024, 2),
+            ]);
+        } else {
+            Log::warning("[RepodosenSync] File {$key} gagal dibaca", [
+                'path' => $path,
+                'disk_checked' => 'local & public'
+            ]);
         }
     }
 
@@ -232,21 +246,38 @@ private function encodeFiles(PendaftaranUjianHasil $pendaftaran): array
     /**
      * Coba baca file dari disk 'local' dulu, fallback ke 'public'.
      */
-    private function readFile(string $path, string $label): ?string
-    {
-        foreach (['local', 'public'] as $disk) {
-            if (Storage::disk($disk)->exists($path)) {
-                try {
-                    $content = Storage::disk($disk)->get($path);
-                    Log::info("[RepodosenSync] File '{$label}' ditemukan di disk '{$disk}'");
-                    return $content;
-                } catch (\Exception $e) {
-                    Log::error("[RepodosenSync] Gagal baca file '{$label}' dari disk '{$disk}': " . $e->getMessage());
-                }
-            }
+   private function readFile(string $path, string $label): ?string
+{
+    $disks = ['local', 'public', 's3']; // tambahkan disk lain jika perlu
+    
+    foreach ($disks as $disk) {
+        if (!config("filesystems.disks.{$disk}")) {
+            continue;
         }
-
-        Log::warning("[RepodosenSync] File '{$label}' tidak ditemukan di disk manapun: {$path}");
-        return null;
+        
+        if (Storage::disk($disk)->exists($path)) {
+            try {
+                $content = Storage::disk($disk)->get($path);
+                Log::info("[RepodosenSync] File '{$label}' berhasil dibaca dari disk '{$disk}'", [
+                    'path' => $path,
+                    'size' => strlen($content)
+                ]);
+                return $content;
+            } catch (\Exception $e) {
+                Log::error("[RepodosenSync] Gagal baca file '{$label}' dari disk '{$disk}': " . $e->getMessage());
+            }
+        } else {
+            Log::debug("[RepodosenSync] File '{$label}' tidak ditemukan di disk '{$disk}'", [
+                'path' => $path
+            ]);
+        }
     }
+
+    Log::warning("[RepodosenSync] File '{$label}' tidak ditemukan di disk manapun", [
+        'path' => $path,
+        'checked_disks' => $disks
+    ]);
+    
+    return null;
+}
 }

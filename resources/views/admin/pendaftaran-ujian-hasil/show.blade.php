@@ -264,19 +264,36 @@
                         @endif
                          {{-- Sync ke Repodosen --}}
     @if ($pendaftaranUjianHasil->isSelesai())
-        <hr class="my-2">
-        <form action="{{ route('admin.pendaftaran-ujian-hasil.sync-repodosen', $pendaftaranUjianHasil) }}"
-              method="POST"
-              id="form-sync-repodosen">
-            @csrf
-            <button type="button"
-                    class="btn btn-primary w-100 mb-2"
-                    onclick="confirmSync()">
-                <i class="bx bx-cloud-upload me-1"></i>
-                Sync Dosen ke Repodosen
-            </button>
-        </form>
-    @endif
+    <hr class="my-2">
+    
+    {{-- Sync dengan file skripsi (recommended) --}}
+    <form action="{{ route('admin.pendaftaran-ujian-hasil.sync-repodosen', $pendaftaranUjianHasil) }}"
+          method="POST"
+          id="form-sync-skripsi">
+        @csrf
+        <input type="hidden" name="mode" value="skripsi">
+        <button type="button"
+                class="btn btn-success w-100 mb-2"
+                onclick="confirmSyncSkripsi()">
+            <i class="bx bx-cloud-upload me-1"></i>
+            Sync Lengkap (Dosen + File Skripsi)
+        </button>
+    </form>
+    
+    {{-- Sync dosen saja (tanpa file) --}}
+    <form action="{{ route('admin.pendaftaran-ujian-hasil.sync-repodosen', $pendaftaranUjianHasil) }}"
+          method="POST"
+          id="form-sync-dosen">
+        @csrf
+        <input type="hidden" name="mode" value="dosen">
+        <button type="button"
+                class="btn btn-outline-primary w-100 mb-2"
+                onclick="confirmSyncDosen()">
+            <i class="bx bx-cloud-upload me-1"></i>
+            Sync Dosen Saja (Tanpa File)
+        </button>
+    </form>
+@endif
 
                         {{-- Download Surat --}}
                         @if ($pendaftaranUjianHasil->suratUsulanSkripsi && $pendaftaranUjianHasil->suratUsulanSkripsi->isFullySigned())
@@ -1284,19 +1301,66 @@
             }
         });
 
-        function confirmSync() {
+       function confirmSyncSkripsi() {
     const ps1 = @json($pendaftaranUjianHasil->dosenPembimbing1?->name ?? '-');
     const ps2 = @json($pendaftaranUjianHasil->dosenPembimbing2?->name ?? '-');
- 
+    
+    // Cek ketersediaan file
+    const hasSkripsi = @json($pendaftaranUjianHasil->file_skripsi ? true : false);
+    const hasSkPembimbing = @json($pendaftaranUjianHasil->file_sk_pembimbing ? true : false);
+    const hasProposal = @json($pendaftaranUjianHasil->file_proposal ? true : false);
+    
+    let fileStatus = '';
+    if (!hasSkripsi && !hasSkPembimbing && !hasProposal) {
+        fileStatus = '\n⚠️ PERINGATAN: Tidak ada file yang tersedia untuk disync!\n';
+    } else {
+        fileStatus = '\n📁 File yang akan disync:\n';
+        if (hasSkripsi) fileStatus += '   - File Skripsi\n';
+        if (hasSkPembimbing) fileStatus += '   - SK Pembimbing\n';
+        if (hasProposal) fileStatus += '   - Proposal\n';
+    }
+    
     const confirmed = confirm(
-        `Sync dosen pembimbing ke Repodosen?\n\n` +
-        `PS1: ${ps1}\n` +
-        `PS2: ${ps2}\n\n` +
-        `Data akan di-update jika sudah ada di Repodosen.`
+        `🚀 SYNC LENGKAP ke Repodosen\n\n` +
+        `Mahasiswa: ${@json($pendaftaranUjianHasil->user->name)}\n` +
+        `NIM: ${@json($pendaftaranUjianHasil->user->nim)}\n\n` +
+        `Dosen Pembimbing:\n` +
+        `   PS1: ${ps1}\n` +
+        `   PS2: ${ps2}\n` +
+        `${fileStatus}\n` +
+        `Data akan disimpan/update di Repodosen.\n` +
+        `Proses ini mungkin memakan waktu beberapa saat...`
     );
- 
+    
     if (confirmed) {
-        document.getElementById('form-sync-repodosen').submit();
+        // Disable button to prevent double submission
+        const btn = event.target;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bx bx-loader bx-spin me-1"></i> Mengirim data...';
+        document.getElementById('form-sync-skripsi').submit();
+    }
+}
+
+function confirmSyncDosen() {
+    const ps1 = @json($pendaftaranUjianHasil->dosenPembimbing1?->name ?? '-');
+    const ps2 = @json($pendaftaranUjianHasil->dosenPembimbing2?->name ?? '-');
+    
+    const confirmed = confirm(
+        `⚠️ SYNC DOSEN SAJA ke Repodosen\n\n` +
+        `Mahasiswa: ${@json($pendaftaranUjianHasil->user->name)}\n` +
+        `NIM: ${@json($pendaftaranUjianHasil->user->nim)}\n\n` +
+        `Dosen Pembimbing:\n` +
+        `   PS1: ${ps1}\n` +
+        `   PS2: ${ps2}\n\n` +
+        `CATATAN: File skripsi TIDAK akan dikirim!\n\n` +
+        `Lanjutkan?`
+    );
+    
+    if (confirmed) {
+        const btn = event.target;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bx bx-loader bx-spin me-1"></i> Mengirim data...';
+        document.getElementById('form-sync-dosen').submit();
     }
 }
     </script>

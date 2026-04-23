@@ -525,4 +525,6 @@ class PendaftaranUjianHasil extends Model
             && $this->isSuratFullySigned()
             && !$this->hasJadwal();
     }
+
+    
 }
