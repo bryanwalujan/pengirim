@@ -232,35 +232,36 @@
                             @endif
 
                             {{-- STAFF ONLY ACTIONS --}}
-                            @if (auth()->user()->hasRole('staff'))
-                                @if ($pendaftaran->status === 'pending')
-                                    <a href="{{ route('admin.pendaftaran-seminar-proposal.assign-pembahas', $pendaftaran) }}"
-                                        class="btn btn-primary w-100 mb-2">
-                                        <i class="bx bx-user-check me-1"></i> Tentukan Pembahas
-                                    </a>
-                                @elseif ($pendaftaran->status === 'pembahas_ditentukan' && !$pendaftaran->suratUsulan)
-                                    <button type="button" class="btn btn-success w-100 mb-2" data-bs-toggle="modal"
-                                        data-bs-target="#generateSuratModal">
-                                        <i class="bx bx-file me-1"></i> Generate Surat
-                                    </button>
-                                @endif
+@if (auth()->user()->hasRole('staff'))
+    @if ($pendaftaran->status === 'pending')
+        <a href="{{ route('admin.pendaftaran-seminar-proposal.assign-pembahas', $pendaftaran) }}"
+            class="btn btn-primary w-100 mb-2">
+            <i class="bx bx-user-check me-1"></i> Tentukan Pembahas
+        </a>
+    @elseif ($pendaftaran->status === 'pembahas_ditentukan' && !$pendaftaran->suratUsulan)
+        <button type="button" class="btn btn-success w-100 mb-2" data-bs-toggle="modal"
+            data-bs-target="#generateSuratModal">
+            <i class="bx bx-file me-1"></i> Generate Surat
+        </button>
+    @endif
 
-                                @if ($pendaftaran->isPembahasDitentukan() && !$pendaftaran->suratUsulan)
-                                    <button type="button" class="btn btn-warning w-100 mb-2" data-bs-toggle="modal"
-                                        data-bs-target="#resetPembahasModal">
-                                        <i class="bx bx-reset me-1"></i> Reset Pembahas
-                                    </button>
-                                @endif
+    @if ($pendaftaran->isPembahasDitentukan() && !$pendaftaran->suratUsulan)
+        <button type="button" class="btn btn-warning w-100 mb-2" data-bs-toggle="modal"
+            data-bs-target="#resetPembahasModal">
+            <i class="bx bx-reset me-1"></i> Reset Pembahas
+        </button>
+    @endif
 
-                                {{-- Tombol Reject - Hanya staff, status pending/pembahas_ditentukan --}}
-                                @if (in_array($pendaftaran->status, ['pending', 'pembahas_ditentukan']))
-                                    <button type="button" class="btn btn-danger w-100 mb-2" data-bs-toggle="modal"
-                                        data-bs-target="#rejectModal">
-                                        <i class="bx bx-x-circle me-1"></i> Tolak Pendaftaran
-                                    </button>
-                                @endif
+    {{-- Tombol Reject - Hanya staff, status pending/pembahas_ditentukan --}}
+    @if (in_array($pendaftaran->status, ['pending', 'pembahas_ditentukan']))
+        <button type="button" class="btn btn-danger w-100 mb-2" data-bs-toggle="modal"
+            data-bs-target="#rejectModal">
+            <i class="bx bx-x-circle me-1"></i> Tolak Pendaftaran
+        </button>
+    @endif
 
-                                @if ($pendaftaran->status === 'selesai')
+    {{-- ========== SYNC KE REPODOSEN - HANYA UNTUK STATUS SELESAI ========== --}}
+    @if ($pendaftaran->status === 'selesai')
         <hr class="my-2">
         
         {{-- Sync dengan file proposal --}}
@@ -292,41 +293,41 @@
         </form>
     @endif
 
-                                {{-- ✅ TOMBOL HAPUS - SELALU MUNCUL UNTUK STAFF --}}
-                                <hr class="my-4">
-                                <div class="d-grid">
-                                    <button type="button"
-                                        class="btn {{ $pendaftaran->status === 'selesai' ? 'btn-danger' : 'btn-outline-danger' }}"
-                                        data-bs-toggle="modal" data-bs-target="#deleteModal">
-                                        <i class="bx bx-trash me-1"></i>
-                                        Hapus Pendaftaran
-                                        @if ($pendaftaran->status === 'selesai')
-                                            <span class="badge bg-white text-danger ms-1">!</span>
-                                        @endif
-                                    </button>
-                                    @if ($pendaftaran->status === 'selesai')
-                                        <small class="text-danger text-center mt-1">
-                                            <i class="bx bx-error-circle"></i> Data sudah selesai diproses
-                                        </small>
-                                    @endif
-                                </div>
-                            @endif
+    {{-- ✅ TOMBOL HAPUS - SELALU MUNCUL UNTUK STAFF --}}
+    <hr class="my-4">
+    <div class="d-grid">
+        <button type="button"
+            class="btn {{ $pendaftaran->status === 'selesai' ? 'btn-danger' : 'btn-outline-danger' }}"
+            data-bs-toggle="modal" data-bs-target="#deleteModal">
+            <i class="bx bx-trash me-1"></i>
+            Hapus Pendaftaran
+            @if ($pendaftaran->status === 'selesai')
+                <span class="badge bg-white text-danger ms-1">!</span>
+            @endif
+        </button>
+        @if ($pendaftaran->status === 'selesai')
+            <small class="text-danger text-center mt-1">
+                <i class="bx bx-error-circle"></i> Data sudah selesai diproses
+            </small>
+        @endif
+    </div>
+@endif {{-- AKHIR DARI STAFF ONLY ACTIONS --}}
 
-                            {{-- Download Surat - Untuk semua yang punya akses --}}
-                            @if ($pendaftaran->suratUsulan)
-                                <a href="{{ route('admin.pendaftaran-seminar-proposal.download-surat', $pendaftaran) }}"
-                                    target="_blank" class="btn btn-outline-primary w-100 my-2">
-                                    <i class="bx bx-download me-1"></i> Download Surat
-                                </a>
-                            @endif
+{{-- Download Surat - Untuk semua yang punya akses --}}
+@if ($pendaftaran->suratUsulan)
+    <a href="{{ route('admin.pendaftaran-seminar-proposal.download-surat', $pendaftaran) }}"
+        target="_blank" class="btn btn-outline-primary w-100 my-2">
+        <i class="bx bx-download me-1"></i> Download Surat
+    </a>
+@endif
 
-                            {{-- Status Dosen Button (hanya untuk staff) --}}
-                            @if (auth()->user()->hasRole('staff'))
-                                <button type="button" class="btn btn-info w-100 mb-2" data-bs-toggle="modal"
-                                    data-bs-target="#modalDosenStatus">
-                                    <i class="bx bx-list-ul me-1"></i> Status Beban Dosen
-                                </button>
-                            @endif
+{{-- Status Dosen Button (hanya untuk staff) --}}
+@if (auth()->user()->hasRole('staff'))
+    <button type="button" class="btn btn-info w-100 mb-2" data-bs-toggle="modal"
+        data-bs-target="#modalDosenStatus">
+        <i class="bx bx-list-ul me-1"></i> Status Beban Dosen
+    </button>
+@endif
                         </div>
                     </div>
                 @endcan
