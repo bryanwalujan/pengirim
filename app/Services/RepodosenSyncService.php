@@ -92,7 +92,7 @@ class RepodosenSyncService
         $payload = [
             'source'         => 'presma',
             'pendaftaran_id' => (string) $pendaftaran->id,
-            'folder_name'    => $folderName, // Kirim folder name ke repodosen
+            'folder_name'    => $folderName,
             'mahasiswa'      => [
                 'nama'     => $pendaftaran->user->name    ?? 'Unknown',
                 'nim'      => $pendaftaran->user->nim     ?? null,
@@ -100,7 +100,7 @@ class RepodosenSyncService
             ],
             'judul_skripsi' => $pendaftaran->judul_skripsi ?? '',
             'dosen_list'    => $dosenList,
-            'files'         => $files, // Kirim dengan metadata
+            'files'         => $files,
         ];
 
         $payloadSize = strlen(json_encode($payload));
@@ -118,7 +118,109 @@ class RepodosenSyncService
     }
 
     /**
-     * Generate folder name dari nama mahasiswa dan judul skripsi
+     * Sync seminar proposal ke repodosen
+     */
+    public function syncSeminarProposal(PendaftaranSeminarProposal $pendaftaran): array
+    {
+        $pendaftaran->loadMissing(['dosenPembimbing', 'user']);
+
+        // Build dosen list untuk seminar proposal
+        $dosenList = [];
+        if ($pendaftaran->dosenPembimbing) {
+            $dosenList[] = [
+                'nama' => $pendaftaran->dosenPembimbing->name,
+                'nip'  => $pendaftaran->dosenPembimbing->nip ?? null,
+                'nidn' => $pendaftaran->dosenPembimbing->nidn ?? null,
+                'role' => 'pembimbing',
+            ];
+        }
+
+        if (empty($dosenList)) {
+            return [
+                'success' => false,
+                'message' => 'Tidak ada data dosen pembimbing untuk disync.',
+                'results' => [],
+            ];
+        }
+
+        // Encode files
+        $files = $this->encodeFilesSempro($pendaftaran);
+        $hasFiles = !empty(array_filter($files));
+
+        // Generate folder name
+        $folderName = $this->generateFolderNameSempro($pendaftaran);
+
+        $payload = [
+            'source'         => 'presma',
+            'pendaftaran_id' => (string) $pendaftaran->id,
+            'type'           => 'seminar_proposal',
+            'folder_name'    => $folderName,
+            'mahasiswa'      => [
+                'nama'     => $pendaftaran->user->name    ?? 'Unknown',
+                'nim'      => $pendaftaran->user->nim     ?? null,
+                'angkatan' => $pendaftaran->angkatan      ?? null,
+            ],
+            'judul_skripsi' => $pendaftaran->judul_skripsi ?? '',
+            'dosen_list'    => $dosenList,
+            'files'         => $files,
+        ];
+
+        $payloadSize = strlen(json_encode($payload));
+        Log::info('[RepodosenSync] Sync seminar proposal', [
+            'pendaftaran_id' => $pendaftaran->id,
+            'folder_name' => $folderName,
+            'files_included' => array_keys(array_filter($files)),
+            'payload_size_kb' => round($payloadSize / 1024, 2),
+        ]);
+
+        $endpoint = $this->baseUrl . '/api/sync/skripsi';
+
+        return $this->post($endpoint, $payload, $pendaftaran->id);
+    }
+
+    /**
+     * Sync dosen pembimbing seminar proposal
+     */
+    public function syncDosenPembimbingSempro(PendaftaranSeminarProposal $pendaftaran): array
+    {
+        $pendaftaran->loadMissing(['dosenPembimbing', 'user']);
+
+        $dosenList = [];
+        if ($pendaftaran->dosenPembimbing) {
+            $dosenList[] = [
+                'nama' => $pendaftaran->dosenPembimbing->name,
+                'nip'  => $pendaftaran->dosenPembimbing->nip ?? null,
+                'nidn' => $pendaftaran->dosenPembimbing->nidn ?? null,
+                'role' => 'pembimbing',
+            ];
+        }
+
+        if (empty($dosenList)) {
+            return [
+                'success' => false,
+                'message' => 'Tidak ada data dosen pembimbing untuk disync.',
+                'results' => [],
+            ];
+        }
+
+        $payload = [
+            'source'     => 'presma',
+            'type'       => 'seminar_proposal',
+            'dosen_list' => $dosenList,
+        ];
+
+        $endpoint = $this->baseUrl . '/api/sync/dosen-pembimbing';
+
+        Log::info('[RepodosenSync] Sync dosen pembimbing seminar proposal', [
+            'pendaftaran_id' => $pendaftaran->id,
+            'dosen_count'    => count($dosenList),
+        ]);
+
+        return $this->post($endpoint, $payload, $pendaftaran->id);
+    }
+
+    /**
+     * Generate folder name dari nama mahasiswa dan judul skripsi untuk ujian hasil
      */
     private function generateFolderName(PendaftaranUjianHasil $pendaftaran): string
     {
@@ -132,7 +234,21 @@ class RepodosenSyncService
     }
 
     /**
-     * Encode file-file ke base64 dengan metadata folder
+     * Generate folder name untuk seminar proposal
+     */
+    private function generateFolderNameSempro(PendaftaranSeminarProposal $pendaftaran): string
+    {
+        $nama = preg_replace('/[^a-zA-Z0-9\s]/', '', $pendaftaran->user->name ?? 'Unknown');
+        $judul = preg_replace('/[^a-zA-Z0-9\s]/', '', $pendaftaran->judul_skripsi ?? 'Proposal');
+
+        $nama = str_replace(' ', '_', trim($nama));
+        $judul = implode('_', array_slice(explode(' ', trim($judul)), 0, 5));
+
+        return "sempro_{$nama}_{$judul}";
+    }
+
+    /**
+     * Encode file-file ke base64 dengan metadata folder untuk ujian hasil
      */
     private function encodeFilesWithMetadata(PendaftaranUjianHasil $pendaftaran): array
     {
@@ -162,17 +278,16 @@ class RepodosenSyncService
             $path = $pendaftaran->{$config['field']} ?? null;
             
             if (!$path) {
-                Log::info("[RepodosenSync] File {$key} - Path kosong untuk pendaftaran_id: {$pendaftaran->id}");
                 continue;
             }
 
             $content = $this->readFile($path, $config['label']);
             if ($content !== null) {
                 $originalSize = strlen($content);
-                $maxSize = 15 * 1024 * 1024; // 15MB max
+                $maxSize = 15 * 1024 * 1024;
 
                 if ($originalSize > $maxSize) {
-                    Log::warning("[RepodosenSync] File {$key} terlalu besar ({$originalSize} bytes / " . round($originalSize/1024/1024, 2) . "MB), melebihi batas {$maxSize} bytes");
+                    Log::warning("[RepodosenSync] File {$key} terlalu besar");
                     continue;
                 }
 
@@ -186,12 +301,6 @@ class RepodosenSyncService
                 Log::info("[RepodosenSync] File {$key} berhasil diencode", [
                     'folder' => $config['folder'],
                     'size_kb' => round($originalSize / 1024, 2),
-                    'base64_size_kb' => round(strlen($files[$key]['content']) / 1024, 2),
-                ]);
-            } else {
-                Log::warning("[RepodosenSync] File {$key} gagal dibaca", [
-                    'path' => $path,
-                    'disk_checked' => ['local', 'public']
                 ]);
             }
         }
@@ -199,6 +308,65 @@ class RepodosenSyncService
         return $files;
     }
 
+    /**
+     * Encode files untuk seminar proposal
+     */
+    private function encodeFilesSempro(PendaftaranSeminarProposal $pendaftaran): array
+    {
+        $files = [];
+        
+        // File Proposal
+        if ($pendaftaran->file_proposal_penelitian) {
+            $content = $this->readFile($pendaftaran->file_proposal_penelitian, 'Proposal');
+            if ($content !== null) {
+                $files['proposal'] = base64_encode($content);
+                Log::info('[RepodosenSync] File proposal sempro berhasil diencode', [
+                    'size_kb' => round(strlen($content) / 1024, 2),
+                ]);
+            }
+        }
+        
+        // File Surat Permohonan
+        if ($pendaftaran->file_surat_permohonan) {
+            $content = $this->readFile($pendaftaran->file_surat_permohonan, 'Surat_Permohonan');
+            if ($content !== null) {
+                $files['surat_permohonan'] = base64_encode($content);
+                Log::info('[RepodosenSync] File surat permohonan sempro berhasil diencode', [
+                    'size_kb' => round(strlen($content) / 1024, 2),
+                ]);
+            }
+        }
+
+        return $files;
+    }
+
+    /**
+     * Build dosen list untuk ujian hasil
+     */
+    private function buildDosenList(PendaftaranUjianHasil $pendaftaran): array
+    {
+        $list = [];
+        $map = [
+            'pembimbing_1' => $pendaftaran->dosenPembimbing1,
+            'pembimbing_2' => $pendaftaran->dosenPembimbing2,
+        ];
+
+        foreach ($map as $role => $dosen) {
+            if (!$dosen) continue;
+            $list[] = [
+                'nama' => $dosen->name,
+                'nip'  => $dosen->nip  ?? null,
+                'nidn' => $dosen->nidn ?? null,
+                'role' => $role,
+            ];
+        }
+
+        return $list;
+    }
+
+    /**
+     * HTTP POST request ke repodosen
+     */
     private function post(string $endpoint, array $payload, $pendaftaranId): array
     {
         if (empty($this->token)) {
@@ -220,7 +388,6 @@ class RepodosenSyncService
                 'pendaftaran_id' => $pendaftaranId,
                 'endpoint' => $endpoint,
                 'http_status' => $response->status(),
-                'response_keys' => array_keys($body),
             ]);
 
             if ($response->successful()) {
@@ -273,27 +440,9 @@ class RepodosenSyncService
         }
     }
 
-    private function buildDosenList(PendaftaranUjianHasil $pendaftaran): array
-    {
-        $list = [];
-        $map = [
-            'pembimbing_1' => $pendaftaran->dosenPembimbing1,
-            'pembimbing_2' => $pendaftaran->dosenPembimbing2,
-        ];
-
-        foreach ($map as $role => $dosen) {
-            if (!$dosen) continue;
-            $list[] = [
-                'nama' => $dosen->name,
-                'nip'  => $dosen->nip  ?? null,
-                'nidn' => $dosen->nidn ?? null,
-                'role' => $role,
-            ];
-        }
-
-        return $list;
-    }
-
+    /**
+     * Baca file dari disk
+     */
     private function readFile(string $path, string $label): ?string
     {
         $disks = ['local', 'public'];
@@ -324,77 +473,4 @@ class RepodosenSyncService
 
         return null;
     }
-
-    public function syncSeminarProposal(PendaftaranSeminarProposal $pendaftaran): array
-{
-    $pendaftaran->loadMissing(['dosenPembimbing', 'user']);
-
-    $dosenList = [
-        [
-            'nama' => $pendaftaran->dosenPembimbing->name ?? '',
-            'nip'  => $pendaftaran->dosenPembimbing->nip ?? null,
-            'nidn' => $pendaftaran->dosenPembimbing->nidn ?? null,
-            'role' => 'pembimbing',
-        ]
-    ];
-
-    // Encode files ke base64
-    $files = [];
-    
-    // File Proposal
-    if ($pendaftaran->file_proposal_penelitian) {
-        $proposalContent = $this->readFile($pendaftaran->file_proposal_penelitian, 'Proposal');
-        if ($proposalContent) {
-            $files['proposal'] = base64_encode($proposalContent);
-        }
-    }
-    
-    // File SK Pembimbing (jika ada)
-    if ($pendaftaran->file_sk_pembimbing ?? false) {
-        $skContent = $this->readFile($pendaftaran->file_sk_pembimbing, 'SK_Pembimbing');
-        if ($skContent) {
-            $files['sk_pembimbing'] = base64_encode($skContent);
-        }
-    }
-
-    $payload = [
-        'source'         => 'presma',
-        'pendaftaran_id' => (string) $pendaftaran->id,
-        'mahasiswa'      => [
-            'nama'     => $pendaftaran->user->name    ?? 'Unknown',
-            'nim'      => $pendaftaran->user->nim     ?? null,
-            'angkatan' => $pendaftaran->angkatan      ?? null,
-        ],
-        'judul_skripsi' => $pendaftaran->judul_skripsi ?? '',
-        'dosen_list'    => $dosenList,
-        'files'         => $files,
-    ];
-
-    $endpoint = $this->baseUrl . '/api/sync/skripsi';
-
-    return $this->post($endpoint, $payload, $pendaftaran->id);
-}
-
-public function syncDosenPembimbingSempro(PendaftaranSeminarProposal $pendaftaran): array
-{
-    $pendaftaran->loadMissing(['dosenPembimbing', 'user']);
-
-    $dosenList = [
-        [
-            'nama' => $pendaftaran->dosenPembimbing->name ?? '',
-            'nip'  => $pendaftaran->dosenPembimbing->nip ?? null,
-            'nidn' => $pendaftaran->dosenPembimbing->nidn ?? null,
-            'role' => 'pembimbing',
-        ]
-    ];
-
-    $payload = [
-        'source'     => 'presma',
-        'dosen_list' => $dosenList,
-    ];
-
-    $endpoint = $this->baseUrl . '/api/sync/dosen-pembimbing';
-
-    return $this->post($endpoint, $payload, $pendaftaran->id);
-}
 }
