@@ -941,7 +941,7 @@ public function syncToRepodosen(Request $request, PendaftaranSeminarProposal $pe
 {
     $this->authorizeStaffOrAdmin();
  
-    if (!$pendaftaranSeminarProposal->isSelesai()) {
+    if (!$pendaftaranSeminarProposal->isCompleted()) {
         return back()->with(
             'error',
             'Sync hanya dapat dilakukan untuk pendaftaran dengan status Selesai.'
