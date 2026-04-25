@@ -4,6 +4,7 @@
 namespace App\Services;
 
 use App\Models\PendaftaranUjianHasil;
+use App\Models\PendaftaranSeminarProposal;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -323,4 +324,77 @@ class RepodosenSyncService
 
         return null;
     }
+
+    public function syncSeminarProposal(PendaftaranSeminarProposal $pendaftaran): array
+{
+    $pendaftaran->loadMissing(['dosenPembimbing', 'user']);
+
+    $dosenList = [
+        [
+            'nama' => $pendaftaran->dosenPembimbing->name ?? '',
+            'nip'  => $pendaftaran->dosenPembimbing->nip ?? null,
+            'nidn' => $pendaftaran->dosenPembimbing->nidn ?? null,
+            'role' => 'pembimbing',
+        ]
+    ];
+
+    // Encode files ke base64
+    $files = [];
+    
+    // File Proposal
+    if ($pendaftaran->file_proposal_penelitian) {
+        $proposalContent = $this->readFile($pendaftaran->file_proposal_penelitian, 'Proposal');
+        if ($proposalContent) {
+            $files['proposal'] = base64_encode($proposalContent);
+        }
+    }
+    
+    // File SK Pembimbing (jika ada)
+    if ($pendaftaran->file_sk_pembimbing ?? false) {
+        $skContent = $this->readFile($pendaftaran->file_sk_pembimbing, 'SK_Pembimbing');
+        if ($skContent) {
+            $files['sk_pembimbing'] = base64_encode($skContent);
+        }
+    }
+
+    $payload = [
+        'source'         => 'presma',
+        'pendaftaran_id' => (string) $pendaftaran->id,
+        'mahasiswa'      => [
+            'nama'     => $pendaftaran->user->name    ?? 'Unknown',
+            'nim'      => $pendaftaran->user->nim     ?? null,
+            'angkatan' => $pendaftaran->angkatan      ?? null,
+        ],
+        'judul_skripsi' => $pendaftaran->judul_skripsi ?? '',
+        'dosen_list'    => $dosenList,
+        'files'         => $files,
+    ];
+
+    $endpoint = $this->baseUrl . '/api/sync/skripsi';
+
+    return $this->post($endpoint, $payload, $pendaftaran->id);
+}
+
+public function syncDosenPembimbingSempro(PendaftaranSeminarProposal $pendaftaran): array
+{
+    $pendaftaran->loadMissing(['dosenPembimbing', 'user']);
+
+    $dosenList = [
+        [
+            'nama' => $pendaftaran->dosenPembimbing->name ?? '',
+            'nip'  => $pendaftaran->dosenPembimbing->nip ?? null,
+            'nidn' => $pendaftaran->dosenPembimbing->nidn ?? null,
+            'role' => 'pembimbing',
+        ]
+    ];
+
+    $payload = [
+        'source'     => 'presma',
+        'dosen_list' => $dosenList,
+    ];
+
+    $endpoint = $this->baseUrl . '/api/sync/dosen-pembimbing';
+
+    return $this->post($endpoint, $payload, $pendaftaran->id);
+}
 }

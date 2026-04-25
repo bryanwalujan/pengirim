@@ -764,6 +764,9 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             // Download Surat Usulan
             Route::get('/{pendaftaranSeminarProposal}/download-surat', [AdminPendaftaranSeminarProposalController::class, 'downloadSuratUsulan'])
                 ->name('download-surat');
+
+            Route::post('/{pendaftaranSeminarProposal}/sync-repodosen', [AdminPendaftaranSeminarProposalController::class, 'syncToRepodosen'])
+                ->name('sync-repodosen');
         });
 
         // ========== STAFF ONLY ROUTES ==========

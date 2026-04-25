@@ -934,6 +934,79 @@ class AdminPendaftaranSeminarProposalController extends Controller
         }
     }
 
+    /**
+ * Sync ke Repodosen
+ */
+public function syncToRepodosen(Request $request, PendaftaranSeminarProposal $pendaftaranSeminarProposal)
+{
+    $this->authorizeStaffOrAdmin();
+ 
+    if (!$pendaftaranSeminarProposal->isSelesai()) {
+        return back()->with(
+            'error',
+            'Sync hanya dapat dilakukan untuk pendaftaran dengan status Selesai.'
+        );
+    }
+ 
+    // Pilih mode sync: 'dosen' atau 'skripsi'
+    $mode = $request->input('mode', 'skripsi');
+ 
+    // Tambahkan validasi file untuk mode skripsi
+    if ($mode === 'skripsi') {
+        // Untuk seminar proposal, file yang relevan adalah file_proposal_penelitian
+        $hasAnyFile = $pendaftaranSeminarProposal->file_proposal_penelitian || 
+                      $pendaftaranSeminarProposal->file_surat_permohonan;
+        
+        if (!$hasAnyFile) {
+            Log::warning('[Sync] Tidak ada file untuk disync', [
+                'pendaftaran_id' => $pendaftaranSeminarProposal->id,
+                'mode' => $mode
+            ]);
+            
+            return back()->with(
+                'warning',
+                '⚠️ Tidak ada file yang tersedia untuk disync. ' .
+                'Pastikan file proposal sudah diupload.'
+            );
+        }
+    }
+ 
+    // Panggil service sync (Anda perlu membuat service ini atau gunakan yang sudah ada)
+    if ($mode === 'skripsi') {
+        $result = $this->repodosenSync->syncSeminarProposal($pendaftaranSeminarProposal);
+        $label = 'proposal seminar';
+    } else {
+        $result = $this->repodosenSync->syncDosenPembimbingSempro($pendaftaranSeminarProposal);
+        $label = 'dosen pembimbing';
+    }
+ 
+    if ($result['success']) {
+        $synced = $result['synced'] ?? 0;
+        
+        $fileInfo = '';
+        if ($mode === 'skripsi') {
+            $syncedFiles = [];
+            if ($pendaftaranSeminarProposal->file_proposal_penelitian) $syncedFiles[] = 'Proposal';
+            if ($pendaftaranSeminarProposal->file_surat_permohonan) $syncedFiles[] = 'Surat Permohonan';
+            if (!empty($syncedFiles)) {
+                $fileInfo = ' File yang disync: ' . implode(', ', $syncedFiles) . '.';
+            }
+        }
+        
+        $message = $result['message'] ?? "Sync {$label} berhasil!";
+        
+        return back()->with(
+            'success',
+            "✅ {$message} ({$synced} data diperbarui di Repodosen){$fileInfo}"
+        );
+    }
+ 
+    return back()->with(
+        'error',
+        '❌ Sync gagal: ' . ($result['message'] ?? 'Unknown error')
+    );
+}
+
 
     /**
      * Helper to authorize staff or admin access.

@@ -260,6 +260,38 @@
                                     </button>
                                 @endif
 
+                                @if ($pendaftaran->status === 'selesai')
+        <hr class="my-2">
+        
+        {{-- Sync dengan file proposal --}}
+        <form action="{{ route('admin.pendaftaran-seminar-proposal.sync-repodosen', $pendaftaran) }}"
+              method="POST"
+              id="form-sync-proposal">
+            @csrf
+            <input type="hidden" name="mode" value="skripsi">
+            <button type="button"
+                    class="btn btn-success w-100 mb-2"
+                    onclick="confirmSyncProposal()">
+                <i class="bx bx-cloud-upload me-1"></i>
+                Sync Lengkap (Dosen + File Proposal)
+            </button>
+        </form>
+        
+        {{-- Sync dosen saja (tanpa file) --}}
+        <form action="{{ route('admin.pendaftaran-seminar-proposal.sync-repodosen', $pendaftaran) }}"
+              method="POST"
+              id="form-sync-dosen-sempro">
+            @csrf
+            <input type="hidden" name="mode" value="dosen">
+            <button type="button"
+                    class="btn btn-outline-primary w-100 mb-2"
+                    onclick="confirmSyncDosenSempro()">
+                <i class="bx bx-cloud-upload me-1"></i>
+                Sync Dosen Saja (Tanpa File)
+            </button>
+        </form>
+    @endif
+
                                 {{-- ✅ TOMBOL HAPUS - SELALU MUNCUL UNTUK STAFF --}}
                                 <hr class="my-4">
                                 <div class="d-grid">
@@ -995,6 +1027,62 @@
                 });
             }, 5000);
         });
+
+        // Tambahkan di dalam tag script, setelah fungsi-fungsi yang sudah ada
+
+function confirmSyncProposal() {
+    const dosenPembimbing = @json($pendaftaran->dosenPembimbing->name ?? '-');
+    const hasProposal = @json($pendaftaran->file_proposal_penelitian ? true : false);
+    const hasPermohonan = @json($pendaftaran->file_surat_permohonan ? true : false);
+    
+    let fileStatus = '';
+    if (!hasProposal && !hasPermohonan) {
+        fileStatus = '\n⚠️ PERINGATAN: Tidak ada file yang tersedia untuk disync!\n';
+    } else {
+        fileStatus = '\n📁 File yang akan disync:\n';
+        if (hasProposal) fileStatus += '   - File Proposal\n';
+        if (hasPermohonan) fileStatus += '   - Surat Permohonan\n';
+    }
+    
+    const confirmed = confirm(
+        `🚀 SYNC LENGKAP ke Repodosen\n\n` +
+        `Mahasiswa: ${@json($pendaftaran->user->name)}\n` +
+        `NIM: ${@json($pendaftaran->user->nim)}\n\n` +
+        `Dosen Pembimbing:\n` +
+        `   ${dosenPembimbing}\n` +
+        `${fileStatus}\n` +
+        `Data akan disimpan/update di Repodosen.\n` +
+        `Proses ini mungkin memakan waktu beberapa saat...`
+    );
+    
+    if (confirmed) {
+        const btn = event.target;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bx bx-loader bx-spin me-1"></i> Mengirim data...';
+        document.getElementById('form-sync-proposal').submit();
+    }
+}
+
+function confirmSyncDosenSempro() {
+    const dosenPembimbing = @json($pendaftaran->dosenPembimbing->name ?? '-');
+    
+    const confirmed = confirm(
+        `⚠️ SYNC DOSEN SAJA ke Repodosen\n\n` +
+        `Mahasiswa: ${@json($pendaftaran->user->name)}\n` +
+        `NIM: ${@json($pendaftaran->user->nim)}\n\n` +
+        `Dosen Pembimbing:\n` +
+        `   ${dosenPembimbing}\n\n` +
+        `CATATAN: File proposal TIDAK akan dikirim!\n\n` +
+        `Lanjutkan?`
+    );
+    
+    if (confirmed) {
+        const btn = event.target;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bx bx-loader bx-spin me-1"></i> Mengirim data...';
+        document.getElementById('form-sync-dosen-sempro').submit();
+    }
+}
     </script>
 @endpush
 
