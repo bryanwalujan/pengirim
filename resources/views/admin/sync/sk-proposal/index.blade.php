@@ -15,7 +15,7 @@
             <p class="text-muted mb-0">Sinkronisasi SK Proposal mahasiswa ke aplikasi Repodosen</p>
         </div>
         <div>
-            <form action="{{ route('sync.sk-proposal.sync-all') }}" method="POST" class="d-inline" onsubmit="return confirmSyncAll()">
+            <form action="{{ route('admin.sync.sk-proposal.sync-all') }}" method="POST" class="d-inline" onsubmit="return confirmSyncAll()">
                 @csrf
                 <button type="submit" class="btn btn-primary">
                     <i class="bx bx-cloud-upload me-1"></i> Sync Semua
@@ -61,7 +61,7 @@
     {{-- Search --}}
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-body">
-            <form method="GET" action="{{ route('sync.sk-proposal.index') }}" class="row g-3">
+            <form method="GET" action="{{ route('admin.sync.sk-proposal.index') }}" class="row g-3">
                 <div class="col-md-10">
                     <div class="input-group">
                         <span class="input-group-text bg-white border-end-0">
@@ -146,15 +146,15 @@
                                     </span>
                                 </td>
                                 <td class="text-center pe-4">
-                                    <a href="{{ route('sync.sk-proposal.show', $sk) }}" 
+                                    <a href="{{ route('admin.sync.sk-proposal.show', $sk) }}" 
                                        class="btn btn-sm btn-outline-primary" title="Lihat Detail">
                                         <i class="bx bx-show"></i>
                                     </a>
-                                    <a href="{{ route('sync.sk-proposal.download', $sk) }}" 
+                                    <a href="{{ route('admin.sync.sk-proposal.download', $sk) }}" 
                                        class="btn btn-sm btn-outline-success" title="Download SK">
                                         <i class="bx bx-download"></i>
                                     </a>
-                                    <form action="{{ route('sync.sk-proposal.sync', $sk) }}" 
+                                    <form action="{{ route('admin.sync.sk-proposal.sync', $sk) }}" 
                                           method="POST" 
                                           class="d-inline sync-form-{{ $sk->id }}">
                                         @csrf
