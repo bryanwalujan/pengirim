@@ -10,7 +10,7 @@
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{{ route('admin.dashboard.index') }}">Dashboard</a></li>
-            <li class="breadcrumb-item"><a href="{{ route('sync.sk-proposal.index') }}">Sync SK Proposal</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('admin.sync.sk-proposal.index') }}">Sync SK Proposal</a></li>
             <li class="breadcrumb-item active">Detail</li>
         </ol>
     </nav>
@@ -18,7 +18,7 @@
     {{-- Header --}}
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <a href="{{ route('sync.sk-proposal.index') }}" class="btn btn-sm btn-outline-secondary mb-3">
+            <a href="{{ route('admin.sync.sk-proposal.index') }}" class="btn btn-sm btn-outline-secondary mb-3">
                 <i class="bx bx-arrow-back me-1"></i> Kembali ke Daftar
             </a>
             <h4 class="fw-bold mb-1">
@@ -27,7 +27,7 @@
             <p class="text-muted mb-0">Informasi lengkap SK Proposal mahasiswa untuk sync ke Repodosen</p>
         </div>
         <div>
-            <form action="{{ route('sync.sk-proposal.sync', $skProposal) }}" method="POST" class="d-inline" onsubmit="return confirmSync()">
+            <form action="{{ route('admin.sync.sk-proposal.sync', $skProposal) }}" method="POST" class="d-inline" onsubmit="return confirmSync()">
                 @csrf
                 <button type="submit" class="btn btn-primary btn-lg">
                     <i class="bx bx-cloud-upload me-2"></i> Sync ke Repodosen
@@ -98,7 +98,7 @@
                             <button type="button" class="btn btn-primary" onclick="previewPDF()">
                                 <i class="bx bx-show me-2"></i> Preview Fullscreen
                             </button>
-                            <a href="{{ route('sync.sk-proposal.download', $skProposal) }}" class="btn btn-outline-primary">
+                            <a href="{{ route('admin.sync.sk-proposal.download', $skProposal) }}" class="btn btn-outline-primary">
                                 <i class="bx bx-download me-2"></i> Download File
                             </a>
                         </div>
@@ -106,7 +106,7 @@
                         {{-- Embedded PDF Preview --}}
                         <div class="border rounded-3 overflow-hidden" style="background: #f8f9fa;">
                             <div class="ratio ratio-16x9">
-                                <iframe src="{{ route('sync.sk-proposal.preview', $skProposal) }}" 
+                                <iframe src="{{ route('admin.sync.sk-proposal.preview', $skProposal) }}" 
                                         style="border: none; width: 100%; height: 500px;"
                                         class="rounded-3">
                                 </iframe>
@@ -195,7 +195,7 @@
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                     <i class="bx bx-x me-1"></i> Tutup
                 </button>
-                <a href="{{ route('sync.sk-proposal.download', $skProposal) }}" class="btn btn-primary">
+                <a href="{{ route('admin.sync.sk-proposal.download', $skProposal) }}" class="btn btn-primary">
                     <i class="bx bx-download me-1"></i> Download
                 </a>
             </div>
@@ -205,7 +205,7 @@
 
 <script>
     function previewPDF() {
-        const previewUrl = "{{ route('sync.sk-proposal.preview', $skProposal) }}";
+        const previewUrl = "{{ route('admin.sync.sk-proposal.preview', $skProposal) }}";
         document.getElementById('fullscreenPdf').src = previewUrl;
         new bootstrap.Modal(document.getElementById('pdfModal')).show();
     }
