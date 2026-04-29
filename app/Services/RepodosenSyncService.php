@@ -476,4 +476,99 @@ public function syncDosenPembimbingSempro(PendaftaranSeminarProposal $pendaftara
 
         return null;
     }
+
+    /**
+ * Sync SK Proposal (file_sk) dari mahasiswa ke repodosen
+ */
+public function syncSkProposal(JadwalSeminarProposal $jadwal): array
+{
+    $pendaftaran = $jadwal->pendaftaranSeminarProposal;
+    $pendaftaran->loadMissing(['dosenPembimbing', 'user']);
+
+    // Build dosen list
+    $dosenList = [];
+    if ($pendaftaran->dosenPembimbing) {
+        $dosenList[] = [
+            'nama' => $pendaftaran->dosenPembimbing->name,
+            'nip'  => $pendaftaran->dosenPembimbing->nip ?? null,
+            'nidn' => $pendaftaran->dosenPembimbing->nidn ?? null,
+            'role' => 'pembimbing_1',
+        ];
+    }
+
+    if (empty($dosenList)) {
+        return [
+            'success' => false,
+            'message' => 'Tidak ada data dosen pembimbing untuk disync.',
+            'results' => [],
+        ];
+    }
+
+    // Encode file SK Proposal SAJA
+    $files = [];
+    
+    if ($jadwal->file_sk_proposal) {
+        $content = $this->readFile($jadwal->file_sk_proposal, 'SK_Proposal');
+        if ($content !== null) {
+            $files['sk_proposal'] = base64_encode($content);
+            Log::info('[RepodosenSync] File SK Proposal berhasil diencode', [
+                'size_kb' => round(strlen($content) / 1024, 2),
+                'jadwal_id' => $jadwal->id,
+            ]);
+        }
+    } else {
+        return [
+            'success' => false,
+            'message' => 'File SK Proposal tidak ditemukan.',
+            'results' => [],
+        ];
+    }
+
+    // Generate folder name
+    $folderName = $this->generateFolderNameSkProposal($pendaftaran);
+
+    $payload = [
+        'source'         => 'presma',
+        'pendaftaran_id' => (string) $pendaftaran->id,
+        'type'           => 'sk_proposal',  // Tipe khusus untuk SK Proposal
+        'folder_name'    => $folderName,
+        'mahasiswa'      => [
+            'nama'     => $pendaftaran->user->name    ?? 'Unknown',
+            'nim'      => $pendaftaran->user->nim     ?? null,
+            'angkatan' => $pendaftaran->angkatan      ?? null,
+        ],
+        'judul_skripsi' => $pendaftaran->judul_skripsi ?? '',
+        'nomor_sk_proposal' => $jadwal->nomor_sk_proposal ?? '',
+        'dosen_list'    => $dosenList,
+        'files'         => $files,
+    ];
+
+    $payloadSize = strlen(json_encode($payload));
+    Log::info('[RepodosenSync] Sync SK Proposal', [
+        'pendaftaran_id' => $pendaftaran->id,
+        'jadwal_id' => $jadwal->id,
+        'folder_name' => $folderName,
+        'file_included' => 'sk_proposal',
+        'nomor_sk' => $jadwal->nomor_sk_proposal,
+        'payload_size_kb' => round($payloadSize / 1024, 2),
+    ]);
+
+    $endpoint = $this->baseUrl . '/api/sync/skripsi';
+
+    return $this->post($endpoint, $payload, $pendaftaran->id);
+}
+
+/**
+ * Generate folder name untuk SK Proposal
+ */
+private function generateFolderNameSkProposal(PendaftaranSeminarProposal $pendaftaran): string
+{
+    $nama = preg_replace('/[^a-zA-Z0-9\s]/', '', $pendaftaran->user->name ?? 'Unknown');
+    $judul = preg_replace('/[^a-zA-Z0-9\s]/', '', $pendaftaran->judul_skripsi ?? 'Skripsi');
+
+    $nama = str_replace(' ', '_', trim($nama));
+    $judul = implode('_', array_slice(explode(' ', trim($judul)), 0, 5));
+
+    return "sk_proposal_{$nama}_{$judul}";
+}
 }

@@ -45,6 +45,7 @@ use App\Http\Controllers\User\SuratIjinSurveyController;
 use App\Http\Controllers\User\SuratPindahController;
 use App\Http\Controllers\User\TrackingSuratController;
 use App\Http\Controllers\User\UserServiceController;
+use App\Http\Controllers\Sync\SkProposalController;
 use App\Models\TahunAjaran;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
@@ -419,6 +420,17 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa'])->get('/payment-alert',
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
 
+    Route::middleware(['auth', 'role:staff'])->prefix('sync')->name('sync.')->group(function () {
+    Route::prefix('sk-proposal')->name('sk-proposal.')->group(function () {
+        Route::get('/', [SkProposalController::class, 'index'])->name('index');
+        Route::get('/{skProposal}', [SkProposalController::class, 'show'])->name('show');
+        Route::get('/{skProposal}/preview', [SkProposalController::class, 'preview'])->name('preview');
+        Route::get('/{skProposal}/download', [SkProposalController::class, 'download'])->name('download');
+        Route::post('/{skProposal}/sync', [SkProposalController::class, 'syncToRepodosen'])->name('sync');
+        Route::post('/sync-all', [SkProposalController::class, 'syncAll'])->name('sync-all');
+    });
+});
+    
     // Notification Routes - PERBAIKAN ROUTE NAMES
     Route::prefix('notifications')->name('notifications.')->group(function () {
         // Display notifications

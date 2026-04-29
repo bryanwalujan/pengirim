@@ -1617,6 +1617,24 @@
             </li>
         @endif
 
+         {{-- Sync SK Proposal - Staff Only --}}
+        @if(auth()->user()->hasRole('staff'))
+            <li class="menu-item {{ request()->routeIs('sync.sk-proposal.*') ? 'active' : '' }}">
+                <a href="{{ route('sync.sk-proposal.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-cloud-upload"></i>
+                    <div>Sync SK Proposal</div>
+                    @php
+                        $pendingSyncCount = \App\Models\JadwalSeminarProposal::whereNotNull('file_sk_proposal')
+                            ->where('status', 'menunggu_jadwal')
+                            ->count();
+                    @endphp
+                    @if($pendingSyncCount > 0)
+                        <span class="badge bg-danger rounded-pill ms-auto">{{ $pendingSyncCount }}</span>
+                    @endif
+                </a>
+            </li>
+        @endif
+
         {{-- ============================================================ --}}
         {{-- KATEGORI 3: LAYANAN AKADEMIK --}}
         {{-- ============================================================ --}}
