@@ -1619,8 +1619,8 @@
 
          {{-- Sync SK Proposal - Staff Only --}}
         @if(auth()->user()->hasRole('staff'))
-            <li class="menu-item {{ request()->routeIs('sync.sk-proposal.*') ? 'active' : '' }}">
-                <a href="{{ route('sync.sk-proposal.index') }}" class="menu-link">
+    <li class="menu-item {{ request()->routeIs('admin.sync.sk-proposal.*') ? 'active' : '' }}">
+        <a href="{{ route('admin.sync.sk-proposal.index') }}" class="menu-link">
                     <i class="menu-icon tf-icons bx bx-cloud-upload"></i>
                     <div>Sync SK Proposal</div>
                     @php
