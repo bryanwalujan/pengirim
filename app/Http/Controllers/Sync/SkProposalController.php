@@ -50,7 +50,7 @@ class SkProposalController extends Controller
                 ->count(),
         ];
 
-        return view('sync.sk-proposal.index', compact('skProposals', 'stats'));
+        return view('admin.sync.sk-proposal.index', compact('skProposals', 'stats'));
     }
 
     /**
@@ -66,7 +66,7 @@ class SkProposalController extends Controller
 
         $fileExists = $skProposal->hasSkFile();
 
-        return view('sync.sk-proposal.show', compact('skProposal', 'fileExists'));
+        return view('admin.sync.sk-proposal.show', compact('skProposal', 'fileExists'));
     }
 
     /**
@@ -135,7 +135,7 @@ class SkProposalController extends Controller
                 ]);
 
                 return redirect()
-                    ->route('sync.sk-proposal.index')
+                    ->route('admin.sync.sk-proposal.index')
                     ->with('success', '✅ SK Proposal berhasil disinkronkan ke Repodosen.');
             }
 
