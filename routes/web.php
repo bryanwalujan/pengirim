@@ -728,6 +728,24 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             ->name('destroy');
     });
 
+    // ✅ ROUTES UNTUK STAFF SAJA - Letakkan di dalam group admin
+    Route::middleware(['role:staff'])->group(function () {
+        
+        // Sync Routes
+        Route::prefix('sync')->name('sync.')->group(function () {
+            Route::prefix('sk-proposal')->name('sk-proposal.')->group(function () {
+                Route::get('/', [\App\Http\Controllers\Sync\SkProposalController::class, 'index'])->name('index');
+                Route::get('/{skProposal}', [\App\Http\Controllers\Sync\SkProposalController::class, 'show'])->name('show');
+                Route::get('/{skProposal}/preview', [\App\Http\Controllers\Sync\SkProposalController::class, 'preview'])->name('preview');
+                Route::get('/{skProposal}/download', [\App\Http\Controllers\Sync\SkProposalController::class, 'download'])->name('download');
+                Route::post('/{skProposal}/sync', [\App\Http\Controllers\Sync\SkProposalController::class, 'syncToRepodosen'])->name('sync');
+                Route::post('/sync-all', [\App\Http\Controllers\Sync\SkProposalController::class, 'syncAll'])->name('sync-all');
+            });
+        });
+        
+        // Routes lain untuk staff saja bisa ditambahkan di sini
+    });
+
     // Pendaftaran Seminar Proposal
     Route::prefix('pendaftaran-seminar-proposal')->name('pendaftaran-seminar-proposal.')->group(function () {
 
