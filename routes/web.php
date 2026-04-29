@@ -423,12 +423,12 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     // ✅ PERBAIKAN: Pindahkan route sync ke dalam group admin dengan benar
     Route::middleware(['role:staff'])->prefix('sync')->name('sync.')->group(function () {
         Route::prefix('sk-proposal')->name('sk-proposal.')->group(function () {
-            Route::get('/', [\App\Http\Controllers\Sync\SkProposalController::class, 'index'])->name('index');
-            Route::get('/{skProposal}', [\App\Http\Controllers\Sync\SkProposalController::class, 'show'])->name('show');
-            Route::get('/{skProposal}/preview', [\App\Http\Controllers\Sync\SkProposalController::class, 'preview'])->name('preview');
-            Route::get('/{skProposal}/download', [\App\Http\Controllers\Sync\SkProposalController::class, 'download'])->name('download');
-            Route::post('/{skProposal}/sync', [\App\Http\Controllers\Sync\SkProposalController::class, 'syncToRepodosen'])->name('sync');
-            Route::post('/sync-all', [\App\Http\Controllers\Sync\SkProposalController::class, 'syncAll'])->name('sync-all');
+            Route::get('/', [SkProposalController::class, 'index'])->name('index');
+            Route::get('/{skProposal}', [SkProposalController::class, 'show'])->name('show');
+            Route::get('/{skProposal}/preview', [SkProposalController::class, 'preview'])->name('preview');
+            Route::get('/{skProposal}/download', [SkProposalController::class, 'download'])->name('download');
+            Route::post('/{skProposal}/sync', [SkProposalController::class, 'syncToRepodosen'])->name('sync');
+            Route::post('/sync-all', [SkProposalController::class, 'syncAll'])->name('sync-all');
         });
     });
     
