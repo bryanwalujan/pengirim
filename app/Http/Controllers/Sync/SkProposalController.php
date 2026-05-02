@@ -15,7 +15,7 @@ class SkProposalController extends Controller
 
     public function __construct(RepodosenSyncService $repodosenSync)
     {
-        $this->middleware(['auth', 'role:staff|admin']); // ✅ Hanya Staff dan Admin
+        $this->middleware(['auth', 'role:staff']); // ✅ Hanya Staff dan Admin
         $this->repodosenSync = $repodosenSync;
     }
 
