@@ -481,6 +481,9 @@ public function syncDosenPembimbingSempro(PendaftaranSeminarProposal $pendaftara
     /**
  * Sync SK Proposal (file_sk) dari mahasiswa ke repodosen
  */
+/**
+ * Sync SK Proposal (file_sk) dari mahasiswa ke repodosen
+ */
 public function syncSkProposal(JadwalSeminarProposal $jadwal): array
 {
     $pendaftaran = $jadwal->pendaftaranSeminarProposal;
@@ -505,22 +508,64 @@ public function syncSkProposal(JadwalSeminarProposal $jadwal): array
         ];
     }
 
-    // Encode file SK Proposal SAJA
+    // Encode file SK Proposal
     $files = [];
     
+    // Debug: Log file path
+    Log::info('[RepodosenSync] Debug SK Proposal file path', [
+        'jadwal_id' => $jadwal->id,
+        'file_path' => $jadwal->file_sk_proposal,
+        'file_sk_proposal' => $jadwal->file_sk_proposal,
+        'nomor_sk' => $jadwal->nomor_sk_proposal,
+        'status' => $jadwal->status,
+    ]);
+    
     if ($jadwal->file_sk_proposal) {
-        $content = $this->readFile($jadwal->file_sk_proposal, 'SK_Proposal');
+        // Coba baca file dari disk public dulu
+        $content = null;
+        $diskUsed = null;
+        
+        if (Storage::disk('public')->exists($jadwal->file_sk_proposal)) {
+            $content = Storage::disk('public')->get($jadwal->file_sk_proposal);
+            $diskUsed = 'public';
+        } elseif (Storage::disk('local')->exists($jadwal->file_sk_proposal)) {
+            $content = Storage::disk('local')->get($jadwal->file_sk_proposal);
+            $diskUsed = 'local';
+        }
+        
         if ($content !== null) {
-            $files['sk_proposal'] = base64_encode($content);
+            // ✅ PERBAIKAN: Gunakan key 'proposal' agar sesuai dengan repodosen
+            $files['proposal'] = base64_encode($content);
+            
             Log::info('[RepodosenSync] File SK Proposal berhasil diencode', [
                 'size_kb' => round(strlen($content) / 1024, 2),
                 'jadwal_id' => $jadwal->id,
+                'disk' => $diskUsed,
+                'base64_size_kb' => round(strlen($files['proposal']) / 1024, 2),
             ]);
+        } else {
+            Log::error('[RepodosenSync] Gagal membaca file SK Proposal', [
+                'jadwal_id' => $jadwal->id,
+                'file_path' => $jadwal->file_sk_proposal,
+                'public_exists' => Storage::disk('public')->exists($jadwal->file_sk_proposal),
+                'local_exists' => Storage::disk('local')->exists($jadwal->file_sk_proposal),
+            ]);
+            
+            return [
+                'success' => false,
+                'message' => 'Gagal membaca file SK Proposal.',
+                'results' => [],
+            ];
         }
     } else {
+        Log::error('[RepodosenSync] File SK Proposal path kosong', [
+            'jadwal_id' => $jadwal->id,
+            'status' => $jadwal->status
+        ]);
+        
         return [
             'success' => false,
-            'message' => 'File SK Proposal tidak ditemukan.',
+            'message' => 'File SK Proposal tidak ditemukan (path kosong).',
             'results' => [],
         ];
     }
@@ -531,7 +576,7 @@ public function syncSkProposal(JadwalSeminarProposal $jadwal): array
     $payload = [
         'source'         => 'presma',
         'pendaftaran_id' => (string) $pendaftaran->id,
-        'type'           => 'sk_proposal',  // Tipe khusus untuk SK Proposal
+        'type'           => 'sk_proposal',
         'folder_name'    => $folderName,
         'mahasiswa'      => [
             'nama'     => $pendaftaran->user->name    ?? 'Unknown',
@@ -541,17 +586,15 @@ public function syncSkProposal(JadwalSeminarProposal $jadwal): array
         'judul_skripsi' => $pendaftaran->judul_skripsi ?? '',
         'nomor_sk_proposal' => $jadwal->nomor_sk_proposal ?? '',
         'dosen_list'    => $dosenList,
-        'files'         => $files,
+        'files'         => $files, // ✅ files['proposal'] berisi base64
     ];
 
-    $payloadSize = strlen(json_encode($payload));
-    Log::info('[RepodosenSync] Sync SK Proposal', [
+    Log::info('[RepodosenSync] Sync SK Proposal payload', [
         'pendaftaran_id' => $pendaftaran->id,
         'jadwal_id' => $jadwal->id,
         'folder_name' => $folderName,
-        'file_included' => 'sk_proposal',
+        'files_keys' => array_keys($files),
         'nomor_sk' => $jadwal->nomor_sk_proposal,
-        'payload_size_kb' => round($payloadSize / 1024, 2),
     ]);
 
     $endpoint = $this->baseUrl . '/api/sync/skripsi';
