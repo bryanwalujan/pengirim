@@ -1,4 +1,4 @@
-{{-- resources/views/sync/sk-proposal/index.blade.php --}}
+{{-- resources/views/admin/sync/sk-proposal/index.blade.php --}}
 
 @extends('layouts.admin.app')
 
@@ -15,9 +15,9 @@
             <p class="text-muted mb-0">Sinkronisasi SK Proposal mahasiswa ke aplikasi Repodosen</p>
         </div>
         <div>
-            <form action="{{ route('admin.sync.sk-proposal.sync-all') }}" method="POST" class="d-inline" onsubmit="return confirmSyncAll()">
+            <form action="{{ route('admin.sync.sk-proposal.sync-all') }}" method="POST" class="d-inline" id="form-sync-all">
                 @csrf
-                <button type="submit" class="btn btn-primary">
+                <button type="button" class="btn btn-primary" onclick="confirmSyncAll()">
                     <i class="bx bx-cloud-upload me-1"></i> Sync Semua
                 </button>
             </form>
@@ -156,12 +156,13 @@
                                     </a>
                                     <form action="{{ route('admin.sync.sk-proposal.sync', $sk) }}" 
                                           method="POST" 
-                                          class="d-inline sync-form-{{ $sk->id }}">
+                                          class="d-inline" 
+                                          id="sync-form-{{ $sk->id }}">
                                         @csrf
                                         <button type="button" 
                                                 class="btn btn-sm btn-primary" 
                                                 title="Sync ke Repodosen"
-                                                onclick="confirmSync({{ $sk->id }}, '{{ $sk->pendaftaranSeminarProposal->user->name ?? '' }}')">
+                                                onclick="confirmSync('{{ $sk->id }}', '{{ addslashes($sk->pendaftaranSeminarProposal->user->name ?? '') }}')">
                                             <i class="bx bx-cloud-upload"></i>
                                         </button>
                                     </form>
@@ -186,7 +187,14 @@
 
 @section('scripts')
 <script>
+    // Pastikan SweetAlert2 sudah tersedia
+    if (typeof Swal === 'undefined') {
+        console.error('SweetAlert2 not loaded!');
+    }
+
     function confirmSync(id, namaMahasiswa) {
+        console.log('confirmSync called with id:', id, 'nama:', namaMahasiswa);
+        
         Swal.fire({
             title: 'Konfirmasi Sync',
             html: `Apakah Anda yakin ingin menyinkronkan SK Proposal untuk mahasiswa <strong>${namaMahasiswa}</strong> ke Repodosen?`,
@@ -198,7 +206,23 @@
             cancelButtonText: 'Batal'
         }).then((result) => {
             if (result.isConfirmed) {
-                document.querySelector(`.sync-form-${id}`).submit();
+                // Tampilkan loading
+                Swal.fire({
+                    title: 'Sedang Sync...',
+                    text: 'Mohon tunggu, sedang menyinkronkan data ke Repodosen.',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                
+                // Submit form
+                const form = document.getElementById(`sync-form-${id}`);
+                if (form) {
+                    form.submit();
+                } else {
+                    Swal.fire('Error', 'Form tidak ditemukan', 'error');
+                }
             }
         });
     }
@@ -214,8 +238,30 @@
             confirmButtonText: '<i class="bx bx-cloud-upload me-1"></i> Ya, Sync Semua',
             cancelButtonText: 'Batal'
         }).then((result) => {
-            return result.isConfirmed;
+            if (result.isConfirmed) {
+                // Tampilkan loading
+                Swal.fire({
+                    title: 'Sedang Sync Semua...',
+                    text: 'Mohon tunggu, sedang menyinkronkan semua data ke Repodosen.',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                
+                // Submit form
+                const form = document.getElementById('form-sync-all');
+                if (form) {
+                    form.submit();
+                }
+            }
         });
     }
+    
+    // Debug: pastikan fungsi tersedia di global scope
+    window.confirmSync = confirmSync;
+    window.confirmSyncAll = confirmSyncAll;
+    
+    console.log('Scripts loaded, functions available:', typeof confirmSync, typeof confirmSyncAll);
 </script>
 @endsection
