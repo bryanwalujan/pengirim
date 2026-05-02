@@ -15,6 +15,7 @@ class SkProposalController extends Controller
 
     public function __construct(RepodosenSyncService $repodosenSync)
     {
+        $this->middleware(['auth', 'role:staff|admin']); // ✅ Hanya Staff dan Admin
         $this->repodosenSync = $repodosenSync;
     }
 
@@ -110,6 +111,14 @@ class SkProposalController extends Controller
      */
     public function syncToRepodosen(JadwalSeminarProposal $skProposal)
     {
+        // ✅ Debug logging
+        Log::info('[Sync] Starting sync for SK Proposal', [
+            'jadwal_id' => $skProposal->id,
+            'file_sk_proposal' => $skProposal->file_sk_proposal,
+            'status' => $skProposal->status,
+            'has_sk_file' => $skProposal->hasSkFile()
+        ]);
+
         if (!$skProposal->hasSkFile()) {
             return back()->with('error', 'File SK Proposal tidak ditemukan.');
         }
@@ -120,6 +129,12 @@ class SkProposalController extends Controller
 
         try {
             $result = $this->repodosenSync->syncSkProposal($skProposal);
+
+            Log::info('[Sync] Result from syncSkProposal', [
+                'success' => $result['success'],
+                'message' => $result['message'] ?? null,
+                'sk_proposal_id' => $skProposal->id
+            ]);
 
             if ($result['success']) {
                 // Update status setelah sync berhasil
@@ -144,7 +159,8 @@ class SkProposalController extends Controller
         } catch (\Exception $e) {
             Log::error('Error sync SK Proposal ke Repodosen', [
                 'error' => $e->getMessage(),
-                'sk_proposal_id' => $skProposal->id
+                'sk_proposal_id' => $skProposal->id,
+                'trace' => $e->getTraceAsString()
             ]);
 
             return back()->with('error', 'Terjadi kesalahan saat sync: ' . $e->getMessage());
@@ -161,6 +177,8 @@ class SkProposalController extends Controller
             ->where('status', 'menunggu_jadwal')
             ->get();
 
+        Log::info('[Sync] Sync all triggered', ['total' => $skProposals->count()]);
+
         if ($skProposals->isEmpty()) {
             return back()->with('warning', 'Tidak ada SK Proposal yang perlu disync.');
         }
@@ -171,18 +189,26 @@ class SkProposalController extends Controller
 
         foreach ($skProposals as $skProposal) {
             try {
+                Log::info('[Sync] Processing SK Proposal', [
+                    'jadwal_id' => $skProposal->id,
+                    'file_path' => $skProposal->file_sk_proposal
+                ]);
+
                 $result = $this->repodosenSync->syncSkProposal($skProposal);
 
                 if ($result['success']) {
                     $skProposal->update(['status' => 'dijadwalkan']);
                     $berhasil++;
+                    Log::info('[Sync] Success', ['jadwal_id' => $skProposal->id]);
                 } else {
                     $gagal++;
                     $errors[] = ($skProposal->pendaftaranSeminarProposal->user->name ?? 'Unknown') . ': ' . ($result['message'] ?? 'Unknown error');
+                    Log::error('[Sync] Failed', ['jadwal_id' => $skProposal->id, 'error' => $result['message']]);
                 }
             } catch (\Exception $e) {
                 $gagal++;
                 $errors[] = ($skProposal->pendaftaranSeminarProposal->user->name ?? 'Unknown') . ': ' . $e->getMessage();
+                Log::error('[Sync] Exception', ['jadwal_id' => $skProposal->id, 'error' => $e->getMessage()]);
             }
         }
 

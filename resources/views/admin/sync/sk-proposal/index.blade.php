@@ -17,7 +17,7 @@
         <div>
             <form action="{{ route('admin.sync.sk-proposal.sync-all') }}" method="POST" class="d-inline" id="form-sync-all">
                 @csrf
-                <button type="button" class="btn btn-primary" onclick="confirmSyncAll()">
+                <button type="submit" class="btn btn-primary" onclick="return confirm('Sync semua SK Proposal yang menunggu?')">
                     <i class="bx bx-cloud-upload me-1"></i> Sync Semua
                 </button>
             </form>
@@ -108,7 +108,7 @@
                                 <th>NIM</th>
                                 <th>Judul Skripsi</th>
                                 <th>Dosen Pembimbing</th>
-                                <th>File SK</th>
+                                <th>Nomor SK</th>
                                 <th>Status</th>
                                 <th class="text-center pe-4">Aksi</th>
                             </tr>
@@ -130,15 +130,7 @@
                                     {{ Str::limit($sk->pendaftaranSeminarProposal->dosenPembimbing->name ?? '-', 30) }}
                                 </td>
                                 <td>
-                                    @if($sk->hasSkFile())
-                                        <span class="badge bg-success">
-                                            <i class="bx bx-check-circle me-1"></i> Tersedia
-                                        </span>
-                                    @else
-                                        <span class="badge bg-danger">
-                                            <i class="bx bx-x-circle me-1"></i> Tidak Ada
-                                        </span>
-                                    @endif
+                                    <span class="badge bg-info">{{ $sk->nomor_sk_proposal ?: '-' }}</span>
                                 </td>
                                 <td>
                                     <span class="badge bg-warning">
@@ -159,12 +151,12 @@
                                           class="d-inline" 
                                           id="sync-form-{{ $sk->id }}">
                                         @csrf
-                                        <button type="button" 
-        class="btn btn-sm btn-primary" 
-        title="Sync ke Repodosen"
-        onclick="if(confirm('Sync SK Proposal untuk {{ addslashes($sk->pendaftaranSeminarProposal->user->name ?? '') }} ke Repodosen?')) { document.getElementById('sync-form-{{ $sk->id }}').submit(); }">
-    <i class="bx bx-cloud-upload"></i>
-</button>
+                                        <button type="submit" 
+                                                class="btn btn-sm btn-primary" 
+                                                title="Sync ke Repodosen"
+                                                onclick="return confirm('Sync SK Proposal untuk {{ addslashes($sk->pendaftaranSeminarProposal->user->name ?? '') }} ke Repodosen?')">
+                                            <i class="bx bx-cloud-upload"></i>
+                                        </button>
                                     </form>
                                 </td>
                             </tr>
@@ -182,86 +174,4 @@
         </div>
     </div>
 </div>
-
-@endsection
-
-@section('scripts')
-<script>
-    // Pastikan SweetAlert2 sudah tersedia
-    if (typeof Swal === 'undefined') {
-        console.error('SweetAlert2 not loaded!');
-    }
-
-    function confirmSync(id, namaMahasiswa) {
-        console.log('confirmSync called with id:', id, 'nama:', namaMahasiswa);
-        
-        Swal.fire({
-            title: 'Konfirmasi Sync',
-            html: `Apakah Anda yakin ingin menyinkronkan SK Proposal untuk mahasiswa <strong>${namaMahasiswa}</strong> ke Repodosen?`,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#0d6efd',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: '<i class="bx bx-cloud-upload me-1"></i> Ya, Sync Sekarang',
-            cancelButtonText: 'Batal'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Tampilkan loading
-                Swal.fire({
-                    title: 'Sedang Sync...',
-                    text: 'Mohon tunggu, sedang menyinkronkan data ke Repodosen.',
-                    allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
-                });
-                
-                // Submit form
-                const form = document.getElementById(`sync-form-${id}`);
-                if (form) {
-                    form.submit();
-                } else {
-                    Swal.fire('Error', 'Form tidak ditemukan', 'error');
-                }
-            }
-        });
-    }
-
-    function confirmSyncAll() {
-        Swal.fire({
-            title: 'Konfirmasi Sync Semua',
-            html: 'Apakah Anda yakin ingin menyinkronkan <strong>SEMUA</strong> SK Proposal yang menunggu sync ke Repodosen?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#0d6efd',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: '<i class="bx bx-cloud-upload me-1"></i> Ya, Sync Semua',
-            cancelButtonText: 'Batal'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Tampilkan loading
-                Swal.fire({
-                    title: 'Sedang Sync Semua...',
-                    text: 'Mohon tunggu, sedang menyinkronkan semua data ke Repodosen.',
-                    allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
-                });
-                
-                // Submit form
-                const form = document.getElementById('form-sync-all');
-                if (form) {
-                    form.submit();
-                }
-            }
-        });
-    }
-    
-    // Debug: pastikan fungsi tersedia di global scope
-    window.confirmSync = confirmSync;
-    window.confirmSyncAll = confirmSyncAll;
-    
-    console.log('Scripts loaded, functions available:', typeof confirmSync, typeof confirmSyncAll);
-</script>
 @endsection
