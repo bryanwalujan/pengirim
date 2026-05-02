@@ -160,11 +160,11 @@
                                           id="sync-form-{{ $sk->id }}">
                                         @csrf
                                         <button type="button" 
-                                                class="btn btn-sm btn-primary" 
-                                                title="Sync ke Repodosen"
-                                                onclick="confirmSync('{{ $sk->id }}', '{{ addslashes($sk->pendaftaranSeminarProposal->user->name ?? '') }}')">
-                                            <i class="bx bx-cloud-upload"></i>
-                                        </button>
+        class="btn btn-sm btn-primary" 
+        title="Sync ke Repodosen"
+        onclick="if(confirm('Sync SK Proposal untuk {{ addslashes($sk->pendaftaranSeminarProposal->user->name ?? '') }} ke Repodosen?')) { document.getElementById('sync-form-{{ $sk->id }}').submit(); }">
+    <i class="bx bx-cloud-upload"></i>
+</button>
                                     </form>
                                 </td>
                             </tr>
