@@ -47,7 +47,7 @@ class SkProposalController extends Controller
                 ->where('status', 'menunggu_jadwal')
                 ->count(),
             'sudah_sync' => JadwalSeminarProposal::whereNotNull('file_sk_proposal')
-                ->where('status', 'dijadwalkan')
+                ->whereNotNull('synced_at') 
                 ->count(),
         ];
 
