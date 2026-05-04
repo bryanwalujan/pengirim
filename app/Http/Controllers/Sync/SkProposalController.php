@@ -109,62 +109,62 @@ class SkProposalController extends Controller
      * Sync SK Proposal ke Repodosen (per item)
      */
     public function syncToRepodosen(JadwalSeminarProposal $skProposal)
-    {
-        // ✅ Debug logging
-        Log::info('[Sync] Starting sync for SK Proposal', [
-            'jadwal_id' => $skProposal->id,
-            'file_sk_proposal' => $skProposal->file_sk_proposal,
-            'status' => $skProposal->status,
-            'has_sk_file' => $skProposal->hasSkFile()
+{
+    Log::info('[Sync] Starting sync for SK Proposal', [
+        'jadwal_id' => $skProposal->id,
+        'file_sk_proposal' => $skProposal->file_sk_proposal,
+        'status' => $skProposal->status,
+        'synced_at' => $skProposal->synced_at,
+        'has_sk_file' => $skProposal->hasSkFile()
+    ]);
+
+    if (!$skProposal->hasSkFile()) {
+        return back()->with('error', 'File SK Proposal tidak ditemukan.');
+    }
+
+    // ✅ Gunakan synced_at sebagai pengecekan, bukan status
+    if (!is_null($skProposal->synced_at)) {
+        return back()->with('error', 'SK Proposal sudah pernah disync.');
+    }
+
+    try {
+        $result = $this->repodosenSync->syncSkProposal($skProposal);
+
+        Log::info('[Sync] Result from syncSkProposal', [
+            'success' => $result['success'],
+            'message' => $result['message'] ?? null,
+            'sk_proposal_id' => $skProposal->id
         ]);
 
-        if (!$skProposal->hasSkFile()) {
-            return back()->with('error', 'File SK Proposal tidak ditemukan.');
-        }
-
-        if ($skProposal->status !== 'menunggu_jadwal') {
-            return back()->with('error', 'SK Proposal sudah pernah disync atau status tidak valid.');
-        }
-
-        try {
-            $result = $this->repodosenSync->syncSkProposal($skProposal);
-
-            Log::info('[Sync] Result from syncSkProposal', [
-                'success' => $result['success'],
-                'message' => $result['message'] ?? null,
-                'sk_proposal_id' => $skProposal->id
+        if ($result['success']) {
+            $skProposal->updateQuietly([
+                'synced_at' => now(),
             ]);
 
-            if ($result['success']) {
-                // Update status setelah sync berhasil
-                $skProposal->updateQuietly([
-                     'synced_at' => now(),
-                ]);
-
-                Log::info('SK Proposal berhasil disync ke Repodosen', [
-                    'sk_proposal_id' => $skProposal->id,
-                    'mahasiswa' => $skProposal->pendaftaranSeminarProposal->user->name,
-                    'nomor_sk' => $skProposal->nomor_sk_proposal,
-                    'sync_by' => auth()->user()->name,
-                ]);
-
-                return redirect()
-                    ->route('admin.sync.sk-proposal.index')
-                    ->with('success', '✅ SK Proposal berhasil disinkronkan ke Repodosen.');
-            }
-
-            return back()->with('error', '❌ Sync gagal: ' . ($result['message'] ?? 'Unknown error'));
-
-        } catch (\Exception $e) {
-            Log::error('Error sync SK Proposal ke Repodosen', [
-                'error' => $e->getMessage(),
+            Log::info('SK Proposal berhasil disync ke Repodosen', [
                 'sk_proposal_id' => $skProposal->id,
-                'trace' => $e->getTraceAsString()
+                'mahasiswa' => $skProposal->pendaftaranSeminarProposal->user->name,
+                'nomor_sk' => $skProposal->nomor_sk_proposal,
+                'sync_by' => auth()->user()->name,
             ]);
 
-            return back()->with('error', 'Terjadi kesalahan saat sync: ' . $e->getMessage());
+            return redirect()
+                ->route('admin.sync.sk-proposal.index')
+                ->with('success', '✅ SK Proposal berhasil disinkronkan ke Repodosen.');
         }
+
+        return back()->with('error', '❌ Sync gagal: ' . ($result['message'] ?? 'Unknown error'));
+
+    } catch (\Exception $e) {
+        Log::error('Error sync SK Proposal ke Repodosen', [
+            'error' => $e->getMessage(),
+            'sk_proposal_id' => $skProposal->id,
+            'trace' => $e->getTraceAsString()
+        ]);
+
+        return back()->with('error', 'Terjadi kesalahan saat sync: ' . $e->getMessage());
     }
+}
 
     /**
      * Sync semua SK Proposal yang belum disync
