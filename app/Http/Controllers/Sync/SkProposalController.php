@@ -137,7 +137,7 @@ class SkProposalController extends Controller
 
             if ($result['success']) {
                 // Update status setelah sync berhasil
-                $skProposal->update([
+                $skProposal->updateQuietly([
                     'status' => 'dijadwalkan'
                 ]);
 
@@ -196,7 +196,7 @@ class SkProposalController extends Controller
                 $result = $this->repodosenSync->syncSkProposal($skProposal);
 
                 if ($result['success']) {
-                    $skProposal->update(['status' => 'dijadwalkan']);
+                    $skProposal->updateQuietly(['status' => 'dijadwalkan']); // ← ubah di sini
                     $berhasil++;
                     Log::info('[Sync] Success', ['jadwal_id' => $skProposal->id]);
                 } else {
