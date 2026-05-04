@@ -28,8 +28,7 @@ class SkProposalController extends Controller
             'pendaftaranSeminarProposal.dosenPembimbing'
         ])
         ->whereNotNull('file_sk_proposal')
-        ->whereNull('synced_at') 
-        ->where('status', 'menunggu_jadwal')
+        ->whereNull('synced_at')
         ->latest('updated_at');
 
         // Filter pencarian
