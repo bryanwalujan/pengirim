@@ -16,6 +16,7 @@ class JadwalSeminarProposal extends Model
         'tanggal_ujian' => 'datetime',
         'waktu_mulai' => 'datetime',
         'waktu_selesai' => 'datetime',
+        'synced_at'     => 'datetime',
     ];
 
     // ========== RELATIONS ==========

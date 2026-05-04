@@ -28,6 +28,7 @@ class SkProposalController extends Controller
             'pendaftaranSeminarProposal.dosenPembimbing'
         ])
         ->whereNotNull('file_sk_proposal')
+        ->whereNull('synced_at') 
         ->where('status', 'menunggu_jadwal')
         ->latest('updated_at');
 
@@ -47,7 +48,6 @@ class SkProposalController extends Controller
                 ->count(),
             'sudah_sync' => JadwalSeminarProposal::whereNotNull('file_sk_proposal')
                 ->where('status', 'dijadwalkan')
-                ->whereNull('tanggal_ujian')
                 ->count(),
         ];
 
@@ -139,7 +139,7 @@ class SkProposalController extends Controller
             if ($result['success']) {
                 // Update status setelah sync berhasil
                 $skProposal->updateQuietly([
-                    'status' => 'dijadwalkan'
+                     'synced_at' => now(),
                 ]);
 
                 Log::info('SK Proposal berhasil disync ke Repodosen', [
@@ -197,7 +197,7 @@ class SkProposalController extends Controller
                 $result = $this->repodosenSync->syncSkProposal($skProposal);
 
                 if ($result['success']) {
-                    $skProposal->updateQuietly(['status' => 'dijadwalkan']); // ← ubah di sini
+                    $skProposal->updateQuietly(['synced_at' => now()]);
                     $berhasil++;
                     Log::info('[Sync] Success', ['jadwal_id' => $skProposal->id]);
                 } else {
