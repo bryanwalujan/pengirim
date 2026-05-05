@@ -1617,37 +1617,37 @@
             </li>
         @endif
 
-         {{-- Sync SK Proposal - Staff Only --}}
+                {{-- Sync SK Proposal - Staff Only --}}
         @if(auth()->user()->hasRole('staff'))
-    <li class="menu-item {{ request()->routeIs('admin.sync.sk-proposal.*') ? 'active' : '' }}">
-        <a href="{{ route('admin.sync.sk-proposal.index') }}" class="menu-link">
+            <li class="menu-item {{ request()->routeIs('admin.sync.sk-proposal.*') ? 'active' : '' }}">
+                <a href="{{ route('admin.sync.sk-proposal.index') }}" class="menu-link">
                     <i class="menu-icon tf-icons bx bx-cloud-upload"></i>
                     <div>Sync SK Proposal</div>
                     @php
-                        $pendingSyncCount = \App\Models\JadwalSeminarProposal::whereNotNull('file_sk_proposal')
-                            ->where('status', 'menunggu_jadwal')
+                        $pendingSkProposalCount = \App\Models\JadwalSeminarProposal::whereNotNull('file_sk_proposal')
+                            ->whereNull('synced_at')
                             ->count();
                     @endphp
-                    @if($pendingSyncCount > 0)
-                        <span class="badge bg-danger rounded-pill ms-auto">{{ $pendingSyncCount }}</span>
+                    @if($pendingSkProposalCount > 0)
+                        <span class="badge bg-danger rounded-pill ms-auto">{{ $pendingSkProposalCount }}</span>
                     @endif
                 </a>
             </li>
         @endif
-
+        
         {{-- Sync SK Ujian Hasil - Staff Only --}}
         @if(auth()->user()->hasRole('staff'))
-    <li class="menu-item {{ request()->routeIs('admin.sync.sk-ujian-hasil.*') ? 'active' : '' }}">
-        <a href="{{ route('admin.sync.sk-ujian-hasil.index') }}" class="menu-link">
+            <li class="menu-item {{ request()->routeIs('admin.sync.sk-ujian-hasil.*') ? 'active' : '' }}">
+                <a href="{{ route('admin.sync.sk-ujian-hasil.index') }}" class="menu-link">
                     <i class="menu-icon tf-icons bx bx-cloud-upload"></i>
                     <div>Sync SK Ujian Hasil</div>
-                    @phpx
-                        $pendingSyncCount = \App\Models\JadwalUjianHasil::whereNotNull('file_sk_ujian_hasil')
-                            ->where('status', 'menunggu_jadwal')
+                    @php
+                        $pendingSkUjianHasilCount = \App\Models\JadwalUjianHasil::whereNotNull('file_sk_ujian_hasil')
+                            ->whereNull('synced_at')
                             ->count();
                     @endphp
-                    @if($pendingSyncCount > 0)
-                        <span class="badge bg-danger rounded-pill ms-auto">{{ $pendingSyncCount }}</span>
+                    @if($pendingSkUjianHasilCount > 0)
+                        <span class="badge bg-danger rounded-pill ms-auto">{{ $pendingSkUjianHasilCount }}</span>
                     @endif
                 </a>
             </li>
