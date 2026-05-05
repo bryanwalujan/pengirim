@@ -615,4 +615,147 @@ private function generateFolderNameSkProposal(PendaftaranSeminarProposal $pendaf
 
     return "sk_proposal_{$nama}_{$judul}";
 }
+
+/**
+ * Sync SK Ujian Hasil (file_sk_ujian_hasil) dari mahasiswa ke repodosen
+ */
+public function syncSkUjianHasil(JadwalUjianHasil $jadwal): array
+{
+    $pendaftaran = $jadwal->pendaftaranUjianHasil;
+    $pendaftaran->loadMissing(['dosenPembimbing1', 'dosenPembimbing2', 'user']);
+
+    // Build dosen list (dua dosen pembimbing)
+    $dosenList = [];
+    
+    if ($pendaftaran->dosenPembimbing1) {
+        $dosenList[] = [
+            'nama' => $pendaftaran->dosenPembimbing1->name,
+            'nip'  => $pendaftaran->dosenPembimbing1->nip ?? null,
+            'nidn' => $pendaftaran->dosenPembimbing1->nidn ?? null,
+            'role' => 'pembimbing_1',
+        ];
+    }
+    
+    if ($pendaftaran->dosenPembimbing2) {
+        $dosenList[] = [
+            'nama' => $pendaftaran->dosenPembimbing2->name,
+            'nip'  => $pendaftaran->dosenPembimbing2->nip ?? null,
+            'nidn' => $pendaftaran->dosenPembimbing2->nidn ?? null,
+            'role' => 'pembimbing_2',
+        ];
+    }
+
+    if (empty($dosenList)) {
+        return [
+            'success' => false,
+            'message' => 'Tidak ada data dosen pembimbing untuk disync.',
+            'results' => [],
+        ];
+    }
+
+    // Encode file SK Ujian Hasil
+    $files = [];
+    
+    Log::info('[RepodosenSync] Debug SK Ujian Hasil file path', [
+        'jadwal_id' => $jadwal->id,
+        'file_path' => $jadwal->file_sk_ujian_hasil,
+        'nomor_sk' => $jadwal->nomor_sk,
+        'status' => $jadwal->status,
+    ]);
+    
+    if ($jadwal->file_sk_ujian_hasil) {
+        // Coba baca file dari disk public dulu
+        $content = null;
+        $diskUsed = null;
+        
+        if (Storage::disk('public')->exists($jadwal->file_sk_ujian_hasil)) {
+            $content = Storage::disk('public')->get($jadwal->file_sk_ujian_hasil);
+            $diskUsed = 'public';
+        } elseif (Storage::disk('local')->exists($jadwal->file_sk_ujian_hasil)) {
+            $content = Storage::disk('local')->get($jadwal->file_sk_ujian_hasil);
+            $diskUsed = 'local';
+        }
+        
+        if ($content !== null) {
+            // ✅ Gunakan key 'skripsi' karena ini file skripsi dari ujian hasil
+            $files['skripsi'] = base64_encode($content);
+            
+            Log::info('[RepodosenSync] File SK Ujian Hasil berhasil diencode', [
+                'size_kb' => round(strlen($content) / 1024, 2),
+                'jadwal_id' => $jadwal->id,
+                'disk' => $diskUsed,
+                'base64_size_kb' => round(strlen($files['skripsi']) / 1024, 2),
+            ]);
+        } else {
+            Log::error('[RepodosenSync] Gagal membaca file SK Ujian Hasil', [
+                'jadwal_id' => $jadwal->id,
+                'file_path' => $jadwal->file_sk_ujian_hasil,
+                'public_exists' => Storage::disk('public')->exists($jadwal->file_sk_ujian_hasil),
+                'local_exists' => Storage::disk('local')->exists($jadwal->file_sk_ujian_hasil),
+            ]);
+            
+            return [
+                'success' => false,
+                'message' => 'Gagal membaca file SK Ujian Hasil.',
+                'results' => [],
+            ];
+        }
+    } else {
+        Log::error('[RepodosenSync] File SK Ujian Hasil path kosong', [
+            'jadwal_id' => $jadwal->id,
+            'status' => $jadwal->status
+        ]);
+        
+        return [
+            'success' => false,
+            'message' => 'File SK Ujian Hasil tidak ditemukan (path kosong).',
+            'results' => [],
+        ];
+    }
+
+    // Generate folder name
+    $folderName = $this->generateFolderNameUjianHasil($pendaftaran);
+
+    $payload = [
+        'source'          => 'presma',
+        'pendaftaran_id'  => (string) $pendaftaran->id,
+        'type'            => 'sk_ujian_hasil',
+        'folder_name'     => $folderName,
+        'mahasiswa'       => [
+            'nama'     => $pendaftaran->user->name    ?? 'Unknown',
+            'nim'      => $pendaftaran->user->nim     ?? null,
+            'angkatan' => $pendaftaran->angkatan      ?? null,
+        ],
+        'judul_skripsi'   => $pendaftaran->judul_skripsi ?? '',
+        'nomor_sk_ujian_hasil' => $jadwal->nomor_sk ?? '',
+        'dosen_list'      => $dosenList,
+        'files'           => $files, // ✅ files['skripsi'] berisi base64
+    ];
+
+    Log::info('[RepodosenSync] Sync SK Ujian Hasil payload', [
+        'pendaftaran_id' => $pendaftaran->id,
+        'jadwal_id' => $jadwal->id,
+        'folder_name' => $folderName,
+        'files_keys' => array_keys($files),
+        'nomor_sk' => $jadwal->nomor_sk,
+    ]);
+
+    $endpoint = $this->baseUrl . '/api/sync/skripsi';
+
+    return $this->post($endpoint, $payload, $pendaftaran->id);
+}
+
+/**
+ * Generate folder name untuk SK Ujian Hasil
+ */
+private function generateFolderNameUjianHasil(PendaftaranUjianHasil $pendaftaran): string
+{
+    $nama = preg_replace('/[^a-zA-Z0-9\s]/', '', $pendaftaran->user->name ?? 'Unknown');
+    $judul = preg_replace('/[^a-zA-Z0-9\s]/', '', $pendaftaran->judul_skripsi ?? 'Skripsi');
+
+    $nama = str_replace(' ', '_', trim($nama));
+    $judul = implode('_', array_slice(explode(' ', trim($judul)), 0, 5));
+
+    return "ujian_hasil_{$nama}_{$judul}";
+}
 }
