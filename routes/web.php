@@ -46,6 +46,7 @@ use App\Http\Controllers\User\SuratPindahController;
 use App\Http\Controllers\User\TrackingSuratController;
 use App\Http\Controllers\User\UserServiceController;
 use App\Http\Controllers\Sync\SkProposalController;
+use App\Http\Controllers\Sync\SkUjianHasilController;
 use App\Models\TahunAjaran;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
@@ -420,7 +421,7 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa'])->get('/payment-alert',
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
 
-    // ✅ PERBAIKAN: Pindahkan route sync ke dalam group admin dengan benar
+    //  Sync Sk Proposal
     Route::middleware(['role:staff'])->prefix('sync')->name('sync.')->group(function () {
         Route::prefix('sk-proposal')->name('sk-proposal.')->group(function () {
             Route::get('/', [SkProposalController::class, 'index'])->name('index');
@@ -429,6 +430,16 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             Route::get('/{skProposal}/download', [SkProposalController::class, 'download'])->name('download');
             Route::post('/{skProposal}/sync', [SkProposalController::class, 'syncToRepodosen'])->name('sync');
             Route::post('/sync-all', [SkProposalController::class, 'syncAll'])->name('sync-all');
+        });
+
+     //  Sync SK Ujian Hasil
+        Route::prefix('sk-ujian-hasil')->name('sk-ujian-hasil.')->group(function () {
+            Route::get('/', [SkUjianHasilController::class, 'index'])->name('index');
+            Route::get('/{skUjianHasil}', [SkUjianHasilController::class, 'show'])->name('show');
+            Route::get('/{skUjianHasil}/preview', [SkUjianHasilController::class, 'preview'])->name('preview');
+            Route::get('/{skUjianHasil}/download', [SkUjianHasilController::class, 'download'])->name('download');
+            Route::post('/{skUjianHasil}/sync', [SkUjianHasilController::class, 'syncToRepodosen'])->name('sync');
+            Route::post('/sync-all', [SkUjianHasilController::class, 'syncAll'])->name('sync-all');
         });
     });
     

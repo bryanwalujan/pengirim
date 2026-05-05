@@ -1635,6 +1635,24 @@
             </li>
         @endif
 
+        {{-- Sync SK Ujian Hasil - Staff Only --}}
+        @if(auth()->user()->hasRole('staff'))
+    <li class="menu-item {{ request()->routeIs('admin.sync.sk-ujian-hasil.*') ? 'active' : '' }}">
+        <a href="{{ route('admin.sync.sk-ujian-hasil.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-cloud-upload"></i>
+                    <div>Sync SK Ujian Hasil</div>
+                    @phpx
+                        $pendingSyncCount = \App\Models\JadwalUjianHasil::whereNotNull('file_sk_ujian_hasil')
+                            ->where('status', 'menunggu_jadwal')
+                            ->count();
+                    @endphp
+                    @if($pendingSyncCount > 0)
+                        <span class="badge bg-danger rounded-pill ms-auto">{{ $pendingSyncCount }}</span>
+                    @endif
+                </a>
+            </li>
+        @endif
+
         {{-- ============================================================ --}}
         {{-- KATEGORI 3: LAYANAN AKADEMIK --}}
         {{-- ============================================================ --}}
