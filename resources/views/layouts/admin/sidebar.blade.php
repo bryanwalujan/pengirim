@@ -1617,7 +1617,7 @@
             </li>
         @endif
 
-                {{-- Sync SK Proposal - Staff Only --}}
+        {{-- Sync SK Proposal - Staff Only --}}
         @if(auth()->user()->hasRole('staff'))
             <li class="menu-item {{ request()->routeIs('admin.sync.sk-proposal.*') ? 'active' : '' }}">
                 <a href="{{ route('admin.sync.sk-proposal.index') }}" class="menu-link">
@@ -1648,6 +1648,25 @@
                     @endphp
                     @if($pendingSkUjianHasilCount > 0)
                         <span class="badge bg-danger rounded-pill ms-auto">{{ $pendingSkUjianHasilCount }}</span>
+                    @endif
+                </a>
+            </li>
+        @endif
+
+        {{-- Sync SK Pembimbing - Staff Only --}}
+        @if(auth()->user()->hasRole('staff'))
+            <li class="menu-item {{ request()->routeIs('admin.sync.sk-pembimbing.*') ? 'active' : '' }}">
+                <a href="{{ route('admin.sync.sk-pembimbing.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-cloud-upload"></i>
+                    <div>Sync SK Pembimbing</div>
+                    @php
+                        $pendingSkPembimbingCount = \App\Models\PengajuanSkPembimbing::whereNotNull('file_surat_sk')
+                            ->whereNull('synced_at')
+                            ->where('status', \App\Models\PengajuanSkPembimbing::STATUS_SELESAI)
+                            ->count();
+                    @endphp
+                    @if($pendingSkPembimbingCount > 0)
+                        <span class="badge bg-danger rounded-pill ms-auto">{{ $pendingSkPembimbingCount }}</span>
                     @endif
                 </a>
             </li>
