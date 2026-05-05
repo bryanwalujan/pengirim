@@ -7,6 +7,7 @@ use App\Models\PendaftaranUjianHasil;
 use App\Models\PendaftaranSeminarProposal;
 use App\Models\JadwalSeminarProposal;
 use App\Models\JadwalUjianHasil;
+use App\Models\PengajuanSkPembimbing;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -758,5 +759,124 @@ private function generateFolderNameUjianHasil(PendaftaranUjianHasil $pendaftaran
     $judul = implode('_', array_slice(explode(' ', trim($judul)), 0, 5));
 
     return "ujian_hasil_{$nama}_{$judul}";
+}
+
+/**
+ * Sync SK Pembimbing ke repodosen
+ */
+public function syncSkPembimbing(PengajuanSkPembimbing $pengajuan): array
+{
+    $pengajuan->loadMissing(['mahasiswa', 'dosenPembimbing1', 'dosenPembimbing2']);
+
+    // Build dosen list (dua dosen pembimbing)
+    $dosenList = [];
+    
+    if ($pengajuan->dosenPembimbing1) {
+        $dosenList[] = [
+            'nama' => $pengajuan->dosenPembimbing1->name,
+            'nip'  => $pengajuan->dosenPembimbing1->nip ?? null,
+            'nidn' => $pengajuan->dosenPembimbing1->nidn ?? null,
+            'role' => 'pembimbing_1',
+        ];
+    }
+    
+    if ($pengajuan->dosenPembimbing2) {
+        $dosenList[] = [
+            'nama' => $pengajuan->dosenPembimbing2->name,
+            'nip'  => $pengajuan->dosenPembimbing2->nip ?? null,
+            'nidn' => $pengajuan->dosenPembimbing2->nidn ?? null,
+            'role' => 'pembimbing_2',
+        ];
+    }
+
+    if (empty($dosenList)) {
+        return [
+            'success' => false,
+            'message' => 'Tidak ada data dosen pembimbing untuk disync.',
+            'results' => [],
+        ];
+    }
+
+    // Encode file SK Pembimbing
+    $files = [];
+    
+    Log::info('[RepodosenSync] Debug SK Pembimbing file path', [
+        'pengajuan_id' => $pengajuan->id,
+        'file_path' => $pengajuan->file_surat_sk,
+        'nomor_surat' => $pengajuan->nomor_surat,
+    ]);
+    
+    if ($pengajuan->file_surat_sk) {
+        if (Storage::disk('local')->exists($pengajuan->file_surat_sk)) {
+            $content = Storage::disk('local')->get($pengajuan->file_surat_sk);
+            $files['sk_pembimbing'] = base64_encode($content);
+            
+            Log::info('[RepodosenSync] File SK Pembimbing berhasil diencode', [
+                'size_kb' => round(strlen($content) / 1024, 2),
+                'pengajuan_id' => $pengajuan->id,
+            ]);
+        } else {
+            Log::error('[RepodosenSync] Gagal membaca file SK Pembimbing', [
+                'pengajuan_id' => $pengajuan->id,
+                'file_path' => $pengajuan->file_surat_sk,
+            ]);
+            
+            return [
+                'success' => false,
+                'message' => 'Gagal membaca file SK Pembimbing.',
+                'results' => [],
+            ];
+        }
+    } else {
+        return [
+            'success' => false,
+            'message' => 'File SK Pembimbing tidak ditemukan.',
+            'results' => [],
+        ];
+    }
+
+    // Generate folder name
+    $folderName = $this->generateFolderNameSkPembimbing($pengajuan);
+
+    $payload = [
+        'source'           => 'presma',
+        'pendaftaran_id'   => (string) $pengajuan->id,
+        'type'             => 'sk_pembimbing',
+        'folder_name'      => $folderName,
+        'mahasiswa'        => [
+            'nama'     => $pengajuan->mahasiswa->name    ?? 'Unknown',
+            'nim'      => $pengajuan->mahasiswa->nim     ?? null,
+            'angkatan' => $pengajuan->angkatan           ?? null,
+        ],
+        'judul_skripsi'    => $pengajuan->judul_skripsi ?? '',
+        'nomor_surat'      => $pengajuan->nomor_surat ?? '',
+        'dosen_list'       => $dosenList,
+        'files'            => $files,
+    ];
+
+    Log::info('[RepodosenSync] Sync SK Pembimbing payload', [
+        'pendaftaran_id' => $pengajuan->id,
+        'folder_name' => $folderName,
+        'files_keys' => array_keys($files),
+        'nomor_surat' => $pengajuan->nomor_surat,
+    ]);
+
+    $endpoint = $this->baseUrl . '/api/sync/skripsi';
+
+    return $this->post($endpoint, $payload, $pengajuan->id);
+}
+
+/**
+ * Generate folder name untuk SK Pembimbing
+ */
+private function generateFolderNameSkPembimbing(PengajuanSkPembimbing $pengajuan): string
+{
+    $nama = preg_replace('/[^a-zA-Z0-9\s]/', '', $pengajuan->mahasiswa->name ?? 'Unknown');
+    $judul = preg_replace('/[^a-zA-Z0-9\s]/', '', $pengajuan->judul_skripsi ?? 'Skripsi');
+
+    $nama = str_replace(' ', '_', trim($nama));
+    $judul = implode('_', array_slice(explode(' ', trim($judul)), 0, 5));
+
+    return "sk_pembimbing_{$nama}_{$judul}";
 }
 }

@@ -47,6 +47,7 @@ use App\Http\Controllers\User\TrackingSuratController;
 use App\Http\Controllers\User\UserServiceController;
 use App\Http\Controllers\Sync\SkProposalController;
 use App\Http\Controllers\Sync\SkUjianHasilController;
+use App\Http\Controllers\Sync\SkPembimbingController as SyncSkPembimbingController;
 use App\Models\TahunAjaran;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
@@ -440,6 +441,15 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             Route::get('/{skUjianHasil}/download', [SkUjianHasilController::class, 'download'])->name('download');
             Route::post('/{skUjianHasil}/sync', [SkUjianHasilController::class, 'syncToRepodosen'])->name('sync');
             Route::post('/sync-all', [SkUjianHasilController::class, 'syncAll'])->name('sync-all');
+        });
+
+        Route::prefix('sk-pembimbing')->name('sk-pembimbing.')->group(function () {
+            Route::get('/', [SyncSkPembimbingController::class, 'index'])->name('index');
+            Route::get('/{skPembimbing}', [SyncSkPembimbingController::class, 'show'])->name('show');
+            Route::get('/{skPembimbing}/preview', [SyncSkPembimbingController::class, 'preview'])->name('preview');
+            Route::get('/{skPembimbing}/download', [SyncSkPembimbingController::class, 'download'])->name('download');
+            Route::post('/{skPembimbing}/sync', [SyncSkPembimbingController::class, 'syncToRepodosen'])->name('sync');
+            Route::post('/sync-all', [SyncSkPembimbingController::class, 'syncAll'])->name('sync-all');
         });
     });
     
