@@ -6,6 +6,7 @@ namespace App\Services;
 use App\Models\PendaftaranUjianHasil;
 use App\Models\PendaftaranSeminarProposal;
 use App\Models\JadwalSeminarProposal;
+use App\Models\JadwalUjianHasil;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
