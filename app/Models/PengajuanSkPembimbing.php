@@ -88,6 +88,8 @@ class PengajuanSkPembimbing extends Model
 
         // Override Info (for staff override signatures)
         'override_info',
+
+        'synced_at', 
     ];
 
     protected function casts(): array
