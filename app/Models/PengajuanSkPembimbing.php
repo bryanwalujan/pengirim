@@ -101,6 +101,7 @@ class PengajuanSkPembimbing extends Model
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
             'override_info' => 'array',
+            'synced_at' => 'datetime',
         ];
     }
 
