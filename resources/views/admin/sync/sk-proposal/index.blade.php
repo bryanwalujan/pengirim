@@ -103,61 +103,78 @@
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th class="ps-4" width="50">#</th>
-                                <th>Mahasiswa</th>
-                                <th>NIM</th>
-                                <th>Judul Skripsi</th>
-                                <th>Dosen Pembimbing</th>
-                                <th>Nomor SK</th>
-                                <th>Status</th>
-                                <th class="text-center pe-4">Aksi</th>
+                                <th width="50" class="ps-4 text-center">No</th>
+                                <th class="text-nowrap">NIM / Mahasiswa</th>
+                                <th class="text-nowrap">Judul Skripsi</th>
+                                <th class="text-nowrap">Dosen Pembimbing</th>
+                                <th class="text-nowrap">Nomor SK</th>
+                                <th class="text-nowrap text-center">Status</th>
+                                <th class="text-nowrap text-center pe-4">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach($skProposals as $index => $sk)
                             <tr>
-                                <td class="ps-4 text-muted small">{{ $skProposals->firstItem() + $index }}</td>
-                                <td>
-                                    <div class="fw-semibold">{{ $sk->pendaftaranSeminarProposal->user->name ?? '-' }}</div>
+                                <td class="ps-4 text-center text-muted small">
+                                    {{ $skProposals->firstItem() + $index }}
                                 </td>
-                                <td><code>{{ $sk->pendaftaranSeminarProposal->user->nim ?? '-' }}</code></td>
                                 <td>
-                                    <div class="text-wrap" style="max-width: 300px;">
-                                        {{ Str::limit($sk->pendaftaranSeminarProposal->judul_skripsi ?? '-', 50) }}
+                                    <div class="d-flex flex-column">
+                                        <span class="fw-semibold">
+                                            {{ $sk->pendaftaranSeminarProposal->user->name ?? '-' }}
+                                        </span>
+                                        <small class="text-muted">
+                                            <code>{{ $sk->pendaftaranSeminarProposal->user->nim ?? '-' }}</code>
+                                        </small>
                                     </div>
                                 </td>
-                                <td>
-                                    {{ Str::limit($sk->pendaftaranSeminarProposal->dosenPembimbing->name ?? '-', 30) }}
+                                <td style="min-width: 250px; max-width: 300px;">
+                                    <div class="text-wrap">
+                                        {{ Str::limit($sk->pendaftaranSeminarProposal->judul_skripsi ?? '-', 60) }}
+                                    </div>
                                 </td>
-                                <td>
-                                    <span class="badge bg-info">{{ $sk->nomor_sk_proposal ?: '-' }}</span>
+                                <td style="min-width: 180px;">
+                                    <span class="small">
+                                        {{ Str::limit($sk->pendaftaranSeminarProposal->dosenPembimbing->name ?? '-', 35) }}
+                                    </span>
                                 </td>
-                                <td>
-                                    <span class="badge bg-warning">
-                                        <i class="bx bx-time me-1"></i> Menunggu Sync
+                                <td class="text-nowrap">
+                                    @if($sk->nomor_sk_proposal)
+                                        <span class="badge bg-info">{{ $sk->nomor_sk_proposal }}</span>
+                                    @else
+                                        <span class="text-muted small">-</span>
+                                    @endif
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-warning px-3 py-2">
+                                        <i class="bx bx-time me-1"></i> Menunggu
                                     </span>
                                 </td>
                                 <td class="text-center pe-4">
-                                    <a href="{{ route('admin.sync.sk-proposal.show', $sk) }}" 
-                                       class="btn btn-sm btn-outline-primary" title="Lihat Detail">
-                                        <i class="bx bx-show"></i>
-                                    </a>
-                                    <a href="{{ route('admin.sync.sk-proposal.download', $sk) }}" 
-                                       class="btn btn-sm btn-outline-success" title="Download SK">
-                                        <i class="bx bx-download"></i>
-                                    </a>
-                                    <form action="{{ route('admin.sync.sk-proposal.sync', $sk) }}" 
-                                          method="POST" 
-                                          class="d-inline" 
-                                          id="sync-form-{{ $sk->id }}">
-                                        @csrf
-                                        <button type="submit" 
-                                                class="btn btn-sm btn-primary" 
-                                                title="Sync ke Repodosen"
-                                                onclick="return confirm('Sync SK Proposal untuk {{ addslashes($sk->pendaftaranSeminarProposal->user->name ?? '') }} ke Repodosen?')">
-                                            <i class="bx bx-cloud-upload"></i>
-                                        </button>
-                                    </form>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a href="{{ route('admin.sync.sk-proposal.show', $sk) }}" 
+                                           class="btn btn-outline-primary" 
+                                           title="Lihat Detail">
+                                            <i class="bx bx-show"></i>
+                                        </a>
+                                        <a href="{{ route('admin.sync.sk-proposal.download', $sk) }}" 
+                                           class="btn btn-outline-success" 
+                                           title="Download SK">
+                                            <i class="bx bx-download"></i>
+                                        </a>
+                                        <form action="{{ route('admin.sync.sk-proposal.sync', $sk) }}" 
+                                              method="POST" 
+                                              class="d-inline" 
+                                              id="sync-form-{{ $sk->id }}">
+                                            @csrf
+                                            <button type="submit" 
+                                                    class="btn btn-outline-primary" 
+                                                    title="Sync ke Repodosen"
+                                                    onclick="return confirm('Sync SK Proposal untuk {{ addslashes($sk->pendaftaranSeminarProposal->user->name ?? '') }} ke Repodosen?')">
+                                                <i class="bx bx-cloud-upload"></i>
+                                            </button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                             @endforeach

@@ -103,65 +103,84 @@
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th class="ps-4" width="50">#</th>
-                                <th>Mahasiswa</th>
-                                <th>NIM</th>
-                                <th>Judul Skripsi</th>
-                                <th>Pembimbing 1</th>
-                                <th>Pembimbing 2</th>
-                                <th>Nomor Surat</th>
-                                <th>Status</th>
-                                <th class="text-center pe-4">Aksi</th>
+                                <th width="50" class="ps-4 text-center">No</th>
+                                <th class="text-nowrap">NIM / Mahasiswa</th>
+                                <th class="text-nowrap">Judul Skripsi</th>
+                                <th class="text-nowrap">Pembimbing 1</th>
+                                <th class="text-nowrap">Pembimbing 2</th>
+                                <th class="text-nowrap">Nomor Surat</th>
+                                <th class="text-nowrap text-center">Status</th>
+                                <th class="text-nowrap text-center pe-4">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach($skPembimbingList as $index => $sk)
                             <tr>
-                                <td class="ps-4 text-muted small">{{ $skPembimbingList->firstItem() + $index }}</td>
-                                <td>
-                                    <div class="fw-semibold">{{ $sk->mahasiswa->name ?? '-' }}</div>
+                                <td class="ps-4 text-center text-muted small">
+                                    {{ $skPembimbingList->firstItem() + $index }}
                                 </td>
-                                <td><code>{{ $sk->mahasiswa->nim ?? '-' }}</code></td>
                                 <td>
-                                    <div class="text-wrap" style="max-width: 300px;">
-                                        {{ Str::limit($sk->judul_skripsi ?? '-', 50) }}
+                                    <div class="d-flex flex-column">
+                                        <span class="fw-semibold">
+                                            {{ $sk->mahasiswa->name ?? '-' }}
+                                        </span>
+                                        <small class="text-muted">
+                                            <code>{{ $sk->mahasiswa->nim ?? '-' }}</code>
+                                        </small>
                                     </div>
                                 </td>
-                                <td>
-                                    {{ Str::limit($sk->dosenPembimbing1->name ?? '-', 30) }}
+                                <td style="min-width: 250px; max-width: 300px;">
+                                    <div class="text-wrap">
+                                        {{ Str::limit($sk->judul_skripsi ?? '-', 60) }}
+                                    </div>
                                 </td>
-                                <td>
-                                    {{ Str::limit($sk->dosenPembimbing2->name ?? '-', 30) }}
+                                <td style="min-width: 160px;">
+                                    <span class="small">
+                                        {{ Str::limit($sk->dosenPembimbing1->name ?? '-', 30) }}
+                                    </span>
                                 </td>
-                                <td>
-                                    <span class="badge bg-info">{{ $sk->nomor_surat ?: '-' }}</span>
+                                <td style="min-width: 160px;">
+                                    <span class="small">
+                                        {{ Str::limit($sk->dosenPembimbing2->name ?? '-', 30) }}
+                                    </span>
                                 </td>
-                                <td>
-                                    <span class="badge bg-warning">
-                                        <i class="bx bx-time me-1"></i> Menunggu Sync
+                                <td class="text-nowrap">
+                                    @if($sk->nomor_surat)
+                                        <span class="badge bg-info">{{ $sk->nomor_surat }}</span>
+                                    @else
+                                        <span class="text-muted small">-</span>
+                                    @endif
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-warning px-3 py-2">
+                                        <i class="bx bx-time me-1"></i> Menunggu
                                     </span>
                                 </td>
                                 <td class="text-center pe-4">
-                                    <a href="{{ route('admin.sync.sk-pembimbing.show', $sk) }}" 
-                                       class="btn btn-sm btn-outline-primary" title="Lihat Detail">
-                                        <i class="bx bx-show"></i>
-                                    </a>
-                                    <a href="{{ route('admin.sync.sk-pembimbing.download', $sk) }}" 
-                                       class="btn btn-sm btn-outline-success" title="Download SK">
-                                        <i class="bx bx-download"></i>
-                                    </a>
-                                    <form action="{{ route('admin.sync.sk-pembimbing.sync', $sk) }}" 
-                                          method="POST" 
-                                          class="d-inline" 
-                                          id="sync-form-{{ $sk->id }}">
-                                        @csrf
-                                        <button type="submit" 
-                                                class="btn btn-sm btn-primary" 
-                                                title="Sync ke Repodosen"
-                                                onclick="return confirm('Sync SK Pembimbing untuk {{ addslashes($sk->mahasiswa->name ?? '') }} ke Repodosen?')">
-                                            <i class="bx bx-cloud-upload"></i>
-                                        </button>
-                                    </form>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a href="{{ route('admin.sync.sk-pembimbing.show', $sk) }}" 
+                                           class="btn btn-outline-primary" 
+                                           title="Lihat Detail">
+                                            <i class="bx bx-show"></i>
+                                        </a>
+                                        <a href="{{ route('admin.sync.sk-pembimbing.download', $sk) }}" 
+                                           class="btn btn-outline-success" 
+                                           title="Download SK">
+                                            <i class="bx bx-download"></i>
+                                        </a>
+                                        <form action="{{ route('admin.sync.sk-pembimbing.sync', $sk) }}" 
+                                              method="POST" 
+                                              class="d-inline" 
+                                              id="sync-form-{{ $sk->id }}">
+                                            @csrf
+                                            <button type="submit" 
+                                                    class="btn btn-outline-primary" 
+                                                    title="Sync ke Repodosen"
+                                                    onclick="return confirm('Sync SK Pembimbing untuk {{ addslashes($sk->mahasiswa->name ?? '') }} ke Repodosen?')">
+                                                <i class="bx bx-cloud-upload"></i>
+                                            </button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                             @endforeach
