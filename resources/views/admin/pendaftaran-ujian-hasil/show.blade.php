@@ -265,34 +265,6 @@
                          {{-- Sync ke Repodosen --}}
     @if ($pendaftaranUjianHasil->isSelesai())
     <hr class="my-2">
-    
-    {{-- Sync dengan file skripsi (recommended) --}}
-    <form action="{{ route('admin.pendaftaran-ujian-hasil.sync-repodosen', $pendaftaranUjianHasil) }}"
-          method="POST"
-          id="form-sync-skripsi">
-        @csrf
-        <input type="hidden" name="mode" value="skripsi">
-        <button type="button"
-                class="btn btn-success w-100 mb-2"
-                onclick="confirmSyncSkripsi()">
-            <i class="bx bx-cloud-upload me-1"></i>
-            Sync Lengkap (Dosen + File Skripsi)
-        </button>
-    </form>
-    
-    {{-- Sync dosen saja (tanpa file) --}}
-    <form action="{{ route('admin.pendaftaran-ujian-hasil.sync-repodosen', $pendaftaranUjianHasil) }}"
-          method="POST"
-          id="form-sync-dosen">
-        @csrf
-        <input type="hidden" name="mode" value="dosen">
-        <button type="button"
-                class="btn btn-outline-primary w-100 mb-2"
-                onclick="confirmSyncDosen()">
-            <i class="bx bx-cloud-upload me-1"></i>
-            Sync Dosen Saja (Tanpa File)
-        </button>
-    </form>
 @endif
 
                         {{-- Download Surat --}}

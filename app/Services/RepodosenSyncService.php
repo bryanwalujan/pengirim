@@ -57,11 +57,6 @@ class RepodosenSyncService
         return $this->post($endpoint, $payload, $pendaftaran->id);
     }
 
-    /**
-     * Sync lengkap skripsi + dosen + file
-     * File akan dikirim sebagai base64 dan akan disimpan di repodosen
-     * dengan struktur folder terpisah: skripsi/, sk_pembimbing/, proposal/
-     */
     public function syncSkripsi(PendaftaranUjianHasil $pendaftaran): array
     {
         $pendaftaran->loadMissing(['dosenPembimbing1', 'dosenPembimbing2', 'user']);
